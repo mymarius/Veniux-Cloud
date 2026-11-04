@@ -67,7 +67,7 @@ export default function Login() {
           <label className="flex cursor-pointer items-center gap-2 font-medium">
             <input data-testid="input-remember-me" type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} className="h-4 w-4 rounded-md border-gray-300 text-brand-500 focus:ring-brand-500" /> Beni hatırla
           </label>
-          <button data-testid="button-forgot-password" type="button" onClick={() => showToast('Şifre yenileme için sistem yöneticinizle iletişime geçin.', 'info')} className="font-bold text-brand-600 hover:underline">Şifremi unuttum</button>
+          <Link data-testid="button-forgot-password" to="/forgot-password" className="font-bold text-brand-600 hover:underline">Şifremi unuttum</Link>
         </div>
         <button data-testid="button-login-submit" type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-full shadow-md shadow-brand-500/25 disabled:cursor-wait disabled:opacity-60 flex items-center justify-center gap-2 mt-2">
           <span>{loading ? 'Doğrulanıyor...' : 'Giriş Yap'}</span>

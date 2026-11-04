@@ -78,14 +78,14 @@ class WarehouseLocationService {
       FROM product_bin_records pbr
       JOIN products p ON pbr.product_id = p.id
       LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id
-      WHERE pbr.location_id = $1 AND pbr.quantity > 0
+      WHERE pbr.location_id = $1 AND pbr.tenant_id = $2 AND pbr.quantity > 0
       ORDER BY p.name ASC
-    `, [id]);
+    `, [id, tenantId]);
 
     const husRes = await pool.query(`
       SELECT * FROM handling_units 
-      WHERE current_location_id = $1
-    `, [id]);
+      WHERE current_location_id = $1 AND tenant_id = $2
+    `, [id, tenantId]);
 
     return {
       ...location,
@@ -180,14 +180,14 @@ class WarehouseLocationService {
   /**
    * Lock / Unlock location
    */
-  async toggleLockLocation(id, isLocked, reason = null) {
+  async toggleLockLocation(id, isLocked, reason = null, tenantId) {
     const query = `
       UPDATE warehouse_locations 
       SET is_locked = $1, lock_reason = $2
-      WHERE id = $3
+      WHERE id = $3 AND tenant_id = $4
       RETURNING *
     `;
-    const result = await pool.query(query, [isLocked ? 1 : 0, reason, id]);
+    const result = await pool.query(query, [isLocked ? 1 : 0, reason, id, tenantId]);
     return result.rows[0];
   }
 }

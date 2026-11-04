@@ -209,7 +209,7 @@ const updateCompany = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     await ensureSettingsSchema();
-    const tenantId = req.user.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const result = await pool.query(
       "SELECT u.id,u.email,u.role,u.full_name,u.phone,u.status,u.created_at,u.last_login,COALESCE(a.mode,'restricted') AS access_mode,(SELECT COUNT(*) FROM user_warehouse_access w WHERE w.user_id=u.id AND w.tenant_id=u.tenant_id) AS assigned_warehouses FROM users u LEFT JOIN user_access_scopes a ON a.user_id=u.id AND a.tenant_id=u.tenant_id WHERE u.tenant_id=$1 ORDER BY u.id ASC",
       [tenantId]
@@ -237,7 +237,7 @@ const getUsers = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     await ensureSettingsSchema();
-    const tenantId = req.user.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const { email, password, role = 'viewer', fullName, phone } = req.body;
     if (!['admin','manager','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
 
@@ -272,7 +272,7 @@ const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { role, status, fullName, phone, newPassword } = req.body;
-    const tenantId = req.user.tenantId || 1;
+    const tenantId = req.user.tenantId;
     if (role !== undefined && !['admin','manager','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
     if (status !== undefined && !['active','inactive','suspended'].includes(status)) return res.status(400).json({error:'Geçersiz hesap durumu.'});
     if (Number(id) === req.user.userId && ((role && role !== 'admin') || (status && status !== 'active'))) return res.status(400).json({error:'Kendi yönetici erişiminizi kapatamazsınız.'});
@@ -304,13 +304,14 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const tenantId = req.user.tenantId || 1;
+    const tenantId = req.user.tenantId;
 
     if (parseInt(id, 10) === req.user.userId) {
       return res.status(400).json({ error: 'Kendi hesabınızı silemezsiniz.' });
     }
 
-    await pool.query('DELETE FROM users WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+    const removed = await pool.query('DELETE FROM users WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+    if (!removed.rowCount) return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
     res.json({ message: 'Kullanıcı başarıyla silindi.' });
   } catch (error) {
     console.error('deleteUser error:', error);

@@ -40,6 +40,8 @@ const LicenseActivation = lazy(() => import('./pages/LicenseActivation'));
 
 // Core Veniux ERP & Stock Management Pages
 const Login = lazy(() => import('./pages/Login'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => window.veniuxMobile?import('./pages/mobile/MobileHome'):import('./pages/Dashboard'));
 const Inventory = lazy(() => import('./pages/Inventory'));
@@ -114,6 +116,8 @@ function AppContent() {
             <Route path="/business" element={<ProtectedRoute><BusinessPortal /></ProtectedRoute>} />
             <Route path="/business-invite" element={<BusinessInvite />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin/api" element={<ProtectedRoute><ApiManagement /></ProtectedRoute>} />
             <Route path="/activate" element={<LicenseActivation />} />

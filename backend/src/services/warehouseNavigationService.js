@@ -4,7 +4,7 @@ class WarehouseNavigationService {
   /**
    * Optimize picking route for a list of location items using S-Shape / TSP heuristic with Euclidean distance
    */
-  async optimizePickPath(locationItems, warehouseId, startPoint = { x: 0, y: 0 }, client = pool) {
+  async optimizePickPath(locationItems, warehouseId, tenantId, startPoint = { x: 0, y: 0 }, client = pool) {
     if (!locationItems || locationItems.length === 0) return [];
 
     // 1. Fetch coordinates for all locations
@@ -15,8 +15,8 @@ class WarehouseNavigationService {
       SELECT id, location_code, aisle_code, rack_number, shelf_tier, bin_position,
              x_coord, y_coord, z_coord
       FROM warehouse_locations 
-      WHERE warehouse_id = $1 AND id IN (${locationIds.map((_, i) => '$' + (i + 2)).join(',')})
-    `, [warehouseId, ...locationIds]);
+      WHERE warehouse_id = $1 AND tenant_id = $2 AND id IN (${locationIds.map((_, i) => '$' + (i + 3)).join(',')})
+    `, [warehouseId, tenantId, ...locationIds]);
 
     const locMap = {};
     locsRes.rows.forEach(loc => {

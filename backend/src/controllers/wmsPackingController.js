@@ -35,7 +35,7 @@ class WMSPackingController {
     try {
       const { warehouse_id } = req.query;
       if (!warehouse_id) return res.status(400).json({ error: 'warehouse_id gereklidir' });
-      const hus = await wmsPackingService.getHandlingUnits(warehouse_id);
+      const hus = await wmsPackingService.getHandlingUnits(warehouse_id, req.user.tenantId);
       res.json(hus);
     } catch (err) {
       console.error('Get HUs error:', err);
@@ -47,7 +47,7 @@ class WMSPackingController {
     try {
       const { warehouse_id } = req.query;
       if (!warehouse_id) return res.status(400).json({ error: 'warehouse_id gereklidir' });
-      const appointments = await wmsPackingService.getDockAppointments(warehouse_id);
+      const appointments = await wmsPackingService.getDockAppointments(warehouse_id, req.user.tenantId);
       res.json(appointments);
     } catch (err) {
       console.error('Get dock appointments error:', err);

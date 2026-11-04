@@ -29,7 +29,7 @@ class WMSSlottingController {
     try {
       const { warehouse_id } = req.query;
       if (!warehouse_id) return res.status(400).json({ error: 'warehouse_id zorunludur' });
-      const needs = await wmsSlottingService.checkReplenishmentNeeds(warehouse_id);
+      const needs = await wmsSlottingService.checkReplenishmentNeeds(warehouse_id, req.user.tenantId);
       res.json(needs);
     } catch (err) {
       console.error('Get replenishment error:', err);

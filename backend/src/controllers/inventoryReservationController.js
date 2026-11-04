@@ -18,7 +18,7 @@ class InventoryReservationController {
   async releaseReservation(req, res) {
     try {
       const { id } = req.params;
-      const result = await inventoryReservationService.releaseReservation(id);
+      const result = await inventoryReservationService.releaseReservation(id, req.user.tenantId);
       res.json(result);
     } catch (err) {
       console.error('Release reservation error:', err);

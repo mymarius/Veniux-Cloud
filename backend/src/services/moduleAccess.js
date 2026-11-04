@@ -6,7 +6,8 @@ async function getModuleType(tenantId, centralLicense) {
     return ['NORMAL','BOTH'].includes(type)?'NORMAL':'NONE';
   }
   const license = (await db.query('SELECT status,expires_at,plan_id,enabled_features_json FROM licenses WHERE tenant_id=$1 ORDER BY id DESC LIMIT 1', [tenantId])).rows[0];
-  if (!license || license.status !== 'ACTIVE' || !license.expires_at) return 'NONE';
+  // Ödemesi başarısız lisans (PAST_DUE) ödenmiş dönem bitene kadar çalışır; süre kontrolü aşağıdadır.
+  if (!license || !['ACTIVE', 'PAST_DUE'].includes(license.status) || !license.expires_at) return 'NONE';
   const raw = String(license.expires_at);
   const expiry = Date.parse(raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z');
   if (!Number.isFinite(expiry) || expiry <= Date.now()) return 'NONE';

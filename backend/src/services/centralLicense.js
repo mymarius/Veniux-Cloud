@@ -30,7 +30,7 @@ async function gate(req,res,next) {
   if(!enabled()) return next();
   // Public sales assistance does not operate on a licensed tenant's data.
   if(process.env.VENIUX_CLOUD_SERVICE!=='1'&&((req.method==='GET'&&req.path==='/ai/visitor') || (req.method==='POST'&&['/ai/visitor/chat','/ai/speech'].includes(req.path))))return next();
-  if(['/license/policy','/license/activate','/license/validate','/license/deactivate','/license/plans','/auth/register'].includes(req.path)) return next();
+  if(['/license/policy','/license/activate','/license/validate','/license/deactivate','/license/plans','/license/webhooks/payment','/auth/register'].includes(req.path)) return next();
   try {
     if(!req.get('x-veniux-device-token'))return res.status(423).json({code:'LICENSE_REQUIRED',error:'Bu cihazda lisans etkinleştirilmemiş. Önce VNX- ile başlayan lisans anahtarınızı etkinleştirin.'});
     const license=await verify(req.get('x-veniux-device-token'),req.get('x-device-id'));

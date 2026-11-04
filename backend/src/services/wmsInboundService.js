@@ -80,11 +80,11 @@ class WMSInboundService {
         const suggestedBinRes = await client.query(`
           SELECT loc.id FROM warehouse_locations loc
           LEFT JOIN product_bin_records pbr ON loc.id = pbr.location_id
-          WHERE loc.warehouse_id = $1 AND loc.is_locked = 0 AND loc.location_type IN ('storage', 'pick_face')
+          WHERE loc.warehouse_id = $1 AND loc.tenant_id = $2 AND loc.is_locked = 0 AND loc.location_type IN ('storage', 'pick_face')
           GROUP BY loc.id
           ORDER BY COALESCE(SUM(pbr.quantity), 0) ASC
           LIMIT 1
-        `, [warehouse_id]);
+        `, [warehouse_id, tenant_id]);
 
         const targetLocId = suggestedBinRes.rows[0]?.id || null;
 
@@ -95,7 +95,7 @@ class WMSInboundService {
         `, [tenant_id, receipt.id, item.product_id, item.lot_number || null, item.expiry_date || null, item.expected_qty, targetLocId,item.unit_purchase_price==null?null:Number(item.unit_purchase_price),item.purchase_price_tax_basis,item.purchase_price_tax_basis==null?null:Number(item.purchase_vat_rate)]);
       }
 
-      if(data.purchase_order_id)await client.query('UPDATE wms_inbound_receipts SET purchase_order_id=$1 WHERE id=$2',[data.purchase_order_id,receipt.id]);
+      if(data.purchase_order_id)await client.query('UPDATE wms_inbound_receipts SET purchase_order_id=$1 WHERE id=$2 AND tenant_id=$3',[data.purchase_order_id,receipt.id,tenant_id]);
       const result=await this.getReceiptById(receipt.id,tenant_id,client);
       await saveOperation(client,data,op,result);
       await auditInbound(client,data,'wms.inbound.create',receipt.id,{receipt_no:receipt.receipt_no,items:result.items});
@@ -146,8 +146,8 @@ class WMSInboundService {
       // 2. SECURITY: Verify target location belongs to the same warehouse and is not locked
       if (actual_location_id) {
         const locCheck = await client.query(
-          'SELECT * FROM warehouse_locations WHERE id = $1 AND warehouse_id = $2',
-          [actual_location_id, receipt.warehouse_id]
+          'SELECT * FROM warehouse_locations WHERE id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+          [actual_location_id, receipt.warehouse_id, tenant_id]
         );
         if (locCheck.rows.length === 0) {
           throw new Error('Hedef lokasyon bu depoya ait değil veya bulunamadı.');
@@ -201,20 +201,20 @@ class WMSInboundService {
       await client.query(`
         UPDATE wms_inbound_items
         SET actual_location_id = $1, received_qty = $2, status = 'completed'
-        WHERE id = $3
-      `, [actual_location_id, qtyToStore, item_id]);
+        WHERE id = $3 AND tenant_id = $4
+      `, [actual_location_id, qtyToStore, item_id, tenant_id]);
 
       // Update receipt overall totals
       await client.query(`
         UPDATE wms_inbound_receipts
         SET total_received_qty = total_received_qty + $1,
             status = CASE 
-              WHEN (SELECT COUNT(*) FROM wms_inbound_items WHERE receipt_id = $2 AND status != 'completed') = 0 THEN 'stored'
+              WHEN (SELECT COUNT(*) FROM wms_inbound_items WHERE receipt_id = $2 AND tenant_id = $3 AND status != 'completed') = 0 THEN 'stored'
               ELSE 'receiving'
             END,
             completed_at = CURRENT_TIMESTAMP
-        WHERE id = $2
-      `, [qtyToStore, receipt.id]);
+        WHERE id = $2 AND tenant_id = $3
+      `, [qtyToStore, receipt.id, tenant_id]);
 
       const result={ success: true, receipt_id: receipt.id, stored_qty: qtyToStore };
       await saveOperation(client,data,op,result);
@@ -280,8 +280,8 @@ class WMSInboundService {
       JOIN products p ON i.product_id = p.id
       LEFT JOIN warehouse_locations target_loc ON i.target_location_id = target_loc.id
       LEFT JOIN warehouse_locations actual_loc ON i.actual_location_id = actual_loc.id
-      WHERE i.receipt_id = $1 ORDER BY i.id
-    `, [id]);
+      WHERE i.receipt_id = $1 AND i.tenant_id = $2 ORDER BY i.id
+    `, [id, tenantId]);
 
     receipt.items = itemsRes.rows;
     return receipt;

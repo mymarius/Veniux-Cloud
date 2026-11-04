@@ -60,8 +60,8 @@ class WMSSlottingService {
         SELECT loc.*, pbr.quantity 
         FROM product_bin_records pbr
         JOIN warehouse_locations loc ON pbr.location_id = loc.id
-        WHERE pbr.product_id = $1 AND loc.warehouse_id = $2 AND pbr.quantity > 0
-      `, [prod.product_id, warehouseId]);
+        WHERE pbr.product_id = $1 AND loc.warehouse_id = $2 AND pbr.tenant_id = $3 AND pbr.quantity > 0
+      `, [prod.product_id, warehouseId, tenantId]);
 
       const isSuboptimal = currentLocRes.rows.some(loc => loc.shelf_tier > 1 || loc.zone_name === 'BULK');
 
@@ -85,7 +85,7 @@ class WMSSlottingService {
   /**
    * Check Replenishment Needs (Find low stock in pick faces)
    */
-  async checkReplenishmentNeeds(warehouseId) {
+  async checkReplenishmentNeeds(warehouseId, tenantId) {
     const query = `
       SELECT pbr.product_id, p.name as product_name, p.sku, p.min_stock_level,
              pbr.location_id, loc.location_code, loc.shelf_tier,
@@ -96,18 +96,20 @@ class WMSSlottingService {
                JOIN warehouse_locations bulk_loc ON bulk_pbr.location_id = bulk_loc.id
                WHERE bulk_pbr.product_id = pbr.product_id 
                  AND bulk_loc.warehouse_id = $1 
+                 AND bulk_pbr.tenant_id = $2
                  AND bulk_loc.shelf_tier > 1
              ), 0) as available_in_bulk
       FROM product_bin_records pbr
       JOIN warehouse_locations loc ON pbr.location_id = loc.id
       JOIN products p ON pbr.product_id = p.id
       WHERE loc.warehouse_id = $1 
+        AND pbr.tenant_id = $2
         AND loc.location_type = 'pick_face'
         AND pbr.quantity <= 15
       ORDER BY pbr.quantity ASC
     `;
 
-    const result = await pool.query(query, [warehouseId]);
+    const result = await pool.query(query, [warehouseId, tenantId]);
     return result.rows.map(row => ({
       ...row,
       needed_replenishment_qty: Math.max(20, 50 - parseFloat(row.pick_face_qty)),

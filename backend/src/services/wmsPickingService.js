@@ -39,10 +39,11 @@ class WMSPickingService {
           LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id
           WHERE pbr.product_id = $1 
             AND loc.warehouse_id = $2 
+            AND pbr.tenant_id = $3
             AND pbr.quantity > 0
             AND loc.is_locked = 0
           ORDER BY COALESCE(lot.expiry_date, '9999-12-31') ASC, pbr.quantity DESC
-        `, [item.product_id, warehouse_id]);
+        `, [item.product_id, warehouse_id, tenant_id]);
 
         for (const bin of binsRes.rows) {
           if (neededQty <= 0) break;
@@ -65,7 +66,7 @@ class WMSPickingService {
       }
 
       // 2. Run Spatial Route Optimization (Shortest Path TSP)
-      const routeResult = await warehouseNavigationService.optimizePickPath(rawTasks, warehouse_id, { x: 0, y: 0 }, client);
+      const routeResult = await warehouseNavigationService.optimizePickPath(rawTasks, warehouse_id, tenant_id, { x: 0, y: 0 }, client);
       const optimizedTasks = routeResult.optimized_tasks || rawTasks;
 
       // 3. Create Wave
@@ -127,8 +128,8 @@ class WMSPickingService {
         SELECT t.*, w.warehouse_id, w.wave_no
         FROM wms_pick_tasks t
         JOIN wms_pick_waves w ON t.wave_id = w.id
-        WHERE t.id = $1
-      `, [task_id]);
+        WHERE t.id = $1 AND t.tenant_id = $2
+      `, [task_id, tenant_id]);
 
       if (taskRes.rows.length === 0) throw new Error('Toplama görevi bulunamadı');
       const task = taskRes.rows[0];
@@ -157,23 +158,23 @@ class WMSPickingService {
       await client.query(`
         UPDATE wms_pick_tasks
         SET picked_qty = $1, target_handling_unit_id = $2, status = 'picked', picked_by = $3, picked_at = CURRENT_TIMESTAMP
-        WHERE id = $4
-      `, [actualPicked, target_handling_unit_id, user_id, task_id]);
+        WHERE id = $4 AND tenant_id = $5
+      `, [actualPicked, target_handling_unit_id, user_id, task_id, tenant_id]);
 
       // 3. Update wave progress
       await client.query(`
         UPDATE wms_pick_waves
         SET picked_lines = picked_lines + 1,
             status = CASE 
-              WHEN (SELECT COUNT(*) FROM wms_pick_tasks WHERE wave_id = $1 AND status != 'picked') = 0 THEN 'completed'
+              WHEN (SELECT COUNT(*) FROM wms_pick_tasks WHERE wave_id = $1 AND tenant_id = $2 AND status != 'picked') = 0 THEN 'completed'
               ELSE 'in_progress'
             END,
             completed_at = CASE
-              WHEN (SELECT COUNT(*) FROM wms_pick_tasks WHERE wave_id = $1 AND status != 'picked') = 0 THEN CURRENT_TIMESTAMP
+              WHEN (SELECT COUNT(*) FROM wms_pick_tasks WHERE wave_id = $1 AND tenant_id = $2 AND status != 'picked') = 0 THEN CURRENT_TIMESTAMP
               ELSE NULL
             END
-        WHERE id = $1
-      `, [task.wave_id]);
+        WHERE id = $1 AND tenant_id = $2
+      `, [task.wave_id, tenant_id]);
 
       await client.query('COMMIT');
       wmsEventService.emit('inventory.picked', { wave_id: task.wave_id, task_id, picked_qty: actualPicked });
@@ -211,9 +212,9 @@ class WMSPickingService {
       JOIN warehouse_locations loc ON t.location_id = loc.id
       LEFT JOIN inventory_lots lot ON t.lot_id = lot.id
       LEFT JOIN handling_units hu ON t.target_handling_unit_id = hu.id
-      WHERE t.wave_id = $1
+      WHERE t.wave_id = $1 AND t.tenant_id = $2
       ORDER BY t.sequence_number ASC
-    `, [waveId]);
+    `, [waveId, tenantId]);
 
     wave.tasks = tasksRes.rows;
     return wave;

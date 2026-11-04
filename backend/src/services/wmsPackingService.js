@@ -60,8 +60,8 @@ class WMSPackingService {
       await client.query(`
         UPDATE handling_units 
         SET status = 'shipped', weight_kg = $1
-        WHERE id = $2
-      `, [actual_weight_kg, handling_unit_id]);
+        WHERE id = $2 AND tenant_id = $3
+      `, [actual_weight_kg, handling_unit_id, tenant_id]);
 
       await client.query('COMMIT');
       wmsEventService.emit('inventory.shipped', { handling_unit_id, hu_code: hu.hu_code, carrier: carrier_company });
@@ -84,29 +84,29 @@ class WMSPackingService {
   /**
    * List Handling Units
    */
-  async getHandlingUnits(warehouseId) {
+  async getHandlingUnits(warehouseId, tenantId) {
     const query = `
       SELECT hu.*, loc.location_code, w.name as warehouse_name
       FROM handling_units hu
       JOIN warehouses w ON hu.warehouse_id = w.id
       LEFT JOIN warehouse_locations loc ON hu.current_location_id = loc.id
-      WHERE hu.warehouse_id = $1
+      WHERE hu.warehouse_id = $1 AND hu.tenant_id = $2
       ORDER BY hu.created_at DESC
     `;
-    const result = await pool.query(query, [warehouseId]);
+    const result = await pool.query(query, [warehouseId, tenantId]);
     return result.rows;
   }
 
   /**
    * Dock & Gate Appointments
    */
-  async getDockAppointments(warehouseId) {
+  async getDockAppointments(warehouseId, tenantId) {
     const query = `
       SELECT * FROM wms_dock_appointments
-      WHERE warehouse_id = $1
+      WHERE warehouse_id = $1 AND tenant_id = $2
       ORDER BY appointment_time ASC
     `;
-    const result = await pool.query(query, [warehouseId]);
+    const result = await pool.query(query, [warehouseId, tenantId]);
     return result.rows;
   }
 

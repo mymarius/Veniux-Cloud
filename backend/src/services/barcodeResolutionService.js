@@ -20,8 +20,8 @@ class BarcodeResolutionService {
     if (locRes.rows.length > 0) {
       const loc = locRes.rows[0];
       const stocks = await pool.query(
-        'SELECT pbr.*, p.name, p.sku FROM product_bin_records pbr JOIN products p ON pbr.product_id = p.id WHERE pbr.location_id = $1 AND pbr.quantity > 0',
-        [loc.id]
+        'SELECT pbr.*, p.name, p.sku FROM product_bin_records pbr JOIN products p ON pbr.product_id = p.id WHERE pbr.location_id = $1 AND pbr.tenant_id = $2 AND pbr.quantity > 0',
+        [loc.id, tenantId]
       );
       return {
         matched: true,
@@ -68,8 +68,8 @@ class BarcodeResolutionService {
         FROM product_bin_records pbr
         JOIN warehouse_locations loc ON pbr.location_id = loc.id
         LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id
-        WHERE pbr.product_id = $1 AND pbr.quantity > 0
-      `, [prod.id]);
+        WHERE pbr.product_id = $1 AND pbr.tenant_id = $2 AND pbr.quantity > 0
+      `, [prod.id, tenantId]);
 
       return {
         matched: true,

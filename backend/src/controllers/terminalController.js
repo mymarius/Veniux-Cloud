@@ -7,7 +7,7 @@ const barcodeResolver = require('../services/barcodeResolutionService');
  */
 const registerDevice = async (req, res) => {
   try {
-    const tenantId = req.user?.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const {
       device_uid,
       device_name = 'Zebra TC26 Terminal',
@@ -88,7 +88,7 @@ const registerDevice = async (req, res) => {
  */
 const sendHeartbeat = async (req, res) => {
   try {
-    const tenantId = req.user?.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const {
       device_uid,
       battery_level = 100,
@@ -129,7 +129,7 @@ const sendHeartbeat = async (req, res) => {
  */
 const resolveScan = async (req, res) => {
   try {
-    const tenantId = req.user?.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const { barcode, warehouse_id, device_uid } = req.body;
 
     if (!barcode || !barcode.trim()) {
@@ -266,7 +266,7 @@ const cycleCount=async(req,res)=>{
  */
 const getRegisteredDevices = async (req, res) => {
   try {
-    const tenantId = req.user?.tenantId || 1;
+    const tenantId = req.user.tenantId;
     const devicesRes = await pool.query(`
       SELECT 
         d.*,

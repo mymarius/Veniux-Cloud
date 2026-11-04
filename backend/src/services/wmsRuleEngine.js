@@ -4,12 +4,12 @@ class WMSRuleEngine {
   /**
    * Evaluate Putaway Rules for a product
    */
-  async evaluatePutaway(product, warehouseId) {
+  async evaluatePutaway(product, warehouseId, tenantId) {
     const rulesRes = await pool.query(`
       SELECT * FROM wms_business_rules 
-      WHERE (warehouse_id = $1 OR warehouse_id IS NULL) AND rule_type = 'PUTAWAY' AND is_active = 1
+      WHERE tenant_id = $2 AND (warehouse_id = $1 OR warehouse_id IS NULL) AND rule_type = 'PUTAWAY' AND is_active = 1
       ORDER BY priority ASC
-    `, [warehouseId]);
+    `, [warehouseId, tenantId]);
 
     // Check Cold Storage rule
     if (product.category?.includes('Soğuk') || product.name?.includes('Flakon') || product.name?.includes('İnsülin')) {
@@ -23,8 +23,8 @@ class WMSRuleEngine {
   /**
    * Evaluate Allocation Strategy (FEFO vs FIFO)
    */
-  async evaluateAllocationStrategy(productId) {
-    const prodRes = await pool.query('SELECT is_medicine FROM products WHERE id = $1', [productId]);
+  async evaluateAllocationStrategy(productId, tenantId) {
+    const prodRes = await pool.query('SELECT is_medicine FROM products WHERE id = $1 AND tenant_id = $2', [productId, tenantId]);
     const isMed = prodRes.rows[0]?.is_medicine === 1;
     // Medicines always use FEFO
     return isMed ? 'FEFO' : 'FIFO';

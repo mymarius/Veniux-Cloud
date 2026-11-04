@@ -38,11 +38,12 @@ class InventoryReservationService {
         LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id
         WHERE pbr.product_id = $1 
           AND loc.warehouse_id = $2
+          AND pbr.tenant_id = $3
           AND (pbr.quantity - pbr.reserved_qty) > 0
           AND loc.is_locked = 0
           AND (lot.status IS NULL OR lot.status = 'available')
         ORDER BY ${orderByClause}
-      `, [product_id, warehouse_id]);
+      `, [product_id, warehouse_id, tenant_id]);
 
       let remainingToReserve = requested_qty;
       const reservationsCreated = [];
@@ -67,8 +68,8 @@ class InventoryReservationService {
           await client.query(`
             UPDATE product_bin_records 
             SET reserved_qty = reserved_qty + $1, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $2
-          `, [qtyToTake, bin.id]);
+            WHERE id = $2 AND tenant_id = $3
+          `, [qtyToTake, bin.id, tenant_id]);
 
           reservationsCreated.push(insertRes.rows[0]);
           remainingToReserve -= qtyToTake;
@@ -104,12 +105,12 @@ class InventoryReservationService {
   /**
    * Release reservation and restore available stock
    */
-  async releaseReservation(reservationId) {
+  async releaseReservation(reservationId, tenantId) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      const resRes = await client.query('SELECT * FROM inventory_reservations WHERE id = $1', [reservationId]);
+      const resRes = await client.query('SELECT * FROM inventory_reservations WHERE id = $1 AND tenant_id = $2', [reservationId, tenantId]);
       if (resRes.rows.length === 0) throw new Error('Rezervasyon bulunamadı');
       const reservation = resRes.rows[0];
 
@@ -124,17 +125,17 @@ class InventoryReservationService {
         await client.query(`
           UPDATE product_bin_records 
           SET reserved_qty = MAX(0, reserved_qty - $1), updated_at = CURRENT_TIMESTAMP
-          WHERE location_id = $2 AND product_id = $3
-        `, [unpickedQty, reservation.location_id, reservation.product_id]);
+          WHERE location_id = $2 AND product_id = $3 AND tenant_id = $4
+        `, [unpickedQty, reservation.location_id, reservation.product_id, tenantId]);
       }
 
       // Mark cancelled
       const updatedRes = await client.query(`
         UPDATE inventory_reservations 
         SET status = 'cancelled', released_qty = $1
-        WHERE id = $2
+        WHERE id = $2 AND tenant_id = $3
         RETURNING *
-      `, [unpickedQty, reservationId]);
+      `, [unpickedQty, reservationId, tenantId]);
 
       await client.query('COMMIT');
 

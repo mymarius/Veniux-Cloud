@@ -1,109 +1,43 @@
 const pool = require('../config/database');
 const StripeProvider = require('../services/payment/StripeProvider');
-const licenseService = require('../services/licenseService');
+const billingService = require('../services/billingService');
 
-// In a real app this would be loaded from env
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || (process.env.NODE_ENV==='test'?'whsec_test_secret':null);
 const provider = new StripeProvider();
+// Varsayılan sır yoktur: yapılandırılmamış ortamda hiçbir ödeme bildirimi kabul edilmez.
+const webhookSecret = () => process.env.PAYMENT_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET || '';
+const isUniqueViolation = error => /UNIQUE|Duplicate entry|ER_DUP_ENTRY/i.test(`${error.code || ''} ${error.message || ''}`);
 
 const handlePaymentWebhook = async (req, res) => {
+  const secret = webhookSecret();
+  if (!secret) return res.status(503).json({ error: 'Ödeme bildirimi yapılandırılmamış.' });
+  const signature = req.headers['stripe-signature'];
+  // İmza, sağlayıcının gönderdiği ham gövde üzerinden doğrulanır; yeniden serileştirilmiş JSON kabul edilmez.
+  if (typeof req.rawBody !== 'string' || !provider.validateSignature(req.rawBody, signature, secret)) {
+    return res.status(400).json({ error: 'Geçersiz imza veya süresi geçmiş bildirim.' });
+  }
+  const event = provider.normalizeEvent(req.body);
+  if (!event.eventId || !/^[\w-]{3,255}$/.test(event.eventId)) return res.status(400).json({ error: 'Olay kimliği eksik.' });
+
   try {
-    if(!WEBHOOK_SECRET)return res.status(503).json({error:'Ödeme bildirimi entegrasyonu yapılandırılmamış.'});
-    const signature = req.headers['stripe-signature'] || req.headers['x-payment-signature'];
-    
-    // 1. Signature & Replay Validation
-    if (!provider.validateSignature(req.rawBody || JSON.stringify(req.body), signature, WEBHOOK_SECRET)) {
-      return res.status(400).json({ error: 'Invalid webhook signature or expired timestamp' });
-    }
-
-    // 2. Parse Event
-    const event = provider.normalizeEvent(req.body);
-    const { eventId, eventType, amount, currency, metadata } = event;
-
-    if (!eventId) {
-      return res.status(400).json({ error: 'Missing event ID' });
-    }
-
-    const client = await pool.connect();
-    
-    try {
-      await client.query('BEGIN');
-
-      // 3. Idempotency Check (Duplicate Event Drops)
-      const existingLog = await client.query('SELECT id FROM webhook_logs WHERE event_id = $1', [eventId]);
-      if (existingLog.rows.length > 0) {
-        await client.query('ROLLBACK');
-        client.release();
-        return res.status(200).json({ message: 'Event already processed' });
-      }
-
-      // Log the event immediately to prevent concurrent duplicates
-      await client.query(
-        'INSERT INTO webhook_logs (event_id, event_type, payload) VALUES ($1, $2, $3)',
-        [eventId, eventType, JSON.stringify(req.body)]
-      );
-
-      // 4. Handle State Machine logic
-      if (eventType === 'checkout.session.completed' || eventType === 'invoice.payment_succeeded') {
-        const tenantId = metadata.tenant_id;
-        const licenseId = metadata.license_id;
-        
-        if (!tenantId || !licenseId) {
-          await client.query('ROLLBACK');
-          client.release();
-          return res.status(400).json({ error: 'Missing metadata for tenant or license' });
-        }
-
-        // Amount & Currency Validation
-        const expectedPrice = metadata.expected_price_cents;
-        if (expectedPrice && parseInt(expectedPrice, 10) !== amount) {
-          console.warn('Webhook amount mismatch', { expected: expectedPrice, actual: amount });
-          // Depending on business logic, we could flag it or block it. We will flag it.
-        }
-
-        // Transition State: PENDING_PAYMENT -> ACTIVE
-        const licRes = await client.query(
-          'UPDATE licenses SET status = $1 WHERE id = $2 AND tenant_id = $3 AND status IN ($4, $5) RETURNING id',
-          ['ACTIVE', licenseId, tenantId, 'PENDING_PAYMENT', 'EXPIRED']
-        );
-
-        if (licRes.rowCount > 0) {
-          await client.query(
-            'UPDATE invoices SET status = $1, paid_at = CURRENT_TIMESTAMP WHERE license_id = $2 AND tenant_id = $3',
-            ['PAID', licenseId, tenantId]
-          );
-        }
-      } else if (eventType === 'invoice.payment_failed') {
-        // Transition State: ACTIVE -> PAST_DUE
-        const licenseId = metadata.license_id;
-        if (licenseId) {
-          await client.query(
-            'UPDATE licenses SET status = $1 WHERE id = $2 AND status = $3',
-            ['PAID_DUE', licenseId, 'ACTIVE']
-          );
-        }
-      } else if (eventType === 'customer.subscription.deleted') {
-        // Transition State: ACTIVE -> CANCELLED
-        const licenseId = metadata.license_id;
-        if (licenseId) {
-          await client.query(
-            'UPDATE licenses SET status = $1 WHERE id = $2',
-            ['CANCELLED', licenseId]
-          );
-        }
-      }
-
-      await client.query('COMMIT');
-      res.status(200).json({ received: true });
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
-    }
+    const result = await pool.transaction(async client => {
+      const seen = await client.query('SELECT status FROM webhook_logs WHERE event_id = $1', [event.eventId]);
+      if (seen.rows.length) return { duplicate: true, outcome: seen.rows[0].status };
+      const outcome = await billingService.applyEvent(client, event);
+      // Kayıt, uygulanan değişiklikle aynı transaction'dadır: eşzamanlı ikinci teslimat tekil anahtara takılır.
+      await client.query(`
+        INSERT INTO webhook_logs (event_id, event_type, payload, provider, status, tenant_id, license_id, invoice_id, event_created_at, error_message)
+        VALUES ($1, $2, $3, 'stripe', $4, $5, $6, $7, $8, $9)
+      `, [event.eventId, event.eventType || 'unknown', req.rawBody, outcome.outcome, outcome.tenantId || null, outcome.licenseId || null,
+        outcome.invoiceId || null, event.timestamp, outcome.reason || null]);
+      return outcome;
+    });
+    // Reddedilen olay da 200 alır: sağlayıcı aynı geçersiz olayı sonsuza kadar yeniden göndermesin; sonuç kayıtlıdır.
+    res.status(200).json({ received: true, outcome: result.outcome, duplicate: Boolean(result.duplicate), reason: result.reason });
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(500).json({ error: 'Internal server error processing webhook' });
+    if (isUniqueViolation(error)) return res.status(200).json({ received: true, duplicate: true });
+    console.error('Webhook error:', { requestId: req.requestId, message: error.message });
+    // 500: sağlayıcı daha sonra yeniden dener; olay kaydı yazılmadığı için tekrar işlenebilir.
+    res.status(500).json({ error: 'Bildirim işlenemedi.' });
   }
 };
 

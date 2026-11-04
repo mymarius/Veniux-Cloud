@@ -14,6 +14,25 @@ const authLimiter = rateLimit({
 // Self-signup: Creates a new tenant and sets user as admin
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+
+// Şifre sıfırlama: yanıt hesaba göre değişmez. Sunucu e-posta gönderemiyorsa bu her adres için açık bir hatadır.
+const passwordReset = require('../services/passwordResetService');
+const recoveryLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: Number(process.env.RECOVERY_RATE_LIMIT_MAX) || 5, message: { error: 'Çok fazla deneme. Daha sonra tekrar deneyin.' } });
+router.post('/forgot-password', recoveryLimiter, async (req, res) => {
+  if (!passwordReset.deliveryReady()) {
+    console.error('Forgot password: SMTP_HOST/SMTP_USER/SMTP_PASS ve üretimde APP_BASE_URL tanımlı olmalıdır.');
+    return res.status(503).json({ error: 'E-posta gönderimi yapılandırılmamış. Şifre sıfırlama için yöneticinize başvurun.' });
+  }
+  try { await passwordReset.requestReset(req.body.email); }
+  catch (error) { console.error('Forgot password error:', error.message); }
+  res.json({ message: 'Bu e-posta kayıtlıysa şifre sıfırlama bağlantısı gönderildi.' });
+});
+router.post('/reset-password', recoveryLimiter, async (req, res, next) => {
+  try {
+    await passwordReset.resetPassword(req.body.token, req.body.password);
+    res.json({ message: 'Şifreniz güncellendi. Yeni şifrenizle giriş yapın.' });
+  } catch (error) { error.status ? res.status(error.status).json({ error: error.message }) : next(error); }
+});
 // A busy shop may legitimately unlock many times. Keep ordinary login limits;
 // authenticated terminal checks count failed attempts per current cashier.
 const terminalLimiter=rateLimit({windowMs:15*60*1000,max:6,skipSuccessfulRequests:true,

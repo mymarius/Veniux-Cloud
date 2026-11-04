@@ -14,7 +14,7 @@ const checkEntitlement = (resourceName) => {
       if (!tenantId) return res.status(403).json({ error: 'No tenant context' });
 
       const licenseRes = req.centralLicense?.valid ? {rows:[req.centralLicense]} : await pool.query(
-        "SELECT * FROM licenses WHERE tenant_id = $1 AND status = 'ACTIVE' ORDER BY expires_at DESC LIMIT 1",
+        "SELECT * FROM licenses WHERE tenant_id = $1 AND status IN ('ACTIVE','PAST_DUE') ORDER BY expires_at DESC LIMIT 1",
         [tenantId]
       );
 

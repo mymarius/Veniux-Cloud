@@ -120,8 +120,8 @@ class InventoryTransactionService {
           await client.query(`
             UPDATE product_bin_records 
             SET quantity = $1, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $2
-          `, [afterQty, existingBinRow.id]);
+            WHERE id = $2 AND tenant_id = $3
+          `, [afterQty, existingBinRow.id, tenant_id]);
         } else {
           await client.query(`
             INSERT INTO product_bin_records (tenant_id, location_id, product_id, lot_id, quantity, reserved_qty)
@@ -144,8 +144,8 @@ class InventoryTransactionService {
         await client.query(`
           UPDATE stock_records 
           SET quantity = $1, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $2
-        `, [newWhQty, stockRecRes.rows[0].id]);
+          WHERE id = $2 AND tenant_id = $3
+        `, [newWhQty, stockRecRes.rows[0].id, tenant_id]);
       } else {
         await client.query(`
           INSERT INTO stock_records (tenant_id, warehouse_id, product_id, quantity, updated_at)

@@ -40,7 +40,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '10mb' }));
+// Ödeme bildiriminin imzası sağlayıcının gönderdiği ham gövde üzerinden doğrulanır.
+app.use(express.json({ limit: '10mb', verify: (req, res, buffer) => { if ((req.originalUrl || '').startsWith('/api/license/webhooks/')) req.rawBody = buffer.toString('utf8'); } }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(require('./middlewares/requestFirewall').safeJson);
 app.use(require('./middlewares/backupMaintenance').barrier);
