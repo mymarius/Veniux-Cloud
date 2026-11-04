@@ -176,6 +176,18 @@ class InventoryTransactionService {
   }
 
   /**
+   * Ledger row for paths that update stock_records themselves. Call right after that update, in the same transaction.
+   */
+  async recordProjectedEntry(client, data) {
+    const { tenant_id, warehouse_id, product_id, transaction_type, quantity, reference_type = null, reference_id = null, user_id = null, reason_code = null, notes = null } = data;
+    const after = Number((await client.query('SELECT COALESCE(SUM(quantity),0) AS q FROM stock_records WHERE tenant_id=$1 AND warehouse_id=$2 AND product_id=$3', [tenant_id, warehouse_id, product_id])).rows[0].q);
+    await client.query(
+      'INSERT INTO inventory_transactions (tenant_id,warehouse_id,product_id,transaction_type,quantity,before_quantity,after_quantity,reference_type,reference_id,user_id,reason_code,notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+      [tenant_id, warehouse_id, product_id, transaction_type, quantity, Number((after - quantity).toFixed(6)), after, reference_type, reference_id == null ? null : String(reference_id), user_id, reason_code, notes]
+    );
+  }
+
+  /**
    * Get Stock Ledger History with filters
    */
   async getLedgerHistory(filters = {}) {
@@ -225,13 +237,13 @@ class InventoryTransactionService {
   /**
    * Get comprehensive stock breakdown for a product (On Hand, Reserved, Allocated, Available)
    */
-  async getProductStockBreakdown(productId, warehouseId = null) {
+  async getProductStockBreakdown(productId, tenantId, warehouseId = null) {
     let whCondition = '';
-    const params = [productId];
+    const params = [productId, tenantId];
 
     if (warehouseId) {
       params.push(warehouseId);
-      whCondition = 'AND pbr.location_id IN (SELECT id FROM warehouse_locations WHERE warehouse_id = $2)';
+      whCondition = 'AND pbr.location_id IN (SELECT id FROM warehouse_locations WHERE warehouse_id = $3 AND tenant_id = $2)';
     }
 
     // Bin level breakdown
@@ -240,23 +252,23 @@ class InventoryTransactionService {
              loc.shelf_tier, loc.bin_position, loc.location_type,
              lot.lot_number, lot.expiry_date, lot.status as lot_status
       FROM product_bin_records pbr
-      JOIN warehouse_locations loc ON pbr.location_id = loc.id
-      LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id
-      WHERE pbr.product_id = $1 ${whCondition}
+      JOIN warehouse_locations loc ON pbr.location_id = loc.id AND loc.tenant_id = pbr.tenant_id
+      LEFT JOIN inventory_lots lot ON pbr.lot_id = lot.id AND lot.tenant_id = pbr.tenant_id
+      WHERE pbr.product_id = $1 AND pbr.tenant_id = $2 ${whCondition}
       ORDER BY loc.location_code ASC
     `;
     const binsRes = await pool.query(binQuery, params);
 
     // Reservations
-    const resParams = [productId];
+    const resParams = [productId, tenantId];
     let resWhCondition = '';
     if (warehouseId) {
       resParams.push(warehouseId);
-      resWhCondition = 'AND warehouse_id = $2';
+      resWhCondition = 'AND warehouse_id = $3';
     }
     const resQuery = `
       SELECT * FROM inventory_reservations 
-      WHERE product_id = $1 AND status IN ('reserved', 'allocated') ${resWhCondition}
+      WHERE product_id = $1 AND tenant_id = $2 AND status IN ('reserved', 'allocated') ${resWhCondition}
     `;
     const resRes = await pool.query(resQuery, resParams);
 

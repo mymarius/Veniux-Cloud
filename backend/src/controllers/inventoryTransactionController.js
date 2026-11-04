@@ -32,7 +32,7 @@ class InventoryTransactionController {
     try {
       const { productId } = req.params;
       const { warehouse_id } = req.query;
-      const breakdown = await inventoryTransactionService.getProductStockBreakdown(productId, warehouse_id);
+      const breakdown = await inventoryTransactionService.getProductStockBreakdown(productId, req.user.tenantId, warehouse_id);
       res.json(breakdown);
     } catch (err) {
       console.error('Get product breakdown error:', err);

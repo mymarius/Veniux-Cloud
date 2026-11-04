@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const ledger = require('../services/inventoryTransactionService');
 
 // 1. Get all stock counts
 const getAllStockCounts = async (req, res) => {
@@ -172,9 +173,11 @@ const finalizeStockCount = async (req, res) => {
       if (item.difference !== 0) {
         // Update stock record to counted_quantity
         const stockRes = await client.query(
-          'SELECT id FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+          'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
           [item.product_id, count.warehouse_id, tenantId]
         );
+        // Sayım başladıktan sonra stok değişmiş olabilir; kayıtlar gerçekte uygulanan farkı taşır.
+        const applied = Number(item.counted_quantity) - Number(stockRes.rows[0]?.quantity || 0);
 
         if (stockRes.rows.length > 0) {
           await client.query(
@@ -196,9 +199,10 @@ const finalizeStockCount = async (req, res) => {
           tenantId,
           item.product_id,
           count.warehouse_id,
-          item.difference,
+          applied,
           `Sayım Fark Fişi #${count.count_no} (${item.system_quantity} -> ${item.counted_quantity})`
         ]);
+        if (applied !== 0) await ledger.recordProjectedEntry(client, { tenant_id: tenantId, warehouse_id: count.warehouse_id, product_id: item.product_id, transaction_type: 'COUNT_ADJUSTMENT', quantity: applied, reference_type: 'stock_count', reference_id: count.id, user_id: req.user.userId, notes: `Sayım Fark Fişi #${count.count_no}` });
       }
     }
 

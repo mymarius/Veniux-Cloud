@@ -94,7 +94,16 @@ router.get('/users/:id/access-scope',requireRole('admin'),async(req,res,next)=>{
  res.json(await require('../services/accessScopeService').read(req.params.id,req.user.tenantId));
 }catch(e){next(e);}});
 router.put('/users/:id/access-scope',requireRole('admin'),async(req,res,next)=>{try{res.json(await require('../services/accessScopeService').change(req.user,req.params.id,req.body));}catch(e){next(e);}});
-router.post('/users', requireRole('admin'), settingsController.createUser);
+router.post('/users', requireRole('admin'), require('../middlewares/licenseMiddleware')('users'), settingsController.createUser);
+router.post('/users/:id/mfa-reset',requireRole('admin'),require('express-rate-limit')({windowMs:300000,limit:10}),async(req,res,next)=>{try{
+ const db=require('../config/database'),bcrypt=require('bcrypt');
+ const admin=(await db.query('SELECT password_hash FROM users WHERE id=$1',[req.user.userId])).rows[0];
+ if(typeof req.body.password!=='string'||Buffer.byteLength(req.body.password)>72||!admin||!await bcrypt.compare(req.body.password,admin.password_hash))return res.status(403).json({error:'Mevcut parolanızı doğrulayın.'});
+ const target=(await db.query('SELECT id,email,tenant_id FROM users WHERE id=$1 AND tenant_id=$2',[req.params.id,req.user.tenantId])).rows[0];
+ if(!target)return res.status(404).json({error:'Kullanıcı bulunamadı.'});
+ if(!req.user.isPlatformAdmin&&(await db.query('SELECT user_id FROM platform_admins WHERE user_id=$1',[target.id])).rows.length)return res.status(403).json({error:'Platform yöneticisi hesabı değiştirilemez.'});
+ res.json({reset:await require('../services/mfaService').reset({...target,actor_email:req.user.email})});
+}catch(e){next(e);}});
 router.put('/users/:id', requireRole('admin'), settingsController.updateUser);
 router.delete('/users/:id', requireRole('admin'), settingsController.deleteUser);
 

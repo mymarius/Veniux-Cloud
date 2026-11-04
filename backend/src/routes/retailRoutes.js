@@ -46,6 +46,7 @@ router.post('/receive',requireRole('admin','manager'),async(req,res,next)=>{try{
  if(current)await client.query('UPDATE stock_records SET quantity=$1,updated_at=CURRENT_TIMESTAMP WHERE id=$2',[total,current.id]);
  else await client.query('INSERT INTO stock_records (tenant_id,product_id,warehouse_id,quantity) VALUES ($1,$2,$3,$4)',[tenant,product.id,warehouse.id,qty]);
  const movement=(await client.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,'inbound','retail_quick_add','Telefon / terminal hızlı kabul') RETURNING id",[tenant,product.id,warehouse.id,qty])).rows[0];
+ await require('../services/inventoryTransactionService').recordProjectedEntry(client,{tenant_id:tenant,warehouse_id:warehouse.id,product_id:product.id,transaction_type:'RECEIVE',quantity:qty,reference_type:'stock_movement',reference_id:movement.id,user_id:req.user.userId,reason_code:'retail_quick_add'});
  await client.query("INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,'retail.receive','stock',$3,$4)",[tenant,req.user.email,movement.id,JSON.stringify({requestId:req.requestId,productId:product.id,warehouseId:warehouse.id,quantity:qty})]);
  const response={product:{id:product.id,name:product.name,unit:product.unit},quantity:qty,total_quantity:total,movement_id:movement.id};
  await client.query('INSERT INTO depot_operation_keys (tenant_id,operation_key,request_hash,result_json) VALUES ($1,$2,$3,$4)',[tenant,'retail:'+key,hash,JSON.stringify(response)]);

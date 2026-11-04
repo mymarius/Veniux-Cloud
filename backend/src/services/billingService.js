@@ -17,7 +17,8 @@ const parseStamp = value => {
   const raw = String(value);
   return Date.parse(raw.includes('T') ? raw : `${raw.replace(' ', 'T')}Z`);
 };
-const toDbTime = ms => new Date(ms).toISOString();
+// İki motorun da kabul ettiği UTC biçimi; MySQL ISO 'T...Z' yazımını reddeder.
+const toDbTime = ms => new Date(ms).toISOString().replace('T', ' ').replace('Z', '');
 const cents = amount => Math.round(Number(amount) * 100);
 
 const PERIOD_DAYS = { ANNUAL: 365, MONTHLY: 30 };

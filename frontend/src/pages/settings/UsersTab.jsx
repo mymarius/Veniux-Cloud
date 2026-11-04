@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
 import { StatusBadge, Input } from '../../components/ui';
-import { Users, Plus, Search, Trash2, Edit3, Shield, Mail, Phone, Loader2, X, CheckCircle2 } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Edit3, Shield, Mail, Phone, Loader2, X, CheckCircle2, KeyRound } from 'lucide-react';
 import AccessScopeEditor from './AccessScopeEditor';
 
 export default function UsersTab({embedded=false}) {
@@ -17,6 +17,8 @@ export default function UsersTab({embedded=false}) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [scopeUser,setScopeUser]=useState(null);
+  const [mfaUser,setMfaUser]=useState(null);
+  const [mfaPassword,setMfaPassword]=useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
@@ -77,6 +79,21 @@ export default function UsersTab({embedded=false}) {
       fetchUsers();
     } catch (err) {
       showToast(err.response?.data?.error || 'Güncelleme başarısız.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMfaReset = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await apiClient.post(`/settings/users/${mfaUser.id}/mfa-reset`, { password: mfaPassword });
+      showToast(res.data.reset ? 'İki aşamalı doğrulama kapatıldı; kullanıcı yeniden giriş yapmalı.' : 'Bu kullanıcıda iki aşamalı doğrulama açık değil.', res.data.reset ? 'success' : 'info');
+      setMfaUser(null);
+      setMfaPassword('');
+    } catch (err) {
+      showToast(err.response?.data?.error || 'İki aşamalı doğrulama sıfırlanamadı.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -206,6 +223,7 @@ export default function UsersTab({embedded=false}) {
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={()=>setScopeUser(user)} className="icon-btn" title="Depo erişim kapsamı" aria-label={`${user.email} depo erişimi`}><Shield className="w-4 h-4"/></button>
+                        <button onClick={()=>{setMfaPassword('');setMfaUser(user);}} className="icon-btn" title="İki aşamalı doğrulamayı sıfırla" aria-label={`${user.email} iki aşamalı doğrulamasını sıfırla`}><KeyRound className="w-4 h-4"/></button>
                         <button
                           onClick={() => setEditingUser({ ...user, newPassword: '' })}
                           className="icon-btn"
@@ -229,6 +247,29 @@ export default function UsersTab({embedded=false}) {
           </div>
         )}
       </div>
+
+      {mfaUser && (
+        <DialogShell isOpen={Boolean(mfaUser)} onClose={() => setMfaUser(null)} title="İki aşamalı doğrulamayı sıfırla">
+            <form onSubmit={handleMfaReset} className="space-y-4">
+              <p className="text-sm text-gray-600">{mfaUser.email} hesabında iki aşamalı doğrulama kapatılır ve açık oturumları sonlanır. Bunu yalnızca kullanıcının kimliğini doğruladıktan sonra yapın.</p>
+              <Input
+                label="Mevcut Şifreniz"
+                type="password"
+                autoComplete="current-password"
+                value={mfaPassword}
+                onChange={(e) => setMfaPassword(e.target.value)}
+                required
+              />
+              <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+                <button type="button" onClick={() => setMfaUser(null)} className="btn-secondary">Vazgeç</button>
+                <button type="submit" disabled={submitting} className="btn-primary">
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                  <span>Sıfırla</span>
+                </button>
+              </div>
+            </form>
+        </DialogShell>
+      )}
 
       {/* Modal: Add User */}
       {scopeUser&&<AccessScopeEditor user={scopeUser} onClose={()=>{setScopeUser(null);fetchUsers();}}/>}

@@ -8,6 +8,7 @@
     "migrate": "node --env-file-if-exists=.env scripts/migrate.js",
     "mysql:migrate": "node --env-file-if-exists=.env scripts/mysql_migrate.js",
     "mysql:import": "node --env-file-if-exists=.env scripts/sqlite_to_mysql.js",
+    "mysql:ledger-backfill": "node --env-file-if-exists=.env scripts/mysql_ledger_backfill.js",
     "test:mysql": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config jest.mysql.config.cjs --runInBand",
     "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --setupFilesAfterEnv=./tests/setup.js",
     "test:watch": "jest --watch"

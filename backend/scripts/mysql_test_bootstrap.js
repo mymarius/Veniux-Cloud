@@ -13,6 +13,15 @@ async function run(){
   await c.query("GRANT ALL ON veniux_test_parity.* TO 'veniux_test'@'127.0.0.1'");
   await c.query('CREATE DATABASE IF NOT EXISTS veniux_test_import CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');
   await c.query("GRANT ALL ON veniux_test_import.* TO 'veniux_test'@'127.0.0.1'");
+  for(const name of ['veniux_test_rc2_fault','veniux_test_rc2_restore']){
+   await c.query('CREATE DATABASE IF NOT EXISTS '+name+' CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');
+   await c.query('GRANT ALL ON '+name+".* TO 'veniux_test'@'127.0.0.1'");
+  }
+  // Hesap ayrımı testleri bu sabit, yalnız teste özel hesapları kullanır (tests/mysql/cutoverAndIntegrity.test.js).
+  for(const [user,secret,rights] of [['veniux_migrator_test','VnxMigratorTest2026!','SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,INDEX,REFERENCES,DROP,TRIGGER'],['veniux_runtime_test','VnxRuntimeTest2026!','SELECT,INSERT,UPDATE,DELETE']]){
+   await c.query("CREATE USER IF NOT EXISTS ?@'127.0.0.1' IDENTIFIED BY ?",[user,secret]);
+   for(const name of ['veniux_test_parity','veniux_test_import'])await c.query('GRANT '+rights+' ON '+name+".* TO ?@'127.0.0.1'",[user]);
+  }
   const target=path.resolve(__dirname,'../../.local/mysql-test/config.json');
   fs.writeFileSync(target,JSON.stringify({host:'127.0.0.1',port:33316,user:'veniux_test',password,database:'veniux_test_parity',dateStrings:true,decimalNumbers:false}),{mode:0o600});
   // Disable the temporary bootstrap account after creating the test account.

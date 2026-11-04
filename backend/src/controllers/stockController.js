@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const ledger = require('../services/inventoryTransactionService');
 const recordOperation = async (client, req, action, details) => {
   await client.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,details) VALUES ($1,$2,$3,$4,$5)', [req.user.tenantId,req.user.email,action,'stock',JSON.stringify({requestId:req.requestId,...details,user_id:req.user.userId})]);
 };
@@ -48,8 +49,8 @@ const createMovement = async (req, res) => {
     // Get current stock record
     if(amount<0&&((await require('../services/stockHealthService').lotAvailability(req.user.tenantId,product_id,warehouse_id,client)).length||(await client.query('SELECT id FROM inventory_return_holds WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3 LIMIT 1',[req.user.tenantId,product_id,warehouse_id])).rows.length)){await client.query('ROLLBACK');return res.status(409).json({error:'Lotlu stok çıkışını kasa veya lot seçilen WMS işlemi üzerinden yapın.'});}
     const stockRecordCheck = await client.query(
-      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2',
-      [product_id, warehouse_id]
+      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+      [product_id, warehouse_id, req.user.tenantId]
     );
 
     const currentQty = stockRecordCheck.rows.length > 0 ? stockRecordCheck.rows[0].quantity : 0;
@@ -73,8 +74,8 @@ const createMovement = async (req, res) => {
     // Update or create stock record
     if (stockRecordCheck.rows.length > 0) {
       await client.query(
-        'UPDATE stock_records SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        [amount, stockRecordCheck.rows[0].id]
+        'UPDATE stock_records SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND tenant_id = $3',
+        [amount, stockRecordCheck.rows[0].id, req.user.tenantId]
       );
     } else {
       await client.query(
@@ -83,6 +84,7 @@ const createMovement = async (req, res) => {
       );
     }
 
+    await ledger.recordProjectedEntry(client,{tenant_id:req.user.tenantId,warehouse_id,product_id,transaction_type:amount>0?'RECEIVE':'SHIP',quantity:amount,reference_type:'stock_movement',reference_id:movementResult.rows[0].id,user_id:req.user.userId,reason_code:movement_type,notes:note||null});
     await require('../services/stockAlertSync').syncStockAlert(client,{tenant_id:req.user.tenantId,product_id,warehouse_id,quantity:newQuantity,min_stock_level:productCheck.rows[0].min_stock_level,product_name:productCheck.rows[0].name,warehouse_name:warehouseCheck.rows[0].name});
 
     await recordOperation(client, req, 'stock.movement', {product_id,warehouse_id,amount,movement_type});
@@ -139,8 +141,8 @@ const transferStock = async (req, res) => {
     // Check source warehouse stock
     if(((await require('../services/stockHealthService').lotAvailability(req.user.tenantId,product_id,from_warehouse_id,client)).length||(await client.query('SELECT id FROM inventory_return_holds WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3 LIMIT 1',[req.user.tenantId,product_id,from_warehouse_id])).rows.length)){await client.query('ROLLBACK');return res.status(409).json({error:'Lotlu stok transferinde lot seçilen WMS işlemini kullanın; lot tarihleri korunmalıdır.'});}
     const sourceStock = await client.query(
-      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2',
-      [product_id, from_warehouse_id]
+      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+      [product_id, from_warehouse_id, req.user.tenantId]
     );
 
     const sourceQty = sourceStock.rows.length > 0 ? sourceStock.rows[0].quantity : 0;
@@ -153,8 +155,8 @@ const transferStock = async (req, res) => {
 
     // Deduct from source warehouse atomically
     const updateResult = await client.query(
-      'UPDATE stock_records SET quantity = quantity - $1, updated_at = CURRENT_TIMESTAMP WHERE product_id = $2 AND warehouse_id = $3 AND quantity >= $1',
-      [transferQty, product_id, from_warehouse_id]
+      'UPDATE stock_records SET quantity = quantity - $1, updated_at = CURRENT_TIMESTAMP WHERE product_id = $2 AND warehouse_id = $3 AND tenant_id = $4 AND quantity >= $1',
+      [transferQty, product_id, from_warehouse_id, req.user.tenantId]
     );
 
     if (updateResult.rowCount === 0) {
@@ -164,14 +166,14 @@ const transferStock = async (req, res) => {
 
     // Add to target warehouse
     const targetStock = await client.query(
-      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2',
-      [product_id, to_warehouse_id]
+      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+      [product_id, to_warehouse_id, req.user.tenantId]
     );
 
     if (targetStock.rows.length > 0) {
       await client.query(
-        'UPDATE stock_records SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        [transferQty, targetStock.rows[0].id]
+        'UPDATE stock_records SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND tenant_id = $3',
+        [transferQty, targetStock.rows[0].id, req.user.tenantId]
       );
     } else {
       await client.query(
@@ -188,6 +190,8 @@ const transferStock = async (req, res) => {
       [req.user.tenantId, product_id, from_warehouse_id, to_warehouse_id, -transferQty, transferNote]
     );
 
+    await ledger.recordProjectedEntry(client,{tenant_id:req.user.tenantId,warehouse_id:from_warehouse_id,product_id,transaction_type:'TRANSFER_OUT',quantity:-transferQty,reference_type:'stock_movement',reference_id:movementResult.rows[0].id,user_id:req.user.userId,notes:transferNote});
+    await ledger.recordProjectedEntry(client,{tenant_id:req.user.tenantId,warehouse_id:to_warehouse_id,product_id,transaction_type:'TRANSFER_IN',quantity:transferQty,reference_type:'stock_movement',reference_id:movementResult.rows[0].id,user_id:req.user.userId,notes:transferNote});
     await recordOperation(client, req, 'stock.transfer', {product_id,from_warehouse_id,to_warehouse_id,quantity:transferQty});
     await client.query('COMMIT');
 
@@ -232,8 +236,8 @@ const adjustStock = async (req, res) => {
     await client.query('BEGIN');
 
     const stockRecord = await client.query(
-      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2',
-      [product_id, warehouse_id]
+      'SELECT id, quantity FROM stock_records WHERE product_id = $1 AND warehouse_id = $2 AND tenant_id = $3',
+      [product_id, warehouse_id, req.user.tenantId]
     );
 
     const oldQty = stockRecord.rows.length > 0 ? stockRecord.rows[0].quantity : 0;
@@ -255,8 +259,8 @@ const adjustStock = async (req, res) => {
     // Update stock record
     if (stockRecord.rows.length > 0) {
       await client.query(
-        'UPDATE stock_records SET quantity = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        [targetQty, stockRecord.rows[0].id]
+        'UPDATE stock_records SET quantity = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND tenant_id = $3',
+        [targetQty, stockRecord.rows[0].id, req.user.tenantId]
       );
     } else {
       await client.query(
@@ -265,6 +269,7 @@ const adjustStock = async (req, res) => {
       );
     }
 
+    await ledger.recordProjectedEntry(client,{tenant_id:req.user.tenantId,warehouse_id,product_id,transaction_type:'COUNT_ADJUSTMENT',quantity:diff,reference_type:'stock_adjust',user_id:req.user.userId,notes:reason||null});
     await recordOperation(client, req, 'stock.adjustment', {product_id,warehouse_id,previous:oldQty,quantity:targetQty,reason:reason || `Fiziksel Sayım Düzeltmesi (${oldQty} -> ${targetQty})`});
     await client.query('COMMIT');
 

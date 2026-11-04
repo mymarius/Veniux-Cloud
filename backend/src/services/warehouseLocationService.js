@@ -19,17 +19,17 @@ class WarehouseLocationService {
   /**
    * List all locations for a warehouse with occupancy statistics
    */
-  async getLocations(warehouseId, filters = {}) {
+  async getLocations(warehouseId, tenantId, filters = {}) {
     let query = `
       SELECT loc.*,
              COALESCE(SUM(pbr.quantity), 0) as total_stored_qty,
              COALESCE(COUNT(DISTINCT pbr.product_id), 0) as unique_product_count,
              COALESCE(SUM(pbr.reserved_qty), 0) as total_reserved_qty
       FROM warehouse_locations loc
-      LEFT JOIN product_bin_records pbr ON loc.id = pbr.location_id
-      WHERE loc.warehouse_id = $1
+      LEFT JOIN product_bin_records pbr ON loc.id = pbr.location_id AND pbr.tenant_id = loc.tenant_id
+      WHERE loc.warehouse_id = $1 AND loc.tenant_id = $2
     `;
-    const params = [warehouseId];
+    const params = [warehouseId, tenantId];
 
     if (filters.zone_name) {
       params.push(filters.zone_name);

@@ -7,7 +7,7 @@ class WarehouseLocationController {
       if (!warehouse_id) {
         return res.status(400).json({ error: 'warehouse_id query parametresi zorunludur' });
       }
-      const locations = await warehouseLocationService.getLocations(warehouse_id, req.query);
+      const locations = await warehouseLocationService.getLocations(warehouse_id, req.user.tenantId, req.query);
       res.json(locations);
     } catch (err) {
       console.error('Get locations error:', err);

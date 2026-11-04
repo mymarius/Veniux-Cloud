@@ -13,7 +13,7 @@ router.post('/tenants/:id/license',async(req,res,next)=>{try{
  const service=require('../services/licenseService');
  const plan=service.getPlans().find(p=>p.id===req.body.plan_id);
  if(!Number.isSafeInteger(id)||id<=0||!plan||!Number.isInteger(days)||days<1||days>366)return res.status(400).json({error:'Geçerli işletme, paket ve 1–366 gün arasında süre seçin.'});
- const expires=new Date(Date.now()+days*86400000).toISOString();
+ const expires=new Date(Date.now()+days*86400000).toISOString().replace('T',' ').replace('Z','');
  const licenseKey=service.generateKey();
  await db.transaction(async client=>{
   if(!(await client.query('SELECT id FROM tenants WHERE id=$1',[id])).rows.length)throw Object.assign(new Error('İşletme bulunamadı.'),{status:404});

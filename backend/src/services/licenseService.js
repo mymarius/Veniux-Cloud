@@ -252,7 +252,7 @@ class LicenseService {
         plan.max_devices,
         plan.max_pdas,
         JSON.stringify(plan.features),
-        expiresAt.toISOString()
+        expiresAt.toISOString().replace('T', ' ').replace('Z', '')
       ]);
 
       const license = licRes.rows[0];

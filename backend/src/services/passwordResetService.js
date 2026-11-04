@@ -35,7 +35,7 @@ const requestReset = async email => {
   await pool.transaction(async client => {
     await client.query('DELETE FROM password_reset_tokens WHERE user_id = $1 AND tenant_id = $2', [user.id, user.tenant_id]);
     await client.query('INSERT INTO password_reset_tokens (tenant_id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)',
-      [user.tenant_id, user.id, sha256(token), new Date(Date.now() + RESET_TTL_MS).toISOString()]);
+      [user.tenant_id, user.id, sha256(token), new Date(Date.now() + RESET_TTL_MS).toISOString().replace('T', ' ').replace('Z', '')]);
     await audit(client, user.tenant_id, user.email, 'password_reset_requested', user.id);
   });
   const link = `${(process.env.APP_BASE_URL || 'http://localhost:5173').replace(/\/$/, '')}/reset-password?token=${token}`;

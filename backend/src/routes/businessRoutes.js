@@ -36,7 +36,7 @@ router.post('/invitations',admin,safe(async(req,res)=>{
  const email=text(req.body.email,254).toLowerCase(),role=req.body.role;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!['field','dealer'].includes(role))access.fail('Geçerli e-posta ve rol gerekli.',400);
  const p=await access.partner(req.user,req.business,req.body.partner_id);
  if((await db.query('SELECT id FROM users WHERE LOWER(email)=$1',[email])).rows.length)access.fail('E-posta zaten kayıtlı.',409);
- const token=crypto.randomBytes(32).toString('hex'),expires=new Date(Date.now()+86400000).toISOString();
+ const token=crypto.randomBytes(32).toString('hex'),expires=new Date(Date.now()+86400000).toISOString().replace('T',' ').replace('Z','');
  await db.query('INSERT INTO business_invitations(tenant_id,email,portal_role,partner_id,token_hash,expires_at,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)',[req.user.tenantId,email,role,p.id,crypto.createHash('sha256').update(token).digest('hex'),expires,req.user.id]);
  res.status(201).json({token,expires_at:expires});
 }));

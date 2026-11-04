@@ -86,6 +86,7 @@ async function execute(client,user,plan){
   const total=expected+params.amount;if(total<0)throw fail('Yetersiz stok.');
   if(r)await client.query('UPDATE stock_records SET quantity=$1,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND id=$3',[total,tenant,r.id]);else await client.query('INSERT INTO stock_records (tenant_id,product_id,warehouse_id,quantity) VALUES ($1,$2,$3,$4)',[tenant,p.id,w.id,total]);
   await client.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,$5,'ai_approved',$6)",[tenant,p.id,w.id,params.amount,params.amount>0?'inbound':'outbound',params.note]);
+  await require('./inventoryTransactionService').recordProjectedEntry(client,{tenant_id:tenant,warehouse_id:w.id,product_id:p.id,transaction_type:params.amount>0?'RECEIVE':'SHIP',quantity:params.amount,reference_type:'ai_approved',user_id:user.userId,notes:params.note});
   if(total<=p.min_stock_level)await client.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'low_stock','warning',$4,'unread')",[tenant,p.id,w.id,`Onaylanan stok hareketinden sonra ${total} birim kaldı.`]);
  }else if(['crm_task_create','crm_task_complete','crm_task_delete'].includes(kind)){
   const row=await workspace(client,tenant);if((row?.revision||0)!==expected)throw fail('CRM kayıtları değişti. Yeniden hazırlayın.',409);

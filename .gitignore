@@ -23,3 +23,7 @@ _yedek_p0/
 website-php.zip
 frontend/.env
 backend/storage/
+
+# Çalışma zamanı kayıtları ve etiket işleri kaynak değildir.
+backend/diagnostics/
+backend/label-print/
