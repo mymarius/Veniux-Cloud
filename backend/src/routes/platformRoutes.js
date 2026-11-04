@@ -81,10 +81,16 @@ router.post('/tenants/:id/licenses/:licenseId/invoices',billingRoute(async(clien
  return {invoice,payment_metadata:{tenant_id:String(target.tenantId),license_id:String(target.licenseId),invoice_id:String(invoice.id)}};}));
 router.post('/tenants/:id/licenses/:licenseId/invoices/:invoiceId/confirm-bank-transfer',billingRoute((client,target,req)=>billing.confirmBankTransfer(client,{...target,invoiceId:Number(req.params.invoiceId),amount:req.body.amount,reference:req.body.reference}),200));
 router.post('/tenants/:id/licenses/:licenseId/invoices/:invoiceId/void',billingRoute((client,target,req)=>billing.voidBankInvoice(client,{...target,invoiceId:Number(req.params.invoiceId)}),200));
+router.post('/tenants/:id/licenses/pending',async(req,res,next)=>{try{
+ const tenantId=Number(req.params.id);if(!Number.isSafeInteger(tenantId)||tenantId<=0)return res.status(400).json({error:'Geçersiz işletme.'});
+ res.status(201).json(await db.transaction(client=>billing.createPendingLicense(client,{tenantId,planId:req.body.plan_id,actor:req.user.email})));
+}catch(e){e.status?res.status(e.status).json({error:e.message}):next(e);}});
 router.get('/bank-transfers',async(req,res,next)=>{try{
+ const unlicensed=(await db.query("SELECT t.id,t.company_name FROM tenants t WHERE NOT EXISTS (SELECT 1 FROM licenses l WHERE l.tenant_id=t.id AND l.status IN ('ACTIVE','PAST_DUE','PENDING_PAYMENT')) ORDER BY t.id DESC LIMIT 200")).rows;
+ const plans=require('../services/licenseService').getPlans().map(plan=>({id:plan.id,name:plan.name||plan.id}));
  const pending=(await db.query("SELECT i.id,i.invoice_no,i.tenant_id,i.license_id,i.amount,i.currency,i.billing_period,i.created_at,t.company_name FROM invoices i JOIN tenants t ON t.id=i.tenant_id WHERE i.payment_method=$1 AND i.status='PENDING' ORDER BY i.id DESC LIMIT 200",[billing.BANK_TRANSFER])).rows;
  const licenses=(await db.query("SELECT l.id,l.tenant_id,l.plan_id,l.status,l.expires_at,t.company_name FROM licenses l JOIN tenants t ON t.id=l.tenant_id WHERE l.status IN ('PENDING_PAYMENT','ACTIVE','PAST_DUE','EXPIRED') ORDER BY l.id DESC LIMIT 200")).rows;
- res.json({bank:billing.bankDetails(),pending,licenses});
+ res.json({bank:billing.bankDetails(),pending,licenses,unlicensed,plans});
 }catch(e){next(e);}});
 router.post('/tenants/:id/licenses/:licenseId/cancel',billingRoute(async(client,target)=>{await billing.cancelLicense(client,target);return {status:'CANCELLED'};}));
 router.post('/tenants/:id/licenses/:licenseId/extend',billingRoute(async(client,target,req)=>({expires_at:await billing.extendManually(client,{...target,days:req.body.days,reason:req.body.reason})})));

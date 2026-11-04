@@ -12,6 +12,7 @@ export default function PlatformBankTransfers() {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [newLicense, setNewLicense] = useState({ tenant: '', plan: '' });
   const [confirmations, setConfirmations] = useState({});
 
   const refresh = async () => {
@@ -34,6 +35,11 @@ export default function PlatformBankTransfers() {
     const created = await act(() => api.post(`/platform/tenants/${license.tenant_id}/licenses/${license.id}/invoices`, { payment_method: 'BANK_TRANSFER', amount: Number(form.amount), currency: form.currency, billing_period: form.period }), 'Fatura kesildi; firma yöneticisi girişte veya Lisans ve plan ekranında görür.');
     if (created) setForm(emptyForm);
   };
+  const createPending = async event => {
+    event.preventDefault();
+    const created = await act(() => api.post(`/platform/tenants/${newLicense.tenant}/licenses/pending`, { plan_id: newLicense.plan }), 'Ödeme bekleyen lisans açıldı; şimdi fatura kesebilirsiniz.');
+    if (created) setNewLicense({ tenant: '', plan: '' });
+  };
   const entry = id => confirmations[id] || { amount: '', reference: '' };
   const setEntry = (id, patch) => setConfirmations(current => ({ ...current, [id]: { ...entry(id), ...patch } }));
   const invoiceUrl = invoice => `/platform/tenants/${invoice.tenant_id}/licenses/${invoice.license_id}/invoices/${invoice.id}`;
@@ -51,6 +57,23 @@ export default function PlatformBankTransfers() {
       {error && <p role="alert" className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</p>}
       {notice && <p role="status" className="bg-emerald-50 text-emerald-700 rounded-lg p-3 text-sm">{notice}</p>}
       {data && !data.bank && <p role="alert" className="bg-amber-50 text-amber-800 rounded-lg p-3 text-sm">BANK_IBAN ve BANK_ACCOUNT_NAME tanımlı veya geçerli değil. Bunlar ayarlanmadan havale faturası kesilemez.</p>}
+      {data && (
+        <form onSubmit={createPending} className="flex flex-wrap gap-2 items-end">
+          <label className="text-xs text-slate-500 flex flex-col gap-1 min-w-0 flex-1">Lisansı olmayan işletme
+            <select required aria-label="Lisansı olmayan işletme" className={field} value={newLicense.tenant} onChange={e => setNewLicense({ ...newLicense, tenant: e.target.value })}>
+              <option value="">Seçin</option>
+              {data.unlicensed.map(item => <option key={item.id} value={item.id}>{item.company_name}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-slate-500 flex flex-col gap-1 min-w-0 flex-1">Paket
+            <select required aria-label="Paket" className={field} value={newLicense.plan} onChange={e => setNewLicense({ ...newLicense, plan: e.target.value })}>
+              <option value="">Seçin</option>
+              {data.plans.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+          <button type="submit" disabled={busy} className="btn-secondary">Ödeme bekleyen lisans aç</button>
+        </form>
+      )}
       {data && (
         <form onSubmit={createInvoice} className="flex flex-wrap gap-2 items-end">
           <label className="text-xs text-slate-500 flex flex-col gap-1 min-w-0 flex-1">Lisans

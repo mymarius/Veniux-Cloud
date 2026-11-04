@@ -1,0 +1,2 @@
+# Göç sağlama toplamları dosya baytlarından hesaplanır; git bu klasörde satır sonu çevirmemeli.
+backend/src/database/migrations/* -text

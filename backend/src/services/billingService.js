@@ -188,6 +188,26 @@ const customerBilling = async (client, tenantId) => {
   return { invoices, bank: invoices.some(invoice => invoice.status === 'PENDING') ? bankDetails() : null };
 };
 
+/**
+ * Yeni müşteri için ödeme bekleyen lisans. Modül erişimi firmanın en son lisansına bakar: açık lisansı olan
+ * firmaya yeni kayıt açmak onu kilitlerdi, bu yüzden reddedilir; yenileme mevcut lisansa fatura kesilerek yapılır.
+ */
+const createPendingLicense = async (client, { tenantId, planId, actor }) => {
+  const plan = licenseService.getPlans().find(item => item.id === planId);
+  if (!plan) throw fail('Geçerli bir paket seçin.');
+  const tenant = (await client.query('SELECT id FROM tenants WHERE id = $1', [tenantId])).rows[0];
+  if (!tenant) throw fail('İşletme bulunamadı.', 404);
+  const live = await client.query("SELECT status FROM licenses WHERE tenant_id = $1 AND status IN ('ACTIVE', 'PAST_DUE', 'PENDING_PAYMENT')", [tenantId]);
+  if (live.rows.length) throw fail(live.rows.some(row => row.status === 'PENDING_PAYMENT') ? 'Bu işletmede ödeme bekleyen bir lisans zaten var.' : 'Bu işletmenin açık lisansı var; yenileme için mevcut lisansa fatura kesin.', 409);
+  const license = (await client.query(`
+    INSERT INTO licenses (license_key, tenant_id, plan_id, status, max_users, max_warehouses, max_devices, max_pdas, enabled_features_json, expires_at)
+    VALUES ($1, $2, $3, 'PENDING_PAYMENT', $4, $5, $6, $7, $8, '2000-01-01 00:00:00')
+    RETURNING id, tenant_id, plan_id, status
+  `, [licenseService.generateKey(), tenantId, plan.id, plan.max_users, plan.max_warehouses, plan.max_devices, plan.max_pdas, JSON.stringify(plan.features)])).rows[0];
+  await audit(client, tenantId, 'license_pending_created', license.id, { plan: plan.id }, actor);
+  return license;
+};
+
 /** Ödeme dışı süre uzatma (ör. telafi): gerekçe zorunlu ve denetim kaydına yazılır. */
 const extendManually = async (client, { tenantId, licenseId, days, reason, actor }) => {
   if (!Number.isInteger(days) || days < 1 || days > 366) throw fail('Süre 1–366 gün olmalıdır.');
@@ -200,4 +220,4 @@ const extendManually = async (client, { tenantId, licenseId, days, reason, actor
   return expiresAt;
 };
 
-module.exports = { createInvoice, applyEvent, cancelLicense, extendManually, parseStamp, normalizeIban, bankDetails, confirmBankTransfer, voidBankInvoice, customerBilling, BANK_TRANSFER };
+module.exports = { createInvoice, applyEvent, cancelLicense, extendManually, parseStamp, normalizeIban, bankDetails, createPendingLicense, confirmBankTransfer, voidBankInvoice, customerBilling, BANK_TRANSFER };

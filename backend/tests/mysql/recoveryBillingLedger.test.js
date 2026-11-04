@@ -169,3 +169,20 @@ test('bank transfer: blocked customer sees the IBAN, the admin confirms once', a
   expect(license.status).toBe('ACTIVE');
   expect(Date.parse(String(license.expires_at).replace(' ', 'T') + 'Z')).toBeGreaterThan(Date.now() + 364 * 86400000);
 });
+
+test('pending license opens for a new customer and activates with its plan rights', async () => {
+  process.env.BANK_IBAN = 'TR330006100519786457841326';
+  process.env.BANK_ACCOUNT_NAME = 'Veniux Yazilim';
+  const platform = await account();
+  await db.query('INSERT INTO platform_admins (user_id) VALUES ($1)', [platform.userId]);
+  const email = `mysql-${crypto.randomUUID()}@example.invalid`;
+  const tenantId = (await request(app).post('/api/auth/register').send({ email, password, phone: '05551234567' })).body.user.tenant_id;
+  const created = await as(platform.token, 'post', `/api/platform/tenants/${tenantId}/licenses/pending`, { plan_id: 'NORMAL_WMS_ANNUAL' });
+  expect(created.status).toBe(201);
+  expect((await login(email)).status).toBe(423);
+  const base = `/api/platform/tenants/${tenantId}/licenses/${created.body.id}/invoices`;
+  const invoice = (await as(platform.token, 'post', base, { payment_method: 'BANK_TRANSFER', amount: 1000, currency: 'TRY' })).body.invoice;
+  expect((await as(platform.token, 'post', `${base}/${invoice.id}/confirm-bank-transfer`, { amount: 1000, reference: `DEKONT-${crypto.randomUUID()}` })).status).toBe(200);
+  expect((await login(email)).status).toBe(200);
+  expect((await as(platform.token, 'post', `/api/platform/tenants/${tenantId}/licenses/pending`, { plan_id: 'NORMAL_WMS_ANNUAL' })).status).toBe(409);
+});

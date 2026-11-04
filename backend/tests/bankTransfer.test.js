@@ -166,3 +166,61 @@ test('card invoices keep working and cannot be confirmed by hand', async () => {
   expect(res.body.invoice).toMatchObject({ payment_method: 'CREDIT_CARD', currency: 'USD' });
   expect((await confirm(res.body.invoice, { amount: res.body.invoice.amount, reference: reference() })).status).toBe(409);
 });
+
+describe('pending license for a new customer', () => {
+  const open = (tenantId, body, who = platform) => as(who, 'post', `/api/platform/tenants/${tenantId}/licenses/pending`, body);
+  const register = async () => {
+    const email = `pending-${Date.now()}-${++seq}@example.invalid`;
+    const res = await request(app).post('/api/auth/register').send({ email, password: 'password123', phone: '05551234567' });
+    expect(res.status).toBe(201);
+    return { email, tenantId: res.body.user.tenant_id };
+  };
+  const login = email => request(app).post('/api/auth/login').send({ email, password: 'password123' });
+
+  test('from registration to first login, with plan rights applied on payment', async () => {
+    const fresh = await register();
+    const listed = await as(platform, 'get', '/api/platform/bank-transfers');
+    expect(listed.body.unlicensed.map(row => row.id)).toContain(fresh.tenantId);
+    expect(listed.body.plans.map(row => row.id)).toContain('NORMAL_WMS_ANNUAL');
+    expect((await login(fresh.email)).status).toBe(423);
+
+    const created = await open(fresh.tenantId, { plan_id: 'NORMAL_WMS_ANNUAL' });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ tenant_id: fresh.tenantId, plan_id: 'NORMAL_WMS_ANNUAL', status: 'PENDING_PAYMENT' });
+    expect(created.body.license_key).toBeUndefined();
+    expect((await login(fresh.email)).status).toBe(423); // ödeme beklerken erişim yok
+    expect((await as(platform, 'get', '/api/platform/bank-transfers')).body.unlicensed.map(row => row.id)).not.toContain(fresh.tenantId);
+
+    const url = `/api/platform/tenants/${fresh.tenantId}/licenses/${created.body.id}/invoices`;
+    const invoice = (await as(platform, 'post', url, { payment_method: 'BANK_TRANSFER', amount: 1000, currency: 'TRY' })).body.invoice;
+    expect((await login(fresh.email)).body.billing.invoices[0].invoice_no).toBe(invoice.invoice_no);
+    expect((await as(platform, 'post', `${url}/${invoice.id}/confirm-bank-transfer`, { amount: 1000, reference: reference() })).status).toBe(200);
+    const signedIn = await login(fresh.email);
+    expect(signedIn.status).toBe(200);
+    expect(signedIn.body.user.module_type).toBe('NORMAL');
+    const row = (await db.query('SELECT status, max_users, enabled_features_json FROM licenses WHERE id=$1', [created.body.id])).rows[0];
+    const plan = require('../src/services/licenseService').getPlans().find(item => item.id === 'NORMAL_WMS_ANNUAL');
+    expect(row).toMatchObject({ status: 'ACTIVE', max_users: plan.max_users });
+    expect(JSON.parse(row.enabled_features_json)).toEqual(plan.features);
+  });
+
+  test('a live or already pending license is never overwritten, so a paying customer stays open', async () => {
+    const active = await createTenant();
+    const before = (await db.query('SELECT id, status FROM licenses WHERE tenant_id=$1', [active.tenantId])).rows;
+    expect((await open(active.tenantId, { plan_id: 'NORMAL_WMS_ANNUAL' })).status).toBe(409);
+    expect((await db.query('SELECT id, status FROM licenses WHERE tenant_id=$1', [active.tenantId])).rows).toEqual(before);
+    expect((await as(active, 'get', '/api/auth/me')).status).toBe(200);
+    const fresh = await register();
+    expect((await open(fresh.tenantId, { plan_id: 'NORMAL_WMS_ANNUAL' })).status).toBe(201);
+    expect((await open(fresh.tenantId, { plan_id: 'NORMAL_WMS_ANNUAL' })).status).toBe(409);
+  });
+
+  test('bad input and other users are refused', async () => {
+    const fresh = await register();
+    expect((await open(fresh.tenantId, { plan_id: 'YOK' })).status).toBe(400);
+    expect((await open(fresh.tenantId, {})).status).toBe(400);
+    expect((await open(999999999, { plan_id: 'NORMAL_WMS_ANNUAL' })).status).toBe(404);
+    expect((await open(fresh.tenantId, { plan_id: 'NORMAL_WMS_ANNUAL' }, other)).status).toBe(403);
+    expect((await db.query('SELECT id FROM licenses WHERE tenant_id=$1', [fresh.tenantId])).rows).toEqual([]);
+  });
+});
