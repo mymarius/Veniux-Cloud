@@ -68,7 +68,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    if(error.response?.status===423&&!error.response.data?.billing&&!isTerminalReauth(error.config)&&!/^\/license\//.test(error.config?.url||'')){
+    // Lisans yüklenmeden giden istekte cihaz başlığı yoktur; bu lisansın kapalı olduğunu göstermez, oturum silinmez.
+    const sentDevice=Boolean(error.config?.headers?.['x-veniux-device-token']);
+    if(error.response?.status===423&&(sentDevice||error.response.data?.code!=='LICENSE_REQUIRED')&&!error.response.data?.billing&&!isTerminalReauth(error.config)&&!/^\/license\//.test(error.config?.url||'')){
       localStorage.removeItem('token');localStorage.removeItem('user');sessionStorage.removeItem('platform-tenant');
       if(window.location.protocol==='file:')window.location.hash='/activate';
       else if(window.location.pathname!=='/activate')window.location.href='/activate';
