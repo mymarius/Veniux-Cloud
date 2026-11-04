@@ -66,11 +66,12 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     let current = true;
     setAccess(null);
-    if (token) apiClient.get('/auth/me').then(({data}) => {
+    // Cihaz lisans başlığı lisans yüklenince eklenir; önce gidilirse sunucu 423 döner ve oturum silinir.
+    if (token && !licenseLoading) apiClient.get('/auth/me').then(({data}) => {
       if (current) { localStorage.setItem('user', JSON.stringify(data)); setAccess({path:pathname,type:data.module_type,platform:data.is_platform_admin,package:data.product_package}); }
     }).catch(() => { if (current) setAccess({path:pathname,error:true}); });
     return () => { current = false; };
-  }, [token, pathname, retry]);
+  }, [token, pathname, retry, licenseLoading]);
   if (!token) {
     return <Navigate to="/login" replace />;
   }
