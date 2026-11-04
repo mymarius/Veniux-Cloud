@@ -36,6 +36,8 @@ const licenseLimiter = rateLimit({
 
 // Public endpoints (used by Promotional Website & Desktop Boot)
 router.get('/plans', licenseController.getPlans);
+// Lisans anahtarı olmayan müşteri ödeme yapabilsin: yalnız yayımlanan hesap bilgisi, firma verisi içermez.
+router.get('/bank-details', (req, res) => res.json({ bank: require('../services/billingService').bankDetails() }));
 router.get('/public-key', licenseController.getPublicKey);
 router.post('/purchase', (req, res, next) => {
   return res.status(503).json({ error: 'Ödeme doğrulaması henüz bağlı değil. Paketiniz platform yöneticisi tarafından tanımlanmalıdır.' });

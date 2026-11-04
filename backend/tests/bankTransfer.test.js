@@ -224,3 +224,22 @@ describe('pending license for a new customer', () => {
     expect((await db.query('SELECT id FROM licenses WHERE tenant_id=$1', [fresh.tenantId])).rows).toEqual([]);
   });
 });
+
+test('bank details are public for the activation screen, valid only, and work behind the central license gate', async () => {
+  const seen = await request(app).get('/api/license/bank-details');
+  expect(seen.status).toBe(200);
+  expect(seen.body).toEqual({ bank: { iban: CLEAN_IBAN, account_name: 'Veniux Yazilim', bank_name: 'Test Bankasi' } });
+  const saved = process.env.BANK_IBAN;
+  process.env.BANK_IBAN = 'TR330006100519786457841327';
+  expect((await request(app).get('/api/license/bank-details')).body).toEqual({ bank: null });
+  process.env.BANK_IBAN = saved;
+  const central = require('../src/services/centralLicense');
+  process.env.VENIUX_LICENSE_AUTHORITY_URL = 'https://authority.invalid/v1';
+  try {
+    const res = { status: jest.fn(() => res), json: jest.fn() }, next = jest.fn();
+    await central.gate({ method: 'GET', path: '/license/bank-details', get: () => undefined }, res, next);
+    await central.gate({ method: 'GET', path: '/license/billing', get: () => undefined }, res, next);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(423);
+  } finally { delete process.env.VENIUX_LICENSE_AUTHORITY_URL; }
+});

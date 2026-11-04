@@ -1,4 +1,5 @@
 import React, { useState,useEffect } from 'react';
+import ActivationBankDetails from '../components/ActivationBankDetails';
 import api from '../api/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Cpu, Globe, Key, ShieldCheck } from 'lucide-react';
@@ -42,7 +43,7 @@ export default function LicenseActivation() {
   };
 
   return (
-    <AuthShell eyebrow="Kurulum ve erişim" title="Lisansınızı etkinleştirin" description="Veniux çalışma alanını bu bilgisayarda yetkilendirmek için lisans anahtarınızı girin." footer={<span>Zaten etkin bir lisansınız var mı? <Link data-testid="link-activation-login" to="/login" className="font-bold text-brand-500 hover:underline">Sisteme giriş yapın</Link></span>}>
+    <AuthShell eyebrow="Kurulum ve erişim" title="Lisansınızı etkinleştirin" description="Veniux çalışma alanını bu bilgisayarda yetkilendirmek için lisans anahtarınızı girin." footer={<span><ActivationBankDetails/>Zaten etkin bir lisansınız var mı? <Link data-testid="link-activation-login" to="/login" className="font-bold text-brand-500 hover:underline">Sisteme giriş yapın</Link></span>}>
       {error && <div data-testid="status-activation-error" className="mb-5 flex gap-2 rounded-lg border border-danger/20 bg-red-50 px-3 py-3 text-xs font-semibold text-red-500"><AlertCircle className="h-4 w-4 shrink-0" /><span>{error}</span></div>}
       <p className="mb-4 text-xs text-gray-500">VNX- ile başlayan lisans anahtarınızı girin. Aşağıdaki HW- cihaz kimliği lisans anahtarı değildir.</p>
       <form onSubmit={handleSubmit} className="space-y-5">
