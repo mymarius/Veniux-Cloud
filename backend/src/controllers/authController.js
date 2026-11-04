@@ -114,7 +114,11 @@ const login = async (req, res) => {
     if (!validPassword || user.status !== 'active' || Number(user.is_active) !== 1) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(user.tenant_id)==='NONE')return res.status(423).json({error:'Giriş için işletmenizin aktif lisansı zorunludur.',code:'LICENSE_REQUIRED'});
+    if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(user.tenant_id)==='NONE'){
+      // Parolası doğru firma yöneticisi, lisansı açacak ödeme bilgisini burada görür; oturum açılmaz.
+      const billing=user.role==='admin'?await require('../services/billingService').customerBilling(pool,user.tenant_id):null;
+      return res.status(423).json({...{error:'Giriş için işletmenizin aktif lisansı zorunludur.',code:'LICENSE_REQUIRED'},...(billing?.bank?{billing}:{})});
+    }
     
     const second=await require('../services/mfaService').verify(user,typeof req.body.mfa_code==='string'?req.body.mfa_code.trim():'');
     if(second.required&&!req.body.mfa_code)return res.json({mfa_required:true});

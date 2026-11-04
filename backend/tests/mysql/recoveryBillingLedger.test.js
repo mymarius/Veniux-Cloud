@@ -146,3 +146,26 @@ test('date columns accept what the invitation and license paths write', async ()
   const stored = (await db.query('SELECT l.expires_at FROM licenses l JOIN users u ON u.tenant_id=l.tenant_id WHERE u.email=$1', [`buy-${code}@example.invalid`.toLowerCase()])).rows[0];
   expect(Date.parse(String(stored.expires_at).replace(' ', 'T') + 'Z')).toBeGreaterThan(Date.now());
 });
+
+test('bank transfer: blocked customer sees the IBAN, the admin confirms once', async () => {
+  process.env.BANK_IBAN = 'TR330006100519786457841326';
+  process.env.BANK_ACCOUNT_NAME = 'Veniux Yazilim';
+  const platform = await account(), customer = await account();
+  await db.query('INSERT INTO platform_admins (user_id) VALUES ($1)', [platform.userId]);
+  await db.query("UPDATE licenses SET status='REVOKED' WHERE tenant_id=$1", [customer.tenantId]);
+  const licenseId = (await insert("INSERT INTO licenses (license_key,tenant_id,plan_id,status,expires_at) VALUES ($1,$2,'NORMAL_WMS_ANNUAL','PENDING_PAYMENT','2000-01-01 00:00:00')", [`VNX-BANK-${crypto.randomUUID()}`, customer.tenantId])).id;
+  const base = `/api/platform/tenants/${customer.tenantId}/licenses/${licenseId}/invoices`;
+  const created = await as(platform.token, 'post', base, { payment_method: 'BANK_TRANSFER', amount: 12500.5, currency: 'TRY' });
+  expect(created.status).toBe(201);
+  const seen = await login(customer.email);
+  expect(seen.status).toBe(423);
+  expect(seen.body.billing.bank.iban).toBe('TR330006100519786457841326');
+  expect(Number(seen.body.billing.invoices[0].amount)).toBe(12500.5);
+  const url = `${base}/${created.body.invoice.id}/confirm-bank-transfer`, reference = `DEKONT-${crypto.randomUUID()}`;
+  expect((await as(platform.token, 'post', url, { amount: 12500.49, reference })).status).toBe(400);
+  const results = await Promise.all([as(platform.token, 'post', url, { amount: 12500.5, reference }), as(platform.token, 'post', url, { amount: 12500.5, reference })]);
+  expect(results.map(r => r.status).sort()).toEqual([200, 409]);
+  const license = (await db.query('SELECT status, expires_at FROM licenses WHERE id=$1', [licenseId])).rows[0];
+  expect(license.status).toBe('ACTIVE');
+  expect(Date.parse(String(license.expires_at).replace(' ', 'T') + 'Z')).toBeGreaterThan(Date.now() + 364 * 86400000);
+});

@@ -74,11 +74,18 @@ const billing=require('../services/billingService');
 const licenseTarget=req=>{const tenantId=Number(req.params.id),licenseId=Number(req.params.licenseId);
  if(!Number.isSafeInteger(tenantId)||tenantId<=0||!Number.isSafeInteger(licenseId)||licenseId<=0)throw Object.assign(new Error('Geçersiz işletme veya lisans.'),{status:400});
  return {tenantId,licenseId,actor:req.user.email};};
-const billingRoute=work=>async(req,res,next)=>{try{res.status(201).json(await db.transaction(client=>work(client,licenseTarget(req),req)));}
+const billingRoute=(work,status=201)=>async(req,res,next)=>{try{res.status(status).json(await db.transaction(client=>work(client,licenseTarget(req),req)));}
  catch(e){e.status?res.status(e.status).json({error:e.message}):next(e);}};
 router.post('/tenants/:id/licenses/:licenseId/invoices',billingRoute(async(client,target,req)=>{
- const invoice=await billing.createInvoice(client,{...target,billingPeriod:req.body.billing_period||'ANNUAL'});
+ const invoice=await billing.createInvoice(client,{...target,billingPeriod:req.body.billing_period||'ANNUAL',paymentMethod:req.body.payment_method,amount:req.body.amount,currency:req.body.currency});
  return {invoice,payment_metadata:{tenant_id:String(target.tenantId),license_id:String(target.licenseId),invoice_id:String(invoice.id)}};}));
+router.post('/tenants/:id/licenses/:licenseId/invoices/:invoiceId/confirm-bank-transfer',billingRoute((client,target,req)=>billing.confirmBankTransfer(client,{...target,invoiceId:Number(req.params.invoiceId),amount:req.body.amount,reference:req.body.reference}),200));
+router.post('/tenants/:id/licenses/:licenseId/invoices/:invoiceId/void',billingRoute((client,target,req)=>billing.voidBankInvoice(client,{...target,invoiceId:Number(req.params.invoiceId)}),200));
+router.get('/bank-transfers',async(req,res,next)=>{try{
+ const pending=(await db.query("SELECT i.id,i.invoice_no,i.tenant_id,i.license_id,i.amount,i.currency,i.billing_period,i.created_at,t.company_name FROM invoices i JOIN tenants t ON t.id=i.tenant_id WHERE i.payment_method=$1 AND i.status='PENDING' ORDER BY i.id DESC LIMIT 200",[billing.BANK_TRANSFER])).rows;
+ const licenses=(await db.query("SELECT l.id,l.tenant_id,l.plan_id,l.status,l.expires_at,t.company_name FROM licenses l JOIN tenants t ON t.id=l.tenant_id WHERE l.status IN ('PENDING_PAYMENT','ACTIVE','PAST_DUE','EXPIRED') ORDER BY l.id DESC LIMIT 200")).rows;
+ res.json({bank:billing.bankDetails(),pending,licenses});
+}catch(e){next(e);}});
 router.post('/tenants/:id/licenses/:licenseId/cancel',billingRoute(async(client,target)=>{await billing.cancelLicense(client,target);return {status:'CANCELLED'};}));
 router.post('/tenants/:id/licenses/:licenseId/extend',billingRoute(async(client,target,req)=>({expires_at:await billing.extendManually(client,{...target,days:req.body.days,reason:req.body.reason})})));
 router.post('/billing',async(req,res,next)=>{try{const {tenant_id,amount,currency}=req.body;if(!Number.isSafeInteger(tenant_id)||tenant_id<1||typeof amount!=='number'||!Number.isFinite(amount)||amount<=0||amount>10000000||!['TRY','USD','EUR'].includes(currency))return res.status(400).json({error:'Geçerli firma, tutar ve para birimi gerekli.'});const number='PRF-'+require('crypto').randomUUID();await db.transaction(async c=>{if(!(await c.query('SELECT id FROM tenants WHERE id=$1',[tenant_id])).rows.length)throw Object.assign(Error('İşletme bulunamadı.'),{status:404});await c.query("INSERT INTO invoices (invoice_no,tenant_id,amount,currency,billing_period,payment_method,status,paid_at) VALUES ($1,$2,$3,$4,'ANNUAL','MANUAL','DRAFT',NULL)",[number,tenant_id,amount,currency]);await c.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,details) VALUES ($1,$2,$3,$4,$5)',[tenant_id,req.user.email,'billing_draft_created','invoice',JSON.stringify({invoice_no:number,amount,currency})]);});res.status(201).json({invoice_no:number,status:'DRAFT',legal_invoice:false});}catch(e){next(e);}});

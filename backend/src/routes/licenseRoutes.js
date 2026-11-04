@@ -40,6 +40,12 @@ router.get('/public-key', licenseController.getPublicKey);
 router.post('/purchase', (req, res, next) => {
   return res.status(503).json({ error: 'Ödeme doğrulaması henüz bağlı değil. Paketiniz platform yöneticisi tarafından tanımlanmalıdır.' });
 }, licenseController.purchase);
+// Yenileme bekleyen firma yöneticisi için; lisansı kapalı firma aynı bilgiyi giriş yanıtında alır.
+const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
+router.get('/billing', authMiddleware, requireRole('admin'), async (req, res, next) => {
+  try { res.set('Cache-Control', 'no-store').json(await require('../services/billingService').customerBilling(require('../config/database'), req.user.tenantId)); }
+  catch (error) { next(error); }
+});
 // Ödeme sağlayıcısı bildirimi: kimlik doğrulaması HMAC imzasıyla yapılır (bkz. webhookController).
 router.post('/webhooks/payment', require('../controllers/webhookController').handlePaymentWebhook);
 router.post('/activate', licenseLimiter, licenseController.activate);

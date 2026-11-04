@@ -68,7 +68,7 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    if(error.response?.status===423&&!isTerminalReauth(error.config)&&!/^\/license\//.test(error.config?.url||'')){
+    if(error.response?.status===423&&!error.response.data?.billing&&!isTerminalReauth(error.config)&&!/^\/license\//.test(error.config?.url||'')){
       localStorage.removeItem('token');localStorage.removeItem('user');sessionStorage.removeItem('platform-tenant');
       if(window.location.protocol==='file:')window.location.hash='/activate';
       else if(window.location.pathname!=='/activate')window.location.href='/activate';

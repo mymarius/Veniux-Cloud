@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BankTransferPayment from '../components/BankTransferPayment';
 import { Link, useNavigate,Navigate } from 'react-router-dom';
 import { ArrowRight, Building2, Key, Lock, Mail, ShieldAlert } from 'lucide-react';
 import apiClient from '../api/client';
@@ -8,6 +9,7 @@ import { AuthShell } from '../components/AuthShell';
 import HostingSponsor from '../components/HostingSponsor';
 
 export default function Login() {
+  const [billing, setBilling] = useState(null);
   const [email, setEmail] = useState(() => localStorage.getItem('veniux-remembered-email') || '');
   const [password, setPassword] = useState('');
   const [mfaRequired,setMfaRequired]=useState(false),[mfaCode,setMfaCode]=useState('');
@@ -35,6 +37,7 @@ export default function Login() {
       const fullProgram=(window.veniuxDesktop||window.veniuxMobile)&&response.data.user.portal_role==='admin';
       navigate(response.data.user.portal_role&&!fullProgram ? '/business' : '/dashboard');
     } catch (requestError) {
+      setBilling(requestError.response?.data?.billing || null);
       setError(requestError.response?.data?.error || (!requestError.response ? 'Sunucuya ulaşılamıyor. Bağlantınızı ve sunucu adresini kontrol edin.' : 'Giriş yapılamadı. Bilgilerinizi kontrol edin.'));
     } finally {
       setLoading(false);
@@ -46,6 +49,7 @@ export default function Login() {
   return (
     <AuthShell eyebrow="Yetkili erişim" title="Çalışma alanınıza giriş yapın" description="Veniux hesabınızla depo ve işletme operasyonlarınıza devam edin." footer={<><span>{license && window.veniuxDesktop && window.veniuxDesktop.apiBase!=='https://business.veniux.com/api' && <><Link to="/register" className="font-semibold text-brand-500">Bu sunucuda işletme hesabı oluştur</Link><br/></>}Davetiniz var mı? <Link data-testid="link-register" to="/business-invite" className="font-bold text-brand-500 hover:underline">Davet kodum var</Link></span><HostingSponsor compact/></>}>
       {license && <div data-testid="status-license" className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-3 text-xs"><span className="flex min-w-0 items-center gap-2 font-semibold"><Building2 className="h-4 w-4 shrink-0 text-brand-500" /><span className="truncate">{license.tenant_name || 'Kurumsal çalışma alanı'}</span></span><span className="shrink-0 rounded-full bg-green-50 border border-green-200 px-2.5 py-1 text-[10px] font-bold text-green-700">Lisans aktif</span></div>}
+      {billing && <div className="mb-5"><BankTransferPayment billing={billing} /></div>}
       {error && <div data-testid="status-login-error" className="mb-5 flex items-center gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-xs font-semibold text-red-600"><ShieldAlert className="h-4 w-4 shrink-0" /><span>{error}</span></div>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">

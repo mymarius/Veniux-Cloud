@@ -1,4 +1,5 @@
 import ProductPackageSelection from '../../components/ProductPackageSelection';
+import BankTransferPayment from '../../components/BankTransferPayment';
 import React, { useState } from 'react';
 import MobileConnection from './MobileConnection';
 import { useLicense } from '../../context/LicenseContext';
@@ -34,7 +35,7 @@ export default function LicenseTab() {
   const expiresAt = license?.expires_at ? new Date(license.expires_at).toLocaleDateString('tr-TR') : 'Belirtilmedi';
 
   return (
-    <div className="max-w-4xl space-y-8 animate-fade-in"><ProductPackageSelection/>
+    <div className="max-w-4xl space-y-8 animate-fade-in"><BankTransferPayment/><ProductPackageSelection/>
       <div>
         <h1 className="text-xl font-bold text-gray-900">Lisans ve plan</h1>
         <p className="text-sm text-gray-500 mt-1">Yazılım lisans durumu, donanım kimliği ve modül yetkilerini görüntüleyin.</p>
