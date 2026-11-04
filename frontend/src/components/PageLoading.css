@@ -1,0 +1,20 @@
+.vx-page-loading{min-height:100svh;display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(ellipse at 50% 42%,#fff 0%,#f7f9fc 55%,#f0f4fa 100%);padding:40px 24px;color:#142541;text-align:center}
+.vx-loading-content{width:min(100%,420px);margin-top:-40px;animation:vx-loading-enter .3s ease-out}
+.vx-loading-brand{display:inline-flex;align-items:center;gap:12px;text-align:left;margin-bottom:46px}
+.vx-loading-brand img{width:60px;height:52px;object-fit:contain}
+.vx-loading-brand>span{font-size:27px;font-weight:500;letter-spacing:-1px;line-height:1.1}
+.vx-loading-brand small{display:block;font-size:9px;font-weight:600;letter-spacing:2.2px;color:#63809e;margin-top:7px}
+.vx-loading-orbit{display:flex;justify-content:center;gap:7px;margin-bottom:24px;height:10px}
+.vx-loading-orbit span{width:7px;height:7px;border-radius:50%;background:#38699b;animation:vx-loading-dot 1.4s ease-in-out infinite}
+.vx-loading-orbit span:nth-child(2){animation-delay:.15s;background:#579bc3}.vx-loading-orbit span:nth-child(3){animation-delay:.3s;background:#87bed6}
+.vx-loading-content h1{font-size:20px;font-weight:600;letter-spacing:-.4px;margin:0 0 10px}
+.vx-loading-content p{font-size:13px;line-height:1.8;color:#70839d;margin:0;min-height:46px}
+.vx-loading-track{height:3px;width:144px;margin:24px auto 0;background:#e4ecf5;border-radius:9px;overflow:hidden}
+.vx-loading-track span{display:block;width:45%;height:100%;background:linear-gradient(90deg,#7cc8dd,#2c5791);border-radius:9px;animation:vx-loading-line 1.8s ease-in-out infinite}
+.vx-loading-content button{margin-top:24px;padding:9px 18px;border:1px solid #d3dfec;background:#fff;border-radius:9px;font-size:12px;color:#2d5683;cursor:pointer}
+.vx-loading-content button:focus-visible{outline:2px solid #38699b;outline-offset:3px}
+.vx-loading-footer{position:absolute;bottom:30px;font-size:10px;letter-spacing:1.2px;color:#92a2b7}
+@keyframes vx-loading-dot{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
+@keyframes vx-loading-line{0%{transform:translateX(-110%)}100%{transform:translateX(330%)}}
+@keyframes vx-loading-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.vx-loading-content,.vx-loading-orbit span,.vx-loading-track span{animation:none}.vx-loading-orbit span{opacity:.7}.vx-loading-track span{transform:none}}

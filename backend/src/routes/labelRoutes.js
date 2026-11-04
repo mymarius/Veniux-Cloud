@@ -1,0 +1,11 @@
+const router=require('express').Router();const {authMiddleware,requireRole}=require('../middlewares/authMiddleware');const service=require('../services/labelPrintService');router.use(authMiddleware,requireRole('admin','manager','cashier'));
+const run=fn=>async(req,res,next)=>{try{res.json(await fn(req));}catch(e){next(e);}};
+router.get('/stations',run(r=>service.listStations(r.user)));
+router.post('/stations/register',requireRole('admin','manager','cashier'),run(r=>service.register(r.user,r.body)));
+router.post('/resolve',run(r=>service.resolve(r.user,r.body.product_id)));
+router.get('/jobs',run(r=>service.jobs(r.user)));
+router.post('/jobs',run(r=>service.enqueue(r.user,r.body,r.get('Idempotency-Key'))));
+router.post('/claim',requireRole('admin','manager','cashier'),run(r=>service.claim(r.user,r.body)));
+router.post('/jobs/:id/verify',requireRole('admin','manager','cashier'),run(r=>service.verifyPrint(r.user,r.params.id,r.body)));
+router.post('/jobs/:id/complete',requireRole('admin','manager','cashier'),run(r=>service.complete(r.user,r.params.id,r.body)));
+module.exports=router;

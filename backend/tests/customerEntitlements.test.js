@@ -1,0 +1,25 @@
+const request=require('supertest');
+const app=require('../src/index');
+const db=require('../src/config/database');
+const {createTenant}=require('./factories');
+test('signup is customer; only explicit platform owner can attach a package',async()=>{
+ const owner=await createTenant();
+ await db.query('INSERT INTO platform_admins (user_id) VALUES ($1)',[owner.userId]);
+ const signup=await request(app).post('/api/auth/register').send({email:'customer-pack@example.com',phone:'05551234567',password:'Password123',role:'admin',is_platform_admin:true,module_type:'BOTH'});
+ expect(signup.status).toBe(201);expect(signup.body.user.account_type).toBe('customer');expect(signup.body.user.is_platform_admin).toBe(false);
+ const login=await request(app).post('/api/auth/login').send({email:'customer-pack@example.com',phone:'05551234567',password:'Password123'});
+ const tenant=signup.body.user.tenant_id;
+ expect(login.status).toBe(423);expect(login.body.token).toBeUndefined();
+ expect((await request(app).get('/api/products')).status).toBe(401);
+ expect((await request(app).post('/api/license/purchase').send({})).status).toBe(503);
+ const assign=await request(app).post(`/api/platform/tenants/${tenant}/license`).set('Authorization','Bearer '+owner.token).send({plan_id:'NORMAL_WMS_ANNUAL',days:365});
+ expect(assign.status).toBe(201);
+ const licensed=await request(app).post('/api/auth/login').send({email:'customer-pack@example.com',password:'Password123'});
+ expect(licensed.status).toBe(200);const token=licensed.body.token;
+ expect((await request(app).post(`/api/platform/tenants/${tenant}/license`).set('Authorization','Bearer '+token).send({plan_id:'NORMAL_WMS_ANNUAL',days:365})).status).toBe(403);
+ expect((await request(app).get('/api/auth/me').set('Authorization','Bearer '+token)).body.module_type).toBe('NORMAL');
+ expect((await request(app).get('/api/normal-depo/products').set('Authorization','Bearer '+token)).status).toBe(200);
+ expect((await request(app).get('/api/eczane-depo/medicines').set('Authorization','Bearer '+token)).status).toBe(410);
+ const boss=await request(app).post('/api/auth/login').send({email:owner.email,phone:'05551234567',password:'password123'});
+ expect(boss.body.user.account_type).toBe('platform_admin');expect(boss.body.user.module_type).toBe('BOTH');
+});

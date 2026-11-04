@@ -1,0 +1,73 @@
+/* Shared native-style surfaces. Avoid large scrolling blur/compositing layers. */
+:root {
+ --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+ --font-display: var(--font-sans);
+ --vx-radius: 16px; --vx-control-radius: 9px;
+ --vx-accent: #007aff;
+ --color-bg: #f5f5f7; --color-surface: #fff; --color-border: #e2e3e7;
+ --color-text: #1d1d1f; --color-text-muted: #6e6e73;
+ --color-primary: #0071e3; --color-primary-hover: #0062c6;
+ --color-primary-light: #edf5ff;
+}
+:root[data-theme='dark'] {
+ --color-bg:#171719; --color-surface:#232326; --color-border:#38383d;
+ --color-text:#f5f5f7; --color-text-muted:#a1a1a6;
+ --color-primary:#409cff; --color-primary-hover:#63adff; --color-primary-light:#223347;
+}
+.enterprise-shell .sb {background:#ececf0;border-right:1px solid #dcdce1;color:#3d3d43}
+.enterprise-shell .sb :is(.sb-brand b,.sb-item,.sb-account,.sb-account b) {color:#303036}
+.enterprise-shell .sb :is(.sb-brand small,.sb-section-title,.sb-item svg,.sb-account small) {color:#75757f}
+.enterprise-shell .sb .sb-item {border-radius:9px;min-height:38px;margin-block:2px;font-weight:500}
+.enterprise-shell .sb .sb-item:hover {background:#dedee5}
+.enterprise-shell .sb .sb-item[data-active='true'] {background:#0071e3;color:#fff}
+.enterprise-shell .sb .sb-item[data-active='true'] svg {color:#fff}
+.enterprise-shell .sb .sb-item[data-active='true']::before {display:none}
+.enterprise-shell .sb :is(.sb-search,.sb-account) {background:#ffffff80;border:1px solid #dcdce2;color:#55555e;border-radius:10px}
+.enterprise-shell .sb .sb-section-title {font-size:10px;letter-spacing:.04em;font-weight:600}
+.enterprise-shell .enterprise-header {background:var(--color-surface);backdrop-filter:none;border-bottom:1px solid var(--color-border)}
+.enterprise-shell .enterprise-content {background:var(--color-bg)}
+.enterprise-content :is(.veniux-card,.ax-panel,.ax-kpi,.crm-panel,.retail-panel,.md-panel) {border:1px solid var(--color-border);border-radius:16px;box-shadow:0 2px 8px #1d1d1f04}
+.enterprise-content h1 {letter-spacing:-.035em;font-weight:650!important}
+.enterprise-content :is(.btn-primary,.ax-btn-primary) {background:var(--color-primary);color:#fff;border-color:transparent}
+.enterprise-content :is(.btn-soft,.btn-secondary) {background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)}
+.enterprise-content :is(button,input,select,textarea) {font-family:var(--font-sans)}
+.enterprise-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea) {background:var(--color-surface);border-color:var(--color-border);border-radius:9px}
+.vx-dialog .vx-dialog-backdrop {backdrop-filter:none;background:#0005}
+.vx-dialog .vx-dialog-panel {border-radius:18px;box-shadow:0 12px 44px #0002}
+.enterprise-content :is(.ax-kpi,.veniux-card,.ax-panel):hover {transform:none}
+[data-desktop='true'] .desktop-titlebar {font-family:var(--font-sans);background:var(--color-surface)}
+:root[data-theme='dark'] .enterprise-shell .sb {background:#202023;border-color:#38383d}
+:root[data-theme='dark'] .enterprise-shell .sb :is(.sb-brand b,.sb-item,.sb-account,.sb-account b) {color:#e5e5ea}
+:root[data-theme='dark'] .enterprise-shell .sb :is(.sb-search,.sb-account) {background:#2b2b30;border-color:#414147;color:#bcbcc4}
+:root[data-theme='dark'] .enterprise-shell .sb .sb-item:hover {background:#333339}
+:root[data-theme='dark'] .enterprise-shell .sb .sb-item[data-active='true'] {background:#0071e3;color:#fff}
+@media print {.enterprise-shell .enterprise-content{background:#fff}}
+/* Sidebar refinement: clear group hierarchy, without continuous effects. */
+.enterprise-shell .sb {padding-top:8px}
+.enterprise-shell .sb .sb-brand {padding:18px 20px 22px}
+.enterprise-shell .sb .sb-brand img {width:38px;height:38px}
+.enterprise-shell .sb .sb-brand b {font-size:21px;font-weight:650;letter-spacing:-.7px}
+.enterprise-shell .sb .sb-brand small {font-size:9px;letter-spacing:.08em;margin-top:6px}
+.enterprise-shell .sb .sb-search {height:42px;margin:0 16px 20px;padding:0 12px;border-radius:12px}
+.enterprise-shell .sb .sb-search kbd {font-size:10px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:5px;padding:2px 5px;color:var(--color-text-muted)}
+.enterprise-shell .sb .sb-nav {padding:0 12px 16px}
+.enterprise-shell .sb .sb-section {margin-bottom:9px}
+.enterprise-shell .sb .sb-section:first-child {padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--color-border)}
+.enterprise-shell .sb .sb-section-title {display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:8px 10px;border-radius:11px;text-transform:none;font-size:12px;letter-spacing:0;color:var(--color-text);font-weight:600}
+.enterprise-shell .sb .sb-section-title>svg {margin-left:auto;width:14px;color:var(--color-text-muted)}
+.enterprise-shell .sb .sb-group-mark {display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;border:1px solid var(--color-border);border-radius:9px;background:var(--color-surface);color:var(--color-primary)}
+.enterprise-shell .sb .sb-section-title:hover {background:#007aff0b}
+.enterprise-shell .sb .sb-section[data-expanded='true']>.sb-section-title {background:#007aff0d}
+.enterprise-shell .sb .sb-section[data-expanded='true'] .sb-group-mark {border-color:#007aff30}
+.enterprise-shell .sb .sb-items {padding:4px 2px}
+.enterprise-shell .sb .sb-item {padding:10px 12px;gap:12px;min-height:42px;font-size:13px}
+.enterprise-shell .sb .sb-section:not(:first-child) .sb-items {margin-left:14px;padding-left:8px;border-left:1px solid var(--color-border)}
+.enterprise-shell .sb .sb-item svg {flex-shrink:0;translate:none;animation:none}
+.enterprise-shell .sb .sb-more {margin:6px 0 6px 8px;color:var(--color-text-muted);font-size:11px}
+.enterprise-shell .sb .sb-account {margin:12px;padding:12px;border-radius:14px;box-shadow:0 2px 8px #00000004}
+.enterprise-shell .sb .sb-avatar {width:38px;height:38px;border-radius:11px;border:1px solid var(--color-border)}
+.enterprise-shell .sb .sb-account-text b {font-size:12px;font-weight:600}
+.enterprise-shell .sb .sb-account-text small {font-size:10px;line-height:1.6}
+.enterprise-shell .sb .sb-icon-btn {width:30px;height:30px;border-radius:8px;color:var(--color-text-muted)}
+.enterprise-shell .sb .sb-icon-btn:hover {background:#007aff12;color:var(--color-primary)}
+.enterprise-shell .sb :is(.sb-section-title,.sb-item,.sb-search):focus-visible {outline:2px solid var(--color-primary);outline-offset:2px}

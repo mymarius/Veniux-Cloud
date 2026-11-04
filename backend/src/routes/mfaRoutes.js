@@ -1,0 +1,7 @@
+const router=require('express').Router(),bcrypt=require('bcrypt'),db=require('../config/database'),mfa=require('../services/mfaService');
+router.use(require('../middlewares/authMiddleware').authMiddleware);
+router.use(require('express-rate-limit')({windowMs:300000,limit:10}));
+async function user(req){return (await db.query('SELECT id,email,tenant_id,password_hash FROM users WHERE id=$1 AND tenant_id=$2',[req.user.userId,req.user.homeTenantId])).rows[0];}
+router.get('/',async(req,res,next)=>{try{res.set('Cache-Control','no-store');res.json(await mfa.status(await user(req)));}catch(e){next(e);}});
+for(const action of ['setup','confirm','disable'])router.post('/'+action,async(req,res,next)=>{try{res.set('Cache-Control','no-store');const u=await user(req);if(typeof req.body.password!=='string'||Buffer.byteLength(req.body.password)>72||!await bcrypt.compare(req.body.password,u.password_hash))return res.status(403).json({error:'Mevcut parolanızı doğrulayın.'});const code=typeof req.body.code==='string'?req.body.code.trim():'';if(action==='setup')return res.json(await mfa.setup(u));if(action==='confirm'){const result=await mfa.confirm(u,code);return res.status(result.error?400:200).json(result);}const result=await mfa.verify(u,code,{disable:true});if(!result.required||!result.ok)return res.status(400).json({error:'İkinci doğrulama kodu geçersiz.'});res.json({enabled:false});}catch(e){next(e);}});
+module.exports=router;

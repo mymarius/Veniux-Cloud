@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Kontrol Paneli · 1440×900", "expand": "fit", "is_interactive": true },
+    { "file": "Duzeltmeler.dc.html", "x": 1560, "y": 0, "w": 1180, "h": 1320, "title": "Bulunan hatalar · önce / sonra", "is_interactive": true },
+    { "file": "Bilesenler.dc.html", "x": 0, "y": 1040, "w": 1180, "h": 1560, "title": "Bileşen ve token sayfası", "is_interactive": true }
+  ],
+  "annotations": [
+    {
+      "id": "okuma-sirasi",
+      "x": 1560,
+      "y": 1420,
+      "w": 300,
+      "text": "Okuma sırası:\n1 · Kontrol Paneli — sidebar gruplarını aç/kapat, menüyü daralt, depo seç, sekmeleri değiştir, zili aç.\n2 · Bulunan hatalar — üstteki anahtarı çevir, aynı bileşen mevcut ve düzeltilmiş hâliyle çalışır.\n3 · Bileşen sayfası — panelin türetildiği tokenler."
+    }
+  ],
+  "launch": { "view": "focused", "file": "Main.dc.html" }
+}

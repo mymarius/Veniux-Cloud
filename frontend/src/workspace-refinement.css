@@ -1,0 +1,58 @@
+/* Operational typography and restrained surfaces shared by every app screen. */
+:root {
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: 'Cascadia Mono', Consolas, monospace;
+}
+body { font-family: var(--font-sans); }
+button, input, select, textarea { font-family: inherit; }
+.enterprise-content h1 { font-size: clamp(24px, 2vw, 29px); letter-spacing: -.025em; }
+.enterprise-content th, .vx-table th { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; }
+.enterprise-content td, .vx-table td { font-size: 13px; }
+.vx-table-wrap { border-radius: 8px; box-shadow: none; }
+.veniux-card, .vx-dialog-panel { border-radius: 10px; }
+.vx-dialog-head > i, .vx-input, .vx-btn, .vx-stepper, .icon-btn { border-radius: 6px; }
+.vx-dialog-backdrop { backdrop-filter: none; }
+.sb-item { border-radius: 5px; }
+.sb-section-title { letter-spacing: .04em; }
+.sb-avatar { background: #315578; border-radius: 6px; }
+.sb-account { border-radius: 6px; }
+.settings-workspace { min-height: 640px; }
+.settings-navigation { border-radius: 10px 0 0 10px; }
+[data-desktop='true'] .sb { top: 44px; height: calc(100dvh - 44px); }
+[data-desktop='true'] .enterprise-header { top: 44px; }
+[data-desktop='true'] .enterprise-shell,
+[data-desktop='true'] .enterprise-shell > .flex.min-w-0 { min-height: calc(100dvh - 44px); }
+@media (max-width: 900px) {
+  .settings-workspace { flex-direction: column; }
+  .settings-navigation { width: 100%; border-right: 0; border-bottom: 1px solid var(--color-border); border-radius: 10px 10px 0 0; }
+  .settings-navigation > div:last-child { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+.auth-workspace, [data-desktop='true'] .auth-workspace { background: var(--color-bg, #f4f6f9); }
+.auth-workspace > aside { isolation: isolate; background: linear-gradient(150deg,#234c70,#13283c 65%,#102236); }
+[data-desktop='true'] .auth-workspace > aside { background: linear-gradient(150deg,#234c70,#13283c 65%,#102236); }
+.auth-workspace > aside h1, [data-desktop='true'] .auth-workspace > aside h1 { font-size: clamp(34px,3.3vw,48px); line-height: 1.14; font-weight: 600; letter-spacing: -1.5px; }
+.auth-workspace > aside p { color: #b8cbdc; line-height: 1.7; }
+.auth-eyebrow { background: none; border: 0; padding: 0; color: #c2d6e7; }
+.auth-eyebrow-line { width: 24px; height: 1px; background: #88b6d4; }
+.auth-eyebrow span:last-child { font-size: 11px; letter-spacing: .12em; font-weight: 500; }
+.auth-form-card, [data-desktop='true'] .auth-form-card { border-radius: 10px; box-shadow: 0 4px 24px #172b4306; }
+.auth-form-card input:not([type=checkbox]), [data-desktop='true'] .auth-form-card input:not([type=checkbox]) { border-radius: 6px; }
+.auth-workspace main h2 { font-size: 28px; letter-spacing: -.6px; }
+.auth-flow { position: absolute; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+.auth-flow svg { width: 100%; height: 100%; opacity: .35; }
+.auth-flow-map { fill: none; stroke: #8eb5ce; stroke-width: 1; opacity: .26; }
+.auth-flow-parcels { fill: #376285; stroke: #96bdd4; }
+.auth-flow-stream { fill: none; stroke: #b3deee; stroke-width: 2; stroke-dasharray: 18 1100; opacity: .7; }
+.auth-flow-stream path:nth-child(2) { stroke-dasharray: 12 1250; }
+.auth-flow-light { position: absolute; width: 460px; height: 460px; right: -260px; bottom: 10%; border-radius: 50%; background: radial-gradient(circle,#80bdd81c,transparent 68%); }
+@media (prefers-reduced-motion: no-preference) {
+  .auth-flow-stream path { animation: auth-route 17s linear infinite; }
+  .auth-flow-stream path:nth-child(2) { animation-duration: 23s; animation-delay: -8s; }
+  .auth-flow-light { animation: auth-light 18s ease-in-out infinite alternate; }
+}
+@keyframes auth-route { from { stroke-dashoffset: 1120; } to { stroke-dashoffset: 0; } }
+@keyframes auth-light { from { transform: translateY(80px); opacity: .4; } to { transform: translateY(-160px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .auth-flow * { animation: none !important; } }
+@media (max-width: 1023px) { .auth-workspace main h2 { font-size: 25px; } }
+

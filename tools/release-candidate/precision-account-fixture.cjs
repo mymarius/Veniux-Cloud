@@ -1,0 +1,4 @@
+// Disposable localhost-only visual test account. Never run against a hosted service.
+const assert=require('node:assert/strict');
+const base='http://127.0.0.1:39768';
+(async()=>{const r=await fetch(base+'/kayit');assert.equal(r.status,200);const cookie=r.headers.get('set-cookie').split(';')[0];const csrf=(await r.text()).match(/name="csrf" value="([a-f0-9]+)"/)[1];const response=await fetch(base+'/kayit',{method:'POST',redirect:'manual',headers:{cookie,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,company:'Dark Precision Test İşletmesi',email:'precision-visual@example.invalid',password:'Local-only-visual-fixture-2026!'})});assert([303,409].includes(response.status));console.log('PASS isolated visual account prepared; no production access');})().catch(e=>{console.error(e.message);process.exitCode=1;});

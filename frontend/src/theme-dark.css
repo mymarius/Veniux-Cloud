@@ -1,0 +1,141 @@
+/* ─────────────────────────────────────────────────────────────
+   Koyu tema ve kompakt yoğunluk (html[data-theme] / html[data-density]).
+   Tailwind gri/slate tonları değişken üzerinden çalıştığı için koyu modda
+   ölçek ters çevrilir; projeye özel sabit renkli sınıflar aşağıda eşlenir.
+   ───────────────────────────────────────────────────────────── */
+
+:root[data-theme='dark'] {
+  --vx-page: #0e1520;
+  --vx-surface: #161f2c;
+  --vx-subtle: #1c2736;
+  --vx-hover: #223044;
+  --vx-border: #2a3648;
+  --vx-border-strong: #39475b;
+  --vx-text: #e6ebf2;
+  --vx-text-soft: #c3ccd8;
+  --vx-muted: #8f9db1;
+
+  --color-bg: var(--vx-page);
+  --color-surface: var(--vx-surface);
+  --color-surface-raised: var(--vx-subtle);
+  --color-surface-rgb: 22, 31, 44;
+  --color-border: var(--vx-border);
+  --color-text: var(--vx-text);
+  --color-text-muted: var(--vx-muted);
+  --color-danger-bg: rgba(239, 68, 68, .14);
+  --color-success-bg: rgba(16, 185, 129, .14);
+  --color-warning-bg: rgba(245, 158, 11, .14);
+
+  /* Ters çevrilmiş nötr ölçek: açık zeminler koyulaşır, koyu metinler açılır. */
+  --color-gray-50: #19222f;   --color-slate-50: #19222f;
+  --color-gray-100: #1e2938;  --color-slate-100: #1e2938;
+  --color-gray-200: #2a3648;  --color-slate-200: #2a3648;
+  --color-gray-300: #3a475b;  --color-slate-300: #3a475b;
+  --color-gray-400: #6e7d93;  --color-slate-400: #6e7d93;
+  --color-gray-500: #8897ab;  --color-slate-500: #8897ab;
+  --color-gray-600: #a6b2c3;  --color-slate-600: #a6b2c3;
+  --color-gray-700: #c1cad6;  --color-slate-700: #c1cad6;
+  --color-gray-800: #d6dde6;  --color-slate-800: #d6dde6;
+  --color-gray-900: #e6ebf2;  --color-slate-900: #e6ebf2;
+  --color-gray-950: #f2f5f9;  --color-slate-950: #f2f5f9;
+}
+
+/* Koyu dolgulu öğeler (koyu buton, el terminali ekranı) kendi orijinal tonlarını korur. */
+:root[data-theme='dark'] :is(.bg-slate-700, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-gray-700, .bg-gray-800, .bg-gray-900, .bg-gray-950, .vt-device) {
+  --color-gray-50: oklch(98.5% .002 247.839);  --color-slate-50: oklch(98.4% .003 247.858);
+  --color-gray-100: oklch(96.7% .003 264.542); --color-slate-100: oklch(96.8% .007 247.896);
+  --color-gray-200: oklch(92.8% .006 264.531); --color-slate-200: oklch(92.9% .013 255.508);
+  --color-gray-300: oklch(87.2% .01 258.338);  --color-slate-300: oklch(86.9% .022 252.894);
+  --color-gray-400: oklch(70.7% .022 261.325); --color-slate-400: oklch(70.4% .04 256.788);
+  --color-gray-500: oklch(55.1% .027 264.364); --color-slate-500: oklch(55.4% .046 257.417);
+  --color-gray-600: oklch(44.6% .03 256.802);  --color-slate-600: oklch(44.6% .043 257.281);
+  --color-gray-700: oklch(37.3% .034 259.733); --color-slate-700: oklch(37.2% .044 257.287);
+  --color-gray-800: oklch(27.8% .033 256.848); --color-slate-800: oklch(27.9% .041 260.031);
+  --color-gray-900: oklch(21% .034 264.665);   --color-slate-900: oklch(20.8% .042 265.755);
+  --color-gray-950: oklch(13% .028 261.692);   --color-slate-950: oklch(12.9% .042 264.695);
+}
+
+/* ── Temel yüzeyler ─────────────────────────────────────────── */
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] .enterprise-shell,
+:root[data-theme='dark'] .enterprise-content { background: var(--vx-page) !important; color: var(--vx-text); }
+:root[data-theme='dark'] .bg-white { background-color: var(--vx-surface); }
+:root[data-theme='dark'] :is(.bg-white\/90, .bg-white\/95, .bg-white\/80) { background-color: rgba(22, 31, 44, .92); }
+:root[data-theme='dark'] .enterprise-header { background: rgba(22, 31, 44, .92) !important; border-color: var(--vx-border) !important; }
+/* Varsayılanlar base katmanında: Tailwind sınıfları (renkli kenarlık, bg-transparent) önceliğini korur. */
+@layer base {
+  :root[data-theme='dark'] *, :root[data-theme='dark'] ::before, :root[data-theme='dark'] ::after { border-color: var(--vx-border); }
+  :root[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  :root[data-theme='dark'] select,
+  :root[data-theme='dark'] textarea { background-color: var(--vx-subtle); color: var(--vx-text); }
+}
+:root[data-theme='dark'] ::placeholder { color: #6e7d93; }
+:root[data-theme='dark'] option { background: var(--vx-surface); color: var(--vx-text); }
+
+/* Kartlar ve paneller */
+:root[data-theme='dark'] :is(.veniux-card, .ax-panel, .ax-kpi, .ax-module, .ax-welcome, .vx-table-wrap, .vx-dialog-panel, .roles-card, .roles-groups li, .roles-notes > div, .skip-navigation) {
+  background: var(--vx-surface); border-color: var(--vx-border);
+}
+:root[data-theme='dark'] .ax-welcome { background: linear-gradient(120deg, var(--vx-surface) 55%, var(--vx-subtle)); }
+:root[data-theme='dark'] :is(.ax-stats > div, .ax-segmented, .ax-barlist i, .vx-chip, .vx-table-empty span, .vx-preview, .vx-toggle, .vt-code, .vt-log, .roles-meter, .roles-groups li[data-allowed='false']) {
+  background: var(--vx-subtle); border-color: var(--vx-border);
+}
+:root[data-theme='dark'] .vt-stats > div { background: var(--vx-surface); }
+
+/* Tablolar */
+:root[data-theme='dark'] :is(.enterprise-content thead, .vx-table thead, .ax-table th, .roles-matrix thead th) { background: var(--vx-subtle); }
+:root[data-theme='dark'] :is(.enterprise-content th, .vx-table th, .ax-table th, .roles-matrix thead th) { color: var(--vx-muted); }
+:root[data-theme='dark'] :is(.enterprise-content td, .vx-table, .vx-table td, .ax-table td) { color: var(--vx-text-soft); }
+:root[data-theme='dark'] :is(.enterprise-content tbody tr:hover, .vx-table tbody tr:not(.vx-table-empty-row):hover) { background: var(--vx-hover); }
+:root[data-theme='dark'] .roles-matrix-group th { background: var(--vx-surface); }
+:root[data-theme='dark'] :is(.roles-matrix [data-active], .roles-card[data-active]) { background: rgba(120, 154, 197, .1); }
+:root[data-theme='dark'] .roles-matrix thead th[data-active] { background: rgba(120, 154, 197, .18); color: var(--color-brand-300); }
+
+/* Butonlar */
+:root[data-theme='dark'] :is(.btn-secondary, .ax-btn, .ax-select, .icon-btn, .vx-btn, .vx-input, .vx-stepper, .vx-chips button, .ax-segmented button[aria-pressed='true']) {
+  background: var(--vx-subtle); border-color: var(--vx-border-strong); color: var(--vx-text-soft);
+}
+:root[data-theme='dark'] :is(.btn-secondary:hover, .ax-btn:hover, .icon-btn:hover, .vx-btn:hover:not(:disabled), .vx-stepper button:hover, .vx-chips button:hover, .ax-module:hover, .vt-code:hover:not(:disabled), .vx-dialog-close:hover) {
+  background: var(--vx-hover); color: var(--vx-text);
+}
+:root[data-theme='dark'] .btn-soft { background: rgba(120, 154, 197, .12); border-color: rgba(120, 154, 197, .28); color: var(--color-brand-300); }
+:root[data-theme='dark'] .btn-soft:hover { background: rgba(120, 154, 197, .2); color: var(--color-brand-200); }
+:root[data-theme='dark'] .btn-soft[data-tone='danger'] { background: rgba(229, 130, 130, .12); border-color: rgba(229, 130, 130, .3); color: #f0a3a3; }
+:root[data-theme='dark'] .btn-soft[data-tone='amber'] { background: rgba(233, 173, 81, .12); border-color: rgba(233, 173, 81, .32); color: #f2c27a; }
+:root[data-theme='dark'] .icon-btn[data-tone='danger']:hover { background: rgba(229, 130, 130, .14); color: #f0a3a3; }
+:root[data-theme='dark'] .vx-dialog-foot { background: var(--vx-surface); border-color: var(--vx-border); }
+
+/* Metin renkleri */
+:root[data-theme='dark'] :is(.ax-page, .roles-page) { color: var(--vx-text); }
+:root[data-theme='dark'] :is(.ax-panel-head h2, .ax-kpi strong, .ax-welcome h2, .ax-stats b, .roles-card-top b, .roles-groups li b, .roles-notes b, .roles-matrix tbody th[scope='row'], .vt-log-url) { color: var(--vx-text); }
+:root[data-theme='dark'] :is(.ax-head p, .ax-panel-head p, .ax-welcome p, .ax-welcome small, .ax-stats span, .ax-empty, .roles-card small, .roles-card em, .roles-groups li p, .roles-notes p, .roles-groups h3, .vx-table-empty p, .vt-log code, .vt-log-time, .vt-code small) { color: var(--vx-muted); }
+:root[data-theme='dark'] .ax-eyebrow { color: var(--vx-muted); }
+
+/* Renkli simge zeminleri: açık pastel yerine yarı saydam ton */
+:root[data-theme='dark'] :is([data-tone='blue'] > .ax-kpi-top i, .ax-panel-icon, .vt-log-method) { background: rgba(120, 154, 197, .16); color: var(--color-brand-300); }
+:root[data-theme='dark'] :is([data-tone='teal'] > .ax-kpi-top i, .ax-pill[data-tone='in'], .vt-log-status, .roles-mark) { background: rgba(33, 166, 155, .16); color: #5fd0c4; }
+:root[data-theme='dark'] [data-tone='amber'] > .ax-kpi-top i { background: rgba(233, 173, 81, .16); }
+:root[data-theme='dark'] [data-tone='violet'] > .ax-kpi-top i { background: rgba(155, 140, 219, .16); }
+:root[data-theme='dark'] :is([data-tone='red'] > .ax-kpi-top i, .ax-pill[data-tone='out'], .vt-log[data-ok='false'] .vt-log-status) { background: rgba(229, 130, 130, .16); color: #f0a3a3; }
+:root[data-theme='dark'] :is([data-tone='slate'] > .ax-kpi-top i, .ax-pill[data-tone='neutral'], [data-allowed='false'] > .roles-mark, .roles-mark[data-allowed='false']) { background: var(--vx-hover); color: var(--vx-muted); }
+:root[data-theme='dark'] .vt-log[data-ok='false'] { background: rgba(229, 130, 130, .06); }
+
+/* Tailwind pastel zeminler (uyarı kutuları vb.) */
+:root[data-theme='dark'] .bg-red-50 { background-color: rgba(239, 68, 68, .12); }
+:root[data-theme='dark'] .bg-emerald-50, :root[data-theme='dark'] .bg-green-50 { background-color: rgba(16, 185, 129, .12); }
+:root[data-theme='dark'] .bg-amber-50, :root[data-theme='dark'] .bg-yellow-50 { background-color: rgba(245, 158, 11, .12); }
+:root[data-theme='dark'] .bg-blue-50, :root[data-theme='dark'] .bg-brand-50 { background-color: rgba(120, 154, 197, .12); }
+:root[data-theme='dark'] .text-red-700 { color: #f0a3a3; }
+:root[data-theme='dark'] .text-amber-900 { color: #f2c27a; }
+:root[data-theme='dark'] .text-teal-700, :root[data-theme='dark'] .text-emerald-600 { color: #5fd0c4; }
+:root[data-theme='dark'] .text-brand-600, :root[data-theme='dark'] .text-blue-700 { color: var(--color-brand-300); }
+:root[data-theme='dark'] .skeleton, :root[data-theme='dark'] .vx-table-skeleton { background: linear-gradient(90deg, var(--vx-subtle) 25%, var(--vx-hover) 50%, var(--vx-subtle) 75%); background-size: 200% 100%; }
+
+/* ── Kompakt yoğunluk ───────────────────────────────────────── */
+:root[data-density='compact'] { font-size: 14px; }
+:root[data-density='compact'] :is(.vx-table th, .vx-table td) { padding-top: 7px; padding-bottom: 7px; }
+:root[data-density='compact'] .enterprise-content :is(td, th) { padding-top: 6px; padding-bottom: 6px; }
+:root[data-density='compact'] :is(.ax-panel) { padding: 14px 16px 16px; }
+:root[data-density='compact'] .ax-kpi { padding: 13px 14px 12px; }
+:root[data-density='compact'] .ax-grid { gap: 12px; margin-bottom: 12px; }
+:root[data-density='compact'] .ax-head { margin-bottom: 14px; }

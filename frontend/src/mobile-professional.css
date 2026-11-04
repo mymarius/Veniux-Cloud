@@ -1,0 +1,114 @@
+/* Mobile visual system: scoped to the Android/companion surface. */
+html:root[data-design='veniux'][data-mobile='true']{--color-bg:#f3f6fa;--color-surface:#fff;--color-surface-raised:#f7f9fc;--color-border:#dce5ef;--color-text:#142b44;--color-text-muted:#526a83;--color-primary:#1763b5;--color-primary-hover:#0e5098;--color-primary-light:#eaf3ff;--vx-card-radius:18px;--vx-control-radius:12px;--vx-page-title:24px;--vx-section-title:17px;--vx-body-size:14px;--mobile-navy:#102a47;--mobile-orange:#f58532;--mobile-edge:16px;color-scheme:light}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark']{--color-bg:#0c192a;--color-surface:#14283f;--color-surface-raised:#1b324d;--color-border:#304961;--color-text:#edf5ff;--color-text-muted:#b2c6dc;--color-primary:#76b6ff;--color-primary-hover:#9acaff;--color-primary-light:#203e60;color-scheme:dark}
+html:root[data-design='veniux'][data-mobile='true'] body{background:var(--color-bg);font-size:14px;-webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+html:root[data-design='veniux'][data-mobile='true'] :is(button,a,input,select,textarea){touch-action:manipulation}
+html:root[data-design='veniux'][data-mobile='true'] :is(button,a):focus-visible{outline:2px solid var(--color-primary);outline-offset:3px}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-header{height:72px;padding:0 14px;gap:8px;background:var(--mobile-navy);border:0;border-bottom:2px solid #f58532;color:#fff;box-shadow:none;backdrop-filter:none}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-header>div{min-width:0;gap:8px}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-header>div:first-child{flex:1}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-header button{width:42px;height:44px;flex-shrink:0;color:#deebfb;background:#ffffff0b;border:0;border-radius:12px}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-header .mobile-header-assistant{background:#24496e;color:#a6d0ff}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-header-brand{width:30px;height:30px;object-fit:contain;flex-shrink:0}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-workspace-title{min-width:0;max-width:none}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-workspace-title p:first-child{display:block;font-size:9px;letter-spacing:.12em;color:#aac3df;line-height:1.4}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-workspace-title p:last-child{font-size:14px;line-height:1.5;color:#fff;letter-spacing:-.02em}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content{padding:22px var(--mobile-edge) calc(100px + env(safe-area-inset-bottom));background:var(--color-bg);min-width:0}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(h1,h2,h3){overflow-wrap:anywhere;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content h1{font-size:24px!important;line-height:1.25!important;letter-spacing:-.035em}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.ax-head,.business-heading,.retail-heading){gap:14px;margin-bottom:20px;align-items:flex-start}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.ax-head,.business-heading,.retail-heading)>div>p{font-size:13px;line-height:1.65}
+html:root[data-design='veniux'][data-mobile='true'] :is(.btn-primary,.btn-secondary,.btn-soft,.ax-btn,.business-button){min-height:46px;border-radius:12px!important;padding:11px 15px;font-size:13px;font-weight:650;box-shadow:none;white-space:normal}
+html:root[data-design='veniux'][data-mobile='true'] :is(.btn-primary,.ax-btn[data-primary='true']){background:#1763b5!important;border-color:#1763b5!important;color:#fff!important}
+html:root[data-design='veniux'][data-mobile='true'] :is(.btn-secondary,.btn-soft,.ax-btn,.business-button){background:var(--color-surface);border:1px solid var(--color-border);color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){font-size:16px!important;min-height:48px;border-radius:12px!important;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);box-shadow:none;max-width:100%}
+html:root[data-design='veniux'][data-mobile='true'] :is(input,select,textarea):focus{border-color:var(--color-primary);outline:2px solid color-mix(in srgb,var(--color-primary) 14%,transparent);outline-offset:1px}
+html:root[data-design='veniux'][data-mobile='true'] :is(input,textarea)::placeholder{color:var(--color-text-muted);opacity:.85}
+html:root[data-design='veniux'][data-mobile='true'] label{font-size:12px;font-weight:600;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.veniux-card,.ax-panel,.crm-panel,.retail-panel,.md-panel,.business-panel,.business-kpi,.business-metric,.ax-kpi,.rq-card){border:1px solid var(--color-border);border-radius:18px;box-shadow:0 2px 8px #102a4703;background:var(--color-surface);color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.ax-tabs,.business-tabs,.crm-tabs){display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;max-width:100%;padding:5px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:14px;scrollbar-width:thin}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.ax-tabs,.business-tabs,.crm-tabs)>*{flex-shrink:0;min-height:42px;border-radius:10px;padding:10px 14px;font-size:12px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-bottom-nav{background:var(--color-surface);padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--color-border);box-shadow:0 -4px 18px #102a4708}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-bottom-nav :is(a,button){position:relative;font-size:10px;gap:5px;min-height:50px;color:var(--color-text-muted);border-radius:12px;background:transparent}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-bottom-nav a.active{background:var(--color-primary-light);color:var(--color-primary)}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-bottom-nav a.active:before{content:'';position:absolute;top:0;width:18px;height:3px;border-radius:3px;background:var(--mobile-orange)}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-bottom-nav svg{width:21px;height:21px;stroke-width:1.8}
+html:root[data-design='veniux'][data-mobile='true'] .sb{border-radius:0 22px 22px 0;background:#102a47!important;max-width:86vw}
+html:root[data-design='veniux'][data-mobile='true'] .sb .sb-item{min-height:48px;font-size:13px;border-radius:12px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-home-heading{margin-bottom:24px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-kicker{font-size:10px;color:var(--color-primary);letter-spacing:.08em}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-home-heading p:last-child{color:var(--color-text-muted);font-size:13px;margin-top:8px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-refresh{background:var(--color-surface);border:1px solid var(--color-border);color:var(--color-primary);border-radius:13px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-action{position:relative;overflow:hidden;min-height:98px;padding:20px;border-radius:18px;background:#102e50;border:1px solid #234d76;box-shadow:none;color:#fff}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-action:before{content:'';position:absolute;left:0;top:18px;bottom:18px;width:3px;background:#f58532;border-radius:3px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-icon{background:#214d7a;color:#a6d0ff;border-radius:14px;width:48px;height:48px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-action small{color:#bbd3ed;font-size:12px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid{gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));padding:0;border:0;background:none;border-radius:0}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid>a{align-items:flex-start;text-align:left;min-height:126px;padding:17px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:16px;gap:13px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid span{width:39px;height:39px;border-radius:11px;background:var(--color-primary-light)!important;color:var(--color-primary)!important}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid>a:nth-child(3n) span{background:#fff0e3!important;color:#a94b08!important}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid strong{font-size:13px;font-weight:650;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] :is(.mobile-summary>a,.mobile-alert-list,.mobile-stock-details){background:var(--color-surface);border-color:var(--color-border);border-radius:16px;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-summary span{color:var(--color-text-muted)}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-summary strong{font-size:26px;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] :is(.mobile-section-title,.mobile-section-heading h2){font-size:16px!important;text-transform:none;letter-spacing:-.02em;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-alert-list :is(p,small){color:var(--color-text-muted)}
+html:root[data-design='veniux'][data-mobile='true'] .settings-workspace{display:block;border:0;background:transparent;box-shadow:none;min-width:0}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation{width:100%;border:0;background:transparent;margin-bottom:18px}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation>div:first-child{display:none}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation>div:last-child{display:flex;gap:7px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:thin}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation button{flex:0 0 auto;width:auto;min-height:44px;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);padding:10px 13px;border-radius:12px}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation button span{white-space:nowrap;font-size:12px}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation button[aria-pressed=true]{background:#1763b5;border-color:#1763b5;color:#fff}
+html:root[data-design='veniux'][data-mobile='true'] .settings-navigation button[aria-pressed=true] svg{color:#fff}
+html:root[data-design='veniux'][data-mobile='true'] .settings-workspace>div:last-child{padding:0;background:transparent}
+html:root[data-design='veniux'][data-mobile='true'] .vx-table tbody tr{padding:14px 16px;border:1px solid var(--color-border);border-radius:16px;background:var(--color-surface);color:var(--color-text);box-shadow:none}
+html:root[data-design='veniux'][data-mobile='true'] .vx-table td{padding:10px 0;line-height:1.6;color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .vx-table td[data-label]:before{color:var(--color-text-muted);font-size:12px;flex-basis:32%}
+html:root[data-design='veniux'][data-mobile='true'] .vx-table td :is(button,a){min-height:44px;min-width:40px}
+html:root[data-design='veniux'][data-mobile='true'] :is(.vx-dialog-panel,[role=dialog]){background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog{align-items:flex-end;padding:0}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-panel{width:100%;max-width:100%!important;max-height:92dvh;border-radius:22px 22px 0 0;border-bottom:0;box-shadow:0 -12px 48px #102a472b}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-head{padding:20px 18px 16px;border-bottom:1px solid var(--color-border)}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-head h3{font-size:18px;letter-spacing:-.025em}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-close{height:44px;width:44px;border-radius:12px}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-body{padding:18px;overscroll-behavior:contain}
+html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-foot{padding:14px 18px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--color-border);gap:10px}
+html:root[data-design='veniux'][data-mobile='true'] .auth-workspace{background:var(--color-bg)}
+html:root[data-design='veniux'][data-mobile='true'] .auth-form-card{padding:22px 18px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:18px;box-shadow:none}
+html:root[data-design='veniux'][data-mobile='true'] .auth-workspace :is(h1,h2){color:var(--color-text);font-size:26px;letter-spacing:-.035em}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scanner{background:var(--color-surface);border-color:var(--color-border);padding:18px;border-radius:18px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-launch{min-height:180px;background:#102e50;border-color:#234d76;color:#fff;border-radius:16px;position:relative}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-launch svg{color:#8ec4ff;stroke-width:1.6}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-launch small{color:#bbd3ed}
+html:root[data-design='veniux'][data-mobile='true'] .reader-result-panel{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)}
+html:root[data-design='veniux'][data-mobile='true'] .reader-product-values>div{background:var(--color-surface-raised)}
+html:root[data-design='veniux'][data-mobile='true'] .veniux-chat{left:0;right:0;bottom:0;width:100%;height:calc(100dvh - 12px);max-height:none;border-radius:22px 22px 0 0;border:1px solid var(--color-border);background:var(--color-surface)}
+html:root[data-design='veniux'][data-mobile='true'] .business-content{min-width:0}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.overflow-x-auto,.ax-table-wrap,.crm-table-wrap){max-width:100%;overscroll-behavior-x:contain}
+@media(max-width:600px){html:root[data-design='veniux'][data-mobile='true'] :is(.enterprise-content form,.vx-dialog-body) .grid{grid-template-columns:1fr!important}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-metrics,.ax-kpis,.product-stat-grid){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-heading-actions,.ax-head-actions){width:100%;flex-wrap:wrap}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-heading-actions,.ax-head-actions)>*{flex:1}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.retail-workspace,.retail-grid){grid-template-columns:1fr}}
+@media(min-width:700px){html:root[data-design='veniux'][data-mobile='true']{--mobile-edge:26px}html:root[data-design='veniux'][data-mobile='true'] .mobile-home{max-width:900px}html:root[data-design='veniux'][data-mobile='true'] .mobile-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}html:root[data-design='veniux'][data-mobile='true'] .vx-dialog{align-items:center;padding:24px}html:root[data-design='veniux'][data-mobile='true'] .vx-dialog-panel{max-width:640px!important;border-radius:22px;max-height:90dvh}}
+@media(prefers-reduced-motion:reduce){html:root[data-design='veniux'][data-mobile='true'] *{scroll-behavior:auto!important}}
+html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.rounded-lg,.rounded-xl,.rounded-2xl):not(button):not(input):not(select):not(textarea):not([role=button]){border-radius:var(--vx-card-radius)}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages :is(section,.overflow-x-auto){min-width:0;max-width:100%}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages .ml-auto.flex{max-width:100%;width:100%;min-width:0;flex-wrap:wrap;margin-left:0;gap:8px}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages .ml-auto.flex>input{flex:1;min-width:130px;width:100%}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages .ml-auto.flex>.vx-select{flex:1;min-width:130px;max-width:100%;min-height:44px;border-radius:12px}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages .ml-auto.flex>.btn-primary{flex:1}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages :is(.overflow-x-auto,.overflow-hidden){min-width:0}
+html:root[data-design='veniux'][data-mobile='true'] .crm-pages [data-testid=button-crm-create]{min-height:44px;border-radius:12px;background:#1763b5;color:#fff}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-stock-details>summary{color:var(--color-primary)}
+html:root[data-design='veniux'][data-mobile='true'] .vx-select{min-height:44px;border-radius:12px;border-color:var(--color-border);background:var(--color-surface);color:var(--color-text);max-width:100%}
+html:root[data-design='veniux'][data-mobile='true'] .vx-menu{border-radius:16px;border-color:var(--color-border);background:var(--color-surface);color:var(--color-text);max-width:calc(100vw - 24px)}
+html:root[data-design='veniux'][data-mobile='true'] .vx-menu__item{min-height:44px;border-radius:10px;font-size:13px}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark'] .enterprise-content :is(.text-slate-600,.text-slate-700,.text-gray-600,.text-gray-700){color:var(--color-text-muted)}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark'] [data-status]{background:#223d59;color:#c8dfff;border-color:#41617f}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark'] :is([data-status=success],[data-status=active],[data-status=completed]){background:#153d34;color:#a1e4c5;border-color:#326b59}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark'] :is([data-status=warning],[data-status=pending],[data-status=in_progress],[data-status=PROCESSING]){background:#49361f;color:#ffcf91;border-color:#795733}
+html:root[data-design='veniux'][data-mobile='true'][data-theme='dark'] :is([data-status=danger],[data-status=error],[data-status=failed]){background:#4a2931;color:#ffbdc7;border-color:#78414f}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error{min-height:100dvh;padding:64px 24px;background:var(--color-bg);color:var(--color-text);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:20px}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error h1{font-size:25px;line-height:1.3;font-weight:700;letter-spacing:-.03em}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error p{color:var(--color-text-muted);line-height:1.7}
+html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error button{min-height:48px}
+
+@media(min-width:1024px){html:root[data-design='veniux'][data-mobile='true'] .enterprise-shell .sb{width:264px;border-radius:0}}

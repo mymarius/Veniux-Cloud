@@ -1,0 +1,15 @@
+syntax = "proto3";
+package nvidia.riva.tts;
+// Minimal wire-compatible client schema for NVIDIA Riva's public synthesis API.
+service RivaSpeechSynthesis {
+ rpc Synthesize(SpeechRequest) returns (SpeechResponse);
+}
+message SpeechRequest {
+ string text = 1;
+ string language_code = 2;
+ int32 encoding = 3;
+ int32 sample_rate_hz = 4;
+ string voice_name = 5;
+ map<string,string> custom_configuration = 8;
+}
+message SpeechResponse { bytes audio = 1; }

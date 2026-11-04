@@ -1,0 +1,58 @@
+{
+  "name": "veniux-enterprise-wms",
+  "version": "2.4.38",
+  "description": "Veniux Cloud — Standalone Desktop Fulfillment & Logistics Platform",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --config electron-builder.config.js --dir",
+    "dist": "electron-builder --config electron-builder.signed.config.cjs",
+    "prepack": "npm --prefix ../frontend run build",
+    "predist": "npm --prefix ../frontend run build",
+    "dist:preview": "electron-builder --config electron-builder.config.js",
+    "predist:preview": "npm --prefix ../frontend run build"
+  },
+  "build": {
+    "appId": "com.veniux.wms.enterprise",
+    "productName": "Veniux Cloud",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Veniux Cloud"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "updater.js",
+      "license/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "frontend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  },
+  "author": "Veniux Logistics Technologies",
+  "license": "Commercial",
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "jsbarcode": "^3.12.3",
+    "node-machine-id": "^1.1.12"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  }
+}

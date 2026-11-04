@@ -1,0 +1,344 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #C2410C; text-decoration: none; }
+    a:hover { color: #9A3412; }
+
+    .fx {
+      --paper: #FAF9F7; --surface: #fff; --line: #E7E5E4; --line-soft: #F1EFED;
+      --text: #1C1917; --muted: #78716C; --muted-2: #A8A29E;
+      --ok: #15803D; --ok-bg: #F0FDF4; --err: #B91C1C; --err-bg: #FEF2F2;
+      --warn: #B45309; --warn-bg: #FFFBEB;
+      --sans: 'Montserrat', -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+      --card: 0 1px 2px rgba(28,25,23,.05), 0 1px 1px rgba(28,25,23,.03);
+
+      width: 1180px; min-height: 1320px; padding: 40px;
+      background: var(--paper); color: var(--text);
+      font-family: var(--sans); font-size: 13px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .fx, .fx *, .fx *::before, .fx *::after { box-sizing: border-box; }
+    .fx button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+    .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    code { font-family: var(--mono); font-size: 11px; background: #F5F4F2; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: #44403C; }
+
+    .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .eyebrow { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--muted-2); }
+    h1.t { font-size: 26px; font-weight: 700; letter-spacing: -.025em; margin: 6px 0 0; }
+    .lede { font-size: 12.5px; color: var(--muted); margin-top: 6px; max-width: 600px; line-height: 1.6; }
+
+    .seg { display: inline-flex; gap: 2px; padding: 3px; background: #F5F4F2; border-radius: 10px; flex: 0 0 auto; }
+    .seg button { height: 30px; padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--muted); transition: .15s; }
+    .seg button:hover { color: var(--text); }
+    .seg button.on { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(28,25,23,.08); }
+
+    .stateline { display: flex; align-items: center; gap: 9px; margin-top: 20px; padding: 10px 14px; border-radius: 11px; font-size: 12.5px; font-weight: 500; }
+    .stateline.bad { background: var(--err-bg); border: 1px solid #FECACA; color: #991B1B; }
+    .stateline.good { background: var(--ok-bg); border: 1px solid #BBF7D0; color: #14532D; }
+
+    .list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+    .item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--card); display: grid; grid-template-columns: 1fr 300px; gap: 20px; padding: 16px 18px; align-items: center; }
+    .n { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--muted-2); }
+    .h3 { font-size: 13px; font-weight: 700; letter-spacing: -.01em; margin: 4px 0 0; }
+    .p { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 6px 0 0; }
+    .src { font-family: var(--mono); font-size: 10px; color: var(--muted-2); margin-top: 7px; }
+    .demo { border-radius: 11px; border: 1px dashed var(--line); background: #FCFBFA; padding: 14px; min-height: 88px; display: flex; align-items: center; justify-content: center; }
+
+    /* 1 · live dot */
+    .chip { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 11px; border-radius: 99px; border: 1px solid #BBF7D0; background: var(--ok-bg); font-size: 11px; font-weight: 600; color: var(--ok); }
+    .dot { width: 6px; height: 6px; border-radius: 99px; background: #22C55E; position: relative; }
+    .dot.live::after { content: ''; position: absolute; inset: -3px; border-radius: 99px; background: #22C55E; opacity: .35; animation: ping 2s cubic-bezier(0,0,.2,1) infinite; }
+    @keyframes ping { 0% { transform: scale(.6); opacity: .5 } 75%,100% { transform: scale(1.9); opacity: 0 } }
+
+    /* 2 · popover */
+    .popwrap { position: relative; }
+    .popbtn { height: 30px; padding: 0 13px; border-radius: 99px; border: 1px solid var(--line); background: #fff; font-size: 11.5px; font-weight: 600; }
+    .popbtn:hover { border-color: #D6D3D1; }
+    .popcard { position: absolute; left: 50%; top: 38px; width: 200px; margin-left: -100px; z-index: 20; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 28px -8px rgba(28,25,23,.18); padding: 11px 13px; font-size: 11.5px; }
+    .popcard.anim { transform-origin: top center; animation: pop .16s cubic-bezier(.16,1,.3,1) both; }
+    @keyframes pop { from { opacity: 0; transform: scale(.94) translateY(-5px) } to { opacity: 1; transform: none } }
+
+    /* 3 · scrollbar */
+    .sbox { width: 100%; height: 74px; overflow-y: scroll; border: 1px solid var(--line); border-radius: 9px; background: #fff; padding: 8px 10px; font-size: 11.5px; color: var(--muted); }
+    .sbox.thin { scrollbar-width: thin; scrollbar-color: #D6D3D1 transparent; }
+    .sbox.thin::-webkit-scrollbar { width: 6px; }
+    .sbox.thin::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 99px; }
+    .sbox.thin::-webkit-scrollbar-track { background: transparent; }
+
+    /* 4 · numerals */
+    .ncol { width: 100%; }
+    .ncol div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+    .ncol span:last-child { font-weight: 600; }
+    .ncol.mono span { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .ncol.sans span { font-family: var(--sans); }
+
+    /* 5 · kpi */
+    .kpi { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 13px; box-shadow: var(--card); }
+    .kpi-l { font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-2); }
+    .kpi-v { font-family: var(--mono); font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1; margin-top: 7px; }
+    .kpi-d { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 5px; }
+    .minibanner { display: flex; align-items: center; gap: 7px; padding: 6px 9px; border-radius: 8px; border: 1px solid #FECACA; background: var(--err-bg); color: #991B1B; font-size: 10.5px; font-weight: 500; margin-bottom: 8px; }
+
+    /* 6 · hover lift */
+    .panel { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--card); overflow: hidden; transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, border-color .25s; }
+    .panel.lift:hover { transform: translateY(-6px); box-shadow: 0 12px 28px -4px rgba(249,115,22,.28); border-color: #FDBA74; }
+    .panel.calm:hover { border-color: #D6D3D1; box-shadow: 0 2px 6px rgba(28,25,23,.07); }
+    .panel .r { display: flex; justify-content: space-between; padding: 7px 11px; font-size: 11px; border-bottom: 1px solid var(--line-soft); }
+    .panel .r:last-child { border-bottom: 0; }
+
+    /* 7 · shadows */
+    .shbox { width: 92px; height: 62px; border-radius: 12px; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 9.5px; color: var(--muted-2); }
+    .shbox.glow { box-shadow: 0 12px 28px -4px rgba(249,115,22,.35), 0 4px 12px -2px rgba(249,115,22,.2); border-color: #FDBA74; }
+    .shbox.neutral { box-shadow: 0 12px 28px -8px rgba(28,25,23,.18), 0 2px 6px rgba(28,25,23,.06); }
+
+    .tail { margin-top: 26px; }
+    h2.sect { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted-2); margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line-soft); }
+    table.code { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--card); }
+    table.code th { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-2); text-align: left; padding: 9px 16px; background: #FCFBFA; border-bottom: 1px solid var(--line-soft); }
+    table.code td { padding: 11px 16px; border-bottom: 1px solid var(--line-soft); font-size: 12px; vertical-align: top; }
+    table.code tbody tr:last-child td { border-bottom: 0; }
+  </style>
+</helmet>
+
+<div class="fx">
+
+  <div class="head">
+    <div>
+      <div class="eyebrow">Veniux Admin · Tasarım Denetimi</div>
+      <h1 class="t">Bulunan hatalar ve düzeltmeleri</h1>
+      <p class="lede">Hepsi çalışan paneldeki gerçek kod üzerinden doğrulandı — tahmin yok. Sağdaki demolar canlı: anahtarı çevirdiğinde aynı bileşen mevcut haliyle ve düzeltilmiş haliyle davranır.</p>
+    </div>
+    <div class="seg">
+      <sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+        <button class="{{m.cls}}" onClick="{{m.pick}}">{{m.label}}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="{{stateCls}}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 15px"><path d="{{stateIcon}}"></path></svg>
+    <span>{{stateText}}</span>
+  </div>
+
+  <div class="list">
+
+    <!-- 1 -->
+    <div class="item">
+      <div>
+        <div class="n">01 · CSS</div>
+        <h3 class="h3">Tüm “canlı” göstergeleri donmuş durumda</h3>
+        <p class="p"><code>.animate-pulse { animation: none; }</code> Tailwind'in kendi sınıfını global olarak eziyor. Üst bardaki “Canlı Sistem Aktif” noktası ve hero'daki yeşil nokta hiç nefes almıyor — canlılık hissi veren tek detay ölü.</p>
+        <div class="src">frontend/src/index.css:214</div>
+      </div>
+      <div class="demo">
+        <span class="chip"><span class="{{dotCls}}"></span>Canlı Sistem Aktif</span>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="item">
+      <div>
+        <div class="n">02 · CSS</div>
+        <h3 class="h3">Tanımsız animasyon sınıfı: <code>animate-scale-in</code></h3>
+        <p class="p">Tüm modallar ve bildirim açılır menüsü bu sınıfı kullanıyor ama hiçbir stil dosyasında tanımlı değil. Katmanlar ekrana bir anda “çat” diye biniyor; kullanıcı neyin açıldığını takip edemiyor.</p>
+        <div class="src">Layout.jsx:373 · ui/Modal.jsx:40 — hiçbir CSS dosyasında karşılığı yok</div>
+      </div>
+      <div class="demo">
+        <div class="popwrap">
+          <button class="popbtn" onClick="{{togglePop}}">Bildirimleri aç</button>
+          <sc-if value="{{popOpen}}" hint-placeholder-val="{{true}}">
+            <div class="{{popCls}}">3 açık uyarı · soğuk zincir</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="item">
+      <div>
+        <div class="n">03 · CSS</div>
+        <h3 class="h3">Tanımsız kaydırma çubuğu sınıfı: <code>custom-scrollbar</code></h3>
+        <p class="p">11 ayrı bileşende kullanılıyor, hiçbir yerde tanımlı değil. Sidebar, modal içleri ve tablolar Windows'un kalın gri sistem çubuğunu gösteriyor — kurumsal bir panelde en çok göze batan detaylardan biri.</p>
+        <div class="src">Layout.jsx · Modal.jsx · Drawer.jsx · DataTable.jsx · Settings.jsx · +6</div>
+      </div>
+      <div class="demo">
+        <div class="{{sboxCls}}">Raf ve Göz Haritası<br>El Terminali (PDA)<br>Mal Kabul &amp; İrsaliye<br>Toplama Emirleri<br>Sevkiyat &amp; Rampa<br>Döngüsel Sayım</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="item">
+      <div>
+        <div class="n">04 · Tipografi</div>
+        <h3 class="h3">Monospace diye bir şey yok</h3>
+        <p class="p"><code>--font-mono</code> Montserrat'a eşit, üstelik <code>*, *::before, *::after</code> seçicisi <code>!important</code> ile font ailesini iki ayrı dosyada zorla eziyor. Uygulamadaki 300'den fazla <code>font-mono</code> kullanımı hiçbir işe yaramıyor: SKU, raf kodu, miktar ve saat sütunları satır satır kayıyor.</p>
+        <div class="src">index.css:6,63 · styles.scss:372</div>
+      </div>
+      <div class="demo">
+        <div class="{{ncolCls}}">
+          <div><span>VNX-10428</span><span>+120</span></div>
+          <div><span>VNX-20117</span><span>−24</span></div>
+          <div><span>VNX-30902</span><span>±1.408</span></div>
+          <div><span>VNX-45510</span><span>−8</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="item">
+      <div>
+        <div class="n">05 · UX · en kritik</div>
+        <h3 class="h3">Hata anında uydurma rakamlar gösteriliyor</h3>
+        <p class="p">API çöktüğünde panel <code>occupancy</code> için <span class="num">74</span>, göz sayısı için <span class="num">114</span>, toplama için <span class="num">3</span> ve <span class="num">18/24</span> gibi sabit değerlere düşüyor. Sonuç: “veriler yenilenemedi” hata şeridinin hemen altında güven veren ama tamamen sahte metrikler. Depo yönetiminde bu, yanlış karar demek.</p>
+        <div class="src">pages/Dashboard.jsx:101–106</div>
+      </div>
+      <div class="demo">
+        <div style="width: 100%">
+          <div class="minibanner">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.01"></path><circle cx="12" cy="12" r="9"></circle></svg>
+            Depo verileri alınamadı
+          </div>
+          <div class="kpi">
+            <div class="kpi-l">Doluluk</div>
+            <div class="kpi-v" style="color: {{kpiColor}}">{{kpiValue}}</div>
+            <div class="kpi-d">{{kpiDetail}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="item">
+      <div>
+        <div class="n">06 · Etkileşim</div>
+        <h3 class="h3">Her panel fare değince zıplıyor</h3>
+        <p class="p"><code>.veniux-card:hover</code> içindeki <code>translateY(-2px)</code> yalnız küçük kartlara değil; tablo panellerine, harita kartına, her şeye uygulanıyor. Fare tablonun üzerinden geçerken koca panel kayıyor ve satır hedefi altından kaçıyor. Yukarı kalkma yalnızca gerçekten tıklanabilir kartlara ait bir jesttir.</p>
+        <div class="src">index.css:112–116 · styles.scss:45–49</div>
+      </div>
+      <div class="demo">
+        <div class="{{panelCls}}">
+          <div class="r"><span>TOP-2419</span><span class="num">18/24</span></div>
+          <div class="r"><span>TOP-2418</span><span class="num">5/12</span></div>
+          <div class="r"><span>TOP-2416</span><span class="num">23/24</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="item">
+      <div>
+        <div class="n">07 · Görsel</div>
+        <h3 class="h3">Turuncu renkli gölgeler</h3>
+        <p class="p">Kart ve buton gölgeleri turuncunun kendisiyle boyanmış (<code>rgba(249,115,22,.35)</code>). Gölge ışığın yokluğudur, marka rengi değil: renkli gölge kenarları bulanıklaştırıyor ve ekrana ucuz bir parlama katıyor. Nötr, sıkı gölgeler daha pahalı bir his verir.</p>
+        <div class="src">index.css:113,145,150 · styles.scss:46</div>
+      </div>
+      <div class="demo">
+        <div style="display: flex; gap: 16px; align-items: center">
+          <div class="{{shadowCls}}">{{shadowLabel}}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- code-only issues -->
+  <div class="tail">
+    <h2 class="sect">Ayrıca · görselleştirilemeyen kod düzeyi sorunlar</h2>
+    <table class="code">
+      <thead>
+        <tr><th style="width: 34%">Sorun</th><th style="width: 30%">Konum</th><th>Düzeltme</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b style="font-weight: 600">Kendine referans veren token'lar</b><br><span style="color: #78716C">Tailwind <code>@theme</code> içinde 16 değişkenin tamamı <code>--color-x: var(--color-x)</code> biçiminde. Şu an yalnızca kaynak sırası sayesinde çalışıyor.</span></td>
+          <td class="num" style="color: #78716C">index.css:7–22</td>
+          <td>Token değerleri doğrudan <code>@theme</code> içinde tanımlanır; <code>:root</code> kopyası kaldırılır.</td>
+        </tr>
+        <tr>
+          <td><b style="font-weight: 600">İki ayrı ölçü sistemi</b><br><span style="color: #78716C">Sidebar Layout'ta <span class="num">275px</span>, SCSS'te <span class="num">260px</span>; başlık <span class="num">64px</span>'e karşı <span class="num">56px</span>. SCSS bileşen sınıfları hiç kullanılmıyor.</span></td>
+          <td class="num" style="color: #78716C">Layout.jsx:177,314 · styles.scss:32–34</td>
+          <td>Tek kaynak: <code>$sidebar-width: 264px</code>, <code>$header-h: 61px</code> — SCSS'ten CSS değişkenine, oradan Tailwind'e.</td>
+        </tr>
+        <tr>
+          <td><b style="font-weight: 600">Ölü Vite şablon dosyası</b><br><span style="color: #78716C"><code>App.css</code> hiçbir yerden import edilmiyor ve tanımsız değişkenlere dayanıyor (<code>--accent</code>, <code>--social-bg</code>).</span></td>
+          <td class="num" style="color: #78716C">src/App.css</td>
+          <td>Silinir.</td>
+        </tr>
+        <tr>
+          <td><b style="font-weight: 600">Soğuk gri zemin, sıcak turuncu marka</b><br><span style="color: #78716C">Zemin <span class="num">#F8FAFC</span> (mavi), çizgiler <span class="num">#E5E7EB</span> (mavi), metin <span class="num">#111827</span> (mavi) — turuncunun yanında hepsi kirli duruyor.</span></td>
+          <td class="num" style="color: #78716C">Layout.jsx:166,399 · index.css:32–39</td>
+          <td>Sıcak nötr ölçek: <span class="num">#FAF9F7 / #E7E5E4 / #1C1917</span>.</td>
+        </tr>
+        <tr>
+          <td><b style="font-weight: 600">Ham durum kodları arayüze sızıyor</b><br><span style="color: #78716C">Toplama emri tablosu bilinmeyen durumlarda <span class="num">PROCESSING</span> gibi ham veritabanı değerlerini basıyor.</span></td>
+          <td class="num" style="color: #78716C">Dashboard.jsx:110</td>
+          <td>Tam durum eşlemesi; eşleşmeyen değer için nötr rozet ve okunur metin.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "$preview": { "width": 1180, "height": 1320 }
+}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'simdi', pop: false };
+  }
+
+  renderVals() {
+    const fixed = this.state.mode === 'duzeltilmis';
+
+    const MODES = [{ id: 'simdi', label: 'Şu anki panel' }, { id: 'duzeltilmis', label: 'Düzeltilmiş' }];
+    const modes = MODES.map((m) => ({
+      label: m.label,
+      cls: this.state.mode === m.id ? 'on' : '',
+      pick: () => this.setState({ mode: m.id })
+    }));
+
+    return {
+      modes: modes,
+      stateCls: fixed ? 'stateline good' : 'stateline bad',
+      stateIcon: fixed ? 'M20 6 9 17l-5-5' : 'M18 6 6 18M6 6l12 12',
+      stateText: fixed
+        ? 'Düzeltilmiş davranış gösteriliyor — sağdaki her demo tasarımın hedeflediği hâli.'
+        : 'Şu anda çalışan paneldeki davranış gösteriliyor — sağdaki her demo mevcut kodun ürettiği hâli.',
+
+      dotCls: fixed ? 'dot live' : 'dot',
+
+      popOpen: this.state.pop,
+      togglePop: () => this.setState({ pop: !this.state.pop }),
+      popCls: fixed ? 'popcard anim' : 'popcard',
+
+      sboxCls: fixed ? 'sbox thin' : 'sbox',
+
+      ncolCls: fixed ? 'ncol mono' : 'ncol sans',
+
+      kpiValue: fixed ? '—' : '%74',
+      kpiDetail: fixed ? 'veri alınamadı' : '84 / 114 göz dolu',
+      kpiColor: fixed ? '#A8A29E' : '#1C1917',
+
+      panelCls: fixed ? 'panel calm' : 'panel lift',
+
+      shadowCls: fixed ? 'shbox neutral' : 'shbox glow',
+      shadowLabel: fixed ? 'nötr' : 'turuncu'
+    };
+  }
+}
+</script>
+</body>
+</html>

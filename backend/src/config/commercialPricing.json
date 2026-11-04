@@ -1,0 +1,29 @@
+{
+  "STARTER_ANNUAL": {
+    "name": "Başlangıç",
+    "quarter_try": 1188,
+    "annual_try": 3588,
+    "net_quarter_try": 990,
+    "net_annual_try": 2990,
+    "vat_percent": 20,
+    "tax_included": true
+  },
+  "BUSINESS_ANNUAL": {
+    "name": "İşletme",
+    "quarter_try": 2388,
+    "annual_try": 7188,
+    "net_quarter_try": 1990,
+    "net_annual_try": 5990,
+    "vat_percent": 20,
+    "tax_included": true
+  },
+  "ENTERPRISE_ANNUAL": {
+    "name": "Kurumsal",
+    "quarter_try": 4788,
+    "annual_try": 14388,
+    "net_quarter_try": 3990,
+    "net_annual_try": 11990,
+    "vat_percent": 20,
+    "tax_included": true
+  }
+}

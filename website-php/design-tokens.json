@@ -1,0 +1,59 @@
+{
+  "name": "Veniux Dark Precision",
+  "version": "1.0.0",
+  "meta": {
+    "description": "Veniux Dark Precision Design System tokens",
+    "updated": "2026-10-21"
+  },
+  "light": {
+    "canvas": "#07111D",
+    "surface": "#0D1B2A",
+    "elevated": "#14273A",
+    "blue": "#1677C8",
+    "orange": "#F17A38",
+    "ink": "#E8EDF4",
+    "muted": "#94A5B8",
+    "border": "#263B50",
+    "success": "#2CA58D"
+  },
+  "dark": {
+    "canvas": "#07111D",
+    "surface": "#0D1B2A",
+    "elevated": "#14273A",
+    "blue": "#1677C8",
+    "orange": "#F17A38",
+    "ink": "#E8EDF4",
+    "muted": "#94A5B8",
+    "border": "#263B50",
+    "success": "#2CA58D"
+  },
+  "typography": {
+    "sans": "Manrope, Inter, system-ui, -apple-system, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace",
+    "scale": {
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem",
+      "5xl": "3rem",
+      "6xl": "3.75rem"
+    }
+  },
+  "radii": {
+    "sm": "6px",
+    "md": "10px",
+    "lg": "16px",
+    "xl": "20px",
+    "pill": "9999px"
+  },
+  "shadows": {
+    "card": "0 4px 20px rgba(0, 0, 0, 0.4)",
+    "elevated": "0 12px 36px rgba(0, 0, 0, 0.55)",
+    "glowBlue": "0 0 24px rgba(22, 119, 200, 0.25)",
+    "glowOrange": "0 0 24px rgba(241, 122, 56, 0.25)"
+  }
+}

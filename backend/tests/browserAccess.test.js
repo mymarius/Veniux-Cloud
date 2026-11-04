@@ -1,0 +1,7 @@
+jest.mock('../src/services/centralLicense',()=>({enabled:()=>true,request:jest.fn(async()=>({device_token:'test-credential'})),verify:jest.fn(async()=>({valid:true,plan_id:'STARTER_ANNUAL'}))}));
+const express=require('express'),request=require('supertest'),central=require('../src/services/centralLicense');const app=express();app.use(express.json());app.use('/license',require('../src/routes/licenseRoutes'));
+describe('Explicit browser access policy',()=>{
+ afterEach(()=>{delete process.env.VENIUX_WEB_ACCESS;jest.clearAllMocks();});
+ test('default policy denies web enrollment before contacting authority',async()=>{delete process.env.VENIUX_WEB_ACCESS;expect((await request(app).get('/license/policy')).body.browser_access).toBe(false);const r=await request(app).post('/license/activate').send({app_version:'web'});expect(r.status).toBe(403);expect(central.request).not.toHaveBeenCalled();});
+ test('enabled policy still calls central authority and verifies signed entitlement',async()=>{process.env.VENIUX_WEB_ACCESS='1';expect((await request(app).get('/license/policy')).body.browser_access).toBe(true);const r=await request(app).post('/license/activate').send({license_key:'VNX-'+'A'.repeat(48),app_version:'web',device_fingerprint:'HW-'+ 'A'.repeat(32)});expect(r.status).toBe(200);expect(central.request).toHaveBeenCalled();expect(central.verify).toHaveBeenCalled();expect(r.body.token.payload.enabled_features.module_type).toBe('NORMAL');});
+});

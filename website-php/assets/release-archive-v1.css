@@ -1,0 +1,7 @@
+.release-sha{display:block;max-width:100%;overflow-wrap:anywhere;white-space:normal;margin-top:1rem;font-size:.82rem;line-height:1.7}
+.changelog .release-card h3{overflow-wrap:anywhere}
+.changelog>section{margin-top:3rem}
+.changelog h2 small{font-size:.55em;font-weight:500;color:var(--muted,#607086)}
+.changelog details{margin-top:1rem}
+.changelog summary{cursor:pointer}
+@media(max-width:600px){.changelog .release-card-top{flex-wrap:wrap;gap:.75rem}.changelog .button{max-width:100%;white-space:normal}}

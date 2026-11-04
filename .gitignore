@@ -1,0 +1,25 @@
+
+scanner-bridge/pairing.json
+scanner-bridge/node_modules/
+.local/
+backend/node_modules/
+backend/stok_takip_test.db*
+frontend/node_modules/
+
+desktop/node_modules/
+
+# Issuer secrets and local data are never source assets.
+backend/config/keys/*private*.pem
+**/license-private.pem
+**/signing-private.pem
+backend/*.db
+backend/*.db-*
+backend/.env
+frontend/.env.local
+api.veniux.com/.env
+
+# Yerel yedek ve üretilmiş paketler kaynak değildir.
+_yedek_p0/
+website-php.zip
+frontend/.env
+backend/storage/

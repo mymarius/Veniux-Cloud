@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+storage/whatsapp-sessions/
+.wwebjs_cache/
+storage/assistant-uploads/
+storage/assistant-results/

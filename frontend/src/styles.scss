@@ -1,0 +1,595 @@
+// === VENIUX CORPORATE DESIGN SYSTEM (SCSS) ===
+// Orange + White Professional Theme
+
+// ── Color Variables ──
+$brand-50: #f1f5fb;
+$brand-100: #e3ebf7;
+$brand-200: #c8d7ec;
+$brand-300: #a5bddb;
+$brand-400: #789ac5;
+$brand-500: var(--color-brand-500);
+$brand-600: var(--color-brand-600);
+$brand-700: #203f65;
+$brand-800: var(--color-brand-800);
+$brand-900: #182b42;
+
+$gray-50: #F9FAFB;
+$gray-100: #F3F4F6;
+$gray-200: #E5E7EB;
+$gray-300: #D1D5DB;
+$gray-400: #9CA3AF;
+$gray-500: #6B7280;
+$gray-600: #4B5563;
+$gray-700: #374151;
+$gray-800: #1F2937;
+$gray-900: #111827;
+
+$white: #FFFFFF;
+$black: #000000;
+$font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+// ── Spacing Scale ──
+$sidebar-width: 260px;
+$sidebar-collapsed: 64px;
+$header-height: 56px;
+
+// ── Mixins ──
+@mixin card-base {
+  background: $white;
+  border: 1px solid $gray-200;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba($black, 0.04), 0 2px 6px -1px rgba($black, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@mixin card-hover {
+  box-shadow: 0 12px 28px -4px rgba($brand-500, 0.08), 0 4px 12px -2px rgba($black, 0.04);
+  border-color: $brand-300;
+  transform: translateY(-2px);
+}
+
+@mixin brand-gradient {
+  background: linear-gradient(135deg, $brand-500, $brand-600, $brand-700);
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin focus-ring {
+  outline: 2px solid $brand-500;
+  outline-offset: 2px;
+}
+
+// ── Sidebar Styles ──
+.veniux-sidebar {
+  width: $sidebar-width;
+  background: $white;
+  border-right: 1px solid $gray-200;
+  box-shadow: 2px 0 8px rgba($black, 0.03);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+
+  &__brand {
+    height: $header-height;
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid $gray-200;
+    gap: 0.75rem;
+  }
+
+  &__brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    @include brand-gradient;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $white;
+    flex-shrink: 0;
+  }
+
+  &__brand-text {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: $gray-900;
+    letter-spacing: -0.025em;
+  }
+
+  &__brand-sub {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $gray-400;
+  }
+
+  &__nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 0.5rem;
+  }
+
+  &__group-title {
+    font-size: 0.5625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: $gray-400;
+    padding: 0.5rem 0.75rem 0.25rem;
+    margin-top: 0.5rem;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.4375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: $gray-600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    margin: 1px 0;
+
+    &:hover {
+      background: $gray-50;
+      color: $gray-900;
+    }
+
+    &--active {
+      background: $brand-50;
+      color: $brand-700;
+      font-weight: 600;
+
+      .veniux-sidebar__link-icon {
+        color: $brand-500;
+      }
+    }
+  }
+
+  &__link-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: $gray-400;
+  }
+
+  &__footer {
+    padding: 0.75rem;
+    border-top: 1px solid $gray-200;
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 8px;
+    background: $gray-50;
+  }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    @include brand-gradient;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $white;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  &__user-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $gray-900;
+    @include text-truncate;
+  }
+
+  &__user-role {
+    font-size: 0.6875rem;
+    color: $gray-400;
+    @include text-truncate;
+  }
+}
+
+// ── Header Styles ──
+.veniux-header {
+  height: $header-height;
+  background: $white;
+  border-bottom: 1px solid $gray-200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 36px;
+    padding: 0 0.75rem;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    background: $gray-50;
+    color: $gray-400;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+    min-width: 240px;
+
+    &:hover {
+      border-color: $gray-300;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid $gray-200;
+    background: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $gray-500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+
+    &:hover {
+      background: $gray-50;
+      color: $gray-700;
+      border-color: $gray-300;
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: $brand-500;
+    color: $white;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+}
+
+// ── Corporate Table Styles ──
+.veniux-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  th {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $gray-500;
+    text-align: left;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 2px solid $gray-200;
+    background: $gray-50;
+  }
+
+  td {
+    font-size: 0.8125rem;
+    color: $gray-700;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid $gray-100;
+  }
+
+  tbody tr {
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background: $gray-50;
+    }
+  }
+}
+
+// ── Metric Card ──
+.veniux-metric {
+  @include card-base;
+  padding: 1.25rem;
+
+  &__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $gray-500;
+  }
+
+  &__value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $gray-900;
+    letter-spacing: -0.025em;
+    margin-top: 0.25rem;
+  }
+
+  &__change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.375rem;
+
+    &--up { color: $brand-500; }
+    &--down { color: #EF4444; }
+  }
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--orange { background: $brand-50; color: $brand-500; }
+    &--green { background: #ECFDF5; color: #10B981; }
+    &--blue { background: #EFF6FF; color: #3B82F6; }
+    &--red { background: #FEF2F2; color: #EF4444; }
+  }
+}
+
+// ── Açılır Menü (yerel <select> yerine geçen Dropdown bileşeni) ──
+// @layer components içinde: Tailwind utility sınıfları (text-xs, bg-gray-100,
+// rounded-xl …) bu temel stilleri ezebilsin diye. Katmansız yazılırsa
+// utility'leri yener ve çağrı yerlerindeki sınıflar sessizce etkisiz kalır.
+@layer components {
+  .vx-select {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+    text-align: left;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    &__value {
+      @include text-truncate;
+      min-width: 0;
+      flex: 1;
+
+      &.is-placeholder {
+        color: $gray-400;
+      }
+    }
+
+    &__chevron {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: $gray-400;
+      transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &.is-open {
+        transform: rotate(180deg);
+        color: $brand-500;
+      }
+    }
+
+    // Form gönderimi ve native doğrulama için görünmez gerçek select.
+    // display:none DEĞİL — tarayıcı doğrulama balonunu odaklayabilsin diye.
+    &__native {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+      clip-path: inset(50%);
+    }
+  }
+
+  .vx-menu {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px -8px rgba($black, 0.18), 0 2px 6px rgba($black, 0.06);
+    overflow: hidden;
+
+    &__search {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 6px 9px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid $gray-100;
+    }
+
+    &__searchinput {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-size: 0.8125rem;
+      color: $gray-900;
+
+      &::placeholder {
+        color: $gray-400;
+      }
+    }
+
+    &__list {
+      overflow-y: auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    &__group {
+      padding: 8px 9px 4px;
+      font-size: 0.5625rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: $gray-400;
+    }
+
+    &__item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      min-height: 32px;
+      padding: 0 9px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: $gray-700;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 0.12s ease, color 0.12s ease;
+
+      &.is-cursor {
+        background: $gray-50;
+        color: $gray-900;
+      }
+
+      &.is-selected {
+        background: $brand-50;
+        color: $brand-700;
+        font-weight: 600;
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: transparent;
+      }
+    }
+
+    &__label {
+      @include text-truncate;
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__empty {
+      padding: 18px 9px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: $gray-400;
+    }
+  }
+
+  // Uygulamada 11 bileşende kullanılıyordu ama hiçbir yerde tanımlı değildi.
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: $gray-300 transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: $gray-300;
+      border-radius: 999px;
+
+      &:hover {
+        background: $gray-400;
+      }
+    }
+  }
+
+  // Tüm modallar ve açılır menüler bu sınıfı kullanıyordu ama tanımı yoktu.
+  .animate-scale-in {
+    animation: vx-scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  // Drawer bileşeni bu sınıfı kullanıyordu; o da tanımsızdı.
+  .animate-slide-in-right {
+    animation: vx-slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes vx-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vx-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scale-in,
+  .animate-slide-in-right {
+    animation: none;
+  }
+}
+
+*, *::before, *::after {
+  font-family: $font-sans;
+}

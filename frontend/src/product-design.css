@@ -1,0 +1,66 @@
+/* Veniux operational design: ink, warm paper and a restrained copper accent. */
+:root {
+  --font-sans:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-display:var(--font-sans); --font-mono:var(--font-sans);
+  --vx-radius:10px; --vx-control-radius:7px;
+  --vx-accent:#b5693f;
+  --color-bg:#f4f3ef; --color-surface:#fff; --color-border:#dedfdc;
+  --color-text:#243444; --color-text-muted:#62717e;
+  --color-brand-50:#f0f4f6; --color-brand-100:#e1eaf0;
+  --color-brand-200:#c7d6df; --color-brand-300:#9fb8c9;
+  --color-brand-400:#6c91aa; --color-brand-500:#3e6c88;
+  --color-brand-600:#2b526c; --color-brand-700:#22435a;
+  --color-brand-800:#1b3447; --color-brand-900:#142a3a;
+}
+:root[data-theme='dark'] {--color-bg:#111b23;--color-surface:#192630;--color-border:#30404c;--color-text:#e4ebef;--color-text-muted:#a0b0bc;--color-brand-50:#203444;--color-brand-100:#294556;}
+html body,html button,html input,html select,html textarea,html code,html kbd {font-family:var(--font-sans)}
+.enterprise-shell .enterprise-content {background:var(--color-bg);padding:28px 32px 48px}
+.enterprise-content>div {max-width:1500px}
+.enterprise-shell .enterprise-header {border-bottom:1px solid var(--color-border);box-shadow:none}
+.enterprise-shell .sb {background:#172d3b;border-right:1px solid #284454}
+.enterprise-shell .sb-item {border-radius:6px;font-size:13px;min-height:38px}
+.enterprise-shell .sb-item[data-active='true'] {background:#2c485b}
+.enterprise-shell .sb-item[data-active='true']::before {background:var(--vx-accent)}
+.enterprise-shell .sb-item[data-active='true'] svg {color:#e8b090}
+.enterprise-shell .sb-section-title {font-size:10px;letter-spacing:.09em;color:#9db0be}
+.enterprise-shell .sb-account {border-color:#365061;background:#1d3545}
+.enterprise-content h1,.enterprise-content .ax-head h1 {font-family:var(--font-sans);font-size:28px!important;line-height:1.22;font-weight:600!important;letter-spacing:-.7px}
+.enterprise-content h2 {font-weight:600;letter-spacing:-.2px}
+.enterprise-content :is(.veniux-card,.vx-table-wrap,.ax-panel,.ax-kpi,.retail-panel,.crm-panel,.md-panel) {border-radius:var(--vx-radius);border-color:var(--color-border);box-shadow:0 1px 3px #172b4305;background:var(--color-surface)}
+.enterprise-content .ax-welcome {background:var(--color-surface);border-radius:var(--vx-radius);border-left:3px solid var(--vx-accent)}
+.enterprise-content :is(.ax-eyebrow,.font-mono) {font-family:var(--font-sans);letter-spacing:.035em}
+.enterprise-content .ax-eyebrow {color:var(--color-text-muted);font-weight:600}
+.enterprise-content :is(.ax-btn,.ax-select,.btn-primary,.btn-secondary,.btn-soft,.vx-btn) {border-radius:var(--vx-control-radius);font-size:13px;min-height:38px;letter-spacing:0}
+.enterprise-content :is(.ax-kpi strong,.ax-kpi-bottom,td,.retail-summary) {font-variant-numeric:tabular-nums}
+.enterprise-content :is(.ax-kpi-top span,.ax-head p,.ax-panel-description) {color:var(--color-text-muted);font-size:13px}
+.enterprise-content .ax-kpi-top i {border-radius:6px;width:30px;height:30px;background:transparent;color:var(--color-primary)}
+.enterprise-content table th {text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;color:var(--color-text-muted);padding-top:13px;padding-bottom:13px}
+.enterprise-content table td {font-size:13px;line-height:1.55;padding-top:14px;padding-bottom:14px}
+.enterprise-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea) {border-radius:var(--vx-control-radius);font-size:13px;min-height:39px;box-shadow:none}
+.enterprise-content :is(input,select,textarea):focus-visible {outline:2px solid var(--color-brand-400);outline-offset:2px}
+.enterprise-content label {letter-spacing:0}
+.enterprise-content .bg-gradient-to-br,.enterprise-content .bg-gradient-to-r {background-image:none}
+.vx-dialog .vx-dialog-panel {border:1px solid var(--color-border);border-radius:12px;box-shadow:0 20px 70px #0c203333;background:var(--color-surface);color:var(--color-text)}
+.vx-dialog .vx-dialog-head {padding:22px 24px;background:var(--color-surface);border-bottom:1px solid var(--color-border)}
+.vx-dialog .vx-dialog-head h3 {font-size:20px;font-weight:600;letter-spacing:-.35px}
+.vx-dialog .vx-dialog-head>i {background:transparent;color:var(--color-primary);border:0}
+.vx-dialog .vx-dialog-body {padding:24px}.vx-dialog .vx-dialog-foot {padding:18px 24px}
+.vx-dialog .vx-dialog-backdrop {background:#10233370;backdrop-filter:blur(3px)}
+.vx-dialog :is(input,select,textarea) {font-family:var(--font-sans)}
+.vx-dialog .vx-dialog-close {background:var(--color-bg);border-radius:50%;width:32px;height:32px}
+.enterprise-content .md-barcode,.assistant-markdown code {font-family:var(--font-sans)!important}
+.vx-page-loading .vx-loading-orbit {display:none}
+@media(prefers-reduced-motion:no-preference) {
+  :is(.btn-primary,.btn-secondary,.btn-soft,.ax-btn,.sb-item) {transition:background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease,translate 160ms ease}
+  :is(.btn-primary,.btn-secondary,.ax-btn):active:not(:disabled) {translate:0 1px}
+  .enterprise-content :is(.ax-kpi,.veniux-card,.ax-panel) {transition:border-color 180ms ease,box-shadow 180ms ease}
+  .enterprise-content a.ax-kpi:hover {box-shadow:0 3px 12px #182e4010;border-color:var(--color-brand-300)}
+}
+@media(prefers-reduced-motion:reduce) {*,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(max-width:900px) {.enterprise-shell .enterprise-content{padding:20px 16px 32px}.enterprise-content h1,.enterprise-content .ax-head h1{font-size:24px!important}}
+@media print {.enterprise-shell .enterprise-content{background:#fff}.sb,.enterprise-header,.desktop-titlebar{display:none!important}}
+.operations-brief{display:flex;flex-wrap:wrap;align-items:center;gap:20px;padding:16px 20px;border:1px solid var(--color-border);border-radius:var(--vx-radius);background:var(--color-surface);margin-bottom:22px}
+.operations-brief-title{display:flex;align-items:center;gap:9px;color:var(--color-primary)}.operations-brief-title h2{font-size:14px;color:var(--color-text)}.operations-brief-items{display:flex;flex-wrap:wrap;gap:20px;flex:1;font-size:13px;color:var(--color-text-muted)}.operations-brief-items strong{color:var(--color-text);font-size:16px;margin-right:4px}
+.vx-dialog[data-variant='drawer']{padding:0;justify-content:flex-end}.vx-dialog[data-variant='drawer'] .vx-dialog-panel{height:100dvh;max-height:100dvh;border-radius:0;border-top:0;border-bottom:0;border-right:0}.vx-dialog[data-variant='drawer'] .vx-dialog-body{display:flex;flex:1;min-height:0;overflow:hidden;padding:0}
+.enterprise-content .ax-page>.grid.my-4>a{border-radius:7px;box-shadow:none}.enterprise-content .ax-page>.grid.my-4>a>div:first-child{background:transparent;color:var(--color-primary)}
+:root[data-density='compact'] .enterprise-content table td{padding-top:9px;padding-bottom:9px;font-size:12px}

@@ -1,0 +1,2 @@
+# Fail closed if the project folder is accidentally selected as the web root.
+Require all denied

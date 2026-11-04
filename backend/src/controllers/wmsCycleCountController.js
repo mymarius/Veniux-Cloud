@@ -1,0 +1,3 @@
+const service=require('../services/wmsCountReviewService');
+const handle=fn=>async(req,res)=>{try{res.json(await fn(req));}catch(e){res.status(e.status||400).json({error:e.message||'Sayım işlemi tamamlanamadı.'});}};
+module.exports={getLocationsForCount:handle(req=>service.getCountRows(req.user,req.query)),getManualBaseline:handle(req=>service.getManualCountBaseline(req.user,req.body)),previewAdjustment:handle(req=>service.previewCountReview(req.user,req.body)),getReviews:handle(req=>service.listCountReviews(req.user)),submitCountAdjustment:async(req,res)=>{try{res.status(201).json(await service.approveCountReview(req.user,req.body,req.get('Idempotency-Key')));}catch(e){res.status(e.status||400).json({error:e.message||'Sayım onaylanamadı.'});}}};

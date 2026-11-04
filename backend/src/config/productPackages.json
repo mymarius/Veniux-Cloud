@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "plans": [
+    {
+      "code": "RETAIL_START",
+      "family": "retail",
+      "name": "Veniux Retail Start",
+      "modules": [
+        "stock",
+        "pos"
+      ],
+      "limits": {
+        "users": 5,
+        "warehouses": 1,
+        "registers": 1,
+        "devices": 3
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "RETAIL_PRO",
+      "family": "retail",
+      "name": "Veniux Retail Pro",
+      "modules": [
+        "stock",
+        "pos",
+        "credit"
+      ],
+      "limits": {
+        "users": 15,
+        "warehouses": 3,
+        "registers": 3,
+        "devices": 10
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "RETAIL_BUSINESS",
+      "family": "retail",
+      "name": "Veniux Retail Business",
+      "modules": [
+        "stock",
+        "pos",
+        "credit"
+      ],
+      "limits": {
+        "users": 50,
+        "warehouses": 10,
+        "registers": 10,
+        "devices": 30
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "WAREHOUSE_START",
+      "family": "warehouse",
+      "name": "Veniux Warehouse Start",
+      "modules": [
+        "stock",
+        "wms"
+      ],
+      "limits": {
+        "users": 5,
+        "warehouses": 1,
+        "registers": 0,
+        "devices": 3
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "WAREHOUSE_PRO",
+      "family": "warehouse",
+      "name": "Veniux Warehouse Pro",
+      "modules": [
+        "stock",
+        "wms"
+      ],
+      "limits": {
+        "users": 15,
+        "warehouses": 3,
+        "registers": 0,
+        "devices": 10
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "WAREHOUSE_ENTERPRISE",
+      "family": "warehouse",
+      "name": "Veniux Warehouse Enterprise",
+      "modules": [
+        "stock",
+        "wms"
+      ],
+      "limits": {
+        "users": 250,
+        "warehouses": 50,
+        "registers": 0,
+        "devices": 100
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "UNIFIED_UNIFIED",
+      "family": "unified",
+      "name": "Veniux Unified",
+      "modules": [
+        "stock",
+        "pos",
+        "wms",
+        "credit"
+      ],
+      "limits": {
+        "users": 250,
+        "warehouses": 50,
+        "registers": 50,
+        "devices": 100
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    }
+  ]
+}

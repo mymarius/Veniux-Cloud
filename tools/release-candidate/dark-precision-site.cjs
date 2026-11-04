@@ -1,0 +1,22 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const base=process.env.VENIUX_PRECISION_URL||'http://127.0.0.1:39768';assert(['127.0.0.1','localhost'].includes(new URL(base).hostname));
+(async()=>{
+ const checks=[];const check=(name,fn)=>{fn();checks.push({name,status:'PASS'});};
+ const homeResponse=await fetch(base+'/');assert.equal(homeResponse.status,200);const home=await homeResponse.text();
+ check('New headline, local CTA routes and real product screens',()=>{assert(home.includes('İşletmenizin tüm akışı.'));assert(home.includes('Tek bir Veniux.'));assert(home.includes('Çözümleri keşfet'));assert(home.includes('dp-device--monitor'));assert(home.includes('dp-device--tablet'));assert(home.includes('product-stock-v1.jpg'));assert(home.includes('product-retail-v1.jpg'));assert(home.includes('Cihaz çerçeveleri sunum amaçlıdır.'));assert.equal((home.match(/<h1\b/g)||[]).length,1);});
+ check('Reference statistics are not fabricated',()=>{for(const phrase of ['1.200+','%98','7/24 Teknik Destek'])assert(!home.includes(phrase));assert(home.includes('Sentetik veriler'));});
+ check('Seven module areas and honest preview boundaries',()=>{for(const text of ['Veniux CRM','Stok &amp; Depo','VENIUX WAREHOUSE','Market / POS','VENIUX SATIŞ YÖNETİMİ','Raporlama','VENIUX INTELLIGENCE'])assert(home.includes(text));assert(home.includes('bu bölüm canlı CRM ekranı değildir'));assert(home.includes('rapor ekranı değildir'));assert(home.includes('harici AI sağlayıcısının'));});
+ check('Five-step tour has progressive no-JS content',()=>{for(const id of ['giris','stok','satis','vardiya','rapor']){assert(home.includes('id="dp-step-'+id+'"'));assert(home.includes('id="dp-panel-'+id+'"'));}assert(!/data-signature-panel="(?:giris|stok|satis|vardiya|rapor)"[^>]* hidden/.test(home));});
+ const tokens=JSON.parse(fs.readFileSync('website-php/design-tokens.json','utf8'));
+ check('Central Dark Precision brand tokens',()=>{assert.equal(tokens.name,'Veniux Dark Precision');assert.equal(tokens.light.canvas,'#07111D');assert.equal(tokens.light.blue,'#1677C8');assert.equal(tokens.light.orange,'#F17A38');assert.equal(tokens.light.ink,'#E8EDF4');});
+ const css=fs.readFileSync('website-php/assets/precision.css','utf8');
+ check('Reduced motion and finite animation',()=>{assert(css.includes('prefers-reduced-motion:reduce'));assert(css.includes('animation:none!important'));assert(!css.includes('infinite'));});
+ const rows=JSON.parse(fs.readFileSync('.local/dark-precision/viewport-checks.json','utf8'));
+ check('50 fresh layouts fit actual client width, one H1',()=>{for(const width of [360,390,768,1024,1440])for(const route of ['/','/market-pos','/depo-yonetimi','/yapay-zeka','/fiyatlandirma','/program-indir','/demo','/giris','/kayit','/indir']){const row=rows.find(r=>r.width===width&&r.route===route);assert(row,route+' @ '+width);assert(row.scroll<=row.client,route+' overflow @ '+width);assert.equal(row.h1,1);}});
+ const contrast=JSON.parse(fs.readFileSync('.local/dark-precision/contrast-checks.json','utf8'));
+ check('Sampled actual text colors reach 4.5:1',()=>{assert(contrast.length>=15);for(const row of contrast)assert(row.ratio>=4.5,row.selector+' '+row.ratio);});
+ const pricing=await(await fetch(base+'/fiyatlandirma')).text();
+ check('Published pricing and quote-only license boundary retained',()=>{for(const price of ['3.588','7.188','14.388'])assert(pricing.includes(price));assert(pricing.includes('Online ödeme alınmaz'));assert(!pricing.includes('Yalnızca yerel fiyat taslağı'));});
+ const privateResponse=await fetch(base+'/indir',{redirect:'manual'});check('Private account remains authenticated',()=>{assert.equal(privateResponse.status,303);assert.equal(privateResponse.headers.get('x-robots-tag'),'noindex, nofollow');});
+ const report={date:new Date().toISOString(),checks,status:'PASS',production_access:false,limitations:['No field Core Web Vitals or physical device certification','Missing customer license/billing/request services are not marked complete']};fs.writeFileSync('.local/dark-precision/acceptance-results.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+})().catch(e=>{console.error(e.message);process.exitCode=1;});

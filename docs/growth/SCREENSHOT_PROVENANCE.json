@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-16",
+  "source": "Real Chrome capture, isolated local Veniux at 127.0.0.1:39229",
+  "physicalHardwareTest": false,
+  "customerData": false,
+  "images": [
+    {
+      "file": "website-php/assets/product-barcode-v3.jpg",
+      "bytes": 96014,
+      "sha256": "c18dcbd7567f5cdb230611dca6b7c085a9b0d5cc638a832ab5894db270110138",
+      "format": "JPEG",
+      "width": 1914,
+      "height": 860,
+      "note": "Single viewport capture; sidebar/header verified at y=0. No full-page stitching."
+    },
+    {
+      "file": "website-php/assets/product-warehouse-v2.jpg",
+      "bytes": 98872,
+      "sha256": "2968b66e46f61e568ef11ce9f6b48c6a71cd3c0ef6d1d0cdbedab75df1cd6d44",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 863
+    },
+    {
+      "file": "website-php/assets/product-lot-v2.jpg",
+      "bytes": 93958,
+      "sha256": "ffc9ff8f928dd9f101f902cb5dd5e71713eb3f65d0f55a1df6e1e72d97644751",
+      "format": "JPEG",
+      "width": 1914,
+      "height": 860
+    },
+    {
+      "file": "website-php/assets/product-expiry-v2.jpg",
+      "bytes": 98255,
+      "sha256": "d89c2061143521502a58dda757b2930121ef3a3097a86e4f9e77c79d063566dc",
+      "format": "JPEG",
+      "width": 1914,
+      "height": 860
+    },
+    {
+      "file": "website-php/assets/product-terminal-v2.jpg",
+      "bytes": 112877,
+      "sha256": "d4026a646c653e77d38e6c6db2092de8105245797b49df98403047ffbbd14036",
+      "format": "JPEG",
+      "width": 1914,
+      "height": 860
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+import React from 'react';
+
+export default function PricingCheckout({selectedPlan,onClose}){
+ let user={};try{user=JSON.parse(localStorage.getItem('user')||'{}');}catch{}
+ const platform=Boolean(user.is_platform_admin);
+ const price=selectedPlan?.annual_try||selectedPlan?.price_try;
+ return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"><div role="dialog" aria-modal="true" aria-labelledby="license-access-title" className="max-w-lg rounded-2xl bg-white p-8 shadow-xl"><h2 id="license-access-title" className="text-xl font-semibold">Veniux Cloud lisansı</h2><p className="mt-4 text-slate-600">Paketinizi ve kullanım sürenizi belirleyerek Veniux Cloud lisansınızı etkinleştirebilirsiniz. Lisans tanımlaması yetkili yönetici tarafından yapılır. Bu ekranda ödeme alınmaz.</p>{selectedPlan&&<p className="mt-3 font-medium">{selectedPlan.name}{price ? ` · ${price.toLocaleString('tr-TR')} TL / yıl (KDV dahil)` : ''}</p>}{platform&&<a href="https://api.veniux.com/" target="_blank" rel="noopener noreferrer" onClick={event=>{if(window.veniuxDesktop?.openExternal){event.preventDefault();window.veniuxDesktop.openExternal("https://api.veniux.com/");}}} className="mt-5 block rounded-lg bg-slate-900 px-5 py-3 text-center text-white">Lisans panelini tarayıcıda aç</a>}<p className="mt-3 text-sm text-slate-500">{platform?'api.veniux.com üzerinden yönetici hesabınızla giriş yaparak lisansınızı yönetin.':'Lisans anahtarınızı almak veya paketinizi değiştirmek için yetkili yöneticinizle iletişime geçin.'}</p><button className="mt-6 rounded-lg bg-slate-100 px-5 py-3" onClick={onClose}>Kapat</button></div></div>;
+}

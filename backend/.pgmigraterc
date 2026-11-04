@@ -1,0 +1,6 @@
+{
+  "databaseUrl": "postgres://postgres:postgres@localhost:5432/stok_takip",
+  "migrationsDir": "migrations",
+  "createTable": true,
+  "noTransaction": false
+}

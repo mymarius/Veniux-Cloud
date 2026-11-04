@@ -1,0 +1,3 @@
+// Local release-candidate artifact only. Never use this configuration for publishing.
+const path=require('node:path'),base=require('./electron-builder.config.js');
+module.exports={...base,publish:[],extraMetadata:{version:'2.4.39-rc.1'},directories:{...base.directories,output:'../.local/release-candidate-1/windows-unsigned'},win:{...base.win,artifactName:'Veniux-RC-${version}-UNSIGNED.${ext}'},nsis:{...base.nsis,runAfterFinish:false},extraResources:base.extraResources.map(item=>item.from==='../frontend/dist'?{...item,from:path.resolve(__dirname,'../.local/release-candidate-1/frontend')}:item)};

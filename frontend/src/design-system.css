@@ -1,0 +1,64 @@
+/* App-wide visual contract. Higher specificity than route CSS keeps lazy loading
+   and navigation history from changing the shell or shared controls. */
+@font-face{font-family:'Veniux Manrope';src:url('./assets/fonts/manrope-v1.woff2') format('woff2');font-style:normal;font-weight:200 800;font-display:swap}
+html:root[data-design='veniux']{--font-sans:'Veniux Manrope','Segoe UI',sans-serif;--font-display:var(--font-sans);--font-mono:var(--font-sans);--vx-page-title:28px;--vx-section-title:18px;--vx-body-size:14px;--vx-label-size:13px;--vx-card-radius:18px;--vx-card-shadow:0 3px 14px #132c4606;--vx-control-radius:11px;--vx-sidebar:#102c4b;--vx-sidebar-hover:#204466;--vx-sidebar-text:#edf5ff;--vx-sidebar-muted:#b8cde3;--color-bg:#f2f6fc;--color-surface:#fff;--color-surface-raised:#f8faff;--color-border:#dce5f0;--color-text:#162c45;--color-text-muted:#566c83}
+html:root[data-design='veniux'][data-theme='dark']{--color-bg:#0c1726;--color-surface:#14243a;--color-surface-raised:#1a304a;--color-border:#30455e;--color-text:#edf4ff;--color-text-muted:#b0c2d8;--vx-card-shadow:none}
+html:root[data-design='veniux'][data-text-size='large']{--vx-body-size:15px;--vx-label-size:14px}
+html:root[data-design='veniux'][data-text-size='small']{--vx-body-size:13px;--vx-label-size:12px}
+html:root[data-design='veniux'][data-corners='sharp']{--vx-card-radius:8px}
+html:root[data-design='veniux'][data-corners='balanced']{--vx-card-radius:14px}
+html:root[data-design='veniux'] :is(body,div,section,article,header,footer,nav,button,input,select,textarea,a,span,p,small,label,b,strong,em,summary,li,td,th,h1,h2,h3,h4,code,kbd,text){font-family:var(--font-sans)!important}
+html:root[data-design='veniux'] body{font-size:var(--vx-body-size);line-height:1.6;color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-shell .enterprise-content{background:var(--color-bg);color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content h1{font-size:var(--vx-page-title)!important;font-weight:700!important;line-height:1.25;letter-spacing:-.035em;color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content h2{font-size:var(--vx-section-title)!important;font-weight:700!important;line-height:1.4;letter-spacing:-.02em;color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content :is(.ax-head,.business-heading,.retail-heading)>div>p{font-size:var(--vx-body-size);line-height:1.65;color:var(--color-text-muted)}
+html:root[data-design='veniux'] .enterprise-content :is(.ax-page,.business-dashboard,.crm-pages,.retail-workspace,.appearance-page,.business-workspace){color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-shell .sb{background:var(--vx-sidebar);color:var(--vx-sidebar-text);border-right:1px solid #234765}
+html:root[data-design='veniux'] .enterprise-shell .sb :is(.sb-brand b,.sb-item,.sb-account b){color:var(--vx-sidebar-text)}
+html:root[data-design='veniux'] .enterprise-shell .sb :is(.sb-brand small,.sb-section-title,.sb-more,.sb-item svg,.sb-account small){color:var(--vx-sidebar-muted)}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-item{min-height:44px;border-radius:11px;font-size:13px;font-weight:500;letter-spacing:0}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-item:hover{background:var(--vx-sidebar-hover);color:#fff}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-item[data-active='true']{background:#145eae;color:#fff;font-weight:650;box-shadow:inset 3px 0 #ff9c56}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-item[data-active='true'] svg{color:#fff}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-item:before{display:none}
+html:root[data-design='veniux'] .enterprise-shell .sb :is(.sb-search,.sb-account){background:#193957;border:1px solid #34536f;color:#e2edfa;border-radius:11px}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-section-title{font-size:11px;letter-spacing:.035em;font-weight:650}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-section-title>span{background:transparent}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-section-title:hover{background:var(--vx-sidebar-hover)}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-section-title svg{color:var(--vx-sidebar-muted)}
+html:root[data-design='veniux'] .enterprise-shell .sb .sb-search kbd{background:#102c4b;color:#dcecff;border:1px solid #47627e}
+html:root[data-design='veniux'] .enterprise-content :is(.veniux-card,.ax-panel,.ax-kpi,.crm-panel,.retail-panel,.md-panel,.business-panel,.business-kpi,.business-metric,.business-content>section,.vt-stats>div,.rq-card){background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--vx-card-radius);box-shadow:var(--vx-card-shadow);color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content :is(.ax-btn,.business-button,.btn-soft,.btn-secondary){min-height:42px;border:1px solid var(--color-border);border-radius:var(--vx-control-radius);background:var(--color-surface);color:var(--color-text);font-size:var(--vx-label-size);font-weight:600}
+html:root[data-design='veniux'] .enterprise-content :is(.btn-primary,.ax-btn-primary,.ax-btn[data-primary]){min-height:42px;border:1px solid transparent;border-radius:var(--vx-control-radius);background:#145eae;color:#fff;font-size:var(--vx-label-size);font-weight:650}
+html:root[data-design='veniux'] .enterprise-content :is(.btn-primary,.ax-btn-primary,.ax-btn[data-primary]):hover{background:#104e91}
+html:root[data-design='veniux'] .enterprise-content button:is([class~='bg-brand-600'],[class~='bg-brand-500'],[class~='bg-slate-800']){min-height:42px;border-radius:var(--vx-control-radius);background:#145eae;color:#fff;font-size:var(--vx-label-size);font-weight:650}
+html:root[data-design='veniux'] .enterprise-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){background:var(--color-surface);border-color:var(--color-border);border-radius:var(--vx-control-radius);color:var(--color-text);font-size:var(--vx-body-size);font-weight:450;min-height:42px;line-height:1.5;letter-spacing:0}
+html:root[data-design='veniux'] .enterprise-content input::placeholder,html:root[data-design='veniux'] .enterprise-content textarea::placeholder{color:var(--color-text-muted);opacity:1}
+html:root[data-design='veniux'] .enterprise-content label{font-size:var(--vx-label-size);font-weight:600;letter-spacing:0}
+html:root[data-design='veniux'] .enterprise-content :is(table,.vx-table,.crm-directory-table){font-size:var(--vx-label-size);font-variant-numeric:tabular-nums}
+html:root[data-design='veniux'] .enterprise-content :is(th,td){padding:14px 16px;border-color:var(--color-border);letter-spacing:0;font-size:var(--vx-label-size);line-height:1.5}
+html:root[data-design='veniux'] .enterprise-content th{background:var(--color-surface-raised);color:var(--color-text-muted);font-size:12px;font-weight:650;text-transform:none}
+html:root[data-design='veniux'] .enterprise-content td{color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content tbody tr:hover td{background:var(--color-surface-raised)}
+html:root[data-design='veniux'] .enterprise-content :is(.business-panel-heading h2,.crm-directory-table b,.retail-total,.retail-empty h3,.ax-welcome h2){color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content :is(.business-heading p,.business-panel-heading p,.business-kpi span,.business-kpi small,.crm-directory-table small,.retail-summary,.retail-eyebrow,.retail-payment>p,.ax-head p,.ax-welcome p,.ax-welcome small){color:var(--color-text-muted)}
+html:root[data-design='veniux'] .vx-dialog :is(.vx-dialog-head h3,.vx-dialog-body){color:var(--color-text)}
+html:root[data-design='veniux'] .vx-dialog .vx-dialog-head p{color:var(--color-text-muted)}
+/* Neutral utility surfaces must not inherit the old inverted gray palette. */
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content :is(.bg-white,[class~='dark:bg-slate-900'],[class~='dark:bg-slate-800'],[class~='dark:bg-slate-800/60']){background:var(--color-surface);border-color:var(--color-border)}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content :is([class~='text-slate-900'],[class~='text-gray-900'],[class~='dark:text-slate-100'],[class~='dark:text-slate-200'],[class~='dark:text-slate-300'],[class~='text-slate-700'],[class~='text-gray-700']){color:var(--color-text)}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content :is([class~='text-slate-400'],[class~='text-slate-500'],[class~='text-gray-400'],[class~='text-gray-500'],[class~='dark:text-slate-400'],[class~='dark:text-gray-400']){color:var(--color-text-muted)}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content [class*='dark:border-slate-']{border-color:var(--color-border)}
+html:root[data-design='veniux'] .enterprise-content .rq-store{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)}
+html:root[data-design='veniux'] .enterprise-content .rq-store>span{color:var(--color-text-muted)}
+html:root[data-design='veniux'] .reader-mode{background:var(--color-surface-raised)}
+html:root[data-design='veniux'] .reader-mode button{color:var(--color-text-muted)}
+html:root[data-design='veniux'] .reader-mode button[aria-pressed='true']{background:#145eae;color:#fff}
+html:root[data-design='veniux'][data-theme='dark'] .mobile-scan-launch{color:#b7dcff;background:#102c4b}
+html:root[data-design='veniux'][data-theme='dark'] .mobile-scan-launch small{color:#b0c2d8}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content :is(.business-text-link,.business-panel-heading a,.crm-detail-link,.mobile-section-heading>a){color:#add1ff}
+html:root[data-design='veniux'] :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid #4594de;outline-offset:3px}
+@media(max-width:700px){html:root[data-design='veniux']{--vx-page-title:24px;--vx-section-title:17px}html:root[data-design='veniux'] .enterprise-content :is(input,select,textarea){font-size:16px!important;min-height:46px}html:root[data-design='veniux'] [data-mobile='true'] .enterprise-content :is(.vx-table,.crm-directory-table) td{padding:10px 0}html:root[data-design='veniux'] [data-mobile='true'] .enterprise-shell .sb .sb-item{min-height:48px}}
+@media print{html:root[data-design='veniux'] .enterprise-content{background:white;color:#111}html:root[data-design='veniux'] .sb{display:none}}
+

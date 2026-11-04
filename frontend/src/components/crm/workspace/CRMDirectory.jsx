@@ -1,0 +1,18 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Search, Building2, Users, ArrowUpRight, Plus, Activity } from 'lucide-react';
+import { useCRM } from '../../../context/CRMContext';
+export default function CRMDirectory({ kind, onCreate }) {
+  const { companies, contacts, activities } = useCRM();
+  const [search,setSearch] = useState('');
+  const [filter,setFilter] = useState('all');
+  const isCompany = kind === 'hesaplar'; const isActivity = kind === 'aktiviteler';
+  const rows = isCompany ? companies : isActivity ? activities : contacts;
+  const label = isCompany ? 'şirket' : isActivity ? 'aktivite' : 'kişi';
+  const options = [...new Set(rows.map(row=>isCompany ? row.industry : isActivity ? row.type : row.companyName).filter(Boolean))];
+  const shown = rows.filter(row => Object.values(row).filter(v=>typeof v==='string').join(' ').toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')) && (filter==='all' || (isCompany ? row.industry : isActivity ? row.type : row.companyName)===filter));
+  const Icon = isCompany ? Building2 : isActivity ? Activity : Users;
+  return <section className="business-panel crm-directory"><div className="crm-directory-toolbar"><div className="crm-search"><Search size={17}/><input aria-label={label + ' ara'} placeholder={isCompany ? 'Şirket adı, sektör veya konum ara…' : isActivity ? 'Aktivitelerde ara…' : 'İsim, e-posta veya şirket ara…'} value={search} onChange={e=>setSearch(e.target.value)} /></div><select aria-label="Liste filtresi" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">{isCompany ? 'Tüm sektörler' : isActivity ? 'Tüm aktiviteler' : 'Tüm şirketler'}</option>{options.map(value=><option key={value}>{value}</option>)}</select><span className="text-xs text-slate-500">{shown.length} / {rows.length} {label}</span></div>
+  {shown.length ? <div className="overflow-x-auto"><table className="crm-directory-table"><thead><tr><th>{isCompany ? 'Şirket' : isActivity ? 'Aktivite' : 'Kişi'}</th><th>{isCompany ? 'Sektör / Konum' : isActivity ? 'Açıklama' : 'İletişim'}</th><th>{isCompany ? 'Hesap sorumlusu' : isActivity ? 'İlgili kayıt' : 'Şirket'}</th><th>{isActivity ? 'Tarih' : 'Detay'}</th></tr></thead><tbody>{shown.map(row=><tr key={row.id}><td><div className="flex items-center gap-3"><span className="crm-avatar"><Icon size={18}/></span><div><b>{isCompany ? row.name : isActivity ? row.title : row.fullName}</b><small>{isCompany ? row.tier : isActivity ? row.type : row.jobTitle}</small></div></div></td><td>{isCompany ? row.industry || '—' : isActivity ? row.description || '—' : row.email || '—'}<small>{isCompany ? row.location : isActivity ? '' : row.phone}</small></td><td>{isCompany ? row.accountOwner || 'Atanmadı' : isActivity ? row.relatedObject || '—' : row.companyName || companies.find(c=>c.id===row.companyId)?.name || '—'}</td><td>{isActivity ? String(row.timestamp || row.createdAt || '').slice(0,10) || '—' : <Link className="crm-detail-link" aria-label={(row.name || row.fullName) + ' detayları'} to={'/crm/' + (isCompany ? 'companies/' : 'contacts/') + row.id}>İncele <ArrowUpRight size={15}/></Link>}</td></tr>)}</tbody></table></div> : <div className="crm-empty"><Icon size={32}/><h3>{search || filter !== 'all' ? 'Aramanızla eşleşen kayıt yok' : 'İlk ' + label + ' kaydınızla başlayın'}</h3><p>{isActivity ? 'Müşteri ve fırsat işlemleriniz burada listelenir.' : 'Müşteri bilgilerinizi düzenli tutun, ilişkilerinizi buradan yönetin.'}</p>{!isActivity && <button className="business-button" onClick={()=>onCreate(isCompany ? 'company' : 'contact')}><Plus size={16}/> {isCompany ? 'Şirket ekle' : 'Kişi ekle'}</button>}</div>}
+  </section>;
+}

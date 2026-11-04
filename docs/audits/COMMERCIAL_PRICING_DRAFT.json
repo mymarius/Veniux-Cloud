@@ -1,0 +1,20 @@
+{
+  "status": "DRAFT_NOT_APPROVED",
+  "currency": "TRY",
+  "vat_percent": 20,
+  "annual_discount_percent": 15,
+  "annual_discount_approved": false,
+  "note": "Afterdark yerel taslak. KDV hariç; yıllık peşin %15 indirim. Canlı fiyat/katalog/lisans onayı değildir.",
+  "monthly_net_cents": {
+    "RETAIL_START": 149000,
+    "RETAIL_PRO": 299000,
+    "RETAIL_BUSINESS": 599000,
+    "WAREHOUSE_START": 249000,
+    "WAREHOUSE_PRO": 499000,
+    "WAREHOUSE_ENTERPRISE": null,
+    "UNIFIED_UNIFIED": 649000
+  },
+  "starting_from": [
+    "UNIFIED_UNIFIED"
+  ]
+}

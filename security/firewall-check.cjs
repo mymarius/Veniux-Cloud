@@ -1,0 +1,6 @@
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),{spawn}=require('child_process');
+const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(root,'.local/firewall-check-'));
+const php='C:/xampp/php/php.exe',source=path.join(__dirname,'requestFirewall.php').replaceAll('\\','/');
+const script=path.join(dir,'check.php');fs.writeFileSync(script,`<?php require '${source}'; if($argv[1]==='paths'){foreach(['/.env','/.git/config','/%252e%252e/private','/x/%00','/bad%GG'] as $p)if(veniuxFirewallPath($p))exit(2);if(!veniuxFirewallPath('/.well-known/security.txt')||!veniuxFirewallPath('/products?q=SELECT'))exit(3);exit;} echo veniuxFirewallQuota(__DIR__.'/state','127.0.0.1',5,5,120)?'allow':'deny';`);
+const run=mode=>new Promise((resolve,reject)=>{let out='';const p=spawn(php,[script,mode],{windowsHide:true});p.stdout.on('data',v=>out+=v);p.on('error',reject);p.on('exit',code=>code===0?resolve(out):reject(Error('PHP guard test failed')));});
+(async()=>{await run('paths');const results=await Promise.all(Array.from({length:20},()=>run('quota')));assert.equal(results.filter(x=>x==='allow').length,5);assert.equal(results.filter(x=>x==='deny').length,15);console.log('PASS: PHP path protection and atomic cross-process request quota');})().catch(e=>{console.error(e.message);process.exitCode=1;});

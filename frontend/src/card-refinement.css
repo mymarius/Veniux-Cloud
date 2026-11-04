@@ -1,0 +1,135 @@
+/* Reference-inspired operational cards; local system fonts, no external font request. */
+:root {--font-sans:'Bahnschrift','Segoe UI',system-ui,sans-serif;--font-display:var(--font-sans);--vx-radius:22px;--vx-control-radius:11px;--color-bg:#f2f5fa;--color-border:#dce3ed;--color-text:#202d40;--color-text-muted:#68768a}
+:root[data-theme='dark'] {--color-bg:#101827;--color-surface:#202b3b;--color-border:#344154;--color-text:#f4f7fc;--color-text-muted:#a8b4c7}
+html body,html button,html input,html select,html textarea,html code,html kbd,[data-desktop='true'] {font-family:var(--font-sans)}
+.enterprise-content :is(.veniux-card,.ax-panel,.ax-kpi,.retail-panel,.crm-panel,.md-panel) {border-radius:22px;border-color:var(--color-border);background:var(--color-surface);box-shadow:0 4px 18px #15244005}
+.enterprise-content h1,.enterprise-content .ax-head h1 {font-size:clamp(28px,2.4vw,36px)!important;line-height:1.2;font-weight:700!important;letter-spacing:-.035em}
+.enterprise-content h2 {font-weight:650;letter-spacing:-.015em}
+.enterprise-content .ax-grid {gap:20px}
+.enterprise-content .ax-kpi {display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:48px auto auto auto;align-content:start;min-height:204px;padding:24px;gap:9px}
+.enterprise-content .ax-kpi-top {display:contents}
+.enterprise-content .ax-kpi-top i {grid-row:1;width:48px;height:48px;border-radius:15px;background:#e2edff;color:#246beb;border:0}
+.enterprise-content .ax-kpi-top i svg {width:22px;height:22px}
+.enterprise-content .ax-kpi>strong {grid-row:2;margin:9px 0 0;font-size:clamp(28px,2.3vw,36px);font-weight:750;letter-spacing:-.035em;line-height:1.15;color:var(--color-text)}
+.enterprise-content .ax-kpi-top span {grid-row:3;font-size:13px;font-weight:550;color:var(--color-text-muted)}
+.enterprise-content .ax-kpi-bottom {grid-row:4;margin-top:8px;font-size:12px;color:var(--color-text-muted)}
+.enterprise-content .ax-kpi[data-tone='teal'] .ax-kpi-top i {background:#bcf6dd;color:#087d58}
+.enterprise-content .ax-kpi[data-tone='violet'] .ax-kpi-top i {background:#e4dcff;color:#7756df}
+.enterprise-content .ax-kpi[data-tone='amber'] .ax-kpi-top i {background:#ffebbc;color:#a46a0b}
+.enterprise-content .ax-kpi[data-tone='red'] .ax-kpi-top i {background:#ffdae1;color:#c84464}
+.enterprise-content .ax-kpi[data-tone='slate'] .ax-kpi-top i {background:#e6ebf2;color:#4d6079}
+.enterprise-content .ax-panel {padding:24px}
+.enterprise-content .ax-panel-head {padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--color-border)}
+.enterprise-content .ax-panel-icon {display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#dcf1ff;color:#087eae;flex-shrink:0}
+.enterprise-content :is(.ax-module,.motion-tile) {border:1px solid var(--color-border);border-radius:20px;background:var(--color-surface);padding:22px;min-height:110px}
+.enterprise-content .ax-module i {display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:#e2edff;color:#246beb;flex-shrink:0}
+.enterprise-content .ax-module:nth-child(3n+2) i {background:#e9ddff;color:#794fd1}
+.enterprise-content .ax-module:nth-child(3n) i {background:#ffe8cf;color:#b26a1d}
+.enterprise-content .ax-module b {font-size:14px;font-weight:600}
+.enterprise-content .ax-module small {font-size:12px;color:var(--color-text-muted);line-height:1.6}
+.enterprise-content :is(.btn-primary,.btn-secondary,.btn-soft,.ax-btn,.vx-btn) {border-radius:11px;font-weight:550}
+.enterprise-content table th {font-size:12px;color:var(--color-text-muted);font-weight:600}
+.enterprise-content table td {font-size:13px;padding-block:16px}
+.enterprise-content .ax-welcome {padding:24px;border-radius:22px;border-left:0;border:1px solid var(--color-border);background:var(--color-surface)}
+:root[data-theme='dark'] .enterprise-content :is(.ax-kpi,.ax-panel,.veniux-card,.ax-module) {box-shadow:none}
+:root[data-theme='dark'] .enterprise-content .ax-panel-icon {background:#173f55;color:#55cdf8}
+:root[data-theme='dark'] .enterprise-content .ax-module i {background:#2044a2;color:#dce8ff}
+:root[data-theme='dark'] .enterprise-content .ax-module:nth-child(3n+2) i {background:#52249b;color:#f1e6ff}
+:root[data-theme='dark'] .enterprise-content .ax-module:nth-child(3n) i {background:#843d17;color:#ffe8d5}
+@media(max-width:700px){.enterprise-content .ax-grid{gap:12px}.enterprise-content .ax-kpi{padding:18px;min-height:180px}.enterprise-content .ax-panel{padding:18px}.enterprise-content .ax-module{padding:18px}}
+@media print {.enterprise-content :is(.ax-kpi,.ax-panel,.veniux-card){background:#fff;color:#111;box-shadow:none}}
+/* Compact desktop chrome; preserve the native drag area and Windows actions. */
+[data-desktop='true'] .desktop-titlebar {display:grid;grid-template-columns:1fr auto 1fr;gap:16px;padding:0 12px 0 18px;height:44px;background:var(--color-surface);border-bottom:1px solid var(--color-border);font-size:11px;letter-spacing:.01em}
+.desktop-titlebar .titlebar-brand {justify-self:start;min-width:0;gap:9px}
+.desktop-titlebar .titlebar-brand img {height:28px;width:28px}
+.desktop-titlebar .titlebar-brand>.font-bold {color:var(--color-text);font-size:12px;font-weight:700;letter-spacing:.08em}
+.desktop-titlebar .titlebar-brand>span:last-child {border-color:var(--color-border);color:var(--color-text-muted);font-size:10px;letter-spacing:0}
+.desktop-titlebar .titlebar-status {justify-self:center;gap:12px;color:var(--color-text-muted);min-width:0}
+.desktop-titlebar .titlebar-tenant {max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:550;color:var(--color-text)}
+.desktop-titlebar .titlebar-tenant svg {color:var(--color-primary);flex-shrink:0}
+.desktop-titlebar .titlebar-status [role='status'] {padding:5px 10px;border:1px solid #1a9f7330;border-radius:8px;background:#e9f7f0;color:#16734d;font-size:10px;line-height:1.3}
+.desktop-titlebar .titlebar-status .bg-amber-50 {background:#fff5df;border-color:#d28b2830;color:#906011}
+.desktop-titlebar .titlebar-controls {justify-self:end;gap:3px;height:100%;color:var(--color-text-muted)}
+.desktop-titlebar .titlebar-controls button {height:30px;width:34px;padding:0;margin-right:0;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background-color 120ms ease,color 120ms ease}
+.desktop-titlebar .titlebar-controls button:hover {background:#007aff10;color:var(--color-text)}
+.desktop-titlebar .titlebar-controls [data-testid='button-system-health'] {margin-right:9px;border:1px solid var(--color-border);color:var(--color-primary)}
+.desktop-titlebar .titlebar-controls [data-testid='button-window-close']:hover {background:#e44949;color:#fff}
+.desktop-titlebar .titlebar-controls button:focus-visible {outline:2px solid var(--color-primary);outline-offset:2px}
+:root[data-theme='dark'] .desktop-titlebar {background:#182334;border-color:#2d3b50}
+:root[data-theme='dark'] .desktop-titlebar .titlebar-status [role='status'] {background:#173a32;color:#70deb5;border-color:#2b574a}
+:root[data-theme='dark'] .desktop-titlebar .titlebar-status .bg-amber-50 {background:#3b3020;color:#ecc481;border-color:#67502a}
+:root[data-theme='dark'] .desktop-titlebar .titlebar-controls button:hover {background:#ffffff10;color:#fff}
+:root[data-theme='dark'] .desktop-titlebar .titlebar-controls [data-testid='button-window-close']:hover {background:#e44949}
+@media(max-width:800px){[data-desktop='true'] .desktop-titlebar{grid-template-columns:1fr auto}.desktop-titlebar .titlebar-status{display:none}}
+@media(prefers-reduced-motion:reduce){.desktop-titlebar .titlebar-controls button{transition:none}}
+/* macOS-inspired window chrome with existing Electron window actions. */
+[data-desktop='true'] .desktop-titlebar.mac-titlebar {grid-template-columns:1fr auto 1fr;padding:0 16px;gap:16px;background:#f0f0f2;border-bottom:1px solid #d9d9df;box-shadow:inset 0 1px 0 #ffffff90;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.mac-window-controls {display:flex;align-items:center;gap:8px;justify-self:start}
+.mac-window-controls .mac-dot {display:grid;place-items:center;width:13px;height:13px;min-height:0;padding:0;border-radius:50%;border:1px solid #00000018;box-shadow:inset 0 1px 0 #ffffff20;cursor:default}
+.mac-dot.mac-close {background:#ff5f57;color:#75150e}
+.mac-dot.mac-minimize {background:#febc2e;color:#805800}
+.mac-dot.mac-maximize {background:#28c840;color:#086216}
+.mac-dot svg {opacity:0;stroke-width:2.5}
+.mac-window-controls:hover .mac-dot svg,.mac-dot:focus-visible svg {opacity:1}
+.mac-dot:focus-visible {outline:2px solid var(--color-primary);outline-offset:3px}
+.mac-dot:active {filter:brightness(.86)}
+.mac-window-title {display:flex;align-items:center;gap:7px;justify-self:center;min-width:0;font-size:12px;font-weight:600;color:#50505a;letter-spacing:0;pointer-events:none}
+.mac-window-title img {width:20px;height:20px;object-fit:contain}
+.mac-window-title>span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:380px}
+.mac-title-divider {padding:0 4px;color:#96969f}
+.mac-window-status {display:flex;align-items:center;gap:12px;justify-self:end;color:#757580;font-size:10px}
+.mac-window-status [role='status'] {display:flex;align-items:center;gap:6px;background:transparent;border:0;padding:0;white-space:nowrap}
+.mac-window-status i {width:6px;height:6px;border-radius:50%;background:#28ad77}
+.mac-window-status .mac-disconnected i {background:#e4a437}
+.mac-window-status button {display:grid;place-items:center;width:28px;height:28px;border:1px solid #0000000d;border-radius:7px;background:transparent;color:inherit}
+.mac-window-status button:hover {background:#00000007}
+:root[data-theme='dark'] [data-desktop='true'] .desktop-titlebar.mac-titlebar {background:#26272b;border-color:#38393f;box-shadow:inset 0 1px 0 #ffffff06}
+:root[data-theme='dark'] .mac-window-title {color:#d8d8de}
+:root[data-theme='dark'] .mac-window-status {color:#a7a8b2}
+:root[data-theme='dark'] .mac-window-status button {border-color:#ffffff0c}
+:root[data-theme='dark'] .mac-window-status button:hover {background:#ffffff08}
+@media(max-width:800px){[data-desktop='true'] .desktop-titlebar.mac-titlebar{grid-template-columns:1fr auto 1fr;gap:8px}.mac-window-status [role='status']{font-size:0;gap:0}.mac-window-title>span{max-width:260px}}
+/* Veniux Cloud chrome: integrated ink surface, larger pointer targets. */
+[data-desktop='true'] .desktop-titlebar.mac-titlebar,:root[data-theme='dark'] [data-desktop='true'] .desktop-titlebar.mac-titlebar {background:#182638;border-color:#293c52;box-shadow:inset 0 1px 0 #ffffff05;height:44px}
+.mac-window-title,:root[data-theme='dark'] .mac-window-title {color:#e7eef8;font-size:12px;font-weight:600}
+.mac-title-divider {color:#657991}
+.mac-window-status,:root[data-theme='dark'] .mac-window-status {color:#aec0d4}
+.mac-window-controls {gap:0;margin-left:-6px}
+.mac-window-controls .mac-dot {position:relative;width:28px;height:28px;background:transparent;border:0;box-shadow:none;color:#182638}
+.mac-window-controls .mac-dot::before {content:'';position:absolute;width:13px;height:13px;border-radius:50%;border:1px solid #0002}
+.mac-window-controls .mac-close::before {background:#ff6259}
+.mac-window-controls .mac-minimize::before {background:#ffc044}
+.mac-window-controls .mac-maximize::before {background:#37cc58}
+.mac-window-controls .mac-dot svg {position:relative;z-index:1}
+.mac-window-controls .mac-dot:active {filter:brightness(.9)}
+.mac-window-status button {border-color:#ffffff12}
+.mac-window-status button:hover {background:#ffffff0b}
+/* Professional Windows chrome: quiet controls, visible symbols, no traffic lights. */
+[data-desktop='true'] .desktop-titlebar.mac-titlebar {grid-template-columns:1fr auto 1fr;padding:0 10px 0 16px}
+.mac-window-title {grid-column:1;grid-row:1;justify-self:start;pointer-events:none;font-size:12px}
+.mac-window-status {grid-column:2;grid-row:1;justify-self:center}
+.mac-window-controls {grid-column:3;grid-row:1;justify-self:end;margin-left:0;gap:2px}
+.mac-window-controls .mac-dot {width:34px;height:30px;border-radius:7px;color:#b7c6d8;filter:none}
+.mac-window-controls .mac-dot::before {display:none}
+.mac-window-controls .mac-dot svg {opacity:1;width:12px;height:12px;stroke-width:1.7}
+.mac-window-controls .mac-minimize {order:1}.mac-window-controls .mac-maximize {order:2}.mac-window-controls .mac-close {order:3}
+.mac-window-controls .mac-dot:hover {background:#ffffff0c;color:#fff}
+.mac-window-controls .mac-close:hover {background:#d74a4a;color:#fff}
+.mac-window-controls .mac-dot:active {background:#ffffff15;filter:none}
+.mac-window-status [role='status'] {font-size:10px;letter-spacing:.01em}
+@media(max-width:800px){.mac-window-title>span{max-width:220px}.mac-window-status [role='status']{font-size:0}.mac-window-status{gap:8px}}
+.appearance-size-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.appearance-size-options .appearance-option{text-align:center;min-width:0;padding:14px 8px}.appearance-corner-preview{display:block;width:64px;height:42px;margin:0 auto 12px;border:1px solid var(--color-brand-300);background:var(--color-brand-50)}
+html[data-corners] .enterprise-content :is(.veniux-card,.ax-panel,.ax-kpi,.retail-panel,.crm-panel,.md-panel,.ax-module){border-radius:var(--vx-radius)}
+html[data-text-size='large'] .enterprise-content :is(td,input,select,textarea,label,.text-sm){font-size:15px!important;line-height:1.65}
+html[data-text-size='large'] .enterprise-content :is(.text-xs,.ax-panel-description,.ax-kpi-top span){font-size:13px!important;line-height:1.6}
+html[data-text-size='small'] .enterprise-content :is(td,input,select,textarea,label,.text-sm){font-size:12px!important}
+html[data-text-size='small'] .enterprise-content .text-xs{font-size:11px!important}
+html[data-motion='off'] *,html[data-motion='off'] *::before,html[data-motion='off'] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html .enterprise-shell .sb .sb-item[data-active='true']{background:var(--color-primary)}
+html .appearance-sample-link{color:var(--color-primary)}
+@media(max-width:500px){.appearance-size-options{gap:6px}.appearance-corner-preview{width:48px}}
+@media print{html[data-text-size] .enterprise-content :is(td,input,select,textarea,label,.text-sm){font-size:12px!important}}
+/* Tablet navigation becomes a drawer; small screens keep local table scrolling. */
+@media(max-width:1023px){.enterprise-shell .enterprise-content{padding:20px 16px 32px}.enterprise-shell .enterprise-header{gap:8px;padding-inline:12px}.enterprise-shell .sb{max-width:calc(100vw - 40px)}}
+@media(max-width:600px){.enterprise-content .ax-head{flex-wrap:wrap;gap:14px}.enterprise-content .ax-actions{flex-wrap:wrap;width:100%}.enterprise-content .ax-actions button{flex:1}.enterprise-content .ax-grid{grid-template-columns:minmax(0,1fr)}.enterprise-content .ax-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.enterprise-content .ax-kpi{padding:16px;min-height:174px}.enterprise-content .ax-kpi>strong{font-size:26px}.enterprise-content :is(.veniux-card,.ax-panel){min-width:0;max-width:100%}.settings-navigation>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr))}.enterprise-content input,.enterprise-content select,.enterprise-content textarea{font-size:16px!important}.enterprise-content .overflow-auto{overscroll-behavior-inline:contain}.ax-module{min-width:0}.ax-module small{overflow-wrap:anywhere}}
+@media(max-width:360px){.enterprise-content .ax-kpis{grid-template-columns:minmax(0,1fr)}}

@@ -1,0 +1,7 @@
+.customer-setup progress{height:8px;border:0;border-radius:999px;overflow:hidden;background:#e8eef8;color:#2563eb}
+.customer-setup progress::-webkit-progress-bar{background:#e8eef8;border-radius:999px}
+.customer-setup progress::-webkit-progress-value{background:#2563eb;border-radius:999px}
+.customer-setup progress::-moz-progress-bar{background:#2563eb;border-radius:999px}
+.customer-setup input[type=checkbox],.customer-setup input[type=radio]{accent-color:#2563eb}
+.customer-setup nav[aria-label="Kurulum adımları"]{scrollbar-width:thin}
+.customer-setup button:focus-visible,.customer-setup a:focus-visible{outline:3px solid #f97316;outline-offset:3px}

@@ -1,0 +1,173 @@
+{
+  "version": "2.4.38",
+  "date": "16 Ekim 2026",
+  "releases": [
+    {
+      "version": "2.4.38",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Standart Windows kurulumu geri getirildi",
+      "items": [
+        "Özel resimli kurulum arayüzü tamamen kaldırıldı; standart NSIS kurulum, klasör seçimi, ilerleme ve bitiş ekranları geri getirildi.",
+        "Yeni kurulumda yerel veya HTTPS bağlantısı programın ilk açılışındaki bağlantı ekranında seçilir. Mevcut kayıtlı işletme bağlantısı korunur."
+      ]
+    },
+    {
+      "version": "2.4.37",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Kurulum kontrollerinde katman düzeltmesi",
+      "items": [
+        "Arka planın klasör alanını ve seçim kartlarını kapatması düzeltildi.",
+        "Bağlantı seçenekleri Yerel kurulum ve HTTPS sunucusuna bağlan olarak netleştirildi.",
+        "Geri ve Vazgeç düğmeleri her adımda yeniden hazırlanır; görsel yüklenemezse düğme yazısı korunur."
+      ]
+    },
+    {
+      "version": "2.4.36",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Görsel kurulum arayüzü",
+      "items": [
+        "Referansa uygun lacivert kurulum yüzeyi, seçilebilir büyük bağlantı kartları ve ürün görseli eklendi.",
+        "Karşılama, tercihler, gerçek kurulum özeti, dosya kurulumu ve tamamlanma adımları ortak tasarıma alındı.",
+        "Düzenlenebilir klasör alanı, klavye ile seçilen kartlar ve Hostimux bağlantısı korunarak yeniden düzenlendi."
+      ]
+    },
+    {
+      "version": "2.4.35",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Ortalanmış yeni kurulum deneyimi",
+      "items": [
+        "Karşılama ekranı tek parça koyu zemin ve ortalanmış Veniux logosuyla yeniden düzenlendi.",
+        "Bağlantı ve klasör seçimi ikinci adıma taşındı; ilk ekran sadeleştirildi.",
+        "İleri, Geri, Başlat ve Tamamla düğmeleri ortak kurulum tasarımına alındı."
+      ]
+    },
+    {
+      "version": "2.4.34",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Kurulum ekranında okunabilirlik ve yerleşim",
+      "items": [
+        "Marka görselinin sınırlarını aşması giderildi; Veniux logosu ve kurulum simgesi düzenlendi.",
+        "Açık form yüzeyi, okunabilir bağlantı seçenekleri ve ortak mavi düğme tasarımı eklendi.",
+        "Bağlantı tercihi ve kurulum klasörü tek ekranda toplandı; sessiz güncelleme yolu korundu."
+      ]
+    },
+    {
+      "version": "2.4.33",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Veniux kimliğiyle yeni kurulum deneyimi",
+      "items": [
+        "Kurulum ekranına Veniux logosu, mavi-turuncu vurgu, karşılama ve numaralı bağlantı adımları eklendi.",
+        "Giriş ekranındaki sponsor alanının yanlış yan panel stilini alması düzeltildi; kutusuz ve okunabilir hale getirildi."
+      ]
+    },
+    {
+      "version": "2.4.32",
+      "date": "16 Ekim 2026",
+      "platform": "Windows",
+      "title": "Kurulum ekranında sponsor alanı düzeltildi",
+      "items": [
+        "Hostimux sponsor bağlantısı yukarı taşındı; alt düğme alanında kesilmesi giderildi.",
+        "Kurulum seçimi ve açıklamalar pencerenin kullanılabilir alanına sığacak şekilde düzenlendi."
+      ]
+    },
+    {
+      "version": "2.4.31",
+      "date": "15 Ekim 2026",
+      "title": "Etiket atölyesi ve telefonla baskı gönderimi",
+      "items": [
+        "Gerçek ürün barkodu ve kayıtlı satış fiyatıyla raf ve ürün etiketleri hazırlanabilir.",
+        "Veniux İmza ve Veniux Çizgi tasarımları; 100×40, 58×40 ve A4 ölçüleri eklendi.",
+        "Bilgisayarda kurulu yazıcılar listelenir; açılan baskı hizmetine aynı işletmenin telefonundan etiket işi gönderilir.",
+        "Bulut etiket istasyonu için şifre içermeyen QR bağlantısı eklendi; hesap ve lisans doğrulaması sürer.",
+        "İşletme ayrımı, tek iş alma, tekrar güvenliği ve beklerken değişen fiyatı durdurma kontrolleri eklendi."
+      ]
+    },
+    {
+      "version": "2.4.30",
+      "date": "15 Ekim 2026",
+      "title": "Mobil uygulamada ortak Veniux tasarımı",
+      "items": [
+        "Tüm mobil iş ekranlarına ortak mavi ve turuncu tasarım katmanı uygulandı.",
+        "Üst menü, alt gezinme, ürün listeleri, formlar ve ayarlar tutarlı hale getirildi.",
+        "CRM filtrelerinin telefon ekranında taşması düzeltildi; mobil pencereler alt panel olarak düzenlendi.",
+        "Açık ve koyu temalarda ortak yazı, alan ve durum renkleri iyileştirildi."
+      ]
+    },
+    {
+      "version": "2.4.29",
+      "date": "15 Ekim 2026",
+      "title": "Mobil QR ve bağlantı ekranı",
+      "items": [
+        "Tam ekran QR kamerası, fener ve eşleştirme yardımı eklendi.",
+        "Yatay kullanım ve elle kod giriş akışı düzenlendi."
+      ]
+    },
+    {
+      "version": "2.4.28",
+      "date": "15 Ekim 2026",
+      "title": "Sade sponsor görünümü",
+      "items": [
+        "Hostimux tanıtım kutusu kaldırıldı; arka plansız logo alt alana taşındı.",
+        "Sponsor logosuna etkileşimde parlama ve klavye odağı desteği eklendi."
+      ]
+    },
+    {
+      "version": "2.4.27",
+      "date": "15 Ekim 2026",
+      "title": "Kurulum seçimi ve Hostimux sponsor alanı",
+      "items": [
+        "Yeni Windows kurulumunda otomatik yerel kurulum veya ayrı sunucu bağlantısı seçilebilir.",
+        "Ayrı sunucu seçildiğinde bu bilgisayarda yerel veritabanı kurulmaz; ilk açılışta HTTPS sunucu adresi doğrulanır.",
+        "Program, Android bağlantı ekranı ve web sitesine etiketli Hostimux sponsor tanıtımı ve kurulum açıklamaları eklendi.",
+        "Mevcut işletmelerin kayıtlı sunucu seçimi güncellemede korunur."
+      ]
+    },
+    {
+      "version": "2.4.26",
+      "date": "15 Ekim 2026",
+      "title": "Tüm çalışma alanlarında ortak tasarım",
+      "items": [
+        "Bilgisayar ve Android için aynı, programla birlikte gelen Manrope yazı tipi kullanılır.",
+        "Menü, başlıklar, kartlar, tablolar ve form alanları ortak tasarım kurallarına bağlandı.",
+        "Sayfa geçişlerinde ve koyu temada menü renklerinin değişmesi engellendi."
+      ]
+    },
+    {
+      "version": "2.4.25",
+      "date": "15 Ekim 2026",
+      "title": "Yenilikler artık programın içinde",
+      "items": [
+        "Menünün altına mevcut sürümü gösteren Sürüm notları düğmesi eklendi.",
+        "Son değişiklikler Windows ve Android'de programdan ayrılmadan okunabilir.",
+        "Sürüm notları internet bağlantısı olmadan da açılır."
+      ]
+    },
+    {
+      "version": "2.4.24",
+      "date": "15 Ekim 2026",
+      "title": "Veniux renkleriyle ortak tasarım",
+      "items": [
+        "Masaüstü ve mobilde mavi menü, turuncu vurgular ve ortak kart düzeni oluşturuldu.",
+        "Yazı tipi, form alanları ve tablo boşlukları düzenlendi.",
+        "Mobil ana ekranın işlem kartları ve barkod kısayolu yenilendi; koyu tema okunabilirliği iyileştirildi."
+      ]
+    },
+    {
+      "version": "2.4.23",
+      "date": "14 Ekim 2026",
+      "title": "Mobilde ürün ve fiyat kontrolü",
+      "platform": "Android",
+      "items": [
+        "Tam ekran barkod okuyucuya Ürünü bul ve Fiyatı gör seçenekleri eklendi.",
+        "Okunan ürünün kayıtlı fiyatı ve stok bilgisi gösterilir; barkod okutmak stok değiştirmez.",
+        "Destekleyen kameralarda fener ve ön/arka kamera değiştirme düğmeleri eklendi."
+      ]
+    }
+  ]
+}

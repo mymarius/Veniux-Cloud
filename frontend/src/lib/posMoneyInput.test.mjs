@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {canonicalMoney,moneyLabel,moneyNumber} from './posMoneyInput.mjs';
+test('POS prices display Turkish grouping and exactly two decimal places',()=>{assert.equal(moneyLabel(1234.5),'1.234,50 TL');assert.equal(moneyNumber(0),'0,00');assert.equal(moneyLabel(.1),'0,10 TL');assert.equal(moneyLabel(NaN),'—');});
+test('Turkish input preserves exact decimal strings and physical-keyboard dot input',()=>{assert.equal(canonicalMoney('1.234,56'),'1234.56');assert.equal(canonicalMoney('12,50'),'12.50');assert.equal(canonicalMoney('12.50'),'12.50');assert.equal(canonicalMoney('0,00'),'0.00');assert.equal(canonicalMoney('12,'),'12.');assert.equal(canonicalMoney(''),'');});
+test('malformed, negative, scientific and excess fractional money input is rejected',()=>{for(const v of ['1,234','1.2345','-1,00','NaN','Infinity','1e3','1.2,34','1,2,3','abc'])assert.equal(canonicalMoney(v),null,v);});
