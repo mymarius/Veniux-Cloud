@@ -1,7 +1,7 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),zlib=require('zlib'),mysql=require('mysql2/promise');
 const transfer=require('../database/dataTransfer'),privacy=require('./backupPrivacy'),maintenance=require('../middlewares/backupMaintenance');
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
-const defaults={enabled:false,intervalHours:24,retentionDays:30,maxCount:10},MAGIC=Buffer.from('VNXMYSQL1\n');
+const defaults={enabled:true,intervalHours:24,retentionDays:30,maxCount:10},MAGIC=Buffer.from('VNXMYSQL1\n');
 function makeMySQLBackupService(options={}){
  const db=options.pool||require('../config/database'),root=path.resolve(options.root||path.join(require('../config/runtimeConfig').paths().storage,'backups','mysql'));
  const filesRoot=path.resolve(options.filesRoot||path.join(process.env.MEDICINE_STORAGE_DIR||require('../config/runtimeConfig').paths().storage,'medicine-images'));

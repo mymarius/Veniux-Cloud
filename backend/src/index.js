@@ -134,7 +134,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🌐 Health check: http://localhost:${PORT}/health`);
     console.log(`=========================================`);
 
-    if (!require('./services/centralLicense').enabled()) require('./services/backupService').startScheduler();
+    require('./services/backupService').startScheduler();
     // Optional: Start cron background tasks
     try {
       if (process.env.NODE_ENV !== 'test' && process.env.VENIUX_DISABLE_BACKGROUND_JOBS!=='1' && !require('./services/centralLicense').enabled()) {
