@@ -10,7 +10,6 @@ import './product-design.css';
 import './native-refinement.css';
 import App from './App.jsx';
 import DesktopSetup from './components/DesktopSetup';
-import InteractionMotion from './components/InteractionMotion';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initAppearance } from './lib/appearance';
 import {mobilePairing} from './lib/mobilePairing';
@@ -22,7 +21,6 @@ function renderApp(){createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       {window.veniuxDesktop?.setupRequired ? <DesktopSetup/> : <App />}
-      <InteractionMotion />
     </ErrorBoundary>
   </StrictMode>,
 );}

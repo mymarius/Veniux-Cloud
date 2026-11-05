@@ -12,7 +12,7 @@ import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import './RetailPos.css';
 import {Link} from 'react-router-dom';
 import TerminalIdentity from '../components/TerminalIdentity';
-import veniuxLogo from '../assets/veniux-logo.png';
+import veniuxLogo from '../assets/veniux-logo.webp';
 import {readSessionUser} from '../lib/sessionUser';
 import {LockKeyhole, UserRoundCog, ScanBarcode, Pause, History, Settings2, CreditCard, Maximize, ShieldCheck, Search} from 'lucide-react';
 import './PosTerminal.css';

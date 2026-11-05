@@ -1,4 +1,4 @@
-import veniuxLogo from '../assets/veniux-logo.png';
+import veniuxLogo from '../assets/veniux-logo.webp';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X, Send, Maximize2, Volume2, VolumeX } from 'lucide-react';

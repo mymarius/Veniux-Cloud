@@ -1,28 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import './analytics.css';
 
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Sayıyı sıfırdan hedef değere doğru yumuşakça sayar.
-export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR'), duration = 900 }) {
-  const [shown, setShown] = useState(reducedMotion() ? value : 0);
-  const from = useRef(0);
-  useEffect(() => {
-    if (reducedMotion()) { setShown(value); return; }
-    const start = performance.now(), origin = from.current;
-    let frame;
-    const tick = now => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setShown(origin + (value - origin) * eased);
-      if (t < 1) frame = requestAnimationFrame(tick); else from.current = value;
-    };
-    frame = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(frame); from.current = value; };
-  }, [value, duration]);
-  return <>{format(shown)}</>;
+export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR') }) {
+  return format(value);
 }
 
 // Küçük, kendini çizen çizgi grafik (KPI kartları için).

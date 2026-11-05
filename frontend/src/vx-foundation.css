@@ -251,3 +251,12 @@ html:root[data-design='veniux'] .vx-auth .vx-auth-brand{font-family:'Veniux Manr
 html:root[data-design='veniux'] .vx-auth h1{font-family:'Veniux Manrope',var(--font-sans);font-size:22px;font-weight:700}
 .vx-count-progress{height:8px;border-radius:6px;background:var(--vx-subtle);overflow:hidden}
 .vx-count-progress i{display:block;height:100%;border-radius:6px;background:#12a37f;transition:width .15s}
+
+/* Akıcılık: geçişler yalnız boyamayı etkileyen özelliklerde ve kısa; yerleşim canlandırılmaz. */
+html:root[data-design='veniux'] :is(.veniux-card,.ax-panel,.ax-kpi,.ax-module,.dx-todo a,button,a){transition:background-color .12s,border-color .12s,color .12s}
+html:root[data-design='veniux'] .enterprise-content :is(.ax-kpi:hover,.ax-module:hover,.veniux-card:hover){translate:none;transform:none}
+html:root[data-design='veniux'] .enterprise-content :is(.ax-reveal,.motion-sequence>*,.animate-fade-in),html:root[data-design='veniux'] .vx-dialog .vx-dialog-body>*{animation:none}
+html:root[data-design='veniux'] .enterprise-content [class*='backdrop-blur'],html:root[data-design='veniux'] .enterprise-header,html:root[data-design='veniux'] .vx-dialog{backdrop-filter:none}
+.vx-route-skeleton{display:grid;gap:12px}
+.vx-route-skeleton i{display:block;height:96px;border-radius:var(--vx-card-radius,12px);background:var(--vx-subtle,#eef1f6)}
+.vx-route-skeleton i:last-child{height:320px}

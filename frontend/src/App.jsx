@@ -57,19 +57,21 @@ const ApiManagement = lazy(() => import('./pages/ApiManagement'));
 // CRM pages with persistent, directly accessible routes.
 const CRMWorkspace = lazy(() => import('./pages/CRMWorkspace'));
 
+// Hesap bilgisi oturum boyunca saklanır: sayfa hemen açılır, doğrulama arkada sürer. Yetkiyi her istekte sunucu denetler.
+let accessCache = null;
 const ProtectedRoute = ({ children }) => {
   const {centralRequired,isLicensed,loading:licenseLoading}=useLicense();
   const token = localStorage.getItem('token');
   const { pathname } = useLocation();
-  const [access, setAccess] = useState(null);
+  const [access, setAccess] = useState(() => (accessCache?.token === token ? accessCache.value : null));
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let current = true;
-    setAccess(null);
+    if (accessCache?.token !== token) setAccess(null);
     // Cihaz lisans başlığı lisans yüklenince eklenir; önce gidilirse sunucu 423 döner ve oturum silinir.
     if (token && !licenseLoading) apiClient.get('/auth/me').then(({data}) => {
-      if (current) { localStorage.setItem('user', JSON.stringify(data)); setAccess({path:pathname,type:data.module_type,platform:data.is_platform_admin,package:data.product_package}); }
-    }).catch(() => { if (current) setAccess({path:pathname,error:true}); });
+      if (current) { localStorage.setItem('user', JSON.stringify(data)); const value = {type:data.module_type,platform:data.is_platform_admin,package:data.product_package}; accessCache = {token, value}; setAccess(value); }
+    }).catch(() => { if (current) { accessCache = null; setAccess({error:true}); } });
     return () => { current = false; };
   }, [token, pathname, retry, licenseLoading]);
   if (!token) {
@@ -77,7 +79,7 @@ const ProtectedRoute = ({ children }) => {
   }
   if (centralRequired && licenseLoading) return <PageSkeleton />;
   if (centralRequired && !isLicensed) return <Navigate to="/activate" replace />;
-  if (!access || access.path !== pathname) return <PageSkeleton />;
+  if (!access) return <PageSkeleton />;
   if (access.error) return <div role="alert" className="p-8"><h1 className="text-xl font-bold">Hesap erişimi doğrulanamadı</h1><p className="mt-3">Bağlantınızı kontrol edip tekrar deneyin. İşlem yapılmadı.</p><button className="btn-primary mt-4" onClick={() => setRetry(value => value + 1)}>Tekrar dene</button></div>;
   if (access.type === 'NONE'  && pathname !== '/settings' && !pathname.startsWith('/admin/')) return <Layout><div role="status" className="p-8"><h1 className="text-xl font-bold">Müşteri hesabınız hazır</h1><p className="mt-3">Operasyon ekranları, hesabınıza aktif lisans paketi tanımlandığında açılır. Paketinizin etkinleştirilmesi için Veniux yöneticisiyle iletişime geçin.</p></div></Layout>;
   if (pathname.startsWith('/admin/') && !access.platform) return <Layout><p role="alert" className="p-8">Bu alan yalnızca platform yöneticisine açıktır.</p></Layout>;
@@ -97,7 +99,29 @@ const LegacyCRMRedirect = () => {
   return <Navigate to={'/crm/' + (LEGACY_CRM_TABS[new URLSearchParams(search).get('sekme')] || 'dashboard')} replace />;
 };
 
+// Sık kullanılan sayfalar boşta önceden yüklenir; yeni sürüm sonrası bulunamayan kod dosyasında sayfa bir kez yenilenir.
+const PRELOAD = [() => import('./pages/Dashboard'), () => import('./pages/normal-depo/NormalProducts'), () => import('./pages/normal-depo/NormalMovements'), () => import('./pages/normal-depo/NormalWarehouses'), () => import('./pages/normal-depo/NormalDashboard'), () => import('./pages/RetailPos'), () => import('./pages/Settings')];
+function usePreloadPages() {
+  useEffect(() => {
+    if (navigator.connection?.saveData) return undefined;
+    let stopped = false, index = 0, timer;
+    const idle = window.requestIdleCallback || (fn => setTimeout(fn, 400));
+    const next = () => { if (stopped || index >= PRELOAD.length) return; PRELOAD[index++]().catch(() => {}).finally(() => { timer = idle(next); }); };
+    timer = setTimeout(() => idle(next), 1200);
+    return () => { stopped = true; clearTimeout(timer); };
+  }, []);
+}
+window.addEventListener('vite:preloadError', event => {
+  try {
+    if (sessionStorage.getItem('veniux-chunk-reload')) return;
+    sessionStorage.setItem('veniux-chunk-reload', '1');
+    event.preventDefault();
+    window.location.reload();
+  } catch { /* depolama kapalıysa hata ekranı gösterilir */ }
+});
+
 function AppContent() {
+  usePreloadPages();
   const [showHealth, setShowHealth] = useState(false);
   const terminal=useLocation().pathname==='/magaza/kasa';
 

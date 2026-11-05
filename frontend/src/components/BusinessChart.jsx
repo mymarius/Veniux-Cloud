@@ -27,7 +27,7 @@ const gradientFill = color => ({ chart }) => {
 // Grafik türüne göre giriş animasyonu: çizgiler soldan sağa çizilir,
 // çubuklar sırayla büyür, halkalar dönerek açılır.
 function entryAnimation(type, count) {
-  if (reducedMotion()) return { animation: false };
+  return { animation: false };
   if (type === 'line') {
     // Noktalar soldan sağa sırayla taban çizgisinden yükselir. Başlangıç değeri
     // her zaman gerçek bir piksel olduğundan, animasyon yarıda kesilse bile

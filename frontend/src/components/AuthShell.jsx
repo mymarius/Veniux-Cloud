@@ -1,4 +1,4 @@
-import veniuxLogo from '../assets/veniux-logo.png';
+import veniuxLogo from '../assets/veniux-logo.webp';
 import React from 'react';
 import { Link } from 'react-router-dom';
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Minus, Square, X } from 'lucide-react';
-import veniuxLogo from '../../assets/veniux-logo.png';
+import veniuxLogo from '../../assets/veniux-logo.webp';
 import { useLicense } from '../../context/LicenseContext';
 
 export default function DesktopTitleBar({ onOpenHealthModal }) {

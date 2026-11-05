@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen } from 'lucide-react';
-import logo from '../assets/hostimux-sponsor.png';
+import logo from '../assets/hostimux-sponsor.webp';
 import { Modal } from './ui/Modal';
 import './HostingSponsor.css';
 

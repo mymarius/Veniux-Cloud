@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import logo from '../assets/veniux-logo.png';
+import logo from '../assets/veniux-logo.webp';
 import './PageLoading.css';
 
 export default function PageLoading(){
