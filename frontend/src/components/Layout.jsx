@@ -7,7 +7,7 @@ import {
   ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers,
   ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings,
   ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard,
-  Sparkles, UserPlus, MonitorSmartphone, History, Printer
+  Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
@@ -91,6 +91,11 @@ const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi
 
 export function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => { try { return localStorage.getItem('veniux_sidebar_collapsed') === '1'; } catch { return false; } });
+  const toggleSidebar = () => setSidebarCollapsed(current => {
+    try { localStorage.setItem('veniux_sidebar_collapsed', current ? '0' : '1'); } catch { /* tercih bu oturumda geçerli kalır */ }
+    return !current;
+  });
   const [unreadAlerts, setUnreadAlerts] = useState([]);
   const [showAlertsDropdown, setShowAlertsDropdown] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -170,6 +175,7 @@ export function Layout({ children }) {
         event.preventDefault();
         setIsCommandPaletteOpen(true);
       }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') { event.preventDefault(); toggleSidebar(); }
       if (event.key === 'F2') { event.preventDefault(); setStockModalType('inbound'); setStockModalOpen(true); }
       if (event.key === 'F3') { event.preventDefault(); setStockModalType('outbound'); setStockModalOpen(true); }
       if (event.key === 'F4') { event.preventDefault(); navigate('/magaza/kasa'); }
@@ -187,7 +193,7 @@ export function Layout({ children }) {
   };
 
   return (
-    <div className="enterprise-shell min-h-screen">
+    <div className="enterprise-shell min-h-screen" data-sb-collapsed={sidebarCollapsed}>
       <a className="skip-navigation" href="#main-content">İçeriğe geç</a>
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -207,7 +213,7 @@ export function Layout({ children }) {
           <button onClick={() => setSidebarOpen(false)} aria-label="Menüyü kapat" className="sb-icon-btn lg:hidden"><X size={16} /></button>
         </div>
 
-        <button className="sb-search" onClick={() => setIsCommandPaletteOpen(true)}>
+        <button className="sb-search" aria-label="Ara veya git" title={sidebarCollapsed ? 'Ara veya git' : undefined} onClick={() => setIsCommandPaletteOpen(true)}>
           <Search size={15} /><span>Ara veya git…</span><kbd>Ctrl K</kbd>
         </button>
 
@@ -222,7 +228,7 @@ export function Layout({ children }) {
             return (
               <div key={group.id} className="sb-section" data-expanded={open}>
                 {group.group && (
-                  <button className="sb-section-title" aria-expanded={open} aria-controls={sectionId} onClick={() => toggleSection(group.id)}>
+                  <button className="sb-section-title" aria-expanded={open} aria-controls={sectionId} title={sidebarCollapsed ? group.group : undefined} onClick={() => { if (sidebarCollapsed) { toggleSidebar(); setOpenSections(prev => ({ ...prev, [group.id]: true })); } else toggleSection(group.id); }}>
                     <span className="sb-group-mark"><GroupIcon size={17} strokeWidth={1.7}/></span><span>{group.group}</span>
                     <ChevronDown size={14} data-open={open} />
                   </button>
@@ -234,7 +240,7 @@ export function Layout({ children }) {
                       const active = isItemActive(item);
                       const badge = badges[item.badgeKey] || 0;
                       return (
-                        <NavLink key={item.path} to={item.path} data-active={active} aria-current={active ? 'page' : undefined} onClick={() => setSidebarOpen(false)} className="sb-item">
+                        <NavLink key={item.path} to={item.path} data-active={active} aria-current={active ? 'page' : undefined} title={sidebarCollapsed ? item.name : undefined} aria-label={item.name} onClick={() => setSidebarOpen(false)} className="sb-item">
                           <Icon size={16} strokeWidth={1.9} />
                           <span>{item.name}</span>
                           {badge > 0 && <em data-tone={item.badgeKey === 'expiring' ? 'warn' : undefined}>{badge > 99 ? '99+' : badge}</em>}
@@ -254,7 +260,7 @@ export function Layout({ children }) {
           })}
         </nav>
 
-        <button type="button" className="sb-release-notes" aria-haspopup="dialog" onClick={() => { setSidebarOpen(false); setReleaseNotesOpen(true); }}>
+        <button type="button" className="sb-release-notes" aria-label="Sürüm notları" title={sidebarCollapsed ? 'Sürüm notları' : undefined} aria-haspopup="dialog" onClick={() => { setSidebarOpen(false); setReleaseNotesOpen(true); }}>
           <History size={16} aria-hidden="true"/><span>Sürüm notları</span><small>v{PROGRAM_VERSION}</small>
         </button>
         <div className="sb-account">
@@ -270,7 +276,7 @@ export function Layout({ children }) {
       </aside>
 
       {/* ── MAIN CONTENT COCKPIT ── */}
-      <div className="flex min-w-0 flex-1 flex-col lg:pl-[224px] min-h-screen">
+      <div className="sb-main flex min-w-0 flex-1 flex-col lg:pl-[224px] min-h-screen">
         
         {/* Oval Corporate Header */}
         <header className="enterprise-header sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-6">
@@ -281,6 +287,14 @@ export function Layout({ children }) {
               className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 lg:hidden"
             >
               <Menu className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label={sidebarCollapsed ? 'Menüyü genişlet' : 'Menüyü daralt'} aria-expanded={!sidebarCollapsed} title={`${sidebarCollapsed ? 'Menüyü genişlet' : 'Menüyü daralt'} (Ctrl+B)`}
+              onClick={toggleSidebar}
+              className="sb-toggle hidden h-9 w-9 items-center justify-center text-gray-600 hover:bg-gray-100 lg:flex"
+            >
+              {sidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
             </button>
             {window.veniuxMobile&&<img className="mobile-header-brand" src={veniuxLogo} alt=""/>}
             <div className="mobile-workspace-title hidden sm:block">
