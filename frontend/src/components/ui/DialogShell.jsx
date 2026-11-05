@@ -47,14 +47,19 @@ export default function DialogShell({ isOpen, onClose, title, subtitle, icon: Ic
       }
     };
     window.addEventListener('keydown', onKey);
-    const frame = requestAnimationFrame(() => {
+    const moveFocus = () => {
+      if (panel.current?.contains(document.activeElement)) return;
       const target = panel.current?.querySelector('[data-autofocus]:not([disabled])')
         || panel.current?.querySelector('input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled])')
         || panel.current?.querySelector('button:not([disabled])');
       target?.focus({ preventScroll: true });
-    });
+    };
+    // İlk açılışta panel henüz odak alamayabilir; yazılanlar arkadaki alana gitmesin diye yeniden denenir.
+    const frame = requestAnimationFrame(moveFocus);
+    const retries = [60, 200].map(delay => setTimeout(moveFocus, delay));
     return () => {
       cancelAnimationFrame(frame);
+      retries.forEach(clearTimeout);
       const index=activeDialogs.indexOf(identity);
       if(index!==-1)activeDialogs.splice(index,1);
       if(!activeDialogs.length)document.body.style.overflow = previousBodyOverflow;

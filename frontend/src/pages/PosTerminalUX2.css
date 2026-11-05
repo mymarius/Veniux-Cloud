@@ -85,3 +85,50 @@
 .pos-terminal .retail-cart td:nth-child(5){white-space:normal;overflow-wrap:anywhere}
 .pos-terminal .pos-total strong{overflow-wrap:anywhere}
 @media(max-width:1499px) and (min-width:761px){.pos-terminal .retail-product-tiles{--pos-card-image:44px;--pos-card-min:164px}}
+
+/* Sepet okunurluğu: ad ve kod ayrı satır, tutarlar sağa hizalı, az stok görünür. */
+.pos-terminal .retail-cart th:first-child,.pos-terminal .retail-cart td:first-child{padding-left:16px!important}
+.pos-terminal .retail-cart th:last-child,.pos-terminal .retail-cart td:last-child{padding-right:12px!important}
+.pos-terminal .retail-cart th:nth-child(2),.pos-terminal .retail-cart th:nth-child(3),.pos-terminal .retail-cart th:nth-child(5),.pos-terminal .retail-cart td:nth-child(3),.pos-terminal .retail-cart td:nth-child(5){text-align:right}
+.pos-terminal .retail-cart td{vertical-align:middle;font-variant-numeric:tabular-nums}
+.pos-line-name{display:block;font-weight:650;color:#14263b;line-height:1.35}
+.pos-line-code{display:block;margin-top:1px;font-size:11.5px;color:#5a6b7e}
+.pos-terminal .retail-cart th:nth-child(3){width:84px}
+.pos-terminal .retail-cart .pos-line-stock{white-space:nowrap;font-size:12.5px!important;color:#5a6b7e}
+.pos-terminal .retail-cart .pos-line-stock[data-low]{color:#b42318;font-weight:650}
+.pos-terminal .retail-cart .pos-line-total{font-size:15px!important;font-weight:700;color:#14263b}
+.pos-terminal .pos-status[data-error]{background:#fef3f2;color:#b42318;font-weight:650;border-top-color:#fecdca}
+/* Ödeme yöntemi tek dokunuşla seçilir. */
+.pos-pay-methods{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+.pos-payment-inputs .pos-pay-methods label{position:relative;display:flex!important;align-items:center;justify-content:center;text-align:center;line-height:1.2;min-height:48px;margin:0;border:1px solid #c7d6e5;border-radius:10px;background:#fff;color:#234765;font-size:14px;font-weight:650;cursor:pointer}
+.pos-pay-methods input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0;width:100%;height:100%;min-height:0}
+.pos-payment-inputs .pos-pay-methods label[data-active='true']{background:#145eae;border-color:#145eae;color:#fff}
+.pos-pay-methods label:has(input:focus-visible){outline:3px solid #4594de;outline-offset:2px}
+.pos-pay-methods label:has(input:disabled){opacity:.55;cursor:not-allowed}
+.pos-payment-error{margin:10px 0 0;padding:10px 12px;border:1px solid #fecdca;border-radius:8px;background:#fef3f2;color:#b42318;font-size:13px;font-weight:650}
+.pos-terminal .pos-status[data-success]{background:#ecfdf3;color:#067647;font-size:15px;font-weight:700;border-top-color:#abefc6}
+
+/* Koyu tema: kasa yüzeyleri tek paletten gelir. */
+html:root[data-theme='dark'] .pos-terminal,html:root[data-theme='dark'] .pos-terminal .pos-surface,html:root[data-theme='dark'] .pos-terminal .pos-main{background:#0c1726;color:#edf4ff}
+html:root[data-theme='dark'] .pos-terminal :is(.pos-scan,.pos-actions,.retail-cart,.retail-pro-tools>.retail-visual){background:#14243a!important;border-color:#30455e;color:#edf4ff}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading{background:transparent;border-color:#30455e}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading h2,html:root[data-theme='dark'] .pos-terminal .retail-empty h3,html:root[data-theme='dark'] .pos-terminal .pos-total strong,html:root[data-theme='dark'] .pos-terminal .pos-line-name,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-total{color:#edf4ff}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading span{background:#203e60;color:#dcecff}
+html:root[data-theme='dark'] .pos-terminal .retail-empty p,html:root[data-theme='dark'] .pos-terminal .pos-total>span,html:root[data-theme='dark'] .pos-terminal .pos-total small,html:root[data-theme='dark'] .pos-terminal .pos-line-code,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-stock{color:#b0c2d8}
+html:root[data-theme='dark'] .pos-terminal .retail-empty>span{background:#203e60;color:#dcecff}
+html:root[data-theme='dark'] .pos-terminal .retail-cart thead th{background:#1a304a;color:#b0c2d8}
+html:root[data-theme='dark'] .pos-terminal .retail-cart tbody tr{background:transparent;border-color:#30455e}
+html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-stock[data-low]{color:#ff9d94}
+html:root[data-theme='dark'] .pos-terminal .pos-total{border-color:#30455e}
+html:root[data-theme='dark'] .pos-terminal .pos-barcode input{background:#0c1726;border-color:#30455e;color:#edf4ff}
+html:root[data-theme='dark'] .pos-terminal .pos-barcode input:focus{background:#0c1726}
+html:root[data-theme='dark'] .pos-terminal :is(.pos-barcode button,.pos-find,.pos-count-control button,.pos-count-control input,.pos-unit-price,.retail-pro-modes button:not([aria-pressed='true'])){background:#1a304a;border-color:#30455e;color:#dcecff}
+html:root[data-theme='dark'] .pos-terminal .pos-actions button:not(.pos-pay){background:#1a304a;border-color:#30455e;color:#edf4ff}
+html:root[data-theme='dark'] .pos-terminal .pos-actions button:disabled:not(.pos-pay){background:#14243a;color:#7d90a6}
+html:root[data-theme='dark'] .pos-terminal .pos-pay:disabled{background:#203e60;color:#9fb6cd}
+html:root[data-theme='dark'] .pos-terminal .pos-status{background:#14243a;border-color:#30455e;color:#b0c2d8}
+html:root[data-theme='dark'] .pos-terminal .pos-status[data-error]{background:#451a1a;color:#ffc9c3;border-color:#7a2e2a}
+html:root[data-theme='dark'] .pos-terminal .pos-status[data-success]{background:#0f3b2a;color:#a9f0c9;border-color:#1f6b4c}
+html:root[data-theme='dark'] .pos-payment-error{background:#451a1a;border-color:#7a2e2a;color:#ffc9c3}
+html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label{background:#1a304a;border-color:#30455e;color:#dcecff}
+html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label[data-active='true']{background:#2379ca;border-color:#2379ca;color:#fff}
