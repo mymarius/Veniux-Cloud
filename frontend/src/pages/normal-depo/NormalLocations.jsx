@@ -404,7 +404,7 @@ export default function NormalLocations() {
           <div className="flex justify-between items-center border-b border-gray-100 pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-brand-600">{selectedBin.zone_name}</span>
+                <span className="text-xs font-bold text-brand-600">{selectedBin.zone_name === 'General' ? 'Genel' : selectedBin.zone_name}</span>
                 {selectedBin.is_locked && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                     KİLİTLİ

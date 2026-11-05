@@ -52,7 +52,7 @@ function makeMySQLBackupService(options={}){
  async function configure(user,value){assertAdmin(user);const next=policy(value);write('settings.json',next);return next;}
  function summary(){return {config:config(),history:history(),storage_path:root,files:['medicine-images'],busy,engine:'mysql',portable_notice:'İndirilebilir yedekte şifreler, lisans ve servis sırları bulunmaz. MySQL geri yükleme ayrı boş hedefte hazırlanır.',automatic_runs_when:'API çalışırken.',warning:'Yedeği ayrı güvenli diskte saklayın.'};}
  async function tick(now=Date.now()){if(busy||db.isMaintenance?.())return;const value=config();if(!value.enabled||Date.parse(value.last_attempt_at||0)+value.intervalHours*3600000>now)return;write('settings.json',{...value,last_attempt_at:new Date(now).toISOString()});await create({isPlatformAdmin:true,email:'system'},'automatic');}
- function startScheduler(){if(timer)return;init();tick().catch(()=>{});timer=setInterval(()=>tick().catch(()=>{}),60000);timer.unref();}
+ function startScheduler(){if(timer)return;init();const run=()=>tick().catch(error=>console.error('[Yedek] Otomatik yedek alınamadı:',error.message));run();timer=setInterval(run,60000);timer.unref();}
  async function recoverInterruptedRestore(){await db.ready;init();for(const name of fs.readdirSync(root))if(/^[a-f0-9-]{36}\.stage(?:-meta)?$/.test(name))fs.rmSync(path.join(root,name),{force:true});}
  return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate};
 }
