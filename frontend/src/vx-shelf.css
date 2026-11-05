@@ -216,3 +216,10 @@ html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag{
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-auth-column{width:auto;margin:22px 16px 28px;padding:24px 20px;box-shadow:6px 6px 0 #e6d9c2}
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth h1{font-size:38px!important}
 }
+/* Sponsor: rozetli, büyük logolu ayrı kart */
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit{position:relative;display:grid;justify-items:center;gap:10px;margin-top:22px;padding:30px 18px 16px;background:#fff;border:2px solid #17263a;box-shadow:5px 5px 0 #e6d9c2;text-align:center}
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit .hosting-credit-label{position:absolute;left:14px;top:-13px;padding:3px 12px;background:#17263a;color:#fff;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;transform:rotate(-1.5deg)}
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit .hosting-logo-link{display:block;width:min(270px,100%);transition:transform .12s}
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit .hosting-logo-link:hover{transform:scale(1.03)}
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit .hosting-logo-link img{display:block;width:100%;height:auto;max-height:none}
+html:root[data-design='veniux']:not([data-theme='dark']) .hosting-credit .hosting-guide-link{color:#17263a;font-size:14.5px;font-weight:600}
