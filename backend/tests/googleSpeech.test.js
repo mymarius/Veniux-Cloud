@@ -43,3 +43,20 @@ test('recovers from temporary provider failure without changing the voice',async
  expect(global.fetch).toHaveBeenCalledTimes(2);
  for(const [,request] of global.fetch.mock.calls)expect(JSON.parse(request.body).generation_config.speech_config[0].voice).toBe('Achernar');
 });
+
+test('kullanılamayan model yerine aynı sesle sonraki Gemini modeli denenir',async()=>{
+ process.env.GEMINI_API_KEY='test-key';
+ global.fetch=jest.fn().mockResolvedValueOnce({ok:false,status:404}).mockResolvedValue({ok:true,json:async()=>({candidates:[{content:{parts:[{inlineData:{data:Buffer.from('audio').toString('base64')}}]}}]})});
+ const {synthesize}=require('../src/services/googleSpeechService');
+ expect(Buffer.isBuffer(await synthesize('Model yedeği denemesi','soft'))).toBe(true);
+ expect(global.fetch).toHaveBeenCalledTimes(2);
+ expect(global.fetch.mock.calls[1][0]).toContain('gemini-3.1-flash-tts-preview');
+ expect(global.fetch.mock.calls[1][1].body).toContain('Achernar');
+});
+test('reddedilen anahtar başka modelde boşuna denenmez',async()=>{
+ process.env.GEMINI_API_KEY='test-key';
+ global.fetch=jest.fn().mockResolvedValue({ok:false,status:403});
+ const {synthesize}=require('../src/services/googleSpeechService');
+ await expect(synthesize('Anahtar reddi denemesi','soft')).rejects.toThrow('erişimi reddedildi');
+ expect(global.fetch).toHaveBeenCalledTimes(1);
+});

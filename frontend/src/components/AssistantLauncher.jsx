@@ -50,6 +50,7 @@ export default function AssistantLauncher() {
     cache.set(text,task);return task;
   }
   const [speechStatus,setSpeechStatus]=useState('');
+  const [voiceNotice,setVoiceNotice]=useState('');
   function stopSpeech(){
     speechGeneration.current++;
     speechBusy.current=false;
@@ -80,6 +81,7 @@ export default function AssistantLauncher() {
         if(Date.now()>=serverVoiceDownUntil.current){
           try{
             const blob=await loadSpeech(chunk);
+            setVoiceNotice('');
             if(chunks[index+1])loadSpeech(chunks[index+1]).catch(()=>{});
             if(controller.signal.aborted||generation!==speechGeneration.current)return;
             const url=URL.createObjectURL(blob);audioUrl.current=url;
@@ -87,10 +89,13 @@ export default function AssistantLauncher() {
             await playWithReveal(audio,started);
             URL.revokeObjectURL(url);audioUrl.current=null;
             continue;
-          }catch{
+          }catch(failure){
             if(controller.signal.aborted||generation!==speechGeneration.current)return;
-            // Sunucu sesi yoksa beş dakika boyunca doğrudan cihaz sesiyle devam edilir.
-            serverVoiceDownUntil.current=Date.now()+300000;
+            // Gemini geri geldiğinde kısa sürede yeniden kullanılsın; nedeni kullanıcıya söylenir.
+            serverVoiceDownUntil.current=Date.now()+60000;
+            let reason='';
+            try{reason=JSON.parse(await failure.response?.data?.text?.()||'{}').error||'';}catch{/* yanıt JSON değil */}
+            setVoiceNotice(`Gemini sesi kullanılamadı${reason?`: ${reason}`:'.'} Geçici olarak cihaz sesi kullanılıyor.`);
           }
         }
         await speakOnDevice(chunk,{signal:controller.signal,onStart:started});
@@ -213,7 +218,7 @@ export default function AssistantLauncher() {
           {monitoring&&<div className="veniux-monitor"><strong>İşletme takibi {monitorError?'· Bağlantı bekleniyor':'· Açık'}</strong><p>{overview?.summary||'Güncel kayıtlar kontrol ediliyor…'}</p>{overview&&<small>Son kontrol: {new Date(overview.captured_at).toLocaleTimeString('tr-TR')} · Dakikada bir</small>}<p className="veniux-chat-hint">{overview?.scope}</p>{monitorError&&<p role="alert" className="veniux-chat-error">{monitorError}</p>}<div className="veniux-chat-suggestions">{overview?.suggestions.map(s=><button key={s} disabled={busy} onClick={e=>send(e,s)}>{s}</button>)}<button disabled={actionBusy||!!proposal} onClick={()=>prepareAction('analysis')}>Analiz için onay iste</button></div>{overview?.warnings.slice(0,5).map(w=><div className={`veniux-monitor-warning ${w.severity}`} key={w.key}><p>{w.message}</p><Link to={w.path} onClick={()=>setOpen(false)}>İlgili ekranı aç</Link>{w.alert_id&&<button disabled={actionBusy||!!proposal} onClick={()=>prepareAction('alert_read',w.alert_id)}>Okundu işaretle</button>}</div>)}</div>}
           {proposal&&<section className="veniux-approval" aria-label="İşlem onayı"><strong>{proposal.title}</strong><p style={{whiteSpace:'pre-wrap'}}>{proposal.impact}</p>{proposal.requires_file?<AssistantFileInput proposal={proposal} onPrepared={data=>{setDeletionApproval(null);presentWithVoice(`${data.title}. ${data.impact} Onaylıyor musunuz?`,()=>setProposal(data));}} onError={setError}/>:<><p>Onaylıyor musunuz?</p><small>Bu işlem yalnızca onayınızla yapılır. Onay 5 dakika geçerlidir.</small>{proposal.deletion_required&&<label><input type="checkbox" checked={deletionApproval===proposal.id} onChange={e=>setDeletionApproval(e.target.checked?proposal.id:null)}/> Yukarıda belirtilen silme veya bağlantı kaldırma işlemini ayrıca onaylıyorum.</label>}</>}<div><button disabled={!proposal.id||actionBusy||proposal.deletion_required&&deletionApproval!==proposal.id} onClick={approveAction}>{actionBusy?'İşleniyor…':proposal.deletion_required?'Silme işlemini onayla':'Onayla ve uygula'}</button><button disabled={actionBusy} onClick={()=>{setProposal(null);stopSpeech();}}>Vazgeç</button></div></section>}
           {messages.map((m, i) => <div key={i} className={`veniux-chat-message ${m.role}`}><small>{m.role === 'user' ? 'Siz' : 'Veniux'}</small>{m.role === 'assistant' ? <><AssistantMarkdown>{m.content}</AssistantMarkdown><AssistantOperationResult result={m.result}/></> : m.content}</div>)}
-          {speechStatus&&<p role="status" className="veniux-chat-hint">{speechStatus}</p>}{busy && <p role="status">Veniux yanıt hazırlıyor…</p>}
+          {voiceNotice&&<p role="status" className="veniux-chat-error">{voiceNotice}</p>}{speechStatus&&<p role="status" className="veniux-chat-hint">{speechStatus}</p>}{busy && <p role="status">Veniux yanıt hazırlıyor…</p>}
           {error && <p role="alert" className="veniux-chat-error">{error}</p>}
         </>}
         <div ref={bottom} />

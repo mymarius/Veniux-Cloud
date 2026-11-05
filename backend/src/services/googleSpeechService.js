@@ -2,6 +2,8 @@ const { cleanText, wav } = require('./nvidiaSpeechService');
 const cache = new Map();
 const pending = new Map();
 const voices={soft:'Achernar',warm:'Sulafat'};
+// Model erişilemezse aynı kadın sesiyle bir sonraki Gemini modeli denenir.
+const fallbackModels=['gemini-3.1-flash-tts-preview','gemini-2.5-pro-preview-tts','gemini-2.5-flash-preview-tts'];
 async function synthesize(raw,profile) {
   if(profile!==undefined&&!Object.hasOwn(voices,profile))throw Object.assign(new Error('Geçersiz ses seçimi.'),{status:400});
   if (typeof raw !== 'string' || !raw.trim() || raw.length > 2000) {
@@ -16,7 +18,7 @@ async function synthesize(raw,profile) {
   if (cache.has(key)) return cache.get(key);
   if (pending.has(key)) return pending.get(key);
   if (pending.size >= 3) throw Object.assign(new Error('Ses danışmanı meşgul. Biraz sonra tekrar deneyin.'), { status: 429 });
-  const task = (async () => {
+  const once = async model => {
     const style = 'Türkçe konuşan profesyonel bir kadın danışman. Ana dili İstanbul Türkçesi olan, yumuşak ve sıcak sesli bir danışman gibi konuş. Sakin, doğal, nazik ve kendinden emin konuş. Fısıldama, şarkı söyleme, yapay vurgular veya abartılı duygular kullanma. Orta hızda, net telaffuzla, cümle aralarında doğal duraklamalarla oku. Reklam spikeri gibi abartma. Yalnızca verilen metni seslendir.';
     const modern = model.startsWith('gemini-3.8-');
     let response;
@@ -44,7 +46,7 @@ async function synthesize(raw,profile) {
       const message = response.status === 400 || response.status === 401 || response.status === 403
         ? 'Google ses erişimi reddedildi. API anahtarını ve model erişimini kontrol edin.'
         : response.status === 429 ? 'Google ses kotası doldu. Biraz sonra tekrar deneyin.' : 'Google ses hizmeti yanıt veremedi.';
-      throw Object.assign(new Error(message), { status: 503 });
+      throw Object.assign(new Error(message), { status: 503, modelRejected: response.status === 400 || response.status === 404 });
     }
     const result = await response.json();
     const part = modern ? result.steps?.filter(step=>step.type==='model_output').flatMap(step=>step.content||[]).filter(item=>item.type==='audio'&&item.data).at(-1) : result.candidates?.[0]?.content?.parts?.find(item => item.inlineData?.data);
@@ -53,6 +55,13 @@ async function synthesize(raw,profile) {
     if (cache.size >= 12) cache.delete(cache.keys().next().value);
     cache.set(key, audio);
     return audio;
+  };
+  const task = (async () => {
+    let failure;
+    for (const candidate of new Set([model, ...fallbackModels])) {
+      try { return await once(candidate); } catch (error) { failure = error; if (!error.modelRejected) throw error; }
+    }
+    throw failure;
   })();
   pending.set(key, task);
   try { return await task; } finally { pending.delete(key); }
