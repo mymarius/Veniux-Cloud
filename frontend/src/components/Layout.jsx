@@ -284,7 +284,6 @@ export function Layout({ children }) {
             </button>
             {window.veniuxMobile&&<img className="mobile-header-brand" src={veniuxLogo} alt=""/>}
             <div className="mobile-workspace-title hidden sm:block">
-              <p className="text-[10px] font-medium uppercase tracking-[.15em] text-slate-500">Çalışma Alanı</p>
               <p className="text-sm font-semibold text-slate-800">{ALL_ITEMS.find(isItemActive)?.name || 'Veniux'}</p>
             </div>
           </div>
