@@ -12,7 +12,7 @@ declare(strict_types=1);
     <nav aria-label="Hesap"><h2>Hesap</h2><a href="/giris">Giriş yap</a><a href="/kayit">Kayıt ol</a><a href="/#iletisim">Bize yazın</a><a href="https://discord.gg/WQyxdp7MKW" target="_blank" rel="noopener noreferrer">Discord topluluğu</a></nav>
     <nav aria-label="Hukuk"><h2>Hukuk</h2><a href="/kullanim-kosullari">Kullanım koşulları</a><a href="/gizlilik-politikasi">Gizlilik politikası</a><a href="/kvkk-aydinlatma">KVKK aydınlatma</a><a href="/cerez-politikasi">Çerez politikası</a><button type="button" data-cookie-open>Çerez tercihleri</button></nav>
   </div>
-  <aside class="vs-wrap vf-sponsor" aria-label="Altyapı sponsoru Hostimux"><span>Altyapı sponsorumuz</span><a href="https://hostimux.com/" target="_blank" rel="sponsored noopener noreferrer" aria-label="Hostimux’u incele, yeni sekmede açılır"><img src="/assets/hostimux-sponsor.webp" width="1780" height="447" alt="Hostimux Bilişim Hizmetleri" loading="lazy"></a></aside>
+  <aside class="vs-wrap vf-sponsor" aria-label="Altyapı sponsoru Hostimux"><span>Altyapı sponsorumuz</span><a href="https://hostimux.com/" target="_blank" rel="sponsored noopener noreferrer" aria-label="Hostimux’u incele, yeni sekmede açılır"><img src="/assets/hostimux-sponsor-v1.png" width="1780" height="447" alt="Hostimux Bilişim Hizmetleri" loading="lazy"></a></aside>
   <div class="vf-word" aria-hidden="true">VENIUX</div>
   <div class="vs-wrap vf-end"><span class="vs-brand"><img src="/assets/logo-40-v1.webp" alt="" width="24" height="24" loading="lazy">Veniux</span><span>Stok, depo ve kasa programı. Türkiye'de geliştirilmiştir.</span><span>© <?=date('Y')?></span></div>
 </footer>
