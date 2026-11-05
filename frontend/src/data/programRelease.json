@@ -1,7 +1,18 @@
 {
-  "version": "2.4.38",
-  "date": "16 Ekim 2026",
+  "version": "2.4.41",
+  "date": "5 Kasım 2026",
   "releases": [
+    {
+      "version": "2.4.41",
+      "date": "5 Kasım 2026",
+      "platform": "Windows",
+      "title": "Bulut bağlantısı ve ekran düzeltmeleri",
+      "items": [
+        "Lisans yüklenirken oturumun kapanması giderildi.",
+        "Miktarlar ve hareket saatleri doğru biçimde gösteriliyor.",
+        "Depo kartlarındaki ürün sayısı düzeltildi; kalan İngilizce etiketler Türkçeleştirildi."
+      ]
+    },
     {
       "version": "2.4.38",
       "date": "16 Ekim 2026",

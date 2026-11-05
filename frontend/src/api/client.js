@@ -1,3 +1,4 @@
+import { normalizeResponse } from './normalizeResponse';
 import axios from 'axios';
 import { useEffect } from 'react';
 import {isTerminalReauth} from '../lib/terminalReauth.mjs';
@@ -50,6 +51,7 @@ apiClient.interceptors.request.use(
 // Response interceptor: data synchronization & error handling
 apiClient.interceptors.response.use(
   (response) => {
+    response.data = normalizeResponse(response.data);
     const method = response.config?.method?.toLowerCase();
     // Whenever a data mutating request succeeds, notify all subscriber pages
     if (method === 'post' || method === 'put' || method === 'patch' || method === 'delete') {

@@ -127,7 +127,7 @@ export default function NormalMovements() {
         const type = info.getValue();
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-            {type}
+            {({ inbound: 'Giriş', outbound: 'Çıkış', transfer: 'Transfer', adjustment: 'Düzeltme', sale: 'Satış', return: 'İade' })[type] || type}
           </span>
         );
       }

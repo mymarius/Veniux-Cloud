@@ -120,10 +120,10 @@ export default function Products() {
     try {
       if (editingProduct) {
         await apiClient.put(`/products/${editingProduct.id}`, formData);
-        showToast('Product updated.', 'success');
+        showToast('Ürün güncellendi.', 'success');
       } else {
         await apiClient.post('/products', formData);
-        showToast('Product created.', 'success');
+        showToast('Ürün oluşturuldu.', 'success');
       }
       setShowModal(false);
       fetchProducts();

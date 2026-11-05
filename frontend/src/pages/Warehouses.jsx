@@ -136,7 +136,7 @@ export default function Warehouses() {
   };
 
   const totalCapacity = warehouses.reduce((sum, w) => sum + (w.capacity || 0), 0);
-  const totalStockItems = warehouses.reduce((sum, w) => sum + (w.total_items || 0), 0);
+  const totalStockItems = warehouses.reduce((sum, w) => sum + (w.unique_product_count || 0), 0);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12 max-w-[1600px] mx-auto text-gray-900 dark:text-white">
@@ -283,7 +283,7 @@ export default function Warehouses() {
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 block">MEVCUT ÜRÜN</span>
-                  <span className="font-bold text-brand-600 dark:text-brand-400">{wh.total_items || 0} SKU</span>
+                  <span className="font-bold text-brand-600 dark:text-brand-400">{wh.unique_product_count || 0} SKU</span>
                 </div>
               </div>
             </div>

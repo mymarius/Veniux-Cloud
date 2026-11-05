@@ -1,5 +1,10 @@
 import React from 'react';
 
+const LABELS = {
+  completed: 'Tamamlandı', active: 'Aktif', pending: 'Bekliyor', in_progress: 'Devam ediyor', failed: 'Başarısız',
+  inbound: 'Giriş', outbound: 'Çıkış', transfer: 'Transfer', adjustment: 'Düzeltme', sale: 'Satış', return: 'İade'
+};
+
 export function StatusBadge({ status, text, className = "" }) {
   const getStyles = () => {
     switch (status) {
@@ -26,7 +31,7 @@ export function StatusBadge({ status, text, className = "" }) {
 
   return (
     <span data-status={status || "neutral"} className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${getStyles()} ${className}`}>
-      {text || status}
+      {text || LABELS[status] || status}
     </span>
   );
 }
