@@ -249,3 +249,5 @@ html:root[data-design='veniux'] .vx-auth .vx-auth-form{padding:0;border:0;box-sh
 html:root[data-design='veniux'] .vx-auth .vx-auth-brand img{width:32px;height:32px}
 html:root[data-design='veniux'] .vx-auth .vx-auth-brand{font-family:'Veniux Manrope',var(--font-sans);font-size:16px;font-weight:700}
 html:root[data-design='veniux'] .vx-auth h1{font-family:'Veniux Manrope',var(--font-sans);font-size:22px;font-weight:700}
+.vx-count-progress{height:8px;border-radius:6px;background:var(--vx-subtle);overflow:hidden}
+.vx-count-progress i{display:block;height:100%;border-radius:6px;background:#12a37f;transition:width .15s}

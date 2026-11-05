@@ -88,6 +88,7 @@ describe('receive → putaway → transfer → pick → ship → return', () => 
     const baseline = ok(await api('post', '/api/wms/cycle-count/baseline', { warehouse_id: south.id, location_id: bins.s1, product_id: product.id, lot_id: lotId }));
     const review = ok(await api('post', '/api/wms/cycle-count/preview', { baseline_token: baseline.baseline_token, counted_qty: 19 }));
     await expectBalanced(15, 20); // önizleme stok değiştirmez
+    expect((await db.query("SELECT message FROM alerts WHERE product_id=$1 AND alert_type='count_variance'", [product.id])).rows.map(r => r.message)).toEqual([expect.stringContaining('Sayım onay bekliyor')]);
     ok(await api('post', '/api/wms/cycle-count/adjust', { review_id: review.id, reason: 'Fiziki sayim farki' }), 201);
     await expectBalanced(15, 19);
   });

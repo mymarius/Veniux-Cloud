@@ -1,5 +1,6 @@
 import {readCountDraft,saveCountDraft} from '../../../../shared/countDraft.mjs';
 import { readSessionUser } from '../../lib/sessionUser';
+import {applyScan,countProgress} from '../../../../shared/countScan.mjs';
 import ScannerPanel from '../../components/ScannerPanel';
 import { Dropdown } from '../../components/ui';
 import React, { useState, useEffect, useRef } from 'react';
@@ -24,6 +25,7 @@ import { useToast } from '../../components/Toast';
 export default function WMSCycleCount() {
   const keyOf=l=>l.location_id+':'+l.product_id+':'+(l.lot_id??'none');
   const [review,setReview]=useState(null),[reviews,setReviews]=useState([]),[reason,setReason]=useState(''),[approveKey,setApproveKey]=useState(null),[busy,setBusy]=useState(false),[search,setSearch]=useState(''),[scanner,setScanner]=useState(false);
+  const [quick,setQuick]=useState(false),[quickLocation,setQuickLocation]=useState(null),[quickStatus,setQuickStatus]=useState(null);
   const [products,setProducts]=useState([]),[manualProduct,setManualProduct]=useState(''),[manualLocation,setManualLocation]=useState(''),[manualLot,setManualLot]=useState('');
   const role=readSessionUser().role,canApprove=['admin','manager'].includes(role);
   const [warehouses, setWarehouses] = useState([]);
@@ -97,6 +99,9 @@ export default function WMSCycleCount() {
   const handleSubmitAdjustment=async loc=>{const value=counts[keyOf(loc)];if(value===''||value===undefined){showToast('Sayılan miktarı girin.','warning');return;}setBusy(true);try{const r=await apiClient.post('/wms/cycle-count/preview',{baseline_token:loc.baseline_token,counted_qty:value});setReview({...r.data,...loc,system_qty:r.data.system_qty,counted_qty:r.data.counted_qty});setReason('');setApproveKey(crypto.randomUUID());setReviews((await apiClient.get('/wms/cycle-count/reviews')).data);}catch(e){showToast(e.response?.data?.error||'Sayım önizlemesi alınamadı.','error');}finally{setBusy(false);}};
   const approve=async()=>{if(busy||!window.confirm('Gösterilen sayım farkı stok hareketi olarak işlenecek. Onaylıyor musunuz?'))return;setBusy(true);try{const r=await apiClient.post('/wms/cycle-count/adjust',{review_id:review.id,reason},{headers:{'Idempotency-Key':approveKey}});showToast(r.data.message,'success');try{const draft=readCountDraft(sessionStorage,draftKey);if(draft){const remaining={...draft.counts};delete remaining[keyOf(review)];const rows=draft.rows.filter(row=>keyOf(row)!==keyOf(review));setSavedDraft(saveCountDraft(sessionStorage,draftKey,rows,remaining));}}catch{}setReview(null);await fetchCountLocations();}catch(e){showToast(e.response?.data?.error||'Sonuç alınamadı; aynı onayı tekrar kontrol edin.','error');}finally{setBusy(false);}};
   const addManualRow=async()=>{try{const r=await apiClient.post('/wms/cycle-count/baseline',{warehouse_id:Number(selectedWarehouseId),location_id:Number(manualLocation),product_id:Number(manualProduct),lot_number:manualLot||undefined});const p=products.find(p=>String(p.id)===manualProduct),l=locations.find(l=>String(l.location_id)===manualLocation);const row={...r.data,product_name:p?.name,sku:p?.sku,barcode:p?.barcode,unit:p?.unit,location_code:l?.location_code,aisle_code:l?.aisle_code,zone_name:l?.zone_name};setLocations(old=>[...old.filter(x=>keyOf(x)!==keyOf(row)),row]);setCounts(old=>({...old,[keyOf(row)]:''}));setSearch('');showToast('Sayım başlangıcı kaydedildi; şimdi fiziki miktarı girin.','success');}catch(e){showToast(e.response?.data?.error||'Sayım satırı açılamadı.','error');}};
+  const handleQuickScan=raw=>{const result=applyScan(locations,counts,raw,quickLocation);if(result.error){setQuickStatus({error:true,text:result.error});return;}if(result.shelf){setQuickLocation(result.location);setQuickStatus({text:'Raf seçildi: '+result.shelf});return;}setCounts(result.counts);try{setSavedDraft(saveCountDraft(sessionStorage,draftKey,locations,result.counts));}catch{}setQuickStatus({text:result.row.product_name+': '+result.quantity});};
+  const submitAllCounts=async()=>{const rows=locations.filter(l=>l.product_id&&counts[keyOf(l)]!==''&&counts[keyOf(l)]!==undefined);setBusy(true);let sent=0;const failed=[];for(const row of rows){try{await apiClient.post('/wms/cycle-count/preview',{baseline_token:row.baseline_token,counted_qty:counts[keyOf(row)]});sent++;}catch(e){failed.push(row.product_name+' ('+(e.response?.data?.error||'gönderilemedi')+')');}}try{setReviews((await apiClient.get('/wms/cycle-count/reviews')).data);}catch{}setBusy(false);setQuickStatus(failed.length?{error:true,text:sent+' satır gönderildi. Kalan: '+failed.join(', ')}:{text:sent+' satır onaya gönderildi. Stok, yönetici onayından sonra değişir.'});};
+  const progress=countProgress(locations,counts);
   const aisles = Array.from(new Set(locations.map(l => l.aisle_code).filter(Boolean))).sort();
 
   return (
@@ -152,6 +157,22 @@ export default function WMSCycleCount() {
           </button>
         </div>
       </div>
+
+      <section className="veniux-card p-4 space-y-3" aria-label="Hızlı sayım">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 className="font-semibold">Hızlı sayım</h2><p className="text-sm text-gray-500">Rafı okutun, sonra her ürünü tek tek okutun. Sayaç kendiliğinden artar.</p></div>
+          <button type="button" className={quick ? 'btn-soft' : 'btn-primary'} onClick={() => { setQuick(!quick); setQuickStatus(null); }}>{quick ? 'Hızlı sayımı kapat' : 'Hızlı sayımı başlat'}</button>
+        </div>
+        {quick && <>
+          <ScannerPanel compact onCode={async raw => handleQuickScan(raw)} />
+          <div className="vx-count-progress" role="progressbar" aria-valuenow={progress.percent} aria-valuemin={0} aria-valuemax={100} aria-label="Sayım ilerlemesi"><i style={{ width: progress.percent + '%' }} /></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <span>{progress.done} / {progress.total} satır sayıldı{quickLocation !== null ? ` · Raf: ${locations.find(l => l.location_id === quickLocation)?.location_code || ''}` : ''}</span>
+            <button type="button" className="btn-primary" disabled={busy || !progress.done} onClick={submitAllCounts}>Sayılanları onaya gönder</button>
+          </div>
+          {quickStatus && <p role={quickStatus.error ? 'alert' : 'status'} className={quickStatus.error ? 'text-sm font-semibold text-red-700' : 'text-sm font-semibold text-emerald-700'}>{quickStatus.text}</p>}
+        </>}
+      </section>
 
       <section className="veniux-card p-4 space-y-3"><label className="block text-sm">Barkod, ürün veya lot ile bul<input className="border rounded p-2 w-full" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Barkodu okutun veya elle yazın"/></label><button className="btn-soft" onClick={()=>setScanner(!scanner)}>Barkod okuyucu girişi</button>{scanner&&<ScannerPanel onCode={async raw=>{const r=await apiClient.post('/scanner/lookup',{barcode:raw,warehouse_id:selectedWarehouseId});if(!r.data.product)throw Error('Ürün bulunamadı.');setSearch(r.data.product.barcode||r.data.product.sku);}}/>}</section>
       <details className="veniux-card p-4"><summary className="cursor-pointer font-semibold">Manuel ürün / lot / raf satırı aç</summary><div className="grid md:grid-cols-3 gap-3 mt-3"><label>Ürün<select className="border rounded p-2 w-full" value={manualProduct} onChange={e=>setManualProduct(e.target.value)}><option value="">Seçin</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} · {p.barcode||p.sku}</option>)}</select></label><label>Raf<select className="border rounded p-2 w-full" value={manualLocation} onChange={e=>setManualLocation(e.target.value)}><option value="">Seçin</option>{[...new Map(locations.map(l=>[l.location_id,l])).values()].map(l=><option key={l.location_id} value={l.location_id}>{l.location_code}</option>)}</select></label><label>Lot numarası<input className="border rounded p-2 w-full" value={manualLot} onChange={e=>setManualLot(e.target.value)} placeholder="Lotlu üründe kayıtlı lot numarası"/></label></div><button className="btn-secondary mt-3" disabled={!manualProduct||!manualLocation||busy} onClick={addManualRow}>Sayım satırını aç</button></details>
