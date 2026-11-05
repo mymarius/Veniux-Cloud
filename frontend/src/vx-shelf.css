@@ -1,0 +1,116 @@
+/* Raf etiketi dili: asılı etiket, fiş, barkod ve damga. Yalnız açık temada; koyu tema dokunulmadan kalır. */
+html:root[data-design='veniux']:not([data-theme='dark']){--vx-barcode:repeating-linear-gradient(90deg,currentColor 0 2px,transparent 2px 4px,currentColor 4px 5px,transparent 5px 9px,currentColor 9px 12px,transparent 12px 14px,currentColor 14px 15px,transparent 15px 18px)}
+/* Kenar menü: etkin ekran menüden taşan bir etiket */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-brand b{font-size:24px;font-weight:900;font-stretch:68%}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-item[data-active='true']{position:relative;margin-right:-10px;padding-right:20px;font-weight:800;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
+/* Sayfa başlıkları */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content h1{font-size:clamp(40px,4.4vw,62px)!important;font-weight:900!important;font-stretch:68%!important;line-height:.98}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content h2{font-weight:800!important;font-stretch:76%!important}
+/* Genel bakış: dev fiyat etiketi ve yuvarlak damga */
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero{position:relative;overflow:visible;margin-top:30px;background:#17263a;box-shadow:8px 8px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero:before{content:'';position:absolute;z-index:1;left:50%;top:-14px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:#f4eee2;border:4px solid #17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero-main>strong{font-size:clamp(70px,8vw,116px)!important;font-weight:900!important;font-stretch:64%!important;line-height:.92}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero-main:after{top:auto;bottom:22px;color:#fff;background:var(--vx-barcode);opacity:.32;width:200px;height:42px}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero-stats b{font-family:Archivo,sans-serif;font-size:42px!important;font-weight:900;font-stretch:66%;line-height:1}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero-score{border:0!important;transform:rotate(-5deg)}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-hero-score b{font-family:Archivo,sans-serif;font-size:50px!important;font-weight:900;font-stretch:66%}
+/* Yapılacaklar: rafa asılı etiketler */
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo{gap:18px;padding-top:12px}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo a{position:relative;padding-top:24px;box-shadow:4px 4px 0 #e6d9c2;transform:rotate(-.9deg)}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo a:nth-child(even){transform:rotate(.9deg)}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo a:before{content:'';position:absolute;left:50%;top:7px;width:13px;height:13px;margin-left:-6px;border-radius:50%;background:#f4eee2;border:2px solid #17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo a:hover{transform:rotate(0) translateY(-3px);box-shadow:6px 7px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark']) .dx-todo b{font-size:40px;font-weight:900;font-stretch:66%;line-height:1}
+/* Sayı şeritleri */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .vx-metric-strip{gap:14px;background:none;border:0}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .vx-metric-strip>div{box-shadow:4px 4px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .vx-metric-strip>div:nth-child(2){background:#17263a;border-color:#17263a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .vx-metric-strip>div:nth-child(2) :is(p,span,small,strong){color:#fff!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .vx-metric-strip p{font-size:clamp(42px,4.2vw,58px);font-stretch:64%}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content .ax-kpi strong{font-size:44px;font-weight:900;font-stretch:66%}
+/* Tablolar: defter */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content thead th{background:#17263a!important;color:#fff!important;font-weight:700}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content thead th :is(a,button,svg){color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-product-mark{transform:rotate(-3deg)}
+/* Paneller */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content :is(.ax-panel,.veniux-card){box-shadow:5px 5px 0 #e6d9c2}
+/* Kasa: fiş kenarlı toplam, kocaman tutar ve ödeme */
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-topbar{border-bottom:5px solid #e4570a}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-total{position:relative;padding-bottom:26px}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-total:after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(135deg,transparent 50%,#fffdf8 50%) 0 100%/20px 10px repeat-x,linear-gradient(225deg,transparent 50%,#fffdf8 50%) 0 100%/20px 10px repeat-x}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-total strong{font-size:clamp(52px,5.4vw,78px)!important;font-weight:900;font-stretch:64%;line-height:1}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-pay:not(:disabled){font-size:24px;font-weight:900;font-stretch:78%}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .pos-pay:not(:disabled):hover{background:#c44806}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-terminal .retail-cart thead th{background:#17263a;color:#fff}
+/* Giriş: sol tarafta raf ve etiket */
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:100dvh;padding:0}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side{display:flex;flex-direction:column;justify-content:center;gap:38px;padding:6vw;overflow:hidden;background:#17263a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-side p{margin:0;font:900 clamp(56px,7.2vw,112px)/.92 Archivo,sans-serif;font-stretch:64%}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag{position:relative;width:310px;max-width:100%;padding:34px 22px 18px;background:#fffdf8;color:#17263a;transform:rotate(-3deg);box-shadow:9px 9px 0 #e4570a}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag:before{content:'';position:absolute;left:50%;top:9px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag b{display:block;font:800 25px/1.05 Archivo,sans-serif;font-stretch:76%}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag strong{display:block;margin-top:6px;font:900 74px/.95 Archivo,sans-serif;font-stretch:64%}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag small{font-size:.42em}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag i{display:block;height:30px;margin-top:10px;color:#17263a;background:var(--vx-barcode)}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-auth-column{align-self:center;justify-self:center;width:min(480px,100% - 40px);margin:28px 0;box-shadow:8px 8px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth h1{font-size:clamp(36px,3.4vw,48px)!important;font-weight:900!important;font-stretch:68%!important;line-height:1}
+@media(max-width:980px){html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth{grid-template-columns:minmax(0,1fr)}html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side{display:none}}
+/* Android: kâğıt zemin, koyu alt menü, dev barkod bileti */
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true']{font-family:Archivo,Roboto,Arial,sans-serif;background:#f4eee2;color:#17263a;--mobile-orange:#e4570a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] body,html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content,html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .auth-workspace{background:#f4eee2!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-header{background:#f4eee2;border-bottom:2px solid #17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content{padding:18px 16px 112px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content h1{font-size:44px!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-workspace-title p:last-child{font-size:21px;font-weight:800;font-stretch:76%}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-home-heading{margin-bottom:20px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-kicker{color:#b84504;font-weight:800;letter-spacing:0}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-home-heading h1{font-size:50px!important;line-height:.95}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-home-heading p:last-child{font-size:17px;color:#4d5a6b}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-refresh{border:2px solid #17263a;border-radius:0;background:none;color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-height:176px;padding:20px 20px 62px;background:#e4570a;border:0;border-radius:0;color:#fff;box-shadow:6px 6px 0 #17263a;overflow:hidden;transform:rotate(-1deg)}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action:before{left:0;right:0;top:auto;bottom:0;width:auto;height:44px;border-radius:0;color:#fff;background:var(--vx-barcode);opacity:.55}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action:after{content:'';position:absolute;left:-13px;top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;background:#f4eee2}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action>svg:last-child{position:absolute;right:16px;top:20px;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-icon{width:auto;height:auto;background:none;color:#fff;justify-content:flex-start;place-items:start}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action strong{display:block;color:#fff;font-size:56px;font-weight:900;font-stretch:64%;line-height:.92}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-action small{display:block;margin-top:6px;color:#fff;font-size:16px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-section-title{color:#17263a;font-size:30px;font-weight:800;font-stretch:72%;letter-spacing:0;text-transform:none}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-hub-label{margin-top:30px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid{gap:14px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a{position:relative;min-height:128px;padding:30px 14px 14px;background:#fffdf8;border:1px solid #bfb196;border-radius:0;box-shadow:3px 3px 0 #e6d9c2;transform:rotate(-1deg)}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:nth-child(even){transform:rotate(1deg)}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:nth-child(3n){background:#17263a;border-color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:nth-child(3n) strong{color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:before{content:'';position:absolute;left:50%;top:8px;width:13px;height:13px;margin-left:-6px;border-radius:50%;background:#f4eee2;border:2px solid #17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid span,html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:nth-child(3n) span{width:auto;height:auto;background:none!important;color:#e4570a!important;box-shadow:none}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid>a:nth-child(3n) span{color:#ffb27f!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-module-grid strong{font-size:27px;font-weight:800;font-stretch:72%;line-height:1;color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-summary>a{background:none;border:0;border-top:4px solid #17263a;border-radius:0;box-shadow:none}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-summary strong{font-size:66px;font-weight:900;font-stretch:64%;line-height:.95;color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-summary span{font-size:16px;font-weight:600;color:#4d5a6b}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-alert-list{background:#fffdf8;border:1px solid #bfb196;border-radius:0}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-settings-link{border:2px solid #17263a;border-radius:0;background:none;color:#17263a;font-weight:700}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-bottom-nav{background:#17263a;border-top:5px solid #e4570a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-bottom-nav :is(a,button){border-radius:0;background:none;color:#dfe5ee;font-size:12px;font-weight:600}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-bottom-nav a.active{background:#e4570a;color:#fff;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%)}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-bottom-nav a.active:before{display:none}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-launch{background:#e4570a;border:0;border-radius:0;box-shadow:6px 6px 0 #17263a}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scan-launch :is(svg,small){color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-scanner{background:#fffdf8;border:1px solid #bfb196;border-radius:0}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .sb{border-radius:0}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .auth-form-card{border-radius:0;border:1px solid #bfb196;box-shadow:6px 6px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] :is(.btn-primary,.btn-soft){border-radius:3px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .btn-primary{background:#e4570a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-connection-error h1{font-size:46px!important;font-weight:900!important;font-stretch:66%;line-height:.98}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth{align-items:stretch}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side{align-self:stretch;min-height:100dvh}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side p{font-size:clamp(56px,7.2vw,112px)!important;line-height:.92!important;font-weight:900!important;font-stretch:64%!important;color:#fff!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag strong{font-size:74px!important;font-weight:900!important;font-stretch:64%!important;line-height:.95!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag b{font-size:25px!important;font-stretch:76%!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .sb{box-shadow:none}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-workspace-title p:last-child{color:#17263a!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-header>div:last-child>button.mobile-header-assistant{background:#17263a!important;border-radius:0;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .btn-primary{background:#e4570a!important;color:#fff!important;border-color:#e4570a!important}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content :is(.ax-panel,.veniux-card,.vx-table-wrap,table,tr,.ax-btn,details){border-radius:0!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .reader-mode button[aria-pressed='true']{background:#17263a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .pos-payment-inputs .pos-pay-methods label[data-active='true']{background:#e4570a;border-color:#e4570a;color:#fff}

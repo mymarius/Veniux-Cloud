@@ -33,3 +33,4 @@ import './design-system.css';
 
 import './mobile-professional.css';
 import './vx-foundation.css';
+import './vx-shelf.css';
