@@ -1,19 +1,23 @@
 <?php declare(strict_types=1);
 $faqs=(require __DIR__.'/product-faqs.php')[$path]??[];
-$shot=['/stok-yonetimi'=>['shot-products.jpg','Ürün listesi: stok miktarı, barkod ve fiyat'],'/depo-yonetimi'=>['product-warehouse-v4.jpg','Depo ve tesis ekranı'],'/market-pos'=>['shot-pos.jpg','Kasa ekranı: sepet ve ödenecek toplam'],'/lot-miat-takibi'=>['product-lot-v4.jpg','Stok ve lot takibi paneli'],'/yapay-zeka'=>['shot-overview.jpg','Genel bakış ekranı']][$path]??null;
+$data=(require __DIR__.'/solution-data.php')[$path]??['object'=>'label','stops'=>[],'band'=>null,'shot'=>null];
+$related=array_filter(['/stok-yonetimi'=>['Stok','Ürün kartı, hareket geçmişi'],'/depo-yonetimi'=>['Depo','Mal kabul, raf, sayım'],'/market-pos'=>['Kasa','Barkodlu satış, vardiya'],'/lot-miat-takibi'=>['Lot ve miat','Parti ve tarih takibi'],'/yapay-zeka'=>['Asistan','Kayıtlara soru sorun'],'/fiyatlandirma'=>['Fiyat','Paketler ve limitler']],static fn($p)=>$p!==$path,ARRAY_FILTER_USE_KEY);
 ?>
-<section class="vs-intro vs-wrap">
-  <h1><?=strip_tags(str_replace('<br>',' ',$page['headline']))?></h1>
-  <p class="vs-lead"><?=e($page['intro'])?></p>
-  <?php if($path!=='/demo'):?><p class="vs-cta"><a class="vs-btn" href="/?request_type=demo#iletisim">Demo isteyin</a> <a href="/fiyatlandirma">Fiyatlar</a></p><?php endif;?>
-</section>
-<?php if($shot):?><figure class="vs-shot vs-shot-wide vs-wrap"><img src="/assets/<?=e($shot[0])?>" alt="<?=e($shot[1])?>" width="1500" height="900" fetchpriority="high"><figcaption>Programın kendi ekranı, örnek veriyle.</figcaption></figure><?php endif;?>
-<?php if(isset($topics[$path])): $topic=$topics[$path]; ?>
-<section class="vs-wrap vs-block vs-columns">
-  <div><h2><?=e($topic[0])?></h2><p><?=e($topic[1])?></p></div>
-  <div><h2><?=e($topic[2])?></h2><p><?=e($topic[3])?></p></div>
-</section>
+<section class="hx-hero"><div class="hx-wrap hx-hero-grid">
+  <div><h1><?=strip_tags(str_replace('<br>',' ',$page['headline']))?></h1><p class="hx-lead"><?=e($page['intro'])?></p>
+  <?php if($path!=='/demo'):?><p class="hx-cta"><a class="hx-btn" href="/?request_type=demo#iletisim">Demo isteyin</a><a class="hx-textlink" href="/fiyatlandirma">Fiyatlar</a></p><?php endif;?></div>
+  <?=pageObject($data['object'])?>
+</div></section>
+<?php if($data['stops']):?>
+<section class="hx-journey"><div class="hx-wrap"><h2><?=$path==='/demo'?'Nasıl ilerliyor?':'Adım adım.'?></h2><?=pageJourney($data['stops'])?></div></section>
 <?php endif;?>
+<?php if($data['band']):?>
+<section class="hx-till hx-band"><div class="hx-wrap"><h2><?=e($data['band'][0])?></h2><p><?=e($data['band'][1])?></p></div></section>
+<?php endif;?>
+<?php if($data['shot'])echo pageFrame($data['shot'][0],$data['shot'][1],str_starts_with($data['shot'][0],'product-')?1914:1500,str_starts_with($data['shot'][0],'product-')?860:900);?>
 <?php if($faqs):?>
-<section class="vs-wrap vs-block"><h2>Sık sorulanlar</h2><div class="vs-qa"><?php foreach($faqs as [$question,$answer]):?><h3><?=e($question)?></h3><p><?=e($answer)?></p><?php endforeach;?></div></section>
+<section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa"><?php foreach($faqs as [$question,$answer]):?><div><h3><?=e($question)?></h3><p><?=e($answer)?></p></div><?php endforeach;?></div></div></section>
+<?php endif;?>
+<?php if($path!=='/demo'):?>
+<nav class="hx-more" aria-label="İlgili sayfalar"><div class="hx-wrap"><h2>Rafta başka neler var?</h2><div class="hx-tags"><?php foreach($related as $url=>[$label,$text]):?><a href="<?=e($url)?>"><b><?=e($label)?></b><span><?=e($text)?></span></a><?php endforeach;?></div></div></nav>
 <?php endif;?>

@@ -1,7 +1,6 @@
 <?php $annual=($_GET['donem']??'yillik')!=='uc-aylik'; $period=$annual?'yillik':'uc-aylik'; $plans=sitePlans(); ?>
 <section class="pricing-intro wrap">
- <p class="eyebrow"><span class="status-dot"></span> DAHA NET BİR BÜTÇE</p>
- <h1>Depo sayınıza göre fiyat.</h1>
+  <h1>Depo sayınıza göre fiyat.</h1>
  <p>İhtiyacınız kadar alan seçin. Üç aylık başlayın veya yıllık planla kullanım maliyetinizi azaltın.</p>
  <div class="billing-switch" aria-label="Plan süresi">
   <a href="/fiyatlandirma?donem=uc-aylik#planlar" <?=$annual?'':'aria-current="true"'?>>3 aylık</a>
@@ -12,7 +11,7 @@
 <section class="wrap pricing-section" id="planlar" aria-label="<?=$annual?'Yıllık':'3 aylık'?> paketler">
  <div class="pricing-grid">
  <?php foreach($plans as $code=>$plan): $amount=$plan[$annual?'annual':'quarter']; $saving=$plan['quarter']*4-$plan['annual']; ?>
- <article class="price-card <?=$code==='isletme'?'price-featured':''?>">
+ <article class="price-card hx-hang <?=$code==='isletme'?'price-featured':''?>">
   <div class="price-card-top"><span class="eyebrow"><?=e($plan['name'])?></span><span class="plan-number"><?=$code==='baslangic'?'01':($code==='isletme'?'02':'03')?></span></div>
   <h2><?=e($plan['tag'])?></h2><p class="plan-description"><?=e($plan['description'])?></p>
   <div class="price-amount"><?=siteMoney($amount)?><span>/ <?=$annual?'yıl':'3 ay'?></span></div>

@@ -8,6 +8,7 @@ require_once __DIR__ . '/pricing.php';
 require_once __DIR__ . '/seo.php';
 require_once __DIR__ . '/sponsor.php';
 require_once __DIR__ . '/components/components.php';
+require_once __DIR__ . '/components/objects.php';
 
 function e(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 
@@ -172,9 +173,9 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
-    <?php if($path!=="/"&&!isset($topics[$path])):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
+    <?php if($path!=="/"&&!isset($topics[$path])&&!isset($growthPages[$path])):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css"><?php if($path==="/"):?><script src="/assets/home.js" defer></script><?php endif;?>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css"><script src="/assets/home.js" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
@@ -192,7 +193,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     </nav>
 <?php endif;?>
 
-<?php $vsLegacy=$path!=="/"&&!isset($topics[$path])&&!$notFound; if($vsLegacy):?><div class="vs-legacy"><?php endif;?>
+<?php $vsLegacy=$path!=="/"&&!isset($topics[$path])&&!isset($growthPages[$path])&&!$notFound; if($vsLegacy):?><div class="vs-legacy"><?php endif;?>
 <?php if(isset($legalPages[$path])): ?>
     <?php require __DIR__."/legal-view.php"; ?>
 <?php elseif($path==="/surum-arsivi"): ?>

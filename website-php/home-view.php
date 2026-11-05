@@ -1,10 +1,4 @@
 <?php declare(strict_types=1);
-// Barkod çizgileri süs amaçlıdır; sabit desenden üretilir.
-function homeBarcode(string $seed, int $height=44): string {
-    $x=0;$bars='';$hash=hash('crc32b',$seed).hash('md5',$seed);
-    foreach(str_split($hash) as $i=>$c){$v=hexdec($c);$w=1+$v%3;if($i%2===0)$bars.='<rect x="'.$x.'" y="0" width="'.$w.'" height="'.$height.'"/>';$x+=$w+($v%2);}
-    return '<svg class="hx-barcode" viewBox="0 0 '.$x.' '.$height.'" preserveAspectRatio="none" aria-hidden="true">'.$bars.'</svg>';
-}
 $steps=[
  ['Mal geldi','Koli kapıda, kim saydı belli.','Mal kabulde ürünü okutur, miktarı girersiniz. Kim, ne zaman, kaç adet aldı; hepsi kayda geçer.','Mal kabul',[['Filtre kahve 250 g','+120 adet'],['Hedef raf','A-02'],['Kabul eden','Depo sorumlusu']],'Stoğa işlendi','good'],
  ['Rafa kondu','Ürün nerede diye aranmaz.','Her ürünün hangi depoda, hangi rafta olduğu görünür. Depolar arası transfer toplam stoğu şişirmez.','Raf A-02',[['Filtre kahve 250 g','120 adet'],['Çay 1 kg','64 adet'],['Kuruyemiş karışık','38 adet']],'Konum güncel','good'],

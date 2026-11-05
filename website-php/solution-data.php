@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+// Her çözüm sayfasının nesnesi ve yolculuğu. Kartlardaki değerler örnektir.
+return [
+ '/stok-yonetimi'=>['object'=>'label','band'=>['Barkodu okutmak stoğu değiştirmez.','Okutma ürünü bulur. Stok, siz giriş, satış veya transfer kaydedince değişir. Yanlışlıkla okutulan barkod stoğu bozmaz.'],'shot'=>['shot-products.jpg','Ürün listesi: stok miktarı, barkod ve fiyat'],'stops'=>[
+  ['Ürün kartı','Her ürünün tek bir kartı var.','Barkod, birim, fiyat ve tedarikçi aynı kartta. Elinizdeki Excel listesini sütun eşleştirip önizleyerek aktarırsınız.','Ürün kartı',[['Ad','Filtre kahve 250 g'],['Barkod','8690000010001'],['Satış fiyatı','46,00 ₺']],'Kayıtlı','good'],
+  ['Hareket','Stok neden değişti, belli.','Her giriş, satış, iade ve transfer tarihiyle kayda geçer. "Bu ürün nereye gitti?" sorusunun cevabı hareket geçmişindedir.','Hareket geçmişi',[['Mal kabul','+120'],['Kasa satışı','−2'],['Kalan','118 adet']],'Kayıtla uyumlu','good'],
+  ['Uyarı','Azalan ürün önünüze gelir.','Minimum seviyeye inen ürün kritik işaretlenir. Satış hızına göre kaç günde biteceği hesaplanır.','Kritik ürünler',[['Filtre kahve','18 / 30 adet'],['Bitmesine','3 gün'],['Öneri','80 adet']],'Kritik','warn'],
+  ['Sipariş','Liste hazır, onay sizde.','Öneriler tek düğmeyle tedarikçi başına taslağa dönüşür. Kimseye kendiliğinden sipariş gitmez.','Satın alma taslağı',[['Tedarikçi','Örnek Gıda Ltd.'],['Kalem','4 ürün'],['Durum','Onay bekliyor']],'Taslak','warn'],
+ ]],
+ '/depo-yonetimi'=>['object'=>'box','band'=>['Transfer stok yaratmaz.','Mal bir depodan diğerine geçince toplam değişmez, yalnız yeri değişir. Sayımda fark çıkarsa stok ancak yönetici onayından sonra güncellenir.'],'shot'=>['product-warehouse-v4.jpg','Depo ve tesis ekranı'],'stops'=>[
+  ['Mal kabul','Koli kapıda, kim aldı belli.','Siparişle karşılaştırarak kabul edin. Ürün, miktar ve teslim alan kayda geçer.','Mal kabul',[['Sipariş','Örnek Gıda Ltd.'],['Gelen','120 adet'],['Hedef raf','A-02']],'Kabul edildi','good'],
+  ['Raf','Ürün nerede diye aranmaz.','Raf haritası hangi gözde ne olduğunu gösterir. Ürünü rafa yerleştirme işlemi de kayıtlıdır.','Raf A-02',[['Filtre kahve','120 adet'],['Çay 1 kg','64 adet'],['Doluluk','Göz 14 dolu']],'Konum güncel','good'],
+  ['Toplama ve sevkiyat','Çıkan mal da kayıtlı.','Toplama listesiyle ürünü raftan alın, sevkiyatla çıkışını kapatın.','Toplama',[['Filtre kahve','24 adet'],['Raf','A-02'],['Durum','Toplanıyor']],'Sevkiyata hazır','warn'],
+  ['Sayım','Eksik mal sessizce kaybolmaz.','Rafı okutun, ürünleri okutun, sayaç artsın. Sayılanlar toplu olarak yönetici onayına gider.','Sayım farkı',[['Bulaşık deterjanı','5 adet eksik'],['Yaklaşık','240 TL'],['Durum','Onay bekliyor']],'Yöneticiye bildirildi','bad'],
+ ]],
+ '/market-pos'=>['object'=>'receipt','band'=>['Yetersiz stokta satış yapılmaz.','Sunucu reddeder, sepet korunur, kasiyer hatayı ödeme penceresinde görür. İndirim ve fiyat değişikliği de yönetici onayı ister.'],'shot'=>['shot-pos.jpg','Kasa ekranı: sepet ve ödenecek toplam'],'stops'=>[
+  ['Okut','Barkod okundu, sepete girdi.','Barkod okuyucu, telefon kamerası veya F6 ile ürün arama. Görselli hızlı satış modu da var.','Sepet',[['Filtre kahve','46,00'],['Tuzlu kraker','68,00'],['Toplam','114,00 ₺']],'2 ürün','good'],
+  ['Öde','F8, ödeme, bitti.','Nakit, kart, ikisi birden ya da yetkili kullanıcılar için veresiye. Para üstü kendiliğinden hesaplanır.','Ödeme',[['Toplam','114,00 ₺'],['Alınan','150,00 ₺'],['Para üstü','36,00 ₺']],'Tamamlandı','good'],
+  ['Düş','Satış olduğu an stoktan düşer.','Gün sonunu beklemeniz gerekmez. Fiş yazdırılır, hareket kaydı oluşur.','Stok',[['Filtre kahve','118 → 117'],['Tuzlu kraker','64 → 63'],['Kaynak','Kasa satışı']],'Stoktan düştü','good'],
+  ['Kapat','Vardiya sonunda kasa belli.','Vardiya açılır, kapanışta özet alınır. Gün sonu raporu ve iade aynı yerden.','Vardiya özeti',[['Satış','48 adet'],['Nakit','4.120,00 ₺'],['Kart','6.980,00 ₺']],'Kapatıldı','warn'],
+ ]],
+ '/lot-miat-takibi'=>['object'=>'date','band'=>['Toplam miktar yetmez.','Aynı üründen 100 adet var demek, hepsi aynı tarihli demek değil. Veniux partileri ayrı tutar.'],'shot'=>['product-lot-v4.jpg','Stok ve lot takibi paneli'],'stops'=>[
+  ['Parti','Her partinin kendi tarihi.','Mal kabulde lot numarası ve son kullanma tarihini girin. Parti stoğu ayrı izlenir.','Lot L-2041',[['Ürün','Süt 1 L'],['Miktar','48 adet'],['SKT','12.01.2027']],'Sağlam','good'],
+  ['Yaklaşan','Tarihi yaklaşan önünüze gelir.','Yaklaşan ve geçmiş tarihli lotlar ayrı listelenir. Uyarı süresini kendiniz belirlersiniz.','Tarih uyarısı',[['Lot L-1987','9 gün kaldı'],['Lot L-1950','3 gün kaldı'],['Lot L-1902','Geçmiş']],'Dikkat','warn'],
+  ['Satış','Önce tarihi yakın olan çıkar.','Kasada otomatik seçim en yakın uygun tarihi kullanır, isterseniz lotu elle seçersiniz. Satılamaz lot seçilemez.','Kasa · lot',[['Otomatik','En yakın tarih'],['Seçilen','L-1987'],['Satılamaz','L-1902']],'Korumalı','bad'],
+ ]],
+ '/yapay-zeka'=>['object'=>'note','band'=>['Sormadan işlem yapmaz.','Asistan bir şeyi değiştirmek isterse önce size gösterir, onaylamazsanız hiçbir şey olmaz. Stok tahmini de yapay zekâ değil, satış hızından yapılan düz hesaptır.'],'shot'=>['shot-overview.jpg','Genel bakış ekranı'],'stops'=>[
+  ['Sor','Türkçe sorun.','"Bu hafta hangi ürünler kritik?" gibi sorular kayıtlarınızdan yanıtlanır.','Soru',[['Siz','Hangi ürünler kritik?'],['Yanıt','4 ürün'],['Kaynak','Stok kayıtları']],'Yanıtlandı','good'],
+  ['Özetle','Güne başlarken özet.','Stok riski, açık uyarı ve geciken görevler tek yerde.','Günün öncelikleri',[['Stok riski','4'],['Açık uyarı','3'],['Geciken görev','0']],'Bugün','warn'],
+  ['Onayla','Son söz sizin.','Önerilen işlem önce ekrana gelir. Onaylarsanız uygulanır.','Önerilen işlem',[['İşlem','Sipariş taslağı'],['Kalem','4 ürün'],['Durum','Onayınızı bekliyor']],'Onay bekliyor','warn'],
+ ]],
+ '/demo'=>['object'=>'ticket','band'=>null,'shot'=>null,'stops'=>[
+  ['Yazın','İşinizi anlatın.','Depo sayınızı, kullanıcı sayınızı ve ne aradığınızı yazın.','Talep',[['Depo','2'],['Kullanıcı','6'],['Aranan','Kasa ve stok']],'Alındı','good'],
+  ['Görelim','Kendi işinize göre gösterelim.','Sizin senaryonuzu birlikte programda deneriz.','Görüşme',[['Konu','Mal kabul ve kasa'],['Süre','Birlikte belirlenir'],['Şekil','Çevrimiçi']],'Planlanıyor','warn'],
+ ]],
+ '/barkodlu-stok-takibi'=>['object'=>'label','cards'=>[['Ürün eşleştirme',[['Barkod','8690000010001'],['Ürün','Filtre kahve 250 g'],['Birim','Adet']],'Eşleşti','good'],['Okutma',[['Okunan','8690000010001'],['Stok değişimi','Yok'],['Sonraki adım','İşlem seçin']],'Yalnız arama','warn'],['İlk deneme',[['Ürün grubu','Küçük başlayın'],['Açılış','Sayarak girin'],['Kontrol','Hareket geçmişi']],'Önerilen','good'],['Bağlantı',[['USB','Klavye gibi'],['Seri','Ayar gerekir'],['Telefon','Kamera']],'Kullanıma bağlı','warn']]],
+ '/son-kullanma-tarihi-takibi'=>['object'=>'date','cards'=>[['Tarih uyarısı',[['Lot L-1987','9 gün kaldı'],['Lot L-1950','3 gün kaldı'],['Lot L-1902','Geçmiş']],'Dikkat','warn'],['Lot',[['Numara','L-2041'],['Miktar','48 adet'],['SKT','12.01.2027']],'Sağlam','good'],['Seçim',[['Otomatik','En yakın tarih'],['Elle','Lot seçilebilir'],['Geçmiş','Satılamaz']],'Korumalı','bad'],['Kontrol',[['Rapor','Yaklaşanlar'],['Süre','Siz belirlersiniz'],['Sorumlu','Depo']],'Takipte','good']]],
+ '/el-terminali-depo-yonetimi'=>['object'=>'box','cards'=>[['Terminal',[['Ürün','Filtre kahve'],['Raf','A-02'],['Stok','118 adet']],'Bulundu','good'],['Bağlantı',[['Sunucu','İşletmeniz'],['Giriş','QR kod'],['Yetki','Kullanıcı rolü']],'Bağlı','good'],['Depo işlemi',[['Sorgu','Barkodla'],['Kayıt','Yetkiye göre'],['Geçmiş','Tutulur']],'Kayıtlı','warn'],['Deneme',[['Cihaz','Önce deneyin'],['Okuyucu','Kamera veya tuş'],['Kabul','Sizde']],'Önerilen','warn']]],
+];
