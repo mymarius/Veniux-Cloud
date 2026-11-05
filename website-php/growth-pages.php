@@ -6,7 +6,7 @@ return [
   'description'=>'Barkodu doğru ürün kartıyla eşleştirin. Veniux’ta barkodla ürün bulma, depo miktarını kontrol etme ve işlem öncesi doğrulama akışını inceleyin.',
   'label'=>'Barkodlu stok takibi','headline'=>'Barkodlu stok takibi: doğru ürün, doğru kayıt.',
   'intro'=>'Mağazada veya depoda barkodun karşılığını bulun; ürün, birim ve stok bilgisini işlemden önce kontrol edin.',
-  'image'=>'product-barcode-v3.jpg','alt'=>'Veniux ürün listesinde barkod ve fiyat alanları; sentetik örnek ürünler',
+  'image'=>'product-barcode-v4.jpg','alt'=>'Veniux ürün listesinde barkod ve fiyat alanları; sentetik örnek ürünler',
   'caption'=>'Gerçek Veniux arayüzü, izole örnek işletme. Müşteri verisi ve fiziksel okuyucu testi içermez.',
   'solution'=>'stok','sections'=>[
    ['Barkodun karşılığını ürün kartında görün','Aynı ambalajı iki farklı ürün kartına bağlamak miktar ve fiyat takibini zorlaştırabilir. Ürünü kaydetmeden önce katalogda arayın. Barkod bir metin alanıdır; baştaki sıfırları koruyun ve üretici kodunu rastgele oluşturmayın.'],
@@ -20,8 +20,8 @@ return [
   'description'=>'Yaklaşan ve geçmiş tarihli lotları ayırın. Veniux’ta son kullanma tarihi görünümü, FEFO satış kontrolü ve iade durumlarını örnek ekranla inceleyin.',
   'label'=>'Son kullanma tarihi takibi','headline'=>'Son kullanma tarihi takibi: lot bazında kontrol.',
   'intro'=>'Depodaki fiziksel miktarı, satışa uygun miktar ve lot tarihiyle birlikte değerlendirin.',
-  'image'=>'product-expiry-v2.jpg','alt'=>'Veniux stok ve lot takibinde tarihi yaklaşan örnek lot listesi',
-  'caption'=>'Gerçek tarih kontrol ekranı; tarihler ve ürünler sentetik test kayıtlarıdır. Mevzuat veya sektör sertifikası iddiası değildir.',
+  'image'=>'product-lot-v4.jpg','alt'=>'Veniux ürün ekranında stok ve lot takibi paneli; sentetik örnek kayıtlar',
+  'caption'=>'Gerçek Veniux arayüzü; ürünler sentetik test kayıtlarıdır. Mevzuat veya sektör sertifikası iddiası değildir.',
   'solution'=>'lot','sections'=>[
    ['Tarih kontrolü doğru kabul kaydıyla başlar','Son kullanma tarihini ambalajdan doğrulayarak ilgili lota kaydedin. Katalog barkodu ile lot numarası farklı alanlardır. Eski kayıtta bulunmayan bir tarihi tahmin ederek doldurmayın.'],
    ['Yaklaşan ve geçmiş tarihleri ayrı inceleyin','Veniux stok ve lot panelinde tarih aralığı seçilerek yaklaşan partiler incelenebilir. Geçmiş tarihli lotlar ayrı gösterilir. Toplam depo miktarı ile işlem için uygun miktarın aynı olmayabileceğini göz önünde bulundurun.'],
@@ -34,7 +34,7 @@ return [
   'description'=>'Veniux terminal ekranında ürün sorgulama, mal kabul, çıkış, raf transferi ve sayım akışlarını keşfedin. Cihaz kabulü ve bağlantı sınırlarını öğrenin.',
   'label'=>'El terminali ve depo','headline'=>'El terminaliyle depo yönetimi: kabul, transfer ve sayım.',
   'intro'=>'Ürün sorgulama, kabul, çıkış, raf transferi ve sayım için hazırlanmış terminal çalışma alanını inceleyin.',
-  'image'=>'product-terminal-v2.jpg','alt'=>'Veniux sanal terminal ekranında ürün sorgulama, mal kabul, transfer ve sayım menüsü',
+  'image'=>'product-terminal-v4.jpg','alt'=>'Veniux sanal terminal ekranında ürün sorgulama, mal kabul, transfer ve sayım menüsü',
   'caption'=>'Gerçek sanal terminal ekranı, sentetik örnek işletmede alınmıştır. Fiziksel el terminali üzerinde cihaz kabulü yapıldığı anlamına gelmez.',
   'solution'=>'depo','sections'=>[
    ['İşlemin amacını önce seçin','Ürün sorgulama ile mal kabul veya çıkış aynı işlem değildir. Terminal çalışma alanında uygun modu seçin; ürün, depo, raf ve miktarı ekrandaki bilgilerle karşılaştırın.'],

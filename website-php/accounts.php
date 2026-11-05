@@ -237,8 +237,10 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
+    <link rel="stylesheet" href="/assets/premium-dark.css">
+    <link rel="stylesheet" href="/assets/veniux-site.css">
 </head>
-<body style="background-color:#07111D; color:#E8EDF4;">
+<body style="background-color:#12161f; color:#e8ecf4;">
 <header class="dp-header">
     <div class="dp-container dp-nav">
         <a class="dp-brand" href="/" aria-label="Veniux ana sayfa">
@@ -247,7 +249,7 @@ function accountRoutes(string $path,array $config):bool {
         </a>
         <div class="dp-nav-actions">
             <?php if($account):?>
-                <span class="dp-pill-text" style="color:#94A5B8; font-size:13px;"><?=e($account['company'])?></span>
+                <span class="dp-pill-text" style="color:#aab4c6; font-size:13px;"><?=e($account['company'])?></span>
                 <form action="/cikis" method="post" style="margin:0; display:inline;">
                     <input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>">
                     <button type="submit" class="dp-btn dp-btn--outline dp-btn--sm">Çıkış Yap</button>
@@ -268,7 +270,7 @@ function accountRoutes(string $path,array $config):bool {
             <div class="dp-portal-user-summary">
                 <span class="dp-portal-user-company"><?=e($account['company'])?></span>
                 <span class="dp-portal-user-email"><?=e($account['email'])?></span>
-                <span style="display:inline-block; margin-top:8px; font-size:11px; padding:2px 8px; border-radius:9999px; background:#1677C8; color:#fff; font-weight:700;">
+                <span style="display:inline-block; margin-top:8px; font-size:11px; padding:2px 8px; border-radius:9999px; background:#f2711c; color:#fff; font-weight:700;">
                     <?=e($permissions['name'])?> Paketi
                 </span>
             </div>
@@ -313,22 +315,22 @@ function accountRoutes(string $path,array $config):bool {
                         <h1 class="dp-panel-title">Genel Bakış</h1>
                         <span style="font-size:12px; color:#2CA58D; font-weight:700;">● Sistem Aktif & Lisanslı</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:24px;">Hoş geldiniz, <?=e($account['company'])?>. İşletmenizin Veniux kurulum detayları ve lisans durumu aşağıda özetlenmiştir.</p>
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Hoş geldiniz, <?=e($account['company'])?>. İşletmenizin Veniux kurulum detayları ve lisans durumu aşağıda özetlenmiştir.</p>
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:32px;">
-                        <div style="background:#14273A; padding:20px; border-radius:12px; border:1px solid #263B50;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#94A5B8; font-weight:700;">Tanımlı Paket</span>
-                            <strong style="display:block; font-size:20px; color:#E8EDF4; margin-top:6px;"><?=e($permissions['name'])?></strong>
+                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
+                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Tanımlı Paket</span>
+                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=e($permissions['name'])?></strong>
                             <small style="color:#2CA58D; font-size:12px;">Yıllık Lisans Kapsamında</small>
                         </div>
-                        <div style="background:#14273A; padding:20px; border-radius:12px; border:1px solid #263B50;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#94A5B8; font-weight:700;">Cihaz / Terminal Sınırı</span>
-                            <strong style="display:block; font-size:20px; color:#E8EDF4; margin-top:6px;"><?=$permissions['max_devices']?> Terminal</strong>
-                            <small style="color:#94A5B8; font-size:12px;">Windows & Android Bağlantısı</small>
+                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
+                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Cihaz / Terminal Sınırı</span>
+                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=$permissions['max_devices']?> Terminal</strong>
+                            <small style="color:#aab4c6; font-size:12px;">Windows & Android Bağlantısı</small>
                         </div>
-                        <div style="background:#14273A; padding:20px; border-radius:12px; border:1px solid #263B50;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#94A5B8; font-weight:700;">Depo Kapsamı</span>
-                            <strong style="display:block; font-size:20px; color:#E8EDF4; margin-top:6px;"><?=$permissions['max_depo']?> Depo</strong>
-                            <small style="color:#94A5B8; font-size:12px;">Raf ve WMS Erişimi</small>
+                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
+                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Depo Kapsamı</span>
+                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=$permissions['max_depo']?> Depo</strong>
+                            <small style="color:#aab4c6; font-size:12px;">Raf ve WMS Erişimi</small>
                         </div>
                     </div>
                     <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
@@ -344,12 +346,12 @@ function accountRoutes(string $path,array $config):bool {
                         <h1 class="dp-panel-title">Lisanslarım</h1>
                         <span style="color:#2CA58D; font-size:12px; font-weight:700;">1 Aktif Anahtar</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:20px;">Veniux masaüstü programınızı veya mobil terminallerinizi etkinleştirmek için aşağıdaki anahtarı kullanın.</p>
-                    <div style="background:#07111D; border:1px solid #263B50; border-radius:12px; padding:24px; margin-bottom:24px;">
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Veniux masaüstü programınızı veya mobil terminallerinizi etkinleştirmek için aşağıdaki anahtarı kullanın.</p>
+                    <div style="background:#12161f; border:1px solid #2d3547; border-radius:12px; padding:24px; margin-bottom:24px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                             <div>
-                                <span style="font-size:11px; color:#94A5B8; text-transform:uppercase; font-weight:700;">Birincil Ürün Anahtarı</span>
-                                <div style="font-family:ui-monospace,monospace; font-size:18px; font-weight:750; color:#F17A38; margin-top:4px; letter-spacing:0.06em;">
+                                <span style="font-size:11px; color:#aab4c6; text-transform:uppercase; font-weight:700;">Birincil Ürün Anahtarı</span>
+                                <div style="font-family:ui-monospace,monospace; font-size:18px; font-weight:750; color:#ff9a5c; margin-top:4px; letter-spacing:0.06em;">
                                     <?=e($account['license_key']??'VNX-2026-PRECISION-ENTERPRISE')?>
                                 </div>
                             </div>
@@ -357,7 +359,7 @@ function accountRoutes(string $path,array $config):bool {
                                 Etkin & Doğrulanmış
                             </span>
                         </div>
-                        <div style="margin-top:18px; padding-top:16px; border-top:1px solid #14273A; font-size:12px; color:#94A5B8; display:flex; gap:24px;">
+                        <div style="margin-top:18px; padding-top:16px; border-top:1px solid #212838; font-size:12px; color:#aab4c6; display:flex; gap:24px;">
                             <span>Cihaz Kotası: <strong><?=$permissions['max_devices']?> Cihaz</strong></span>
                             <span>Kullanıcı Sınırı: <strong><?=$permissions['max_user']?> Kullanıcı</strong></span>
                             <span>Durum: <strong>Süresiz / Kurumsal</strong></span>
@@ -370,55 +372,55 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Paketim ve Modül Yetkileri</h1>
-                        <span style="background:#14273A; border:1px solid #263B50; color:#E8EDF4; padding:4px 12px; border-radius:9999px; font-size:12px; font-weight:700;">
+                        <span style="background:#212838; border:1px solid #2d3547; color:#e8ecf4; padding:4px 12px; border-radius:9999px; font-size:12px; font-weight:700;">
                             <?=e($permissions['name'])?> Seviyesi
                         </span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:24px;">Bu hesap için sunucu tarafında doğrulanmış modül erişim tablosu aşağıdadır. Yetkiler lisans otoritesi tarafından kontrol edilir.</p>
-                    <div style="border:1px solid #263B50; border-radius:12px; overflow:hidden;">
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Bu hesap için sunucu tarafında doğrulanmış modül erişim tablosu aşağıdadır. Yetkiler lisans otoritesi tarafından kontrol edilir.</p>
+                    <div style="border:1px solid #2d3547; border-radius:12px; overflow:hidden;">
                         <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
                             <thead>
-                                <tr style="background:#14273A; color:#E8EDF4; border-bottom:1px solid #263B50;">
+                                <tr style="background:#212838; color:#e8ecf4; border-bottom:1px solid #2d3547;">
                                     <th style="padding:14px 18px;">Modül Adı</th>
                                     <th style="padding:14px 18px;">İşlev Kapsamı</th>
                                     <th style="padding:14px 18px; text-align:right;">Yetki Durumu</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux CRM</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Müşteri kartları, borç/alacak, görüşme ve satış fırsatları</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux CRM</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Müşteri kartları, borç/alacak, görüşme ve satış fırsatları</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Stok & Envanter</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Ürün barkod kataloğu, lot/miat, kritik seviye takibi</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Stok & Envanter</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Ürün barkod kataloğu, lot/miat, kritik seviye takibi</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Depo & WMS</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Mal kabul, raf yerleşimi, palet barkodlama, transferler</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Depo & WMS</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Mal kabul, raf yerleşimi, palet barkodlama, transferler</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Market / POS</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Dokunmatik hızlı satış, barkodlu okuma, fiş/fatura yazdırma</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Market / POS</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Dokunmatik hızlı satış, barkodlu okuma, fiş/fatura yazdırma</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Satış Yönetimi</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">B2B/B2C siparişler, teklifler, iskonto ve vade operasyonları</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Satış Yönetimi</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">B2B/B2C siparişler, teklifler, iskonto ve vade operasyonları</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Raporlama</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Ciro grafikleri, net kârlılık, devir hızı ve gün sonu z-raporu</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Raporlama</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Ciro grafikleri, net kârlılık, devir hızı ve gün sonu z-raporu</td>
                                     <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:14px 18px; font-weight:650; color:#E8EDF4;">Veniux Intelligence</td>
-                                    <td style="padding:14px 18px; color:#94A5B8;">Yapay zekâ stok tahminleri, anomali tespiti ve karar desteği</td>
-                                    <td style="padding:14px 18px; text-align:right; color:<?=$permissions['intelligence']?'#2CA58D':'#94A5B8'?>; font-weight:700;">
+                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Intelligence</td>
+                                    <td style="padding:14px 18px; color:#aab4c6;">Yapay zekâ stok tahminleri, anomali tespiti ve karar desteği</td>
+                                    <td style="padding:14px 18px; text-align:right; color:<?=$permissions['intelligence']?'#2CA58D':'#aab4c6'?>; font-weight:700;">
                                         <?=$permissions['intelligence']?'✓ Erişilebilir':'Paket Yükseltme Gerekli'?>
                                     </td>
                                 </tr>
@@ -431,13 +433,13 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Faturalarım ve Ödemeler</h1>
-                        <span style="color:#94A5B8; font-size:12px;">Resmî e-Fatura Kayıtları</span>
+                        <span style="color:#aab4c6; font-size:12px;">Resmî e-Fatura Kayıtları</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:20px;">Veniux yazılım lisansı ve ek hizmet bedellerine ait faturalar aşağıda listelenmiştir.</p>
-                    <div style="border:1px solid #263B50; border-radius:12px; overflow:hidden;">
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Veniux yazılım lisansı ve ek hizmet bedellerine ait faturalar aşağıda listelenmiştir.</p>
+                    <div style="border:1px solid #2d3547; border-radius:12px; overflow:hidden;">
                         <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
                             <thead>
-                                <tr style="background:#14273A; color:#E8EDF4;">
+                                <tr style="background:#212838; color:#e8ecf4;">
                                     <th style="padding:12px 16px;">Fatura No</th>
                                     <th style="padding:12px 16px;">Tarih</th>
                                     <th style="padding:12px 16px;">Açıklama</th>
@@ -446,11 +448,11 @@ function accountRoutes(string $path,array $config):bool {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="border-bottom:1px solid #14273A;">
-                                    <td style="padding:14px 16px; font-family:ui-monospace,monospace; color:#E8EDF4;">VNX-2026-0084</td>
-                                    <td style="padding:14px 16px; color:#94A5B8;">18 Ekim 2026</td>
-                                    <td style="padding:14px 16px; color:#E8EDF4;">Veniux İşletme Yıllık Lisansı (%20 KDV dahil)</td>
-                                    <td style="padding:14px 16px; font-weight:700; color:#E8EDF4;">7.188 ₺</td>
+                                <tr style="border-bottom:1px solid #212838;">
+                                    <td style="padding:14px 16px; font-family:ui-monospace,monospace; color:#e8ecf4;">VNX-2026-0084</td>
+                                    <td style="padding:14px 16px; color:#aab4c6;">18 Ekim 2026</td>
+                                    <td style="padding:14px 16px; color:#e8ecf4;">Veniux İşletme Yıllık Lisansı (%20 KDV dahil)</td>
+                                    <td style="padding:14px 16px; font-weight:700; color:#e8ecf4;">7.188 ₺</td>
                                     <td style="padding:14px 16px; text-align:right; color:#2CA58D; font-weight:700;">Ödendi ✓</td>
                                 </tr>
                             </tbody>
@@ -463,32 +465,32 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Programınızı İndirin</h1>
-                        <span style="font-size:12px; color:#1677C8; font-weight:700;">Güncel Sürüm 2.4.38</span>
+                        <span style="font-size:12px; color:#f2711c; font-weight:700;">Güncel Sürüm 2.4.38</span>
                     </div>
-                    <p class="download-intro" style="color:#94A5B8; font-size:14px; margin-bottom:28px;">
+                    <p class="download-intro" style="color:#aab4c6; font-size:14px; margin-bottom:28px;">
                         Windows programı işletmenizin verilerini bilgisayarınızda tutar. Android telefon/tablet uygulaması aynı ağdaki bilgisayarınıza bağlanır.
                     </p>
                     <div class="download-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
-                        <article style="background:#14273A; border:1px solid #263B50; border-radius:14px; padding:28px;">
-                            <span class="eyebrow" style="color:#1677C8; font-weight:700; font-size:11px; text-transform:uppercase;">BİLGİSAYAR</span>
-                            <h2 style="font-size:22px; color:#E8EDF4; margin:8px 0 12px 0;">Veniux Windows</h2>
-                            <p style="color:#94A5B8; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
+                        <article style="background:#212838; border:1px solid #2d3547; border-radius:14px; padding:28px;">
+                            <span class="eyebrow" style="color:#f2711c; font-weight:700; font-size:11px; text-transform:uppercase;">BİLGİSAYAR</span>
+                            <h2 style="font-size:22px; color:#e8ecf4; margin:8px 0 12px 0;">Veniux Windows</h2>
+                            <p style="color:#aab4c6; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
                                 Windows 10/11, 64 bit. Stok ve depo yönetimi bilgisayarınızda. Yerel SQLite veya MySQL motoru desteği.
                             </p>
                             <a class="button primary dp-btn dp-btn--primary" href="/dosya/windows">Windows programını indir ↓</a>
                         </article>
-                        <article style="background:#14273A; border:1px solid #263B50; border-radius:14px; padding:28px;">
-                            <span class="eyebrow" style="color:#F17A38; font-weight:700; font-size:11px; text-transform:uppercase;">TELEFON, TABLET VE EL TERMİNALİ</span>
-                            <h2 style="font-size:22px; color:#E8EDF4; margin:8px 0 12px 0;">Veniux Android</h2>
-                            <p style="color:#94A5B8; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
+                        <article style="background:#212838; border:1px solid #2d3547; border-radius:14px; padding:28px;">
+                            <span class="eyebrow" style="color:#ff9a5c; font-weight:700; font-size:11px; text-transform:uppercase;">TELEFON, TABLET VE EL TERMİNALİ</span>
+                            <h2 style="font-size:22px; color:#e8ecf4; margin:8px 0 12px 0;">Veniux Android</h2>
+                            <p style="color:#aab4c6; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
                                 Android 8 ve üzeri. Barkod tarama destekli mobil terminal arayüzü ile sahadan anında stok girişi ve sayım.
                             </p>
                             <a class="button primary dp-btn dp-btn--accent" href="/dosya/android">Android uygulamasını indir ↓</a>
                         </article>
                     </div>
-                    <div style="font-size:13px; color:#94A5B8; border-top:1px solid #263B50; padding-top:18px;">
-                        <a class="text-link" href="/guncelleme-notlari" style="color:#1677C8;">Güncelleme notlarını incele →</a> · 
-                        <a class="text-link" href="/surum-arsivi" style="color:#1677C8;">Tüm sürümler</a>
+                    <div style="font-size:13px; color:#aab4c6; border-top:1px solid #2d3547; padding-top:18px;">
+                        <a class="text-link" href="/guncelleme-notlari" style="color:#f2711c;">Güncelleme notlarını incele →</a> · 
+                        <a class="text-link" href="/surum-arsivi" style="color:#f2711c;">Tüm sürümler</a>
                     </div>
                     <div style="margin-top:28px;">
                         <?php require __DIR__.'/terminal-guide.php'; ?>
@@ -499,16 +501,16 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Taleplerim</h1>
-                        <span style="color:#94A5B8; font-size:12px;">Görüşme ve Destek Talepleri</span>
+                        <span style="color:#aab4c6; font-size:12px;">Görüşme ve Destek Talepleri</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:20px;">Gönderdiğiniz demo talepleri, teklif başvuruları ve destek biletleri bu alanda listelenir.</p>
-                    <div style="background:#07111D; border:1px solid #263B50; border-radius:12px; padding:20px;">
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Gönderdiğiniz demo talepleri, teklif başvuruları ve destek biletleri bu alanda listelenir.</p>
+                    <div style="background:#12161f; border:1px solid #2d3547; border-radius:12px; padding:20px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <strong style="color:#E8EDF4; display:block; font-size:15px;">Kurulum & Entegrasyon Danışmanlığı</strong>
-                                <small style="color:#94A5B8;">Talep ID: #REQ-<?=substr($account['id'],0,8)?> · Kayıt Tarihi: <?=substr($account['created_at']??'2026-10-20',0,10)?></small>
+                                <strong style="color:#e8ecf4; display:block; font-size:15px;">Kurulum & Entegrasyon Danışmanlığı</strong>
+                                <small style="color:#aab4c6;">Talep ID: #REQ-<?=substr($account['id'],0,8)?> · Kayıt Tarihi: <?=substr($account['created_at']??'2026-10-20',0,10)?></small>
                             </div>
-                            <span style="background:rgba(22,119,200,0.2); border:1px solid #1677C8; color:#1677C8; padding:4px 12px; border-radius:9999px; font-size:11.5px; font-weight:700;">
+                            <span style="background:rgba(22,119,200,0.2); border:1px solid #f2711c; color:#f2711c; padding:4px 12px; border-radius:9999px; font-size:11.5px; font-weight:700;">
                                 İnceleniyor
                             </span>
                         </div>
@@ -521,7 +523,7 @@ function accountRoutes(string $path,array $config):bool {
                         <h1 class="dp-panel-title">Hesap Güvenliği</h1>
                         <span style="color:#2CA58D; font-size:12px; font-weight:700;">Oturum Güvenli</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:24px;">Şifrenizi ve oturum erişim parametrelerinizi bu ekrandan yönetebilirsiniz.</p>
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Şifrenizi ve oturum erişim parametrelerinizi bu ekrandan yönetebilirsiniz.</p>
                     <div style="max-width:480px;">
                         <div class="dp-form-group">
                             <label class="dp-label">Mevcut E-posta Adresi</label>
@@ -540,12 +542,12 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Bildirimler</h1>
-                        <span style="color:#1677C8; font-size:12px; font-weight:700;">Sistem Güncel</span>
+                        <span style="color:#f2711c; font-size:12px; font-weight:700;">Sistem Güncel</span>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:14px;">
-                        <div style="background:#14273A; border:1px solid #263B50; padding:16px 20px; border-radius:10px;">
-                            <strong style="color:#E8EDF4; display:block; font-size:14px; margin-bottom:4px;">Veniux 2.4.38 Yayında</strong>
-                            <p style="color:#94A5B8; font-size:12.5px; margin:0; line-height:1.5;">Dark Precision arayüz standartları, WMS lot kontrol iyileştirmeleri ve hızlandırılmış barkod tarama motoru dağıtıma eklendi.</p>
+                        <div style="background:#212838; border:1px solid #2d3547; padding:16px 20px; border-radius:10px;">
+                            <strong style="color:#e8ecf4; display:block; font-size:14px; margin-bottom:4px;">Veniux 2.4.38 Yayında</strong>
+                            <p style="color:#aab4c6; font-size:12.5px; margin:0; line-height:1.5;">Dark Precision arayüz standartları, WMS lot kontrol iyileştirmeleri ve hızlandırılmış barkod tarama motoru dağıtıma eklendi.</p>
                             <small style="color:#64748B; font-size:11px; margin-top:6px; display:block;">19 Ekim 2026</small>
                         </div>
                     </div>
@@ -555,18 +557,18 @@ function accountRoutes(string $path,array $config):bool {
                 <section class="dp-panel-card">
                     <div class="dp-panel-header">
                         <h1 class="dp-panel-title">Teknik Destek</h1>
-                        <span style="color:#F17A38; font-size:12px; font-weight:700;">Doğrudan Erişim</span>
+                        <span style="color:#ff9a5c; font-size:12px; font-weight:700;">Doğrudan Erişim</span>
                     </div>
-                    <p style="color:#94A5B8; font-size:14px; margin-bottom:24px;">Veniux teknik ekibiyle doğrudan iletişime geçin veya dokümantasyonu inceleyin.</p>
+                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Veniux teknik ekibiyle doğrudan iletişime geçin veya dokümantasyonu inceleyin.</p>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                        <div style="background:#14273A; border:1px solid #263B50; border-radius:12px; padding:20px;">
-                            <h3 style="color:#E8EDF4; font-size:16px; margin:0 0 8px 0;">E-posta Desteği</h3>
-                            <p style="color:#94A5B8; font-size:13px; margin:0 0 14px 0;">Kurulum, donanım köprüsü ve lisanslama ile ilgili sorularınız için.</p>
+                        <div style="background:#212838; border:1px solid #2d3547; border-radius:12px; padding:20px;">
+                            <h3 style="color:#e8ecf4; font-size:16px; margin:0 0 8px 0;">E-posta Desteği</h3>
+                            <p style="color:#aab4c6; font-size:13px; margin:0 0 14px 0;">Kurulum, donanım köprüsü ve lisanslama ile ilgili sorularınız için.</p>
                             <a href="mailto:destek@veniux.com" class="dp-btn dp-btn--outline dp-btn--sm">destek@veniux.com</a>
                         </div>
-                        <div style="background:#14273A; border:1px solid #263B50; border-radius:12px; padding:20px;">
-                            <h3 style="color:#E8EDF4; font-size:16px; margin:0 0 8px 0;">Topluluk & Canlı Sohbet</h3>
-                            <p style="color:#94A5B8; font-size:13px; margin:0 0 14px 0;">Resmî Discord sunucumuza katılarak teknik gelişmelerden haberdar olun.</p>
+                        <div style="background:#212838; border:1px solid #2d3547; border-radius:12px; padding:20px;">
+                            <h3 style="color:#e8ecf4; font-size:16px; margin:0 0 8px 0;">Topluluk & Canlı Sohbet</h3>
+                            <p style="color:#aab4c6; font-size:13px; margin:0 0 14px 0;">Resmî Discord sunucumuza katılarak teknik gelişmelerden haberdar olun.</p>
                             <a href="https://discord.gg/WQyxdp7MKW" target="_blank" rel="noopener noreferrer" class="dp-btn dp-btn--accent dp-btn--sm">Discord'a Katıl ↗</a>
                         </div>
                     </div>
@@ -577,10 +579,10 @@ function accountRoutes(string $path,array $config):bool {
 
 <?php else:?>
     <!-- Unauthenticated Login / Register Form in Dark Precision -->
-    <div style="max-width:440px; margin:40px auto; background:#0D1B2A; border:1px solid #263B50; border-radius:20px; padding:40px; box-shadow:0 16px 48px rgba(0,0,0,0.6);">
+    <div style="max-width:440px; margin:40px auto; background:#1a2030; border:1px solid #2d3547; border-radius:20px; padding:40px; box-shadow:0 16px 48px rgba(0,0,0,0.6);">
         <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> BİLGİSAYAR VE ANDROID</p>
         <h1 class="dp-h2" style="font-size:26px; margin-bottom:8px;"><?=e($title)?></h1>
-        <p style="color:#94A5B8; font-size:13.5px; margin-bottom:28px;">
+        <p style="color:#aab4c6; font-size:13.5px; margin-bottom:28px;">
             <?=$register?'İşletmenizi kaydedin ve Veniux indirme merkezine hemen erişin.':'Hesabınıza giriş yaparak lisanslarınızı ve kurulum paketlerinizi yönetin.'?>
         </p>
 
@@ -610,15 +612,15 @@ function accountRoutes(string $path,array $config):bool {
             <button class="dp-btn dp-btn--primary" style="width:100%; margin-top:8px;" type="submit">
                 <?=$register?'Hesap Oluştur ve İndirmelere Geç':'Giriş Yap'?>
             </button>
-            <p style="text-align:center; font-size:13px; color:#94A5B8; margin-top:20px;">
+            <p style="text-align:center; font-size:13px; color:#aab4c6; margin-top:20px;">
                 <?=$register?'Zaten bir hesabınız var mı?':'Henüz bir hesabınız yok mu?'?>
-                <a href="<?=$register?'/giris':'/kayit'?>" style="color:#F17A38; font-weight:700;">
+                <a href="<?=$register?'/giris':'/kayit'?>" style="color:#ff9a5c; font-weight:700;">
                     <?=$register?'Giriş yapın':'Hemen kayıt olun'?>
                 </a>
             </p>
         </form>
 
-        <p class="download-note" style="margin-top:28px; padding-top:20px; border-top:1px solid #14273A; font-size:11.5px; color:#64748B; line-height:1.6;">
+        <p class="download-note" style="margin-top:28px; padding-top:20px; border-top:1px solid #212838; font-size:11.5px; color:#64748B; line-height:1.6;">
             Müşteri hesapları sitedeki indirmeler içindir. Veniux sahibi siteye merkezi yönetici hesabıyla giriş yapar. İşletme kullanıcılarını programın içinde oluşturursunuz. E-posta ve işletme adınız hesap hizmeti için saklanır; şifreniz özetlenerek korunur.
         </p>
     </div>

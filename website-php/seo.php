@@ -9,6 +9,7 @@ function siteSeoGraph(array $config,array $page,string $path,bool $notFound=fals
         ['@type'=>'WebPage','@id'=>$url.'#webpage','url'=>$url,'name'=>$page['title'],'description'=>$page['description'],'inLanguage'=>'tr-TR','isPartOf'=>['@id'=>$base.'/#website'],'about'=>['@id'=>$base.'/#organization']],
     ];
     if($path!=='/')$graph[]=['@type'=>'BreadcrumbList','@id'=>$url.'#breadcrumbs','itemListElement'=>[['@type'=>'ListItem','position'=>1,'name'=>'Ana sayfa','item'=>$base.'/'],['@type'=>'ListItem','position'=>2,'name'=>$page['label'],'item'=>$url]]];
+    if($path==='/')$graph[]=['@type'=>'SoftwareApplication','@id'=>$base.'/#software','name'=>'Veniux','applicationCategory'=>'BusinessApplication','applicationSubCategory'=>'Stok, depo ve kasa yönetimi','operatingSystem'=>'Windows, Android','inLanguage'=>'tr-TR','url'=>$base,'publisher'=>['@id'=>$base.'/#organization']];
     if($path==='/program-indir')$graph[]=['@type'=>'SoftwareApplication','@id'=>$url.'#application','name'=>'Veniux','alternateName'=>'Veniux Cloud','applicationCategory'=>'BusinessApplication','operatingSystem'=>'Windows 10, Windows 11, Android 8 ve üzeri','url'=>$url,'description'=>$page['description'],'publisher'=>['@id'=>$base.'/#organization']];
     return ['@context'=>'https://schema.org','@graph'=>$graph];
 }
