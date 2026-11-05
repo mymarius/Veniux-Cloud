@@ -170,9 +170,24 @@ export default function NormalProducts() {
       render: (row) => (
         <div>
           <span className="font-semibold text-slate-800">{row.name}</span>
-          <span className="block text-[11px] text-slate-500 mt-0.5">SKU {row.sku}</span>
+          <span className="block text-[11px] text-slate-500 mt-0.5">{row.sku}</span>
         </div>
       )
+    },
+    {
+      key: 'stock',
+      label: 'Stok',
+      align: 'right',
+      render: (row) => {
+        const qty = Number(row.total_quantity || 0), min = Number(row.min_stock_level || 0);
+        const state = qty <= 0 ? 'out' : min > 0 && qty <= min ? 'low' : 'ok';
+        return (
+          <span className="vx-stock-cell" data-state={state}>
+            <b>{qty.toLocaleString('tr-TR')} {row.unit || ''}</b>
+            {state !== 'ok' && <small>{state === 'out' ? 'Tükendi' : 'Kritik'}</small>}
+          </span>
+        );
+      }
     },
     { key: 'barcode', label: 'Barkod / GTIN', render: (row) => row.barcode || row.gtin ? <span className="text-slate-600">{row.barcode || row.gtin}</span> : <span className="vx-muted">—</span> },
     { key: 'category', label: 'Kategori', render: (row) => <span className="vx-chip">{row.category || 'Genel'}</span> },
@@ -231,7 +246,7 @@ export default function NormalProducts() {
       <details className="mobile-stock-details"><summary>Stok ve lot uyarılarını göster</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
       {lotDetail&&<section className="veniux-card p-4 mb-4" role="dialog" aria-label="Lot detayı"><div className="flex justify-between"><b>{lotDetail.name} · Lot {lotDetail.lot_number}</b><button onClick={()=>setLotDetail(null)}>Kapat</button></div><p>Depo: {lotDetail.warehouse_name} · Miktar: {lotDetail.quantity} · Son kullanma: {lotDetail.expiry_date||'Tarih yok'}</p><button className="btn-soft" data-size="sm" onClick={()=>{setSelectedProductId(lotDetail.product_id);setDrawerOpen(true);}}>Ürünü aç</button></section>}
       {/* Metric Strip */}
-      <div className="product-stat-grid grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="product-stat-grid vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM ÜRÜN</span>
           <p className="text-3xl font-light text-slate-800">{products.length}</p>

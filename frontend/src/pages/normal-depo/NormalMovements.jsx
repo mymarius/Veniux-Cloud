@@ -26,6 +26,8 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Drawer } from '../../components/ui/Drawer';
 
+const SOURCE_LABELS = { manual: 'Manuel', scanner_pos: 'Kasa satışı', SYSTEM: 'Sistem', transfer: 'Transfer', depot_transfer: 'Depo transferi', local_device_journal: 'Cihaz kaydı' };
+
 export default function NormalMovements() {
   const [movements, setMovements] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -165,6 +167,7 @@ export default function NormalMovements() {
     },
     {
       header: 'Miktar Değişimi',
+      align: 'right',
       accessorKey: 'change_amount',
       cell: (info) => {
         const val = info.getValue();
@@ -188,10 +191,10 @@ export default function NormalMovements() {
         const m = info.getValue();
         return (
           <div className="flex items-center space-x-2 text-slate-500 text-xs">
-            <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-              {m.source || 'SYSTEM'}
+            <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 whitespace-nowrap">
+              {SOURCE_LABELS[m.source] || m.source || 'Sistem'}
             </span>
-            <span className="truncate max-w-xs">{m.note || '-'}</span>
+            <span className="truncate max-w-xs" title={m.note || undefined}>{/^POS-/.test(m.note || '') ? `Fiş ${m.note.slice(0, 12)}…` : m.note || '-'}</span>
           </div>
         );
       }
@@ -222,7 +225,7 @@ export default function NormalMovements() {
               Stok Hareketleri ve Denetim İzi
             </h1>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-              AUDIT LOGS
+              Denetim kaydı
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
@@ -250,7 +253,7 @@ export default function NormalMovements() {
       </div>
 
       {/* Metric Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM İŞLEM KAYDI</span>
           <p className="text-3xl font-light text-slate-800">{movements.length}</p>
