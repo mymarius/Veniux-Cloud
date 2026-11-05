@@ -248,13 +248,13 @@ export default function NormalProducts() {
       {/* Metric Strip */}
       <div className="product-stat-grid vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM ÜRÜN</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam ürün</span>
           <p className="text-3xl font-light text-slate-800">{products.length}</p>
           <span className="text-xs text-slate-400 mt-1">Aktif sistem kayıtları</span>
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">BARKODLU (SKU)</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Barkodlu ürün</span>
           <p className="text-3xl font-light text-slate-800">
             {products.filter(p => p.barcode || p.gtin).length} <span className="text-lg text-slate-400">/ {products.length}</span>
           </p>
@@ -262,13 +262,13 @@ export default function NormalProducts() {
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">KATEGORİLER</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Kategoriler</span>
           <p className="text-3xl font-light text-slate-800">{categories.length}</p>
           <span className="text-xs text-slate-400 mt-1">Farklı ürün grupları</span>
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TEDARİKÇİLER</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Tedarikçiler</span>
           <p className="text-3xl font-light text-slate-800">{suppliers.length}</p>
           <span className="text-xs text-slate-400 mt-1">Aktif tedarik ağları</span>
         </div>

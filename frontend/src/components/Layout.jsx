@@ -198,7 +198,7 @@ export function Layout({ children }) {
         />
       )}
 
-      <aside aria-label="Ana menü" className={`sb fixed inset-y-0 left-0 z-40 flex h-screen w-[264px] flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 select-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside aria-label="Ana menü" className={`sb fixed inset-y-0 left-0 z-40 flex h-screen w-[224px] flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 select-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="sb-brand">
           <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
             <img src={veniuxLogo} alt="" />
@@ -270,7 +270,7 @@ export function Layout({ children }) {
       </aside>
 
       {/* ── MAIN CONTENT COCKPIT ── */}
-      <div className="flex min-w-0 flex-1 flex-col lg:pl-[264px] min-h-screen">
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-[224px] min-h-screen">
         
         {/* Oval Corporate Header */}
         <header className="enterprise-header sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-6">

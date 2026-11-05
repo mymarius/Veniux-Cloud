@@ -34,3 +34,4 @@ import './veniux-brand.css';
 import './design-system.css';
 
 import './mobile-professional.css';
+import './vx-foundation.css';

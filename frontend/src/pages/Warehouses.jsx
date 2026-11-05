@@ -189,7 +189,7 @@ export default function Warehouses() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">TOPLAM KAPASİTE</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">Toplam kapasite</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-brand-600 dark:text-brand-400">
             {totalCapacity.toLocaleString('tr-TR')}
           </p>
@@ -197,7 +197,7 @@ export default function Warehouses() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">MEVCUT STOKLU ÜRÜN</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Stoklu ürün</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-white">
             {totalStockItems.toLocaleString('tr-TR')}
           </p>
@@ -278,11 +278,11 @@ export default function Warehouses() {
               {/* Quick Specs */}
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/80 text-xs font-mono">
                 <div>
-                  <span className="text-[10px] text-gray-400 block">KAPASİTE</span>
+                  <span className="text-[10px] text-gray-400 block">Kapasite</span>
                   <span className="font-bold text-slate-700 dark:text-slate-300">{wh.capacity || 10000} Birim</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-gray-400 block">MEVCUT ÜRÜN</span>
+                  <span className="text-[10px] text-gray-400 block">Mevcut ürün</span>
                   <span className="font-bold text-brand-600 dark:text-brand-400">{wh.unique_product_count || 0} SKU</span>
                 </div>
               </div>

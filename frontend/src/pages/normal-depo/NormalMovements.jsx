@@ -255,25 +255,25 @@ export default function NormalMovements() {
       {/* Metric Strip */}
       <div className="vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM İŞLEM KAYDI</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam işlem</span>
           <p className="text-3xl font-light text-slate-800">{movements.length}</p>
           <span className="text-xs text-slate-400 mt-1">Deftere işlenen hareketler</span>
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM GİRİŞ HACMİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam giriş</span>
           <p className="text-3xl font-light text-emerald-600">+{totalInbound.toLocaleString('tr-TR')}</p>
           <span className="text-xs text-slate-400 mt-1">Mal kabul ve iadeler</span>
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">TOPLAM ÇIKIŞ HACMİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam çıkış</span>
           <p className="text-3xl font-light text-rose-600">-{totalOutbound.toLocaleString('tr-TR')}</p>
           <span className="text-xs text-slate-400 mt-1">Toplama ve sevkiyat</span>
         </div>
 
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">RAF TRANSFERLERİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Raf transferleri</span>
           <p className="text-3xl font-light text-slate-800">{totalTransfers}</p>
           <span className="text-xs text-slate-400 mt-1">Bin-to-bin ikmal hareketleri</span>
         </div>
