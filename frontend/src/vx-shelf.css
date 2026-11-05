@@ -153,3 +153,37 @@ html:root[data-design='veniux'] .enterprise-shell[data-sb-collapsed='true'] .sb 
 html:root[data-design='veniux'] .enterprise-shell[data-sb-collapsed='true'] .sb .sb-release-notes{justify-content:center;padding:0}
 html:root[data-design='veniux'] .enterprise-shell[data-sb-collapsed='true'] .sb .sb-account{flex-direction:column;gap:6px;padding:10px 0;justify-content:center}
 }
+/* Asistan: koyu başlıklı fiş */
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat{background:#fffdf8;border:1px solid #17263a;border-radius:0;box-shadow:9px 9px 0 #e4570a;color:#17263a;font-family:Archivo,'Segoe UI',Arial,sans-serif}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header{position:relative;padding:14px 16px 22px;background:#17263a;border:0;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header:after{content:'';position:absolute;left:0;right:0;bottom:0;height:9px;background:linear-gradient(135deg,transparent 50%,#fffdf8 50%) 0 100%/18px 9px repeat-x,linear-gradient(225deg,transparent 50%,#fffdf8 50%) 0 100%/18px 9px repeat-x}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header strong{color:#fff;font-size:25px;font-weight:900;font-stretch:68%;line-height:1}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header small{color:#bcc6d4;font-size:13px}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header :is(button,a){border-radius:0;background:none;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header :is(button,a):hover{background:#e4570a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat header :is(button,a) svg{color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-body{background:#fffdf8;font-size:15px}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-welcome{font-size:21px;font-weight:800;font-stretch:80%;line-height:1.15}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-message{border-radius:0;background:#f4eee2;border-left:4px solid #17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-message.user{background:#17263a;border-left:0;border-right:4px solid #e4570a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-message.user small{color:#ffb27f}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-hint,html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor small{color:#4d5a6b}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-suggestions button{border:2px solid #17263a;border-radius:0;background:none;color:#17263a;font-size:13.5px;font-weight:700}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-suggestions button:hover:not(:disabled){background:#17263a;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor{padding:0;border:0;background:none}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor>strong{display:inline-block;padding:1px 7px;border:2px solid #0d7a57;color:#0d7a57;font-size:13px;font-weight:800;transform:rotate(-1.5deg)}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor-warning{margin-top:10px;padding:12px 12px 10px;border:0;border-top:1px dashed #bfb196;border-left:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor-warning p{color:#17263a;font-weight:600}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-monitor-warning :is(a,button){color:#b84504!important;font-weight:700}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-approval{border:3px solid #17263a;border-radius:0;background:#fbeea8;color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-plans button,html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat-register{border-radius:0}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat form{padding:12px 14px;border-top:2px solid #17263a;background:#f4eee2}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat input{border:2px solid #17263a;border-radius:0;background:#fff;color:#17263a;font-size:16px}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat input:focus{outline:3px solid #e4570a;outline-offset:0}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat form button{border-radius:0;background:#e4570a!important;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat form button:disabled{background:#c9bda6!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-chat footer{background:#f4eee2;color:#4d5a6b;font-size:12.5px}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-assistant-launcher{width:58px;height:58px;background:#17263a;box-shadow:4px 4px 0 #e4570a}
+html:root[data-design='veniux']:not([data-theme='dark']) .veniux-assistant-launcher img{width:42px;height:42px}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .veniux-chat{box-shadow:none;border-width:0}
+@media(min-width:1024px){html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content{padding-bottom:96px}}
