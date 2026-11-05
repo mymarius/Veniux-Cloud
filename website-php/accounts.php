@@ -240,7 +240,7 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="stylesheet" href="/assets/veniux-site.css">
     <link rel="stylesheet" href="/assets/home.css">
 </head>
-<body style="background-color:#12161f; color:#e8ecf4;">
+<body>
 <header class="dp-header">
     <div class="dp-container dp-nav">
         <a class="dp-brand" href="/" aria-label="Veniux ana sayfa">

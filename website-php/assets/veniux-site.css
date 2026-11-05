@@ -110,8 +110,8 @@ p{margin:0 0 1em}
 .honeypot{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
 [data-partner-field]{display:none}
 .dp-form:has(select[name=form_type] option[value=partnership]:checked) [data-partner-field]{display:block}
-.dp-form>div[style]:has(>.dp-form-group){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media(max-width:600px){.dp-form>div[style]:has(>.dp-form-group){grid-template-columns:minmax(0,1fr)}}
+.vs-form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:600px){.vs-form-row{grid-template-columns:minmax(0,1fr)}}
 
 .vs-intro{padding:64px 0 40px}
 .vs-columns{padding:64px 0;border:0;background:#e6d9c2;box-shadow:0 0 0 100vmax #e6d9c2;clip-path:inset(0 -100vmax)}

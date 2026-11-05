@@ -186,10 +186,10 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
 
 <main id="main">
 <?php if(!$notFound && $path!=='/'):?>
-    <nav class="breadcrumbs wrap dp-container" aria-label="Sayfa yolu" style="padding-top:20px;">
-        <a href="/" style="color:#aab4c6;">Ana sayfa</a>
-        <span aria-hidden="true" style="color:#2d3547;"> / </span>
-        <span style="color:#e8ecf4;"><?=e($page['label'])?></span>
+    <nav class="breadcrumbs wrap dp-container" aria-label="Sayfa yolu">
+        <a href="/">Ana sayfa</a>
+        <span aria-hidden="true"> / </span>
+        <span><?=e($page['label'])?></span>
     </nav>
 <?php endif;?>
 
@@ -225,18 +225,14 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
             <div class="dp-contact-card">
                 <div>
                     <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> Demo veya teklif</p>
-                    <h2 class="dp-h2" style="font-size:34px;">Bize yazın</h2>
-                    <p style="color:#aab4c6; font-size:15px; line-height:1.8; margin-bottom:28px;">
+                    <h2 class="dp-h2">Bize yazın</h2>
+                    <p>
                         İşletmenizi, depo sayınızı ve ne aradığınızı yazın. Size dönüp programı kendi işinize göre gösterelim.</p>
-                    <div style="background:#12161f; border:1px solid #2d3547; border-radius:14px; padding:20px;">
-                        <strong style="color:#e8ecf4; display:block; font-size:14px; margin-bottom:6px;">Güvenli ve Doğrudan İletişim</strong>
-                        <p style="color:#aab4c6; font-size:12.5px; margin:0; line-height:1.6;">Bilgileriniz KVKK standartlarına uygun olarak saklanır, 3. şahıslarla paylaşılmaz.</p>
-                    </div>
                 </div>
 
                 <div class="dp-contact-form-area">
                     <?php if($contactResult):?>
-                        <div class="dp-toast <?=$contactResult[0]?'dp-toast--success':'dp-toast--error'?>" style="background:<?=$contactResult[0]?'#0f3529':'#3a141a'?>; border:1px solid <?=$contactResult[0]?'#1d6b53':'#73232b'?>; color:<?=$contactResult[0]?'#a2f2d9':'#ff9da8'?>; padding:14px 18px; border-radius:10px; margin-bottom:20px;" role="<?=$contactResult[0]?'status':'alert'?>">
+                        <div class="dp-toast <?=$contactResult[0]?'dp-toast--success':'dp-toast--error'?>" role="<?=$contactResult[0]?'status':'alert'?>">
                             <?=e($contactResult[1])?>
                         </div>
                     <?php endif;?>
@@ -247,20 +243,20 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
 
                     <form method="post" action="/#iletisim" class="dp-form">
                         <?php if($selectedPlan):?>
-                            <div style="background:#212838; border:1px solid #f2711c; border-radius:10px; padding:14px; margin-bottom:18px;">
-                                <p class="dp-eyebrow" style="margin-bottom:4px;">SEÇTİĞİNİZ PLAN</p>
-                                <strong style="color:#e8ecf4;"><?=e($selectedPlan["name"])?> · <?=e($selectedPlan["period"])?></strong>
-                                <p style="color:#aab4c6; font-size:12px; margin:2px 0 0 0;"><?=siteMoney($selectedPlan["amount_try"])?> · %20 KDV dahil · Online ödeme alınmaz.</p>
+                            <div class="vs-plan-box">
+                                <p class="vs-plan-kicker">SEÇTİĞİNİZ PLAN</p>
+                                <strong><?=e($selectedPlan["name"])?> · <?=e($selectedPlan["period"])?></strong>
+                                <p><?=siteMoney($selectedPlan["amount_try"])?> · %20 KDV dahil · Online ödeme alınmaz.</p>
                                 <input type="hidden" name="plan" value="<?=e($selectedPlan["code"])?>">
                             </div>
                         <?php endif;?>
 
                         <input type="hidden" name="token" value="<?=e($_SESSION['contact_token'])?>">
-                        <div class="honeypot" style="display:none;" aria-hidden="true">
+                        <div class="honeypot" aria-hidden="true">
                             <label>Web sitesi<input name="website" tabindex="-1" autocomplete="off"></label>
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="vs-form-row">
                             <div class="dp-form-group">
                                 <label class="dp-label">Adınız Soyadınız *</label>
                                 <input class="dp-input" name="name" value="<?=formValue('name')?>" autocomplete="name" minlength="2" maxlength="100" required placeholder="Adınız Soyadınız">
@@ -276,7 +272,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                             <input class="dp-input" name="company" value="<?=formValue('company')?>" autocomplete="organization" maxlength="160" placeholder="İşletmenizin adı">
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div class="vs-form-row">
                             <div class="dp-form-group">
                                 <label class="dp-label">Talep Türü *</label>
                                 <select class="dp-select" name="form_type" required>
@@ -296,7 +292,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                             </div>
                         </div>
 
-                        <div class="dp-form-group" data-partner-field style="display:none;">
+                        <div class="dp-form-group" data-partner-field>
                             <label class="dp-label">Ortaklık Alanı (Yalnızca ortaklık talepleri için)</label>
                             <select class="dp-select" name="partner_type">
                                 <option value="">Seçin</option>
@@ -306,14 +302,14 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                             </select>
                         </div>
 
-                        <div style="margin-bottom:20px;">
-                            <label style="display:flex; align-items:flex-start; gap:10px; font-size:12.5px; color:#aab4c6; cursor:pointer;">
-                                <input type="checkbox" name="consent" value="1" required style="margin-top:3px;">
+                        <div class="vs-consent">
+                            <label>
+                                <input type="checkbox" name="consent" value="1" required>
                                 <span>Bilgilerimin bu görüşme talebini değerlendirmek ve benimle iletişim kurmak amacıyla kullanılmasını onaylıyorum.</span>
                             </label>
                         </div>
 
-                        <button class="dp-btn dp-btn--accent" type="submit" style="width:100%; justify-content:center;">
+                        <button class="dp-btn dp-btn--accent" type="submit">
                             Gönder
                         </button>
                     </form>

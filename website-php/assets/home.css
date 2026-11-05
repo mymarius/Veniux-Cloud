@@ -402,3 +402,14 @@ main .vs-legacy h1,main h1{max-width:13em}
 .dp-header:has(+ .dp-portal .ac-wrap){background:var(--paper);border-bottom:1px solid var(--line);box-shadow:none;backdrop-filter:none}
 .dp-header:has(+ .dp-portal .ac-wrap) :is(.dp-brand,.dp-btn--ghost){color:var(--ink)}
 .dp-header:has(+ .dp-portal .ac-wrap) .dp-btn--accent{background:var(--orange);border-color:var(--orange);color:#fff}
+
+.dp-toast{margin-bottom:18px;padding:12px 16px;border:2px solid;font-weight:600}
+.dp-toast--success{border-color:var(--green);color:var(--green)}
+.dp-toast--error{border-color:var(--red);color:var(--red)}
+.vs-plan-box{margin-bottom:18px;padding:14px;border:2px solid var(--orange);color:var(--ink)}
+.vs-plan-kicker{margin:0;font-size:14px;font-weight:700}
+.vs-plan-box p:last-of-type{margin:2px 0 0;font-size:15px}
+.vs-consent{margin-bottom:18px;color:var(--ink);font-size:15px}
+.vs-consent label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.vs-consent input{margin-top:4px}
+.dp-form button[type=submit]{width:100%;justify-content:center}

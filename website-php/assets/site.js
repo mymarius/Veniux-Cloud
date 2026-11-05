@@ -31,6 +31,7 @@ if (!reduced.matches && 'IntersectionObserver' in window) {
 }
 const toggle = document.querySelector('.menu-toggle');
 const menu = document.getElementById('mobile-menu');
+if(toggle&&menu){
 const drawer=document.createElement('dialog');
 drawer.className='mobile-drawer';drawer.setAttribute('aria-label','Veniux gezinme menüsü');
 const drawerTop=document.createElement('div');drawerTop.className='drawer-top';
@@ -55,6 +56,7 @@ menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu
 drawer.addEventListener('cancel',event=>{event.preventDefault();closeMenu();});
 drawer.addEventListener('click',event=>{if(event.target===drawer){const r=drawer.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeMenu();}});
 window.matchMedia('(min-width:901px)').addEventListener('change',event=>{if(event.matches)closeMenu();});
+}
 const steps = [
  ['↓','İLK ADIM / MAL KABUL','Her şey bir kayıtla başlar.','Ürünü, miktarı ve lot bilgisini kaydedin. Girişin hangi depoya yapıldığını görün.','Mal kabul alanı'],
  ['▦','İKİNCİ ADIM / DEPO & RAF','Her ürünün yeri belli.','Raf ve lokasyon kayıtlarıyla ürünün bulunduğu yeri takip edin. Depolar arası hareketleri görün.','Ana depo · Raf A-02'],
@@ -75,7 +77,7 @@ let scheduled=false;
 const progressBar=document.querySelector('.scroll-progress');
 let progressTotal=0;
 function measureProgress(){progressTotal=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);}
-function updateProgress(){progressBar.style.transform=`scaleX(${progressTotal>0?Math.min(1,window.scrollY/progressTotal):0})`;scheduled=false;}
+function updateProgress(){if(!progressBar){scheduled=false;return;}progressBar.style.transform=`scaleX(${progressTotal>0?Math.min(1,window.scrollY/progressTotal):0})`;scheduled=false;}
 window.addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateProgress);}},{passive:true});
 // Measure after the initial frame, rather than flushing layout after startup writes.
 function refreshProgress(){requestAnimationFrame(()=>requestAnimationFrame(()=>{measureProgress();updateProgress();}));}
@@ -105,8 +107,8 @@ if(!reduced.matches && finePointer.matches && art){
 }
 const themeButton=document.querySelector('.theme-toggle');
 function updateThemeButton(){const dark=document.documentElement.dataset.theme==='dark';themeButton.setAttribute('aria-pressed',String(dark));themeButton.setAttribute('aria-label',dark?'Açık temaya geç':'Koyu temaya geç');themeButton.querySelector('span').textContent=dark?'☀':'◐';document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#142322':'#f8f8f3');}
-themeButton.addEventListener('click',()=>{const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;try{localStorage.setItem('veniux-site-theme',theme);}catch{}updateThemeButton();});
-updateThemeButton();
+if(themeButton){themeButton.addEventListener('click',()=>{const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;try{localStorage.setItem('veniux-site-theme',theme);}catch{}updateThemeButton();});
+updateThemeButton();}
 reduced.addEventListener('change',event=>{
  if(event.matches){document.documentElement.classList.remove('js-motion');document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));}
 });

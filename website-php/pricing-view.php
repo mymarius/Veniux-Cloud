@@ -21,7 +21,7 @@
       <?php if($annual):?><p class="pr-save"><?=siteMoney($saving)?> daha az</p><?php endif;?>
       <dl class="pr-limits"><div><dd><?=e((string)$plan['warehouses'])?></dd><dt>depo</dt></div><div><dd><?=e((string)$plan['users'])?></dd><dt>kullanıcı</dt></div><div><dd><?=e((string)$plan['devices'])?></dd><dt>cihaz</dt></div></dl>
       <ul><?php foreach($plan['features'] as $feature):?><li><?=e($feature)?></li><?php endforeach;?></ul>
-      <a class="hx-btn" href="/fiyatlandirma?donem=<?=$period?>&amp;plan=<?=$code?>%3A<?=$period?>#iletisim"><?=e($plan['name'])?> için görüşelim</a>
+      <a class="hx-btn" href="/?request_type=quote&amp;plan=<?=$code?>%3A<?=$period?>#iletisim"><?=e($plan['name'])?> için görüşelim</a>
       <?=homeBarcode('paket-'.$code,26)?>
     </article>
   <?php endforeach;?>
