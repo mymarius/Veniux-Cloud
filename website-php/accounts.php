@@ -578,69 +578,30 @@ function accountRoutes(string $path,array $config):bool {
     </div>
 
 <?php else:?>
-    <!-- Unauthenticated Login / Register Form in Dark Precision -->
-    <div style="max-width:440px; margin:40px auto; background:#1a2030; border:1px solid #2d3547; border-radius:20px; padding:40px; box-shadow:0 16px 48px rgba(0,0,0,0.6);">
-        <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> BİLGİSAYAR VE ANDROID</p>
-        <h1 class="dp-h2" style="font-size:26px; margin-bottom:8px;"><?=e($title)?></h1>
-        <p style="color:#aab4c6; font-size:13.5px; margin-bottom:28px;">
-            <?=$register?'İşletmenizi kaydedin ve Veniux indirme merkezine hemen erişin.':'Hesabınıza giriş yaparak lisanslarınızı ve kurulum paketlerinizi yönetin.'?>
-        </p>
-
-        <?php if($error):?>
-            <div style="background:#3a141a; border:1px solid #73232b; color:#ff9da8; padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:20px;" role="alert">
-                <?=e($error)?>
-            </div>
-        <?php endif;?>
-
-        <form class="account-form" action="<?=$register?'/kayit':'/giris'?>" method="post">
-            <input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>">
-            <?php if($register):?>
-                <div class="dp-form-group">
-                    <label class="dp-label">İşletme Adı</label>
-                    <input class="dp-input" name="company" required maxlength="160" autocomplete="organization" placeholder="Firma veya mağaza adınız">
-                </div>
-            <?php endif;?>
-            <div class="dp-form-group">
-                <label class="dp-label">E-posta Adresi</label>
-                <input class="dp-input" name="email" type="email" required maxlength="190" autocomplete="email" placeholder="ornek@isletme.com">
-            </div>
-            <div class="dp-form-group">
-                <label class="dp-label">Şifre</label>
-                <input class="dp-input" name="password" type="password" required minlength="14" maxlength="72" autocomplete="<?=$register?'new-password':'current-password'?>" placeholder="••••••••••••••">
-                <small style="color:#64748B; font-size:11.5px; display:block; margin-top:4px;">En az 14 karakter uzunluğunda olmalıdır.</small>
-            </div>
-            <button class="dp-btn dp-btn--primary" style="width:100%; margin-top:8px;" type="submit">
-                <?=$register?'Hesap Oluştur ve İndirmelere Geç':'Giriş Yap'?>
-            </button>
-            <p style="text-align:center; font-size:13px; color:#aab4c6; margin-top:20px;">
-                <?=$register?'Zaten bir hesabınız var mı?':'Henüz bir hesabınız yok mu?'?>
-                <a href="<?=$register?'/giris':'/kayit'?>" style="color:#ff9a5c; font-weight:700;">
-                    <?=$register?'Giriş yapın':'Hemen kayıt olun'?>
-                </a>
-            </p>
-        </form>
-
-        <p class="download-note" style="margin-top:28px; padding-top:20px; border-top:1px solid #212838; font-size:11.5px; color:#64748B; line-height:1.6;">
-            Müşteri hesapları sitedeki indirmeler içindir. Veniux sahibi siteye merkezi yönetici hesabıyla giriş yapar. İşletme kullanıcılarını programın içinde oluşturursunuz. E-posta ve işletme adınız hesap hizmeti için saklanır; şifreniz özetlenerek korunur.
-        </p>
+    <div class="ac-wrap">
+        <div class="ac-side" aria-hidden="true">
+            <p class="ac-side-big"><?=$register?'Rafa yeni bir işletme.':'Tekrar hoş geldiniz.'?></p>
+            <div class="ac-key"><b>VENIUX</b><span>Windows ve Android</span><?=function_exists('homeBarcode')?homeBarcode('hesap',40):''?></div>
+        </div>
+        <div class="ac-card">
+            <h1><?=e($title)?></h1>
+            <p class="ac-lead"><?=$register?'İşletmenizi kaydedin ve Veniux indirme merkezine hemen erişin.':'Hesabınıza giriş yaparak lisanslarınızı ve kurulum paketlerinizi yönetin.'?></p>
+            <?php if($error):?><div class="ac-error" role="alert"><?=e($error)?></div><?php endif;?>
+            <form class="ac-form" action="<?=$register?'/kayit':'/giris'?>" method="post">
+                <input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>">
+                <?php if($register):?><label>İşletme adı<input name="company" required maxlength="160" autocomplete="organization" placeholder="Firma veya mağaza adınız"></label><?php endif;?>
+                <label>E-posta adresi<input name="email" type="email" required maxlength="190" autocomplete="email" placeholder="ornek@isletme.com"></label>
+                <label>Şifre<input name="password" type="password" required minlength="14" maxlength="72" autocomplete="<?=$register?'new-password':'current-password'?>"><small>En az 14 karakter.</small></label>
+                <button class="hx-btn" type="submit"><?=$register?'Hesap oluştur ve indirmelere geç':'Giriş yap'?></button>
+                <p class="ac-switch"><?=$register?'Zaten bir hesabınız var mı?':'Henüz bir hesabınız yok mu?'?> <a href="<?=$register?'/giris':'/kayit'?>"><?=$register?'Giriş yapın':'Hemen kayıt olun'?></a></p>
+            </form>
+            <p class="ac-note">Müşteri hesapları sitedeki indirmeler içindir. Veniux sahibi siteye merkezi yönetici hesabıyla giriş yapar. İşletme kullanıcılarını programın içinde oluşturursunuz. E-posta ve işletme adınız hesap hizmeti için saklanır; şifreniz özetlenerek korunur.</p>
+        </div>
     </div>
 <?php endif;?>
 </main>
 
-<footer class="dp-footer">
-    <div class="dp-container dp-footer-bottom">
-        <div>© <?=date('Y')?> Veniux. Tüm hakları saklıdır.</div>
-        <div style="display:flex; gap:20px; flex-wrap:wrap;">
-            <a href="/">Ana Sayfa</a>
-            <a href="/fiyatlandirma">Fiyatlandırma</a>
-            <a href="/program-indir">İndir</a>
-            <a href="/kullanim-kosullari">Kullanım Koşulları</a>
-            <a href="/gizlilik-politikasi">Gizlilik</a>
-            <a href="/kvkk-aydinlatma">KVKK</a>
-        </div>
-    </div>
-</footer>
-<?php require __DIR__.'/cookie-consent.php'; ?>
+<?php require __DIR__.'/components/footer.php'; ?>
 </body>
 </html><?php
     return true;
