@@ -50,8 +50,7 @@ const chatWithAI=async(req,res,next)=>{try{
  res.json({reply,proposal,result,source:'nvidia',captured_at:data.captured_at,context_modules:['stok','satın alma','depolar','WMS','CRM','personel','satış','ayarlar','lisans'],model:process.env.NVIDIA_MODEL||'nvidia/nemotron-3-super-120b-a12b'});
 }catch(e){next(e);}};
 // Smart Inventory Forecasting & Reorder Suggestions (EOQ model)
-const getInventoryForecast = async (req, res) => {
-  try {
+async function computeForecast(tenantId) {
     const productsResult = await pool.query(`
       SELECT 
         p.*,
@@ -64,18 +63,18 @@ const getInventoryForecast = async (req, res) => {
       FROM products p
       LEFT JOIN suppliers s ON p.supplier_id = s.id AND s.tenant_id=p.tenant_id
       WHERE p.tenant_id=$1
-    `,[req.user.tenantId]);
+    `,[tenantId]);
 
     const forecastItems = productsResult.rows.map(p => {
-      const currentQty = p.total_quantity || 0;
-      const monthlyOut = p.monthly_outbound || 0;
+      const currentQty = Number(p.total_quantity || 0);
+      const monthlyOut = Number(p.monthly_outbound || 0);
       const dailyVelocity = monthlyOut > 0 ? (monthlyOut / 30) : 0.5;
       const leadTime = p.lead_time_days || 3;
 
       const daysUntilStockout = dailyVelocity > 0 ? Math.round(currentQty / dailyVelocity) : 999;
       
-      const targetStock = p.max_stock_level || Math.max(30, Math.round(dailyVelocity * 45));
-      const safetyStock = p.min_stock_level || Math.round(dailyVelocity * leadTime * 1.5);
+      const targetStock = Number(p.max_stock_level) || Math.max(30, Math.round(dailyVelocity * 45));
+      const safetyStock = Number(p.min_stock_level) || Math.round(dailyVelocity * leadTime * 1.5);
       const suggestedReorder = Math.max(0, targetStock - currentQty);
 
       let urgency = 'safe';
@@ -97,7 +96,11 @@ const getInventoryForecast = async (req, res) => {
         lead_time_days: leadTime,
         days_until_stockout: daysUntilStockout,
         suggested_reorder_qty: suggestedReorder,
-        estimated_order_cost: suggestedReorder * (p.purchase_price || 0),
+        unit: p.unit,
+        module_type: p.module_type,
+        purchase_price: Number(p.purchase_price || 0),
+        velocity_estimated: monthlyOut === 0,
+        estimated_order_cost: suggestedReorder * Number(p.purchase_price || 0),
         supplier_name: p.supplier_name || 'Bilinmiyor',
         supplier_id: p.supplier_id,
         urgency
@@ -107,7 +110,11 @@ const getInventoryForecast = async (req, res) => {
     const urgencyOrder = { critical: 0, warning: 1, safe: 2 };
     forecastItems.sort((a, b) => urgencyOrder[a.urgency] - urgencyOrder[b.urgency] || a.days_until_stockout - b.days_until_stockout);
 
-    res.json(forecastItems);
+    return forecastItems;
+}
+const getInventoryForecast = async (req, res) => {
+  try {
+    res.json(await computeForecast(req.user.tenantId));
   } catch (error) {
     console.error('Inventory forecast error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -143,6 +150,7 @@ const getAISummaries = async (req, res) => {
 module.exports = {
   chatWithAI,
   getInventoryForecast,
+  computeForecast,
   runAIAnalysisEndpoint,
   getAISummaries
 };

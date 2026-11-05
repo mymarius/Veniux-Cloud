@@ -33,6 +33,8 @@ export default function AIAssistant() {
   const [aiStatus, setAiStatus] = useState('NVIDIA AI · Henüz yanıt alınmadı');
   const [analyzing, setAnalyzing] = useState(false);
   const [forecasts, setForecasts] = useState([]);
+  const [drafting, setDrafting] = useState(false);
+  const [draftResult, setDraftResult] = useState('');
   const [loadingForecast, setLoadingForecast] = useState(true);
   const [proposal,setProposal]=useState(null),[applying,setApplying]=useState(false);
 
@@ -51,11 +53,24 @@ export default function AIAssistant() {
     try {
       setLoadingForecast(true);
       const res = await apiClient.get('/ai/forecast');
-      setForecasts(res.data);
+      setForecasts(res.data.filter(item => item.urgency !== 'safe' && item.suggested_reorder_qty > 0));
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingForecast(false);
+    }
+  };
+
+  const createDrafts = async () => {
+    setDrafting(true);
+    setDraftResult('');
+    try {
+      const { data } = await apiClient.post('/purchase-orders/from-forecast', { product_ids: forecasts.map(f => f.product_id) }, { headers: { 'Idempotency-Key': crypto.randomUUID() } });
+      setDraftResult(`${data.orders.length} satın alma taslağı oluşturuldu. Satın Alma ekranından onaylayın.${data.skipped.length ? ` ${data.skipped.length} ürün atlandı: ${data.skipped.map(s => `${s.name} (${s.reason})`).join(', ')}.` : ''}`);
+    } catch (err) {
+      setDraftResult(err.response?.data?.error || 'Taslak oluşturulamadı.');
+    } finally {
+      setDrafting(false);
     }
   };
 
@@ -248,8 +263,8 @@ export default function AIAssistant() {
         <div className="lg:col-span-5 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col h-[580px] overflow-hidden">
           <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
             <div>
-              <h3 className="font-bold text-sm text-slate-800">Otomatik Sipariş & Stok Öngörüleri</h3>
-              <p className="text-slate-500 text-[11px] font-medium mt-0.5">EOQ tabanlı sistem önerileri</p>
+              <h3 className="font-bold text-sm text-slate-800">Sipariş önerileri</h3>
+              <p className="text-slate-500 text-[11px] font-medium mt-0.5">Satış hızı ve tedarik süresine göre hesaplanır</p>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
               Sistem Tavsiyesi
@@ -268,7 +283,7 @@ export default function AIAssistant() {
                 <p className="text-xs text-slate-500 mt-1">Tüm stok seviyeleri tanımlı güvenlik aralığında.</p>
               </div>
             ) : (
-              forecasts.map((f, idx) => (
+              [<div key="draft" className="flex flex-wrap items-center justify-between gap-2"><button type="button" className="btn-primary" disabled={drafting} onClick={createDrafts}>{drafting ? 'Oluşturuluyor…' : `${forecasts.length} ürün için taslak oluştur`}</button>{draftResult && <span role="status" className="text-xs text-slate-600">{draftResult}</span>}</div>, ...forecasts.map((f, idx) => (
                 <div
                   key={idx}
                   className="p-4 rounded-md bg-white border border-slate-200 shadow-sm text-[13px]"
@@ -281,19 +296,19 @@ export default function AIAssistant() {
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Mevcut Stok</p>
-                      <p className="font-semibold text-slate-800">{f.currentStock} {f.unit}</p>
+                      <p className="font-semibold text-slate-800">{f.current_quantity} {f.unit}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tükenecek Süre</p>
-                      <p className="font-bold text-rose-600">{f.daysUntilDepletion} Gün</p>
+                      <p className="font-bold text-rose-600">{f.velocity_estimated ? 'Satış verisi az' : `${f.days_until_stockout} Gün`}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Önerilen Sipariş</p>
-                      <p className="font-bold text-emerald-600">+{f.recommendedOrder} {f.unit}</p>
+                      <p className="font-bold text-emerald-600">+{f.suggested_reorder_qty} {f.unit}</p>
                     </div>
                   </div>
                 </div>
-              ))
+              ))]
             )}
           </div>
         </div>

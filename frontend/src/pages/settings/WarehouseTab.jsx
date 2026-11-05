@@ -167,7 +167,7 @@ export default function WarehouseTab() {
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand-500"
               />
               <p className="text-[11px] text-gray-500 mt-1">
-                Stok miktarı bu oranın altına düştüğünde sistem otomatik sipariş taslağı oluşturur.
+                Sipariş önerileri Operasyon Asistanı ekranında listelenir; tek tıkla satın alma taslağına dönüştürülür.
               </p>
             </div>
 

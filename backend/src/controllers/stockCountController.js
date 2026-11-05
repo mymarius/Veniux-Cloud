@@ -1,6 +1,14 @@
 const pool = require('../config/database');
 const ledger = require('../services/inventoryTransactionService');
 
+// Sayım farkı kesinleştiği anda yöneticiye görünür; eksik para kaybı olduğu için uyarı düzeyindedir.
+async function notifyVariance(client, tenantId, count, productId, applied) {
+  const product = (await client.query('SELECT name,purchase_price FROM products WHERE id=$1 AND tenant_id=$2', [productId, tenantId])).rows[0];
+  const units = Math.abs(applied), value = units * Number(product?.purchase_price || 0);
+  const message = `Sayım #${count.count_no}: ${product?.name || 'Ürün'} ${units} adet ${applied < 0 ? 'eksik' : 'fazla'} çıktı${value ? ` (yaklaşık ${value.toLocaleString('tr-TR')} TL)` : ''}.`;
+  await client.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'count_variance',$4,$5,'unread')", [tenantId, productId, count.warehouse_id, applied < 0 ? 'warning' : 'info', message]);
+}
+
 // 1. Get all stock counts
 const getAllStockCounts = async (req, res) => {
   try {
@@ -202,6 +210,7 @@ const finalizeStockCount = async (req, res) => {
           applied,
           `Sayım Fark Fişi #${count.count_no} (${item.system_quantity} -> ${item.counted_quantity})`
         ]);
+        if (applied !== 0) await notifyVariance(client, tenantId, count, item.product_id, applied);
         if (applied !== 0) await ledger.recordProjectedEntry(client, { tenant_id: tenantId, warehouse_id: count.warehouse_id, product_id: item.product_id, transaction_type: 'COUNT_ADJUSTMENT', quantity: applied, reference_type: 'stock_count', reference_id: count.id, user_id: req.user.userId, notes: `Sayım Fark Fişi #${count.count_no}` });
       }
     }

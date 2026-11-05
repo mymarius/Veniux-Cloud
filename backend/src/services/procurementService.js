@@ -331,7 +331,28 @@ async function detail(u, id) {
     };
   });
 }
+// Stok önerilerini tedarikçi başına taslağa çevirir; onay ve gönderim kullanıcıda kalır.
+async function draftsFromForecast(u, body = {}, key) {
+  roles(u);
+  if (typeof key !== 'string' || !key.trim() || key.length > 90) fail('Tekrar göndermeyi önleyen işlem anahtarı gerekli.');
+  const wanted = Array.isArray(body.product_ids) ? new Set(body.product_ids.map(Number)) : null;
+  const items = (await require('../controllers/aiController').computeForecast(u.tenantId)).filter(i => i.urgency !== 'safe' && i.suggested_reorder_qty > 0 && (!wanted || wanted.has(i.product_id)));
+  if (!items.length) fail('Sipariş önerilen ürün bulunamadı.');
+  const warehouses = (await db.query('SELECT id,warehouse_type FROM warehouses WHERE tenant_id=$1 ORDER BY id', [u.tenantId])).rows;
+  const groups = new Map(), skipped = [];
+  for (const item of items) {
+    const target = body.warehouse_id ? warehouses.find(w => w.id === Number(body.warehouse_id) && w.warehouse_type === item.module_type) : warehouses.find(w => w.warehouse_type === item.module_type);
+    if (!item.supplier_id || !target) { skipped.push({ product_id: item.product_id, name: item.name, reason: item.supplier_id ? 'Uygun depo yok' : 'Tedarikçi tanımlı değil' }); continue; }
+    const group = item.supplier_id + ':' + target.id;
+    if (!groups.has(group)) groups.set(group, { supplier_id: item.supplier_id, target_warehouse_id: target.id, notes: 'Stok önerisinden oluşturuldu', items: [] });
+    groups.get(group).items.push({ product_id: item.product_id, quantity: Math.ceil(item.suggested_reorder_qty), unit_price: item.purchase_price });
+  }
+  const orders = [];
+  for (const [group, order] of groups) orders.push((await create(u, order, key + ':' + group)).order);
+  return { orders, skipped };
+}
 module.exports = {
+  draftsFromForecast,
   create,
   transition,
   receive,

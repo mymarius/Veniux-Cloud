@@ -135,6 +135,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`=========================================`);
 
     require('./services/backupService').startScheduler();
+    if (process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') require('./services/stockLossMonitor').startScheduler();
     // Optional: Start cron background tasks
     try {
       if (process.env.NODE_ENV !== 'test' && process.env.VENIUX_DISABLE_BACKGROUND_JOBS!=='1' && !require('./services/centralLicense').enabled()) {

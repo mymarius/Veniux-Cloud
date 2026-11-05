@@ -881,7 +881,7 @@ describe('MySQL Real Application Flows & Multi-Process Cutover Verification', ()
     // 64-bit ID exceeding Number.MAX_SAFE_INTEGER (9007199254740991)
     const BIG_64BIT_ID = '9007199254740995';
 
-    const [tRow] = await runtimeConn.query('SELECT id FROM tenants LIMIT 1');
+    const [tRow] = await runtimeConn.query("SELECT t.id FROM tenants t WHERE EXISTS (SELECT 1 FROM warehouses w WHERE w.tenant_id=t.id) AND EXISTS (SELECT 1 FROM users u WHERE u.tenant_id=t.id AND u.role='manager') ORDER BY t.id LIMIT 1");
     const tenantId = tRow[0].id;
 
     // Ensure license exists
