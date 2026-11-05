@@ -8,7 +8,7 @@ $navLinks=['/stok-yonetimi'=>'Stok','/depo-yonetimi'=>'Depo','/market-pos'=>'Kas
     <nav class="vs-nav-links" aria-label="Ana menü">
       <?php foreach($navLinks as $url=>$label):?><a href="<?=e($url)?>" <?=$path===$url?'aria-current="page"':''?>><?=e($label)?></a><?php endforeach;?>
     </nav>
-    <div class="vs-nav-cta"><a class="vs-nav-login" href="/giris">Giriş yap</a><a class="vs-btn vs-btn-primary vs-btn-sm" href="/?request_type=demo#iletisim">Demo isteyin</a></div>
+    <div class="vs-nav-cta"><a class="vs-nav-login" href="/giris">Giriş yap</a><a class="vs-btn vs-btn-sm" href="/?request_type=demo#iletisim">Demo isteyin</a></div>
     <details class="vs-mobile">
       <summary aria-label="Menüyü aç">Menü</summary>
       <nav aria-label="Mobil menü"><?php foreach($navLinks as $url=>$label):?><a href="<?=e($url)?>"><?=e($label)?></a><?php endforeach;?><a href="/giris">Giriş yap</a><a href="/?request_type=demo#iletisim">Demo isteyin</a></nav>

@@ -167,15 +167,12 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <link rel="preload" href="/assets/manrope-v1.woff2" as="font" type="font/woff2" crossorigin>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?=siteSeoHead($config,$page,$path,$indexable)?>
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0c0f16">
-    <link rel="stylesheet" href="/assets/precision.css">
     <?php if($path!=="/"&&!isset($topics[$path])):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
-    <link rel="stylesheet" href="/assets/premium-dark.css">
     <link rel="stylesheet" href="/assets/veniux-site.css">
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
@@ -226,10 +223,9 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
             <div class="dp-contact-card">
                 <div>
                     <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> Demo veya teklif</p>
-                    <h2 class="dp-h2" style="font-size:34px;">İşletmenizi <span class="text-accent">birlikte değerlendirelim.</span></h2>
+                    <h2 class="dp-h2" style="font-size:34px;">Bize yazın</h2>
                     <p style="color:#aab4c6; font-size:15px; line-height:1.8; margin-bottom:28px;">
-                        Veniux ekosistemini işletmenizin ölçeği ve ihtiyaçlarıyla birlikte değerlendirelim. Formu doldurun, uzman ekibimiz en kısa sürede sizinle iletişime geçsin.
-                    </p>
+                        İşletmenizi, depo sayınızı ve ne aradığınızı yazın. Size dönüp programı kendi işinize göre gösterelim.</p>
                     <div style="background:#12161f; border:1px solid #2d3547; border-radius:14px; padding:20px;">
                         <strong style="color:#e8ecf4; display:block; font-size:14px; margin-bottom:6px;">Güvenli ve Doğrudan İletişim</strong>
                         <p style="color:#aab4c6; font-size:12.5px; margin:0; line-height:1.6;">Bilgileriniz KVKK standartlarına uygun olarak saklanır, 3. şahıslarla paylaşılmaz.</p>
@@ -316,7 +312,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                         </div>
 
                         <button class="dp-btn dp-btn--accent" type="submit" style="width:100%; justify-content:center;">
-                            Görüşme Talebi Oluştur →
+                            Gönder
                         </button>
                     </form>
                 </div>
