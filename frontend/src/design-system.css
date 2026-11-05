@@ -64,3 +64,23 @@ html:root[data-design='veniux'] :is(button,a,input,select,textarea,summary):focu
 
 @media(pointer:coarse){html:root[data-design='veniux'] .enterprise-shell .sb .sb-item,html:root[data-design='veniux'] .enterprise-content :is(.ax-btn,.business-button,.btn-soft,.btn-secondary,.btn-primary,.ax-btn-primary),html:root[data-design='veniux'] .enterprise-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select){min-height:44px}}
 html:root[data-design='veniux'] .enterprise-content .mobile-stock-details{background:var(--color-surface);border-color:var(--color-border);border-radius:var(--vx-card-radius)}html:root[data-design='veniux'] .enterprise-content .mobile-stock-details>summary{padding:10px 14px;color:var(--color-primary)}
+html:root[data-design='veniux'] .ax-overview .ax-head{align-items:center;margin-bottom:16px}
+html:root[data-design='veniux'] .ax-overview .ax-head h1{margin:0 0 2px!important}
+html:root[data-design='veniux'] .ax-overview .ax-head p{color:var(--color-text-muted)}
+.ax-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;margin-bottom:18px;border:1px dashed var(--color-border);border-radius:var(--vx-card-radius,12px);font-size:13px;font-weight:600;color:var(--color-text-muted)}
+.ax-more:hover{color:var(--color-text);border-color:var(--color-primary)}
+.ax-more[aria-expanded='true'] svg{transform:rotate(180deg)}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpis{gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi{display:block;padding:14px 16px 12px;min-height:0}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi:before{display:none}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi-top{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi-top span{font-size:12.5px;font-weight:600;color:var(--color-text-muted)}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi-top i{width:26px;height:26px;border-radius:7px;padding:0}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi-top i svg{width:14px;height:14px}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi strong{margin:8px 0 4px;font-size:24px;font-weight:700;letter-spacing:-.02em}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi-bottom{min-height:16px;color:var(--color-text-muted)}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi svg[class*='spark'],html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi .ax-spark{opacity:.55}
+@media(max-width:700px){html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-kpi strong{font-size:20px}}
+html:root[data-design='veniux'] .enterprise-content .ax-overview .ax-segmented button{white-space:nowrap}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content .ax-barlist span{color:var(--color-text)}html:root[data-design='veniux'][data-theme='dark'] .enterprise-content .ax-barlist small{color:var(--color-text-muted)}html:root[data-design='veniux'][data-theme='dark'] .enterprise-content .ax-barlist i{background:var(--color-border)}
+@media(max-width:700px){html:root[data-design='veniux'] .enterprise-content .operations-brief{display:grid;gap:10px;justify-items:start}html:root[data-design='veniux'] .enterprise-content .operations-brief-items{display:flex;flex-wrap:wrap;gap:6px 14px}}
