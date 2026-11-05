@@ -175,6 +175,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#07111D">
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>">
+    <link rel="stylesheet" href="/assets/premium-dark.css">
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
@@ -216,10 +217,10 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
             <div class="dp-container">
                 <div class="dp-hero-grid">
                     <div class="dp-hero-content">
-                        <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> İŞİNİZİ DAHA İLERİYE TAŞIYIN</p>
-                        <h1 class="dp-h1">İşletmenizin tüm akışı.<br><span class="text-accent">Tek bir Veniux.</span></h1>
+                        <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> Stok, depo ve kasa tek yerde</p>
+                        <h1 class="dp-h1">Stoğunuz bitmeden<br><span class="text-accent">haberiniz olsun.</span></h1>
                         <p class="dp-lead">
-                            CRM, stok, depo, market/POS, satın alma, satış ve daha fazlası. İşletmenizin tüm süreçleri, tek bir ekosistemde daha verimli, daha kontrollü ve daha güçlü.
+                            Hangi ürünün kaç günde biteceğini ve ne kadar sipariş vermeniz gerektiğini Veniux hesaplar. Sayım farkını ve belgesiz stok düşüşünü bildirir, kasadan yapılan satışı stoktan anında düşer.
                         </p>
                         <div class="dp-hero-actions">
                             <a href="#ekosistem" class="dp-btn dp-btn--primary">
@@ -262,30 +263,13 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                     </div>
 
                     <div class="dp-hero-stage">
-                        <div class="dp-device-composition">
-                            <!-- High-End Desktop Workstation Monitor -->
-                            <div class="dp-device--monitor">
-                                <div class="dp-monitor-header">
-                                    <div class="dp-monitor-dots">
-                                        <span class="dp-monitor-dot active"></span>
-                                        <span class="dp-monitor-dot"></span>
-                                        <span class="dp-monitor-dot"></span>
-                                    </div>
-                                    <span style="font-family:ui-monospace,monospace; font-size:11px; color:#94A5B8;">VENIUX WORKSTATION v2.4</span>
-                                    <span style="color:#2CA58D; font-size:10.5px; font-weight:700;">● CANLI</span>
-                                </div>
-                                <div class="dp-monitor-screen">
-                                    <img src="/assets/dark-precision-hero.jpg" alt="Veniux Yönetim Paneli ve Donanım Çözümleri" width="1920" height="1080" fetchpriority="high">
-                                    <img src="/assets/product-stock-v1.jpg" alt="Veniux Stok Yönetimi" width="1" height="1" style="display:none;" aria-hidden="true">
-                                </div>
-                            </div>
-
-                            <!-- Mobile POS Tablet Frame -->
-                            <div class="dp-device--tablet">
-                                <img src="/assets/product-retail-v1.jpg" alt="Veniux Dokunmatik Market POS Terminali" width="640" height="400">
-                            </div>
-
-                            <p class="dp-stage-caption">Cihaz çerçeveleri sunum amaçlıdır. Sentetik veriler tanıtım amaçlıdır; gerçek işletme kaydı içermez.</p>
+                        <div class="vx-panel" role="img" aria-label="Veniux panelinin örnek verili görünümü">
+                            <div class="vx-panel-head">Genel bakış <span>Örnek veriler</span></div>
+                            <div class="vx-panel-kpis"><div class="warm">Stok değeri<b>₺101.542</b></div><div>Dönem çıkışı<b>219</b></div><div class="bad">Kritik ürün<b>4</b></div></div>
+                            <svg class="vx-panel-chart" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true"><polygon fill="#ff8a3d22" points="0,70 0,56 40,48 80,52 120,34 160,40 200,22 240,28 300,10 300,70"/><polyline fill="none" stroke="#ff9a5c" stroke-width="2" vector-effect="non-scaling-stroke" points="0,56 40,48 80,52 120,34 160,40 200,22 240,28 300,10"/></svg>
+                            <ul class="vx-panel-list"><li class="bad">Filtre kahve 3 günde bitiyor<em>Sipariş: 80 adet</em></li><li class="bad">Sayım farkı: deterjan<em>5 adet eksik</em></li><li class="good">Kasa satışı stoktan düştü<em>−1 adet</em></li></ul>
+                            <p class="vx-panel-note">Görsel temsilîdir; rakamlar örnektir.</p>
+                        </div>
                         </div>
                     </div>
                 </div>
