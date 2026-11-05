@@ -9,6 +9,7 @@ import AssistantFileInput from './AssistantFileInput';
 import AssistantOperationResult from './AssistantOperationResult';
 import { playWithReveal } from '../lib/synchronizedPlayback';
 import { speechChunks } from '../lib/speechChunks';
+import { speakOnDevice, stopDeviceSpeech } from '../lib/deviceSpeech.mjs';
 
 export default function AssistantLauncher() {
   const location=useLocation();
@@ -39,6 +40,7 @@ export default function AssistantLauncher() {
   const voiceRef=useRef(voice);
   const audioRef=useRef(null),speechRequest=useRef(null),audioUrl=useRef(null),speechGeneration=useRef(0);
   const speechBusy=useRef(false);
+  const serverVoiceDownUntil=useRef(0);
   const preparedSpeech=useRef(new Map());
   function loadSpeech(text){
     const cache=preparedSpeech.current;
@@ -51,7 +53,7 @@ export default function AssistantLauncher() {
   function stopSpeech(){
     speechGeneration.current++;
     speechBusy.current=false;
-    speechRequest.current?.abort();audioRef.current?.pause();
+    speechRequest.current?.abort();audioRef.current?.pause();stopDeviceSpeech();
     audioRef.current?.dispatchEvent(new Event('ended'));
     if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);
     audioUrl.current=null;audioRef.current=null;setSpeechStatus('');
@@ -74,15 +76,26 @@ export default function AssistantLauncher() {
         const chunk=chunks[index];
         if(controller.signal.aborted||generation!==speechGeneration.current)return;
         setSpeechStatus('Yanıt ve ses hazırlanıyor…');
-        const blob=await loadSpeech(chunk);
-        if(chunks[index+1])loadSpeech(chunks[index+1]).catch(()=>{});
-        if(controller.signal.aborted||generation!==speechGeneration.current)return;
-        const url=URL.createObjectURL(blob);audioUrl.current=url;
-        const audio=new Audio(url);audio.preload='auto';audioRef.current=audio;
-        await playWithReveal(audio,()=>{setSpeechStatus('Danışman konuşuyor…');if(chunk===chunks[0])onStart?.();});
-        URL.revokeObjectURL(url);audioUrl.current=null;
+        const started=()=>{setSpeechStatus('Danışman konuşuyor…');if(chunk===chunks[0])onStart?.();};
+        if(Date.now()>=serverVoiceDownUntil.current){
+          try{
+            const blob=await loadSpeech(chunk);
+            if(chunks[index+1])loadSpeech(chunks[index+1]).catch(()=>{});
+            if(controller.signal.aborted||generation!==speechGeneration.current)return;
+            const url=URL.createObjectURL(blob);audioUrl.current=url;
+            const audio=new Audio(url);audio.preload='auto';audioRef.current=audio;
+            await playWithReveal(audio,started);
+            URL.revokeObjectURL(url);audioUrl.current=null;
+            continue;
+          }catch{
+            if(controller.signal.aborted||generation!==speechGeneration.current)return;
+            // Sunucu sesi yoksa beş dakika boyunca doğrudan cihaz sesiyle devam edilir.
+            serverVoiceDownUntil.current=Date.now()+300000;
+          }
+        }
+        await speakOnDevice(chunk,{signal:controller.signal,onStart:started});
       }
-    }catch(err){if(!controller.signal.aborted){if(generation===speechGeneration.current)setError(err.name==='NotAllowedError'?'Sesi açmak için hoparlör düğmesine dokunun.':'Sesli yanıt şu anda kullanılamıyor. Sohbetimize yazılı olarak devam edebiliriz.');}} 
+    }catch(err){if(!controller.signal.aborted){if(generation===speechGeneration.current)setError(err.name==='DeviceSpeechUnavailable'?err.message:err.name==='NotAllowedError'?'Sesi açmak için hoparlör düğmesine dokunun.':'Sesli yanıt şu anda kullanılamıyor. Sohbetimize yazılı olarak devam edebiliriz.');}} 
     finally{if(generation===speechGeneration.current){audioRef.current?.pause();audioRef.current=null;if(audioUrl.current)URL.revokeObjectURL(audioUrl.current);audioUrl.current=null;speechRequest.current=null;speechBusy.current=false;setSpeechStatus('');}}
   }
   async function presentWithVoice(text,present,isCurrent=()=>true){
@@ -206,7 +219,7 @@ export default function AssistantLauncher() {
         <div ref={bottom} />
       </div>
       {canChat && <form onSubmit={send}><input ref={field} aria-label="Asistana mesaj" placeholder={visitor?'İhtiyacınızı anlatın…':'Bir şey sorun…'} maxLength={visitor?2000:4000} value={input} onChange={e => setInput(e.target.value)} /><button type="submit" disabled={busy || !input.trim()} aria-label="Mesajı gönder"><Send size={18} /></button></form>}
-      <footer>{visitor?'Yapay zekâ destekli danışman · Paket fiyatlarında para birimi belirtilir':voice?'Kadın sesli uyarılar açık · Değişiklikler onayınıza bağlı':'Sesli uyarılar için hoparlörü açın · Değişiklikler onayınıza bağlı'}</footer>
+      <footer>{visitor?'Yapay zekâ destekli danışman · Paket fiyatlarında para birimi belirtilir':voice?'Sesli uyarılar açık · Değişiklikler onayınıza bağlı':'Sesli uyarılar için hoparlörü açın · Değişiklikler onayınıza bağlı'}</footer>
     </section>}
     <button ref={launcher} className="veniux-assistant-launcher" aria-label={open ? 'Veniux asistanını kapat' : 'Veniux asistanını aç'} aria-expanded={open} aria-controls="veniux-quick-chat" onClick={() => setOpen(v => !v)} title="Veniux AI Asistanı">
       <img src={veniuxLogo} alt="" />
