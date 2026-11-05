@@ -7,6 +7,7 @@ const SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '9
 
 // Each palette's 500 is the swatch shown in settings; 600 is the hover/primary-dark shade.
 export const ACCENTS = [
+  { id: 'ember', name: 'Veniux Kor', hex: '#f2711c', palette: ['#fff4ec', '#ffe6d5', '#ffc9a6', '#ffa56b', '#ff8a3d', '#f2711c', '#d9590c', '#b4470a', '#8f3a0e', '#74320f', '#3f1806'] },
   { id: 'veniux', name: 'Veniux', hex: '#2379ca', palette: ['#eaf3ff', '#dcecff', '#b8d7f5', '#88b8e5', '#4d94d4', '#2379ca', '#145eae', '#104e91', '#143e69', '#102c4b', '#0c1726'] },
   { id: 'blue', name: 'Kurumsal', hex: '#2563eb', palette: ['#eff6ff', '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554', '#0f1a3d'] },
   { id: 'emerald', name: 'Zümrüt', hex: '#059669', palette: ['#ecfdf5', '#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', '#059669', '#047857', '#065f46', '#064e3b', '#053d2e', '#022c22'] },
@@ -18,7 +19,7 @@ export const ACCENTS = [
 // Keep the old preference IDs readable while every workspace uses the same bundled typeface.
 export const UI_FONT_FAMILY="'Veniux Manrope','Segoe UI',sans-serif";
 export const FONTS=[{id:'geometric',name:'Veniux Manrope',family:UI_FONT_FAMILY},{id:'system',name:'Veniux Manrope',family:UI_FONT_FAMILY}];
-export const DEFAULTS = { mode: 'light', accent: 'veniux', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle' };
+export const DEFAULTS = { mode: 'dark', accent: 'ember', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle' };
 
 const valid = {
   mode: v => ['light', 'dark', 'system'].includes(v),
