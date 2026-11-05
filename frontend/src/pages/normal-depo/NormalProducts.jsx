@@ -18,6 +18,8 @@ import { useToast } from '../../components/Toast';
 import { DataTable, StatusBadge, MetricCard, Modal, Input, Select, Dropdown } from '../../components/ui';
 import { money } from '../../lib/stockAnalytics';
 
+const MARK_COLORS = ['#2f6fe4', '#12a37f', '#f2711c', '#7c5ce0', '#d9488b', '#0e8fb3'];
+
 export default function NormalProducts() {
   const [params]=useSearchParams();
   const [lotDetail,setLotDetail]=useState(null);
@@ -168,9 +170,12 @@ export default function NormalProducts() {
       key: 'name',
       label: 'Ürün ve SKU',
       render: (row) => (
-        <div>
-          <span className="font-semibold text-slate-800">{row.name}</span>
-          <span className="block text-[11px] text-slate-500 mt-0.5">{row.sku}</span>
+        <div className="vx-product-cell">
+          <span className="vx-product-mark" aria-hidden="true" style={{ background: MARK_COLORS[[...(row.category || row.name || '')].reduce((t, ch) => t + ch.charCodeAt(0), 0) % MARK_COLORS.length] }}>{(row.name || '?').slice(0, 2).toLocaleUpperCase('tr-TR')}</span>
+          <div className="min-w-0">
+            <span className="font-semibold text-slate-800">{row.name}</span>
+            <span className="block text-[11px] text-slate-500 mt-0.5">{row.sku}</span>
+          </div>
         </div>
       )
     },
@@ -185,6 +190,7 @@ export default function NormalProducts() {
           <span className="vx-stock-cell" data-state={state}>
             <b>{qty.toLocaleString('tr-TR')} {row.unit || ''}</b>
             {state !== 'ok' && <small>{state === 'out' ? 'Tükendi' : 'Kritik'}</small>}
+            <span className="vx-stock-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, qty / Math.max(1, Number(row.max_stock_level) || Math.max(qty, min * 3, 1)) * 100)}%` }} /></span>
           </span>
         );
       }

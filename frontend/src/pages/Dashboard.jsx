@@ -3,12 +3,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, Bell, Boxes, ChevronDown,
-  Gauge, Handshake, IdCard, Package, RefreshCw, Truck, Wallet, Warehouse
+  Gauge, Handshake, IdCard, Package, RefreshCw, ShoppingCart, Truck, Wallet, Warehouse
 } from 'lucide-react';
 import api, { useDataSync } from '../api/client';
 import BusinessChart from '../components/BusinessChart';
 import StockHealthPanel from '../components/StockHealthPanel';
-import OperationsAssistantCard from '../components/OperationsAssistantCard';
+import './DashboardPro.css';
 import { BarList, Kpi, Legend, Panel, ScoreRing, Segmented } from '../components/dashboard/AnalyticsKit';
 import { chartColors } from '../lib/chartPalette';
 import { DEPARTMENTS } from '../mock/hrData';
@@ -26,6 +26,18 @@ const todayISO = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Ista
 
 // Bir istek başarısız olursa (yetki, paket) ilgili bölüm boş veriyle çalışır.
 const safe = request => request.then(res => res.data).catch(() => null);
+
+function HeroArea({ data }) {
+  const max = Math.max(...data, 1), min = Math.min(...data, 0), span = max - min || 1;
+  const points = data.map((v, i) => [data.length > 1 ? i / (data.length - 1) * 100 : 0, 34 - (v - min) / span * 30]);
+  const line = points.map(p => p.join(',')).join(' ');
+  return <svg className="dx-area" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true"><polygon points={`0,36 ${line} 100,36`} /><polyline points={line} vectorEffect="non-scaling-stroke" /></svg>;
+}
+
+function Delta({ value }) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return <small>Önceki dönem verisi yok</small>;
+  return <small data-up={value >= 0}>{value >= 0 ? '▲' : '▼'} %{Math.abs(Math.round(value))} önceki döneme göre</small>;
+}
 
 export default function Dashboard() {
   const [raw, setRaw] = useState(null);
@@ -125,7 +137,6 @@ export default function Dashboard() {
   }, [raw, days, canViewCosts]);
 
   const { current, previous } = a?.totals || {};
-  const spark = key => a?.timeline.slice(-14).map(d => d[key]) || [];
   const scoreText = !a ? '' : a.score >= 80 ? 'İşletmeniz dengeli görünüyor.' : a.score >= 55 ? 'Dikkat gerektiren birkaç alan var.' : 'Öncelikli aksiyon gereken alanlar var.';
 
   const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
@@ -142,21 +153,34 @@ export default function Dashboard() {
       </div>
     </header>
 
-    <OperationsAssistantCard />
     {error && <div role="alert" className="mb-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</div>}
     {loading && !a && <div role="status" className="space-y-4"><div className="skeleton h-56 w-full rounded-xl" /><div className="skeleton h-96 w-full rounded-xl" /></div>}
 
     {a && <>
-      <section className="ax-grid ax-kpis ax-reveal">
-          {canViewCosts ? (
-            <Kpi label="Stok değeri" value={a.value} format={tl} icon={Wallet} tone="blue" spark={a.valueSeries.slice(-14)} sparkColor={BLUE} detail="alış fiyatıyla" />
-          ) : (
-            <Kpi label="Toplam Stok" value={a.units} format={v => num(v) + ' birim'} icon={Boxes} tone="blue" detail="fiziksel stok adedi" />
-          )}
-          <Kpi label="Dönem girişi" value={current.inbound} icon={ArrowDownLeft} tone="teal" trend={change(current.inbound, previous.inbound)} spark={spark('inbound')} sparkColor={IN} />
-          <Kpi label="Dönem çıkışı" value={current.outbound} icon={ArrowUpRight} tone="red" trend={change(current.outbound, previous.outbound)} spark={spark('outbound')} sparkColor={OUT} />
-          <Kpi label="Kritik / tükenen" value={a.health.groups.critical.length + a.health.groups.out.length} icon={AlertTriangle} tone="amber" detail={`${a.health.groups.out.length} ürün stokta yok`} to="/normal-depo/products" />
-          <Kpi label="Açık uyarılar" value={a.openAlerts.length} icon={Bell} tone={a.openAlerts.length ? 'red' : 'slate'} detail={`${raw.alerts.length} toplam bildirim`} to="/alerts" />
+      <section className="dx-hero">
+        <div className="dx-hero-main">
+          <span>{canViewCosts ? 'Toplam stok değeri' : 'Toplam stok'}</span>
+          <strong>{canViewCosts ? tl(a.value) : num(a.units) + ' birim'}</strong>
+          <small>{num(a.units)} birim · {raw.products.length} ürün · {raw.warehouses.length} depo</small>
+          {canViewCosts && <HeroArea data={a.valueSeries} />}
+        </div>
+        <div className="dx-hero-stats">
+          <div><span>Dönem girişi</span><b>{num(current.inbound)}</b><Delta value={change(current.inbound, previous.inbound)} /></div>
+          <div><span>Dönem çıkışı</span><b>{num(current.outbound)}</b><Delta value={change(current.outbound, previous.outbound)} /></div>
+          {canViewCosts && <div><span>Satış değeri</span><b>{compact(a.saleValue)} ₺</b><small>Potansiyel kâr {compact(a.saleValue - a.value)} ₺</small></div>}
+        </div>
+        <div className="dx-hero-score" aria-label={`İşletme sağlık skoru ${a.score}`}>
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" /><circle cx="60" cy="60" r="50" pathLength="100" strokeDasharray={`${a.score} 100`} data-tone={a.score >= 80 ? 'good' : a.score >= 55 ? 'mid' : 'bad'} /></svg>
+          <b>{a.score}</b><span>Sağlık skoru</span>
+          <small>{scoreText}</small>
+        </div>
+      </section>
+
+      <section className="dx-todo" aria-label="Bugün yapılacaklar">
+        <Link to="/normal-depo/products" data-tone={a.health.groups.out.length + a.health.groups.critical.length ? 'bad' : 'good'}><i><AlertTriangle size={18} /></i><span><b>{a.health.groups.out.length + a.health.groups.critical.length}</b> ürün kritik seviyede<small>{a.health.groups.out.length} ürün tükendi · sipariş planlayın</small></span><ArrowUpRight size={16} /></Link>
+        <Link to="/alerts" data-tone={a.openAlerts.length ? 'mid' : 'good'}><i><Bell size={18} /></i><span><b>{a.openAlerts.length}</b> açık uyarı<small>{raw.alerts.length} toplam bildirim</small></span><ArrowUpRight size={16} /></Link>
+        <Link to="/crm/dashboard" data-tone={a.overdueTasks.length ? 'mid' : 'info'}><i><Handshake size={18} /></i><span><b>{a.openDeals.length}</b> açık fırsat<small>{a.overdueTasks.length} geciken görev</small></span><ArrowUpRight size={16} /></Link>
+        <Link to="/magaza/kasa" data-tone="go"><i><ShoppingCart size={18} /></i><span><b>Kasayı aç</b><small>Satışa hemen başlayın</small></span><ArrowUpRight size={16} /></Link>
       </section>
 
       <section className="ax-grid ax-2-1 ax-reveal">
@@ -173,32 +197,48 @@ export default function Dashboard() {
               ...(canViewCosts ? [{ label: 'Stok değeri (₺)', data: a.valueSeries, borderColor: VIOLET, fill: false, borderDash: [5, 4], yAxisID: 'y1' }] : [])
             ]} />
         </Panel>
-        <Panel icon={AlertTriangle} title="Öncelik listeniz" subtitle="Stokta olmayan ve kritik seviyedeki ürünler" action={<Link to="/normal-depo/products">Tümü <ArrowUpRight size={13} /></Link>}>
-          <BarList rows={[...a.health.groups.out, ...a.health.groups.critical].slice(0, 6).map(p => ({ label: p.name, value: p.qty, hint: `${p.sku} · minimum ${num(p.min_stock_level)}`, color: p.qty <= 0 ? OUT : AMBER }))} format={v => `${num(v)} adet`} empty="Kritik seviyede ürün bulunmuyor." />
+        <Panel icon={Package} title="Stok sağlığı" subtitle={`${raw.products.length} ürünün durumu`} action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
+          {(() => {
+            const g = a.health.groups, rows = [['Sağlıklı', g.healthy.length, IN], ['Kritik', g.critical.length, AMBER], ['Tükendi', g.out.length, OUT], ['Fazla stok', g.excess.length, VIOLET]];
+            const all = rows.reduce((t, r) => t + r[1], 0) || 1;
+            return <>
+              <div className="dx-stack" role="img" aria-label={rows.map(r => `${r[0]} ${r[1]}`).join(', ')}>{rows.filter(r => r[1]).map(r => <i key={r[0]} style={{ width: `${r[1] / all * 100}%`, background: r[2] }} />)}</div>
+              <ul className="dx-legend">{rows.map(r => <li key={r[0]}><i style={{ background: r[2] }} />{r[0]}<b>{r[1]}</b></li>)}</ul>
+            </>;
+          })()}
+          <h3 className="dx-sub">Öncelikli ürünler</h3>
+          <ul className="dx-priority">
+            {[...a.health.groups.out, ...a.health.groups.critical].slice(0, 4).map(p => <li key={p.id || p.sku}><div><b>{p.name}</b><span>{num(p.qty)} / {num(p.min_stock_level)}</span></div><i><u style={{ width: `${Math.min(100, p.qty / Math.max(1, p.min_stock_level) * 100)}%`, background: p.qty <= 0 ? OUT : AMBER }} /></i></li>)}
+            {!a.health.groups.out.length && !a.health.groups.critical.length && <li className="ax-empty">Kritik ürün yok.</li>}
+          </ul>
         </Panel>
       </section>
 
       <section className="ax-grid ax-2-1 ax-reveal">
         <Panel icon={Activity} title="Son hareketler" subtitle="Tüm depolardaki en yeni işlemler" action={<Link to="/normal-depo/movements">Tümü <ArrowUpRight size={13} /></Link>}>
-          <table className="ax-table">
-            <tbody>
-              {raw.movements.slice(0, 7).map(row => {
-                const qty = Number(row.change_amount || 0), date = parseDate(row.created_at);
-                return <tr key={row.id}>
-                  <td><span className="ax-pill" data-tone={/transfer/i.test(row.movement_type) ? 'neutral' : qty >= 0 ? 'in' : 'out'}>{movementLabel(row)}</span></td>
-                  <td><b className="font-semibold text-slate-700">{row.product_name}</b><div className="text-[10.5px] text-slate-400">{row.warehouse_name}</div></td>
-                  <td data-num className={qty >= 0 ? 'font-bold text-teal-700' : 'font-bold text-red-500'}>{qty > 0 ? '+' : ''}{num(qty)}</td>
-                  <td data-num className="text-slate-500">{date ? date.toLocaleString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</td>
-                </tr>;
-              })}
-              {!raw.movements.length && <tr><td className="py-10 text-center text-slate-400">Henüz stok hareketi bulunmuyor.</td></tr>}
-            </tbody>
-          </table>
+          <ol className="dx-timeline">
+            {raw.movements.slice(0, 7).map(row => {
+              const qty = Number(row.change_amount || 0), date = parseDate(row.created_at);
+              return <li key={row.id} data-dir={/transfer/i.test(row.movement_type) ? 'move' : qty >= 0 ? 'in' : 'out'}>
+                <i>{qty >= 0 ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}</i>
+                <div><b>{row.product_name}</b><span>{movementLabel(row)} · {row.warehouse_name}</span></div>
+                <em>{qty > 0 ? '+' : ''}{num(qty)}</em>
+                <time>{date ? date.toLocaleString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</time>
+              </li>;
+            })}
+            {!raw.movements.length && <li className="ax-empty">Henüz stok hareketi bulunmuyor.</li>}
+          </ol>
         </Panel>
-        <Panel icon={Warehouse} title={canViewCosts ? "Depolara göre değer" : "Depolara göre stok miktarı"} subtitle={canViewCosts ? "Stok değerinin depolara dağılımı" : "Fiziksel stok birimlerinin dağılımı"}>
-          <BusinessChart type="doughnut" title="Depolara göre dağılım" height={220} legend={false} valueFormat={canViewCosts ? tl : (v => num(v) + ' adet')} center={{ value: canViewCosts ? compact(a.value) + ' ₺' : num(a.units) + ' ad.', label: 'toplam' }}
-            labels={(canViewCosts ? a.byWarehouse : a.byWarehouseQty).map(w => w[0])} datasets={[{ label: canViewCosts ? 'Değer' : 'Miktar', data: (canViewCosts ? a.byWarehouse : a.byWarehouseQty).map(w => w[1]), backgroundColor: chartColors }]} />
-          <Legend items={(canViewCosts ? a.byWarehouse : a.byWarehouseQty).slice(0, 6).map(([label, v], i) => [label, chartColors[i % chartColors.length], canViewCosts ? compact(v) + ' ₺' : num(v) + ' ad.'])} />
+        <Panel icon={Warehouse} title="Depolar" subtitle="Stok miktarı ve kapasite" action={<Link to="/normal-depo/warehouses">Tümü <ArrowUpRight size={13} /></Link>}>
+          <ul className="dx-priority">
+            {raw.warehouses.map(w => {
+              const qty = a.byWarehouseQty.find(x => x[0] === w.name)?.[1] || 0, cap = Number(w.capacity || 0), pct = cap ? Math.min(100, qty / cap * 100) : 0;
+              return <li key={w.id}><div><b>{w.name}</b><span>{num(qty)}{cap ? ` / ${num(cap)} · %${Math.round(pct)}` : ''}</span></div><i><u style={{ width: `${pct}%`, background: BLUE }} /></i></li>;
+            })}
+            {!raw.warehouses.length && <li className="ax-empty">Henüz depo tanımlanmadı.</li>}
+          </ul>
+          {canViewCosts && <><h3 className="dx-sub">Kategoriye göre değer</h3>
+          <BarList rows={a.byCategory.slice(0, 4).map(([label, value], i) => ({ label, value, color: chartColors[i % chartColors.length] }))} format={tl} empty="Henüz kategori verisi yok." /></>}
         </Panel>
       </section>
 
