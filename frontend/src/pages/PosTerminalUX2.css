@@ -109,26 +109,26 @@
 .pos-terminal .pos-status[data-success]{background:#ecfdf3;color:#067647;font-size:15px;font-weight:700;border-top-color:#abefc6}
 
 /* Koyu tema: kasa yüzeyleri tek paletten gelir. */
-html:root[data-theme='dark'] .pos-terminal,html:root[data-theme='dark'] .pos-terminal .pos-surface,html:root[data-theme='dark'] .pos-terminal .pos-main{background:#0c1726;color:#edf4ff}
-html:root[data-theme='dark'] .pos-terminal :is(.pos-scan,.pos-actions,.retail-cart,.retail-pro-tools>.retail-visual){background:#14243a!important;border-color:#30455e;color:#edf4ff}
-html:root[data-theme='dark'] .pos-terminal .retail-cart-heading{background:transparent;border-color:#30455e}
-html:root[data-theme='dark'] .pos-terminal .retail-cart-heading h2,html:root[data-theme='dark'] .pos-terminal .retail-empty h3,html:root[data-theme='dark'] .pos-terminal .pos-total strong,html:root[data-theme='dark'] .pos-terminal .pos-line-name,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-total{color:#edf4ff}
-html:root[data-theme='dark'] .pos-terminal .retail-cart-heading span{background:#203e60;color:#dcecff}
-html:root[data-theme='dark'] .pos-terminal .retail-empty p,html:root[data-theme='dark'] .pos-terminal .pos-total>span,html:root[data-theme='dark'] .pos-terminal .pos-total small,html:root[data-theme='dark'] .pos-terminal .pos-line-code,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-stock{color:#b0c2d8}
-html:root[data-theme='dark'] .pos-terminal .retail-empty>span{background:#203e60;color:#dcecff}
-html:root[data-theme='dark'] .pos-terminal .retail-cart thead th{background:#1a304a;color:#b0c2d8}
-html:root[data-theme='dark'] .pos-terminal .retail-cart tbody tr{background:transparent;border-color:#30455e}
+html:root[data-theme='dark'] .pos-terminal,html:root[data-theme='dark'] .pos-terminal .pos-surface,html:root[data-theme='dark'] .pos-terminal .pos-main{background:var(--color-bg);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal :is(.pos-scan,.pos-actions,.retail-cart,.retail-pro-tools>.retail-visual){background:var(--color-surface)!important;border-color:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading{background:transparent;border-color:var(--color-border)}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading h2,html:root[data-theme='dark'] .pos-terminal .retail-empty h3,html:root[data-theme='dark'] .pos-terminal .pos-total strong,html:root[data-theme='dark'] .pos-terminal .pos-line-name,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-total{color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .retail-cart-heading span{background:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .retail-empty p,html:root[data-theme='dark'] .pos-terminal .pos-total>span,html:root[data-theme='dark'] .pos-terminal .pos-total small,html:root[data-theme='dark'] .pos-terminal .pos-line-code,html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-stock{color:var(--color-text-muted)}
+html:root[data-theme='dark'] .pos-terminal .retail-empty>span{background:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .retail-cart thead th{background:var(--color-surface-raised);color:var(--color-text-muted)}
+html:root[data-theme='dark'] .pos-terminal .retail-cart tbody tr{background:transparent;border-color:var(--color-border)}
 html:root[data-theme='dark'] .pos-terminal .retail-cart .pos-line-stock[data-low]{color:#ff9d94}
-html:root[data-theme='dark'] .pos-terminal .pos-total{border-color:#30455e}
-html:root[data-theme='dark'] .pos-terminal .pos-barcode input{background:#0c1726;border-color:#30455e;color:#edf4ff}
-html:root[data-theme='dark'] .pos-terminal .pos-barcode input:focus{background:#0c1726}
-html:root[data-theme='dark'] .pos-terminal :is(.pos-barcode button,.pos-find,.pos-count-control button,.pos-count-control input,.pos-unit-price,.retail-pro-modes button:not([aria-pressed='true'])){background:#1a304a;border-color:#30455e;color:#dcecff}
-html:root[data-theme='dark'] .pos-terminal .pos-actions button:not(.pos-pay){background:#1a304a;border-color:#30455e;color:#edf4ff}
-html:root[data-theme='dark'] .pos-terminal .pos-actions button:disabled:not(.pos-pay){background:#14243a;color:#7d90a6}
-html:root[data-theme='dark'] .pos-terminal .pos-pay:disabled{background:#203e60;color:#9fb6cd}
-html:root[data-theme='dark'] .pos-terminal .pos-status{background:#14243a;border-color:#30455e;color:#b0c2d8}
+html:root[data-theme='dark'] .pos-terminal .pos-total{border-color:var(--color-border)}
+html:root[data-theme='dark'] .pos-terminal .pos-barcode input{background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .pos-barcode input:focus{background:var(--color-bg)}
+html:root[data-theme='dark'] .pos-terminal :is(.pos-barcode button,.pos-find,.pos-count-control button,.pos-count-control input,.pos-unit-price,.retail-pro-modes button:not([aria-pressed='true'])){background:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .pos-actions button:not(.pos-pay){background:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text)}
+html:root[data-theme='dark'] .pos-terminal .pos-actions button:disabled:not(.pos-pay){background:var(--color-surface);color:var(--color-text-muted)}
+html:root[data-theme='dark'] .pos-terminal .pos-pay:disabled{background:var(--color-border);color:var(--color-text-muted)}
+html:root[data-theme='dark'] .pos-terminal .pos-status{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text-muted)}
 html:root[data-theme='dark'] .pos-terminal .pos-status[data-error]{background:#451a1a;color:#ffc9c3;border-color:#7a2e2a}
 html:root[data-theme='dark'] .pos-terminal .pos-status[data-success]{background:#0f3b2a;color:#a9f0c9;border-color:#1f6b4c}
 html:root[data-theme='dark'] .pos-payment-error{background:#451a1a;border-color:#7a2e2a;color:#ffc9c3}
-html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label{background:#1a304a;border-color:#30455e;color:#dcecff}
+html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label{background:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text)}
 html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label[data-active='true']{background:#2379ca;border-color:#2379ca;color:#fff}

@@ -164,7 +164,7 @@ export default function Dashboard() {
           <BusinessChart key={`flow-${days}`} title="Stok akışı ve değer trendi" height={300} labels={a.timeline.map(d => d.label)}
             options={{ scales: {
               x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8290a4', maxTicksLimit: 8, maxRotation: 0 } },
-              y: { beginAtZero: true, border: { display: false }, grid: { color: '#eef2f6' }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) } },
+              y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(128,128,128,.18)' }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) } },
               ...(canViewCosts ? { y1: { position: 'right', beginAtZero: true, border: { display: false }, grid: { display: false }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) + ' ₺' } } } : {})
             } }}
             datasets={[

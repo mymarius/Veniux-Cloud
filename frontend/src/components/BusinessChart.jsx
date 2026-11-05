@@ -88,12 +88,12 @@ export default function BusinessChart({
 
   const axis = { color: '#8290a4', font: { size: 11 } };
   const scales = type === 'doughnut' ? undefined : type === 'polar'
-    ? { r: { grid: { color: '#eef2f6' }, angleLines: { display: false }, ticks: { display: false } } }
+    ? { r: { grid: { color: 'rgba(128,128,128,.18)' }, angleLines: { display: false }, ticks: { display: false } } }
     : type === 'radar'
-    ? { r: { beginAtZero: true, angleLines: { color: '#eef2f6' }, grid: { color: '#eef2f6' }, pointLabels: { color: '#52657f', font: { size: 11, weight: '600' } }, ticks: { display: false } } }
+    ? { r: { beginAtZero: true, angleLines: { color: 'rgba(128,128,128,.18)' }, grid: { color: 'rgba(128,128,128,.18)' }, pointLabels: { color: '#52657f', font: { size: 11, weight: '600' } }, ticks: { display: false } } }
     : {
-      x: { stacked, grid: { display: horizontal, color: '#eef2f6' }, border: { display: false }, ticks: { ...axis, maxTicksLimit: horizontal ? 5 : 8, maxRotation: 0, ...(horizontal ? { callback: v => valueFormat(v) } : {}) }, beginAtZero: horizontal },
-      y: { stacked, beginAtZero: true, border: { display: false }, grid: { display: !horizontal, color: '#eef2f6' }, ticks: { ...axis, maxTicksLimit: horizontal ? 10 : 5, ...(horizontal ? {} : { callback: v => valueFormat(v) }) } }
+      x: { stacked, grid: { display: horizontal, color: 'rgba(128,128,128,.18)' }, border: { display: false }, ticks: { ...axis, maxTicksLimit: horizontal ? 5 : 8, maxRotation: 0, ...(horizontal ? { callback: v => valueFormat(v) } : {}) }, beginAtZero: horizontal },
+      y: { stacked, beginAtZero: true, border: { display: false }, grid: { display: !horizontal, color: 'rgba(128,128,128,.18)' }, ticks: { ...axis, maxTicksLimit: horizontal ? 10 : 5, ...(horizontal ? {} : { callback: v => valueFormat(v) }) } }
     };
 
   const options = {

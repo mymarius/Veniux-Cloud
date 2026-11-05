@@ -191,3 +191,5 @@ html:root[data-design='veniux'] .vx-auth :is(input:not([type=checkbox]):not([typ
 html:root[data-design='veniux'] .vx-auth label{font-size:13px;font-weight:500;color:var(--color-text);text-transform:none;letter-spacing:0}
 html:root[data-design='veniux'] .vx-auth button[type=submit],html:root[data-design='veniux'] .vx-auth .btn-primary{min-height:34px;border:0;border-radius:var(--vx-control-radius);background:var(--vx-accent-solid);background-image:none;color:#fff;font-size:13.5px;font-weight:500;box-shadow:none}
 html:root[data-design='veniux'] .vx-auth [class*='shadow']{box-shadow:none}
+html:root[data-design='veniux'] .enterprise-content :is(tr,thead,tbody,[class*='divide-']>*){border-color:var(--color-border)}
+html:root[data-design='veniux'][data-theme='dark'] .enterprise-content [class*='border-slate-'],html:root[data-design='veniux'][data-theme='dark'] .enterprise-content [class*='border-gray-']{border-color:var(--color-border)}
