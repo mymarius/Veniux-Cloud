@@ -187,3 +187,32 @@ html:root[data-design='veniux']:not([data-theme='dark']) .veniux-assistant-launc
 html:root[data-design='veniux']:not([data-theme='dark']) .veniux-assistant-launcher img{width:42px;height:42px}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .veniux-chat{box-shadow:none;border-width:0}
 @media(min-width:1024px){html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content{padding-bottom:96px}}
+/* Giriş formu: kalın çizgili alanlar, net hiyerarşi; dar ekranda üstte koyu slogan bandı */
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-auth-column{padding:32px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-brand{margin-bottom:22px;color:#17263a;font-size:20px;font-weight:800;font-stretch:76%}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth h1{margin:0 0 12px;letter-spacing:0}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-description{margin:0 0 24px;color:#4d5a6b;font-size:16.5px;line-height:1.4}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .auth-form-card{padding:0;background:none;border:0;box-shadow:none}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form label>span:first-child{margin-bottom:6px;color:#17263a;font-size:15px;font-weight:700}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form input:not([type=checkbox]){height:52px;background:#fff;border:2px solid #17263a;border-radius:0;color:#17263a;font:500 16px Archivo,sans-serif}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form input:not([type=checkbox]):focus{background:#fff;border-color:#e4570a;outline:3px solid #e4570a55;box-shadow:none}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form input::placeholder{color:#6b7787}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form label svg.absolute{top:17px;color:#17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form input[type=checkbox]{border-radius:0;accent-color:#e4570a}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form form>div{color:#17263a;font-size:15px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form form a{color:#b84504;font-size:15px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form .btn-primary{min-height:58px;background:#e4570a;border-radius:0;box-shadow:5px 5px 0 #17263a;color:#fff;font-size:21px;font-weight:800;font-stretch:80%;transition:transform .12s,box-shadow .12s}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form .btn-primary:hover{background:#c44806;transform:translate(2px,2px);box-shadow:3px 3px 0 #17263a}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form>div:last-child{margin-top:26px;border-top:1px dashed #bfb196;color:#4d5a6b;font-size:14px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-form>div:last-child a{color:#17263a;font-size:14px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-footer{margin-top:16px;color:#17263a;font-size:15px}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth-footer a{color:#b84504}
+@media(max-width:980px){
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth{display:block}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side{display:block;min-height:0;padding:30px 20px 38px;position:relative}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side:after{content:'';position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(135deg,transparent 50%,#f4eee2 50%) 0 100%/20px 10px repeat-x,linear-gradient(225deg,transparent 50%,#f4eee2 50%) 0 100%/20px 10px repeat-x}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-side p{font-size:clamp(46px,13vw,76px)!important}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag{display:none}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-auth-column{width:auto;margin:22px 16px 28px;padding:24px 20px;box-shadow:6px 6px 0 #e6d9c2}
+html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth h1{font-size:38px!important}
+}
