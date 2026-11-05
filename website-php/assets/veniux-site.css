@@ -66,15 +66,6 @@ p{margin:0 0 1em}
 .vs-columns h2{font-size:26px;margin-bottom:12px}
 .vs-columns p{color:var(--soft)}
 .vs-footer{padding:48px 0 28px;border-top:1px solid var(--line);font-size:15px}
-.vs-footer-grid{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:32px}
-.vs-footer p{margin:10px 0 0;max-width:280px;color:var(--soft)}
-.vs-footer nav{display:grid;align-content:start;gap:6px}
-.vs-footer h2{margin-bottom:6px;font:600 14px var(--sans)}
-.vs-footer nav a,.vs-footer-end a{color:var(--soft);text-decoration:none}
-.vs-footer nav a:hover,.vs-footer-end a:hover{color:var(--text)}
-.vs-footer-end{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--soft);font-size:14px}
-.vs-footer-end span{display:flex;flex-wrap:wrap;gap:18px}
-.vs-footer-end button{padding:0;background:none;border:0;color:var(--soft);font:inherit;cursor:pointer}
 .breadcrumbs{width:min(1120px,100% - 40px);margin:16px auto 0;font-size:14px}
 .breadcrumbs,.breadcrumbs *{color:var(--soft)!important}
 /* İletişim */

@@ -173,7 +173,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
-    <?php if($path!=="/"&&!isset($topics[$path])&&!isset($growthPages[$path])):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
+    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||in_array($path,["/program-indir","/fiyatlandirma"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css">
     <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css"><script src="/assets/home.js" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
@@ -193,7 +193,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     </nav>
 <?php endif;?>
 
-<?php $vsLegacy=$path!=="/"&&!isset($topics[$path])&&!isset($growthPages[$path])&&!$notFound; if($vsLegacy):?><div class="vs-legacy"><?php endif;?>
+<?php $vsLegacy=!$vsOwn&&!$notFound; if($vsLegacy):?><div class="vs-legacy"><?php endif;?>
 <?php if(isset($legalPages[$path])): ?>
     <?php require __DIR__."/legal-view.php"; ?>
 <?php elseif($path==="/surum-arsivi"): ?>

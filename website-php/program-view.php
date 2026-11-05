@@ -1,2 +1,54 @@
-<section class="section wrap program-page"><div class="program-heading"><p class="eyebrow">WINDOWS VE ANDROID</p><h1>Programı indirin.</h1><p>Veniux, stok ve depo yönetimini Windows bilgisayarınıza taşır. Buluta aktarılmış işletmenizde bilgisayar ve Android aynı kayıtları kurulu uygulamadan internet üzerinden kullanır. Web çalışma ekranı sunulmaz; yerel bağlantı seçeneği de korunur.</p></div><div class="program-download-grid"><article><h3>Windows stok takip programı</h3><p class="release-notice"><strong>İmzasız geçici yayın:</strong> Bu Windows kurulum dosyasında doğrulanmış yayıncı imzası yoktur; Windows SmartScreen uyarısı çıkabilir. Kod imzalama çalışması tamamlanmış değildir.</p><p>Windows 10/11, 64 bit bilgisayarlarda ürün, barkod, stok hareketi, depo, lot ve miat kayıtlarını yönetin. Kullanılabilir ekranlar lisans ve kullanıcı yetkilerine bağlıdır.</p><a class="button primary" href="/indir">Windows programını indir ↓</a></article><article><h3>Telefon, tablet ve el terminali</h3><p>Android 8 ve üzeri cihazlarda bilgisayardaki aynı ürün ve stok kayıtlarını kullanın. Bulut işletmeniz için “Veniux buluta bağlan” seçeneğini açıp aynı hesabınızla giriş yapın. Yerel kullanımda aynı Wi-Fi ve bilgisayar QR kodu gerekir.</p><a class="button primary" href="/indir">Android uygulamasını indir ↓</a></article><article><h3>3 adımda bağlantı</h3><p>Bulut: uygulamaları güncelleyin, Android’de bulut bağlantısını seçin, aynı işletme hesabıyla giriş yapın. Aşağıdaki QR rehberi yerel bağlantı içindir.</p><a class="text-link" href="#terminal-baglanti">Bağlantı adımlarını göster ↓</a></article></div><p><a class="text-link" href="/guncelleme-notlari">Sürümlerde neler değişti? Güncelleme notlarını incele →</a></p><?php require __DIR__.'/terminal-guide.php'; ?><div class="topic-detail"><h3>Stok, depo ve ürün takibi için tek ürün ailesi</h3><p><a href="/stok-yonetimi">Stok yönetimi</a> ile ürün ve hareket kayıtlarını; <a href="/depo-yonetimi">depo yönetimi</a> ile mal kabul, raf, transfer ve sayımı; <a href="/lot-miat-takibi">lot ve miat takibi</a> ile lot ve miat bilgilerini inceleyin. <a href="/fiyatlandirma">Paketler ve lisans koşulları</a> ayrı olarak sunulur. Siteye kayıt ücretli lisansı otomatik etkinleştirmez.</p><h3>Veriler nerede tutulur?</h3><p>Bulut bağlantısında kayıtlar işletme sunucusunda tutulur; bilgisayar ve Android internet üzerinden erişir. Bilgisayar açık kalmak zorunda değildir. Yerel bağlantıda kayıtlar bilgisayardadır ve telefon aynı Wi-Fi üzerinden erişir; bilgisayar açık kalmalıdır. Mevcut yerel işletmeler için kontrollü aktarım gerekir.</p></div></section>
+<section class="pg-hero">
+  <div class="hx-wrap">
+    <h1>Bilgisayara kurun, cebinize alın.</h1>
+    <p class="hx-lead">Windows programı ve Android uygulaması aynı kayıtlarla çalışır. Kasada satılan ürün, depodaki telefonda da düşmüş görünür.</p>
+    <div class="pg-tickets">
+      <article class="pg-ticket">
+        <div class="pg-ticket-main">
+          <span class="pg-ticket-tag">Kasa ve ofis</span>
+          <h2>Windows</h2>
+          <p>Ürün, barkod, stok hareketi, depo, lot ve miat kayıtları. Ekranlar lisans ve kullanıcı yetkisine göre açılır.</p>
+          <dl><div><dt>Sistem</dt><dd>Windows 10/11, 64 bit</dd></div></dl>
+        </div>
+        <a class="pg-stub" href="/indir"><?=homeBarcode('windows-indir',60)?><b>İndir</b><span>Kurulum dosyası</span></a>
+      </article>
+      <article class="pg-ticket pg-ticket-orange">
+        <div class="pg-ticket-main">
+          <span class="pg-ticket-tag">Depo ve raf arası</span>
+          <h2>Android</h2>
+          <p>Telefon, tablet ve el terminali. Bilgisayardaki aynı ürün ve stok kayıtlarını kullanırsınız.</p>
+          <dl><div><dt>Sistem</dt><dd>Android 8 ve üzeri</dd></div></dl>
+        </div>
+        <a class="pg-stub" href="/indir"><?=homeBarcode('android-indir',60)?><b>İndir</b><span>Uygulama dosyası</span></a>
+      </article>
+    </div>
+    <aside class="pg-notice" aria-label="Windows kurulum uyarısı">
+      <b>Önceden söyleyelim</b>
+      <p>Windows kurulum dosyasında henüz doğrulanmış yayıncı imzası yok; SmartScreen uyarısı çıkabilir. Kod imzalama çalışması tamamlanmadı.</p>
+    </aside>
+    <p class="pg-link"><a href="/guncelleme-notlari">Son sürümde neler değişti?</a></p>
+  </div>
+</section>
 
+<section class="pg-where">
+  <div class="hx-wrap">
+    <h2>Kayıtlarınız nerede dursun?</h2>
+    <div class="pg-where-grid">
+      <article>
+        <span class="pg-where-tag">Bulut</span>
+        <h3>Bilgisayar kapansa da çalışır.</h3>
+        <p>Kayıtlar işletme sunucusunda durur. Bilgisayar ve Android internet üzerinden erişir.</p>
+        <p>Android'de “Veniux buluta bağlan” seçeneğini açıp aynı hesapla giriş yapın.</p>
+      </article>
+      <article>
+        <span class="pg-where-tag">Yerel</span>
+        <h3>Kayıtlar kendi bilgisayarınızda.</h3>
+        <p>Telefon aynı Wi-Fi üzerinden bağlanır, bilgisayar açık kalmalıdır. Bağlantı için aşağıdaki QR adımlarını izleyin.</p>
+        <p><a href="/sunucu-kurulumu">Kurulum seçenekleri</a></p>
+      </article>
+    </div>
+    <p class="pg-small">Mevcut yerel işletmeler için kontrollü aktarım gerekir. Siteye kayıt olmak ücretli lisansı kendiliğinden açmaz; <a href="/fiyatlandirma">paketler ve lisans koşulları</a> ayrıdır. Web çalışma ekranı sunulmaz.</p>
+  </div>
+</section>
+
+<div class="pg-guide"><div class="hx-wrap"><?php require __DIR__.'/terminal-guide.php'; ?></div></div>
