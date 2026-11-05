@@ -99,6 +99,7 @@ app.use('/api/workspaces', require('./routes/workspaceRoutes'));
 app.use('/api/scanner', require('./routes/scannerRoutes'));
 app.use('/api/labels', require('./routes/labelRoutes'));
 app.use('/api/retail', require('./routes/retailRoutes'));
+app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
 
 // Serve the built panel from the same local API server.
 const frontendDirectory=path.join(__dirname,'../../frontend/dist');
@@ -135,7 +136,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`=========================================`);
 
     require('./services/backupService').startScheduler();
-    if (process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') require('./services/stockLossMonitor').startScheduler();
+    if (process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') { require('./services/stockLossMonitor').startScheduler(); require('./services/marketplaceService').startScheduler(); }
     // Optional: Start cron background tasks
     try {
       if (process.env.NODE_ENV !== 'test' && process.env.VENIUX_DISABLE_BACKGROUND_JOBS!=='1' && !require('./services/centralLicense').enabled()) {
