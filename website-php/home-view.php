@@ -1,79 +1,146 @@
-<?php declare(strict_types=1); ?>
-<section class="vs-intro vs-wrap">
-  <h1>Market ve depolar için stok programı.</h1>
-  <p class="vs-lead">Veniux; ürünlerinizi, depolarınızı ve kasanızı aynı kayıtta tutar. Kasadan çıkan ürün stoktan düşer, sayımda eksik çıkan ürün yöneticinin önüne gelir, biten ürün bitmeden sipariş listesine girer.</p>
-  <p class="vs-cta"><a class="vs-btn" href="/?request_type=demo#iletisim">Demo isteyin</a> <a href="/program-indir">Windows ve Android için indirin</a></p>
-</section>
-<figure class="vs-shot vs-shot-wide vs-wrap">
-  <img src="/assets/shot-overview.jpg" width="1500" height="900" alt="Veniux genel bakış ekranı: stok değeri, kritik ürünler ve stok sağlığı" fetchpriority="high">
-  <figcaption>Programın kendi ekranı. İşletme ve ürünler örnek veridir.</figcaption>
-</figure>
-
-<section class="vs-feature vs-wrap" id="ozellikler">
-  <div>
-    <h2>Hangi ürün ne zaman biter?</h2>
-    <p>Veniux son 30 gündeki çıkışa ve tedarikçinin teslim süresine bakar, ürünün kaç günde biteceğini hesaplar. Bir düğmeyle bunlar tedarikçi başına satın alma taslağına dönüşür. Siparişi yine siz onaylarsınız, program kimseye kendiliğinden sipariş geçmez.</p>
-    <p class="vs-note">Satış geçmişi az olan üründe hesap kaba kalır. Ekranda bunu ayrıca belirtiyoruz.</p>
+<?php declare(strict_types=1);
+// Barkod çizgileri süs amaçlıdır; sabit desenden üretilir.
+function homeBarcode(string $seed, int $height=44): string {
+    $x=0;$bars='';$hash=hash('crc32b',$seed).hash('md5',$seed);
+    foreach(str_split($hash) as $i=>$c){$v=hexdec($c);$w=1+$v%3;if($i%2===0)$bars.='<rect x="'.$x.'" y="0" width="'.$w.'" height="'.$height.'"/>';$x+=$w+($v%2);}
+    return '<svg class="hx-barcode" viewBox="0 0 '.$x.' '.$height.'" preserveAspectRatio="none" aria-hidden="true">'.$bars.'</svg>';
+}
+$steps=[
+ ['Mal geldi','Koli kapıda, kim saydı belli.','Mal kabulde ürünü okutur, miktarı girersiniz. Kim, ne zaman, kaç adet aldı; hepsi kayda geçer.','Mal kabul',[['Filtre kahve 250 g','+120 adet'],['Hedef raf','A-02'],['Kabul eden','Depo sorumlusu']],'Stoğa işlendi','good'],
+ ['Rafa kondu','Ürün nerede diye aranmaz.','Her ürünün hangi depoda, hangi rafta olduğu görünür. Depolar arası transfer toplam stoğu şişirmez.','Raf A-02',[['Filtre kahve 250 g','120 adet'],['Çay 1 kg','64 adet'],['Kuruyemiş karışık','38 adet']],'Konum güncel','good'],
+ ['Kasadan çıktı','Satış olduğu an stoktan düşer.','Barkod okunur, ödeme alınır, stok düşer. Gün sonunu beklemeniz, deftere geçirmeniz gerekmez.','Kasa · satış',[['Filtre kahve 250 g','× 2'],['Ödenen','92,00 TL'],['Kalan stok','118 → 116']],'Stoktan düştü','good'],
+ ['Azaldı','Raf boşalmadan haberin olur.','Son 30 günlük çıkışa ve tedarik süresine bakılır, ürünün kaç günde biteceği hesaplanır.','Sipariş önerisi',[['Filtre kahve 250 g','18 adet kaldı'],['Bitmesine','3 gün'],['Önerilen sipariş','80 adet']],'Dikkat: 3 gün','warn'],
+ ['Sipariş hazır','Liste hazır, onay sende.','Öneriler tek düğmeyle tedarikçi başına satın alma taslağı olur. Program kimseye kendiliğinden sipariş geçmez.','Satın alma taslağı',[['Tedarikçi','Örnek Gıda Ltd.'],['Kalem','4 ürün'],['Durum','Onay bekliyor']],'Taslak','warn'],
+ ['Sayımda eksik çıktı','Eksik mal sessizce kaybolmaz.','Rafı okutun, ürünleri okutun, sayaç artsın. Fark çıkarsa adet ve yaklaşık tutar yöneticinin önüne gelir.','Sayım farkı',[['Bulaşık deterjanı','5 adet eksik'],['Yaklaşık tutar','240 TL'],['Durum','Yönetici onayında']],'Yöneticiye bildirildi','bad'],
+];
+?>
+<section class="hx-hero">
+  <div class="hx-wrap hx-hero-grid">
+    <div>
+      <h1>Raf boşalmadan haberin&nbsp;olsun.</h1>
+      <p class="hx-lead">Veniux, market ve depolar için stok programı. Kasadan çıkanı stoktan düşer, biteni bitmeden söyler, sayımda eksik çıkanı önüne getirir.</p>
+      <p class="hx-cta"><a class="hx-btn" href="/?request_type=demo#iletisim">Demo isteyin</a><a class="hx-textlink" href="#yolculuk">Nasıl çalışır?</a></p>
+    </div>
+    <div class="hx-shelf" role="img" aria-label="Raf etiketi çizimi: filtre kahve, 46 lira, üzerinde 3 günde bitiyor uyarısı">
+      <div class="hx-label">
+        <div class="hx-label-top"><span>VENİUX · RAF A-02</span><span>GÖZ 14</span></div>
+        <strong class="hx-label-name">Filtre kahve 250 g</strong>
+        <div class="hx-label-mid"><?=homeBarcode('filtre-kahve',52)?><div class="hx-price">46<small>,00 ₺</small></div></div>
+        <div class="hx-label-bot"><span>8690000010001</span><span>Stok: 18 adet</span></div>
+      </div>
+      <div class="hx-stamp"><b>3 günde bitiyor</b><span>80 adet sipariş önerisi</span></div>
+      <div class="hx-rail" aria-hidden="true"></div>
+    </div>
   </div>
-  <figure class="vs-shot"><img src="/assets/shot-products.jpg" width="1500" height="900" loading="lazy" alt="Ürün listesi: her ürünün stok miktarı, kritik uyarısı, barkodu ve fiyatı"></figure>
 </section>
 
-<section class="vs-feature vs-feature-flip vs-wrap">
-  <div>
-    <h2>Eksik çıkan mal sessizce kaybolmasın.</h2>
-    <p>Sayımda fark çıkarsa ürün, adet ve yaklaşık tutar yöneticiye bildirilir. Rafı okutup ürünleri tek tek okuttukça sayaç artar; sayım kâğıtla dolaşmaz.</p>
-    <p>Sayım dışında da elle yapılan büyük düşüşlere bakarız: açıklama yazılmamışsa, gece yapılmışsa ya da ürünün normal hızının çok üstündeyse uyarı gelir.</p>
-    <p class="vs-note">Bu uyarı hırsızlığı kanıtlamaz, nereye bakacağınızı söyler. Hiç kaydedilmemiş bir kayıp ancak sayımda ortaya çıkar.</p>
+<section class="hx-journey" id="yolculuk">
+  <div class="hx-wrap">
+    <h2>Bir ürünün yolculuğu, altı durak.</h2>
+    <div class="hx-journey-grid">
+      <ol class="hx-steps">
+        <?php foreach($steps as $i=>[$tag,$title,$text]):?>
+        <li class="hx-step" data-step="<?=$i?>"><span class="hx-step-tag"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?> · <?=e($tag)?></span><h3><?=e($title)?></h3><p><?=e($text)?></p>
+          <?php [, , , $head,$rows,$state,$tone]=$steps[$i]; ?>
+          <div class="hx-card hx-card-inline" aria-hidden="true"><div class="hx-card-head"><?=e($head)?></div><?php foreach($rows as [$a,$b]):?><div class="hx-card-row"><span><?=e($a)?></span><b><?=e($b)?></b></div><?php endforeach;?><div class="hx-card-state" data-tone="<?=$tone?>"><?=e($state)?></div></div>
+        </li>
+        <?php endforeach;?>
+      </ol>
+      <div class="hx-stage" aria-hidden="true">
+        <div class="hx-stage-sticky">
+          <?php foreach($steps as $i=>[, , ,$head,$rows,$state,$tone]):?>
+          <div class="hx-card" data-card="<?=$i?>" <?=$i===0?'data-on':''?>><div class="hx-card-head"><?=e($head)?></div><?php foreach($rows as [$a,$b]):?><div class="hx-card-row"><span><?=e($a)?></span><b><?=e($b)?></b></div><?php endforeach;?><div class="hx-card-state" data-tone="<?=$tone?>"><?=e($state)?></div></div>
+          <?php endforeach;?>
+          <p class="hx-stage-note">Örnek veriler.</p>
+        </div>
+      </div>
+    </div>
   </div>
-  <figure class="vs-shot"><img src="/assets/shot-movements.jpg" width="1500" height="900" loading="lazy" alt="Stok hareketleri: tarih, işlem türü, ürün, depo, miktar ve kaynak"></figure>
 </section>
 
-<section class="vs-feature vs-wrap" id="kasa">
-  <div>
-    <h2>Kasada elinizi klavyeden kaldırmayın.</h2>
-    <p>Barkodu okutun, F6 ile ürün arayın, F8 ile ödemeyi alın. Nakit, kart, ikisi birden veya veresiye. Vardiya, gün sonu, iade, bekleyen satış ve fiyat sorgulama da aynı ekranda. İndirim ve fiyat değişikliği yönetici onayı ister.</p>
-    <p><a href="/market-pos">Kasa hakkında daha fazlası</a></p>
+<section class="hx-till" id="kasa">
+  <div class="hx-wrap hx-till-grid">
+    <div>
+      <h2>Kasada böyle çalışır.</h2>
+      <p>Barkodu okutun, F6 ile arayın, F8 ile ödemeyi alın. Nakit, kart, ikisi birden ya da veresiye. Vardiya, gün sonu ve iade de aynı ekranda. İndirim yönetici onayı ister.</p>
+      <button type="button" class="hx-btn" id="hx-play">Oynat</button>
+      <p class="hx-till-link"><a href="/market-pos">Kasa hakkında daha fazlası</a></p>
+    </div>
+    <div class="hx-pos" id="hx-pos" data-frame="3" aria-label="Kasa canlandırması: üç ürün okutulur, toplam oluşur, ödeme alınır, stok düşer">
+      <div class="hx-pos-lines">
+        <div class="hx-pos-line" data-at="1"><span>Filtre kahve 250 g</span><b>46,00</b></div>
+        <div class="hx-pos-line" data-at="2"><span>Tuzlu kraker</span><b>68,00</b></div>
+        <div class="hx-pos-line" data-at="3"><span>Yüzey temizleyici</span><b>90,00</b></div>
+      </div>
+      <div class="hx-pos-side">
+        <span>Ödenecek toplam</span>
+        <strong id="hx-total">204,00 ₺</strong>
+        <em id="hx-paybtn">Ödeme al · F8</em>
+      </div>
+      <div class="hx-pos-foot" id="hx-foot">Satış tamamlanınca stok anında düşer.</div>
+    </div>
   </div>
-  <figure class="vs-shot"><img src="/assets/shot-pos.jpg" width="1500" height="900" loading="lazy" alt="Kasa ekranı: sepette üç ürün, ödenecek toplam ve ödeme düğmesi"></figure>
 </section>
 
-<section class="vs-wrap vs-block" id="moduller">
-  <h2>İçinde başka neler var</h2>
-  <dl class="vs-defs">
-    <dt><a href="/depo-yonetimi">Depo</a></dt><dd>Mal kabul, raf yerleşimi, toplama, sevkiyat, depolar arası transfer.</dd>
-    <dt><a href="/lot-miat-takibi">Lot ve miat</a></dt><dd>Aynı ürünün partilerini ayrı izleme, yaklaşan son kullanma tarihleri.</dd>
-    <dt><a href="/barkodlu-stok-takibi">Barkod ve etiket</a></dt><dd>Barkodla ürün bulma, raf ve ürün etiketi yazdırma.</dd>
-    <dt><a href="/el-terminali-depo-yonetimi">El terminali</a></dt><dd>Android telefon veya terminalle depoda işlem.</dd>
-    <dt>Müşteri ve ekip</dt><dd>Fırsatlar, şirketler, kişiler, görevler ve personel kayıtları.</dd>
-    <dt><a href="/yapay-zeka">Asistan</a></dt><dd>Kayıtlarınız hakkında Türkçe soru sorarsınız. İşlem önerirse onayınızı bekler.</dd>
-  </dl>
+<section class="hx-receipt-sec">
+  <div class="hx-wrap hx-receipt-grid">
+    <div class="hx-receipt" role="img" aria-label="Sayım fişi çizimi: bulaşık deterjanı 5 adet eksik">
+      <b>SAYIM FİŞİ</b><span>Raf B-07</span>
+      <hr><div><span>Bulaşık deterjanı</span><span>Sistem 30</span></div><div><span></span><span>Sayılan 25</span></div>
+      <hr><div class="hx-receipt-diff"><span>FARK</span><span>−5 adet</span></div><div><span>Yaklaşık</span><span>240 TL</span></div>
+      <?=homeBarcode('sayim',26)?>
+    </div>
+    <div>
+      <h2>Ay sonunu beklemeyin.</h2>
+      <p>Elle yapılan büyük stok düşüşlerine de bakarız: açıklama yazılmamışsa, gece yapılmışsa ya da ürünün normal hızının çok üstündeyse uyarı gelir.</p>
+      <p class="hx-aside">Dürüst olalım: Bu uyarı hırsızlığı kanıtlamaz, nereye bakacağınızı söyler. Hiç kaydedilmemiş bir kayıp ancak sayımda ortaya çıkar.</p>
+    </div>
+  </div>
 </section>
 
-<section class="vs-wrap vs-block">
-  <h2>Veniux size uygun olmayabilir</h2>
-  <p class="vs-measure">Şunları arıyorsanız bugün başka bir program daha doğru olur, başlamadan söyleyelim:</p>
-  <ul class="vs-plain">
-    <li>Trendyol, Hepsiburada gibi pazaryerleriyle hazır çalışan bir entegrasyon. Trendyol üzerinde çalışıyoruz, henüz gerçek mağazada denenmedi.</li>
-    <li>Tam muhasebe ve bordro. Veniux stok, depo ve kasa programıdır; muhasebe programının yerine geçmez.</li>
-    <li>iPhone uygulaması. Şimdilik Windows ve Android var.</li>
-  </ul>
+<section class="hx-more" id="moduller">
+  <div class="hx-wrap">
+    <h2>Rafta başka neler var?</h2>
+    <div class="hx-tags">
+      <a href="/depo-yonetimi"><b>Depo</b><span>Mal kabul, raf, toplama, sevkiyat, transfer</span></a>
+      <a href="/lot-miat-takibi"><b>Lot ve miat</b><span>Parti takibi, yaklaşan son kullanma tarihleri</span></a>
+      <a href="/barkodlu-stok-takibi"><b>Barkod ve etiket</b><span>Barkodla bulma, raf etiketi yazdırma</span></a>
+      <a href="/el-terminali-depo-yonetimi"><b>El terminali</b><span>Android telefon veya terminalle depoda işlem</span></a>
+      <a href="/stok-yonetimi"><b>Stok</b><span>Ürün kartı, hareket geçmişi, Excel'den aktarım</span></a>
+      <a href="/yapay-zeka"><b>Asistan</b><span>Kayıtlarınıza Türkçe soru sorun, işlem onayınızı bekler</span></a>
+    </div>
+  </div>
 </section>
 
-<section class="vs-wrap vs-block" id="fiyatlandirma">
-  <h2>Fiyat</h2>
-  <div class="vs-table-scroll"><table class="vs-table">
-    <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th><th scope="col">Cihaz</th></tr></thead>
-    <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=number_format($plan['annual'],0,',','.')?> ₺</td><td><?=number_format($plan['quarter'],0,',','.')?> ₺</td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td><td><?=e((string)$plan['devices'])?></td></tr><?php endforeach;?></tbody>
-  </table></div>
-  <p class="vs-note">Fiyatlara %20 KDV dahildir. <a href="/fiyatlandirma">Paketlerin farkları</a></p>
+<section class="hx-plain">
+  <div class="hx-wrap hx-plain-grid">
+    <div id="fiyatlandirma">
+      <h2>Fiyat etiketi</h2>
+      <div class="hx-table-scroll"><table class="hx-table">
+        <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th></tr></thead>
+        <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=number_format($plan['annual'],0,',','.')?> ₺</td><td><?=number_format($plan['quarter'],0,',','.')?> ₺</td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
+      </table></div>
+      <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları</a></p>
+    </div>
+    <div>
+      <h2>Size uygun olmayabilir</h2>
+      <ul class="hx-list">
+        <li><b>Pazaryeri entegrasyonu şart mı?</b> Trendyol üzerinde çalışıyoruz, henüz gerçek mağazada denenmedi.</li>
+        <li><b>Muhasebe mi arıyorsunuz?</b> Veniux stok, depo ve kasa programıdır; muhasebe programının yerine geçmez.</li>
+        <li><b>iPhone mu kullanıyorsunuz?</b> Şimdilik Windows ve Android var.</li>
+      </ul>
+    </div>
+  </div>
 </section>
 
-<section class="vs-wrap vs-block" id="sorular">
-  <h2>Sık sorulanlar</h2>
-  <div class="vs-qa">
-    <h3>Mevcut ürünlerimi girmem gerekir mi?</h3><p>Hayır. Excel veya CSV dosyanızı yüklersiniz, sütunları eşleştirir ve önizlemeden sonra aktarırsınız.</p>
-    <h3>Verilerim nerede duruyor?</h3><p>Windows kurulumunda kendi bilgisayarınızda veya ayrı bir sunucuda tutabilirsiniz. Seçenekler <a href="/sunucu-kurulumu">kurulum sayfasında</a>.</p>
-    <h3>Tahminleri yapay zekâ mı yapıyor?</h3><p>Hayır, stok tahmini satış hızı ve teslim süresinden yapılan düz bir hesaptır. Yapay zekâ yalnızca asistanda kullanılır.</p>
-    <h3>Hangi barkod okuyucu çalışır?</h3><p>Klavye gibi yazan okuyucular ve telefon kamerası kullanılabilir. Özel bir cihazınız varsa satın almadan önce bize sorun.</p>
+<section class="hx-faq" id="sorular">
+  <div class="hx-wrap">
+    <h2>Sık sorulanlar</h2>
+    <div class="hx-qa">
+      <div><h3>Ürünleri tek tek mi gireceğim?</h3><p>Hayır. Excel veya CSV dosyanızı yükler, sütunları eşleştirir, önizlemeden sonra aktarırsınız.</p></div>
+      <div><h3>Verilerim nerede duruyor?</h3><p>Windows kurulumunda kendi bilgisayarınızda veya ayrı bir sunucuda tutabilirsiniz. <a href="/sunucu-kurulumu">Kurulum seçenekleri</a></p></div>
+      <div><h3>Tahmini yapay zekâ mı yapıyor?</h3><p>Hayır, satış hızı ve teslim süresinden yapılan düz bir hesap. Yapay zekâ yalnız asistanda kullanılır.</p></div>
+      <div><h3>Hangi barkod okuyucu çalışır?</h3><p>Klavye gibi yazan okuyucular ve telefon kamerası kullanılabilir. Özel bir cihazınız varsa önce bize sorun.</p></div>
+    </div>
   </div>
 </section>

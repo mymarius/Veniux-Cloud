@@ -170,10 +170,11 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?=siteSeoHead($config,$page,$path,$indexable)?>
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="<?=$path==="/"?"light":"dark"?>">
     <meta name="theme-color" content="#0c0f16">
     <?php if($path!=="/"&&!isset($topics[$path])):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css">
+    <?php if($path==="/"):?><link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css"><script src="/assets/home.js" defer></script><?php endif;?>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
