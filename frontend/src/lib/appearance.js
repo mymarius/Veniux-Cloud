@@ -17,9 +17,9 @@ export const ACCENTS = [
 ];
 
 // Keep the old preference IDs readable while every workspace uses the same bundled typeface.
-export const UI_FONT_FAMILY="'Veniux Manrope','Segoe UI',sans-serif";
+export const UI_FONT_FAMILY="Archivo,'Segoe UI',Arial,sans-serif";
 export const FONTS=[{id:'geometric',name:'Veniux Manrope',family:UI_FONT_FAMILY},{id:'system',name:'Veniux Manrope',family:UI_FONT_FAMILY}];
-export const DEFAULTS = { mode: 'dark', accent: 'ember', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle' };
+export const DEFAULTS = { mode: 'light', accent: 'ember', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle' };
 
 const valid = {
   mode: v => ['light', 'dark', 'system'].includes(v),

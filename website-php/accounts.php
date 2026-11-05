@@ -238,6 +238,7 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
     <link rel="stylesheet" href="/assets/veniux-site.css">
+    <link rel="stylesheet" href="/assets/home.css">
 </head>
 <body style="background-color:#12161f; color:#e8ecf4;">
 <header class="dp-header">
