@@ -206,7 +206,6 @@ const updateProduct = async (req, res) => {
       max_stock_level = 1000,
       supplier_id = null
     } = req.body;
-    if (supplier_id && !(await pool.query('SELECT id FROM suppliers WHERE id=$1 AND tenant_id=$2',[supplier_id,req.user.tenantId])).rows.length) return res.status(404).json({error:'Tedarikçi bulunamadı.'});
 
     if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>1000000000)return res.status(400).json({error:'Minimum stok sıfır veya pozitif bir sayı olmalıdır.'});
     if (!sku || !name) {
