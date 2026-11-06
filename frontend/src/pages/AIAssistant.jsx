@@ -120,20 +120,15 @@ export default function AIAssistant() {
   ];
 
   return (
-    <div className="space-y-5 pb-10">
+    <div className="vx-ai space-y-5 pb-10">
       {/* Corporate Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 vx-ai-head">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-              Analiz Modülü
-            </span>
-          </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800">
-            Stok Analizi & Talep Tahminleme
+            Asistan ve sipariş önerileri
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            İşletme kayıtlarınızla çalışan operasyon ve kullanım asistanınız
+            Kayıtlarınıza Türkçe soru sorun, biten ürünler için sipariş taslağı hazırlayın.
           </p>
         </div>
 
@@ -141,14 +136,14 @@ export default function AIAssistant() {
           <button
             disabled={analyzing}
             onClick={() => window.dispatchEvent(new CustomEvent('veniux:assistant-open',{detail:{action:'analysis'}}))}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold shadow-sm transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 vx-ai-btn" data-tone="ink"
           >
             <RefreshCw className="w-3.5 h-3.5" /> {analyzing ? 'Analiz ediliyor…' : 'Sistemi Tara'}
           </button>
           
           <button
             onClick={fetchForecasts}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold shadow-sm transition-colors"
+            className="flex items-center gap-1.5 vx-ai-btn" data-tone="line"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Verileri Yenile
           </button>
@@ -158,21 +153,18 @@ export default function AIAssistant() {
       {proposal&&<section className="rounded-xl border border-amber-200 bg-amber-50 p-5"><strong>{proposal.title}</strong><p className="my-3 whitespace-pre-wrap text-sm">{proposal.impact}</p>{proposal.requires_file?<AssistantFileInput proposal={proposal} onPrepared={setProposal} onError={message=>showToast(message,'error')}/>:<p>Onaylıyor musunuz?</p>}<div className="flex gap-3"><button className="rounded-lg bg-slate-800 px-4 py-2 text-sm text-white" disabled={applying||!proposal.id} onClick={async()=>{if(proposal.deletion_required&&!window.confirm(`${proposal.impact}\nBelirtilen silme veya bağlantı kaldırma işlemini ayrıca onaylıyor musunuz?`))return;setApplying(true);try{const {data}=await apiClient.post('/ai/actions/execute',{id:proposal.id,confirmed:true,deletion_confirmed:proposal.deletion_required===true},{timeout:75000});setMessages(prev=>[...prev,{id:Date.now(),sender:'bot',text:data.reply,result:data.result}]);setProposal(null);fetchForecasts();}catch(e){setProposal(null);showToast(e.response?.data?.error||'İşlem tamamlanamadı.','error');}finally{setApplying(false);}}}>{applying?'Uygulanıyor…':'Onayla ve uygula'}</button><button disabled={applying} onClick={()=>setProposal(null)}>Vazgeç</button></div></section>}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Chat Section (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col h-[580px] overflow-hidden">
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div className="lg:col-span-7 vx-ai-panel flex flex-col h-[580px] overflow-hidden">
+          <div className="vx-ai-panel-head flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-md border border-slate-200 bg-white text-slate-500 shadow-sm">
-                <Terminal className="w-4 h-4" />
-              </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-800">Sorgu Arayüzü</h3>
-                <p className="text-[11px] text-slate-600 font-semibold">{aiStatus}</p>
+                <h3>Asistana sorun</h3>
+                <p>{aiStatus}</p>
               </div>
             </div>
           </div>
 
           {/* Messages Feed */}
-          <div className="flex-1 p-5 overflow-y-auto space-y-4 text-[13px] bg-slate-50/30">
+          <div className="vx-ai-feed flex-1 p-5 overflow-y-auto space-y-4">
             {messages.map((m) => {
               const isUser = m.sender === 'user';
               return (
@@ -181,16 +173,16 @@ export default function AIAssistant() {
                   className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isUser && (
-                    <div className="w-7 h-7 rounded-md border border-slate-200 bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 font-bold text-[10px]">
-                      SYS
+                    <div className="vx-ai-mark flex items-center justify-center shrink-0">
+                      V
                     </div>
                   )}
 
                   <div
-                    className={`p-3.5 rounded-md max-w-lg leading-relaxed whitespace-pre-wrap shadow-sm border ${
+                    className={`vx-ai-msg max-w-lg leading-relaxed whitespace-pre-wrap ${
                       isUser
-                        ? 'bg-slate-800 text-white border-slate-700 font-medium'
-                        : 'bg-white text-slate-800 border-slate-200'
+                        ? 'is-user'
+                        : 'is-bot'
                     }`}
                   >
                     {isUser ? m.text : <><AssistantMarkdown>{m.text}</AssistantMarkdown><AssistantOperationResult result={m.result}/></>}
@@ -217,12 +209,12 @@ export default function AIAssistant() {
           </div>
 
           {/* Suggested Quick Questions */}
-          <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-2 text-[11px]">
+          <div className="vx-ai-suggest flex flex-wrap gap-2">
             {suggestedQuestions.map((q, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(q)}
-                className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-200 whitespace-nowrap transition shadow-sm"
+                className="vx-ai-chip"
               >
                 {q}
               </button>
@@ -235,7 +227,7 @@ export default function AIAssistant() {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-4 border-t border-slate-200 bg-white flex items-center gap-3"
+            className="vx-ai-form flex items-center gap-3"
           >
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -245,14 +237,14 @@ export default function AIAssistant() {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Stok raporu almak için sorgu girin... (Örn: Hangi depoda kahve azaldı?)"
-                className="block w-full pl-9 pr-3 py-2 border border-slate-200 rounded-md text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-slate-50 placeholder:text-slate-400"
+                placeholder="Örneğin: Hangi depoda kahve azaldı?"
+                className="vx-ai-input block w-full pl-9 pr-3"
               />
             </div>
             <button
               type="submit"
               disabled={!inputMessage.trim() || loading}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 vx-ai-btn disabled:opacity-50" data-tone="accent"
             >
               <Send className="w-3.5 h-3.5" /> Gönder
             </button>
@@ -260,33 +252,28 @@ export default function AIAssistant() {
         </div>
 
         {/* Forecast & Order Recommendations (5 Cols) */}
-        <div className="lg:col-span-5 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col h-[580px] overflow-hidden">
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div className="lg:col-span-5 vx-ai-panel flex flex-col h-[580px] overflow-hidden">
+          <div className="vx-ai-panel-head flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-sm text-slate-800">Sipariş önerileri</h3>
-              <p className="text-slate-500 text-[11px] font-medium mt-0.5">Satış hızı ve tedarik süresine göre hesaplanır</p>
+              <h3>Sipariş önerileri</h3>
+              <p>Satış hızı ve tedarik süresine göre hesaplanır</p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-              Sistem Tavsiyesi
-            </span>
           </div>
 
-          <div className="p-5 overflow-y-auto space-y-3 flex-1 bg-slate-50/30">
+          <div className="vx-ai-orders p-5 overflow-y-auto space-y-4 flex-1">
             {loadingForecast ? (
               <p className="text-[13px] font-medium text-slate-500 text-center py-8">Öngörüler hesaplanıyor...</p>
             ) : forecasts.length === 0 ? (
               <div className="text-center py-12 text-slate-500 flex flex-col items-center">
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-md mb-4 shadow-sm">
-                  <CheckCircle2 className="w-6 h-6 text-slate-400" />
-                </div>
-                <p className="text-sm font-bold text-slate-700">Sipariş gerektiren ürün bulunmuyor.</p>
-                <p className="text-xs text-slate-500 mt-1">Tüm stok seviyeleri tanımlı güvenlik aralığında.</p>
+                <CheckCircle2 className="vx-ai-empty-icon" />
+                <p className="vx-ai-empty-title">Şimdilik sipariş önerisi yok.</p>
+                <p className="mt-2">Öneriler satış hızına göre hesaplanır. Biten veya azalan ürünler için bildirimlere de bakın.</p>
               </div>
             ) : (
               [<div key="draft" className="flex flex-wrap items-center justify-between gap-2"><button type="button" className="btn-primary" disabled={drafting} onClick={createDrafts}>{drafting ? 'Oluşturuluyor…' : `${forecasts.length} ürün için taslak oluştur`}</button>{draftResult && <span role="status" className="text-xs text-slate-600">{draftResult}</span>}</div>, ...forecasts.map((f, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-md bg-white border border-slate-200 shadow-sm text-[13px]"
+                  className="vx-ai-tag"
                 >
                   <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                     <span className="font-bold text-slate-800">{f.name}</span>
