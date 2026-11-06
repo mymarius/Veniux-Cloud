@@ -17,6 +17,8 @@ let quitting = false;
 function isBusinessCloud(){return runtime.apiBase==='https://business.veniux.com/api';}
 
 // Single instance lock
+// The owner greeting speaks on open, before any click.
+app.commandLine.appendSwitch('autoplay-policy','no-user-gesture-required');
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {

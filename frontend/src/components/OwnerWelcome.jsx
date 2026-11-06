@@ -17,8 +17,17 @@ export default function OwnerWelcome({ userId }) {
   const [voiceNote, setVoiceNote] = useState('');
   const run = useRef(0);
   const audio = useRef(null);
+  const retry = useRef(null);
+
+  function clearRetry() {
+    if (!retry.current) return;
+    window.removeEventListener('pointerdown', retry.current, true);
+    window.removeEventListener('keydown', retry.current, true);
+    retry.current = null;
+  }
 
   function stop() {
+    clearRetry();
     run.current += 1;
     audio.current?.pause();
     audio.current = null;
@@ -50,8 +59,12 @@ export default function OwnerWelcome({ userId }) {
       }
     } catch (error) {
       if (mine !== run.current) return;
-      // Tarayıcı kullanıcı dokunmadan sesi engellediyse düğme yeterli; cihaz sesini zorlamayız.
-      if (error?.name === 'NotAllowedError') setVoiceNote('Dinlemek için hoparlör düğmesine basın.');
+      // Program ve Android'de engel yoktur. Tarayıcı engellerse ilk dokunuşta kendiliğinden başlar.
+      if (error?.name === 'NotAllowedError') {
+        retry.current = () => speak(text);
+        window.addEventListener('pointerdown', retry.current, true);
+        window.addEventListener('keydown', retry.current, true);
+      }
       else {
         try { await speakOnDevice(text); }
         catch { if (mine === run.current) setVoiceNote('Ses şu anda kullanılamıyor.'); }
