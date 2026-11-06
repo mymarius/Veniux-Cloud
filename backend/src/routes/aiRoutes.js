@@ -19,6 +19,7 @@ router.post('/actions/files',rateLimit({windowMs:60000,max:5}),require('express'
 // The authenticated registry supplies an exact server-generated path. A configured
 // data directory may contain a hidden parent (e.g. .local); no user path is accepted.
 router.get('/actions/result-files/:id',(req,res,next)=>{try{const file=require('../services/assistantSystemOperations').download(req.user,req.params.id);res.download(file.path,file.filename,{dotfiles:'allow'});}catch(e){next(e);}});
+router.get('/briefing',async(req,res,next)=>{try{res.json(await require('../services/assistantBriefing').briefing(req.user,req.query.since));}catch(e){next(e);}});
 router.get('/overview',async(req,res,next)=>{try{res.json(await monitor.overview(req.user));}catch(e){next(e);}});
 router.post('/actions/prepare',rateLimit({windowMs:60000,max:20}),async(req,res,next)=>{try{res.json(await monitor.prepare(req.user,req.body,{headers:req.headers}));}catch(e){next(e);}});
 router.post('/actions/execute',rateLimit({windowMs:60000,max:10}),async(req,res,next)=>{try{res.json(await monitor.execute(req.user,req.body,{headers:req.headers}));}catch(e){next(e);}});

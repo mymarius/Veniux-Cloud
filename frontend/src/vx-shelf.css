@@ -459,3 +459,22 @@ html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .en
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content .ax-actions>:not(button):not(select):not(a)>button{flex:1 1 0;min-width:0;padding-inline:4px;white-space:nowrap}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content .ax-actions>:is(button,a){flex:1 1 auto}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content :is(.business-tabs,.ax-tabs,.crm-tabs),html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content :is(.business-tabs,.ax-tabs,.crm-tabs)>*{border-radius:0!important}
+
+/* Açılış karşılaması: kasa fişi */
+html:root[data-design='veniux'] .vx-welcome-wrap{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:16px;background:#17263acc}
+html:root[data-design='veniux'] .vx-welcome{width:min(100%,620px);max-height:calc(100dvh - 32px);overflow:auto;background:#fffdf8;border-top:10px solid #e4570a;box-shadow:10px 10px 0 #0d1827;color:#17263a;font-family:Archivo,'Segoe UI',Arial,sans-serif}
+html:root[data-design='veniux'] .vx-welcome header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:24px 24px 16px;border-bottom:2px dashed #bfb196}
+html:root[data-design='veniux'] .vx-welcome h2{margin:0;color:#17263a;font-size:clamp(34px,6vw,50px);font-weight:900;font-stretch:66%;line-height:1}
+html:root[data-design='veniux'] .vx-welcome-x{flex:none;width:44px;height:44px;display:grid;place-items:center;background:none;border:2px solid #17263a;color:#17263a}
+html:root[data-design='veniux'] .vx-welcome ul{margin:0;padding:12px 24px;list-style:none}
+html:root[data-design='veniux'] .vx-welcome li{padding:11px 0;border-bottom:1px dashed #bfb196;font-size:17px;line-height:1.45}
+html:root[data-design='veniux'] .vx-welcome li:last-child{border-bottom:0}
+html:root[data-design='veniux'] .vx-welcome-note{margin:0 24px 8px;color:#4d5a6b;font-size:14px}
+html:root[data-design='veniux'] .vx-welcome footer{display:flex;flex-wrap:wrap;gap:8px;padding:8px 24px 12px}
+html:root[data-design='veniux'] .vx-welcome footer button{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 14px;background:none;border:2px solid #17263a;color:#17263a;font-size:15px;font-weight:700}
+html:root[data-design='veniux'] .vx-welcome footer button svg{width:18px;height:18px}
+html:root[data-design='veniux'] .vx-welcome footer button.is-primary{background:#e4570a;border-color:#e4570a;color:#fff}
+html:root[data-design='veniux'] .vx-welcome button:focus-visible{outline:3px solid #e4570a;outline-offset:2px}
+html:root[data-design='veniux'] .vx-welcome-off{display:flex;align-items:center;gap:9px;padding:0 24px 20px;color:#4d5a6b;font-size:14px}
+html:root[data-design='veniux'] .vx-welcome-off input{width:20px;height:20px;margin:0;accent-color:#e4570a}
+html:root[data-design='veniux'] .vx-welcome-wrap{background:#17263acc!important;max-width:none!important;width:auto!important;height:auto!important;border:0!important;box-shadow:none!important}

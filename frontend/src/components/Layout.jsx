@@ -14,6 +14,7 @@ import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
 import GlobalCommandPalette from './GlobalCommandPalette';
 import { useToast } from './Toast';
+import OwnerWelcome from './OwnerWelcome';
 import ReleaseNotes, { PROGRAM_VERSION } from './ReleaseNotes';
 import release from '../data/programRelease.json';
 import { evaluateCompatibility } from '../lib/versionCompat.mjs';
@@ -392,6 +393,7 @@ export function Layout({ children }) {
       <QuickStockModal isOpen={stockModalOpen} onClose={() => setStockModalOpen(false)} type={stockModalType} onSuccess={() => { showToast(`Stok ${stockModalType === 'inbound' ? 'girişi' : 'çıkışı'} tamamlandı.`, 'success'); setStockModalOpen(false); }} />
       <QuickTransferModal isOpen={transferModalOpen} onClose={() => setTransferModalOpen(false)} onSuccess={() => { showToast('Depolar arası stok transferi tamamlandı.', 'success'); setTransferModalOpen(false); }} />
       <GlobalCommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+      <OwnerWelcome userId={user.id} />
       <ReleaseNotes isOpen={releaseNotesOpen} onClose={() => setReleaseNotesOpen(false)} />
     </div>
   );
