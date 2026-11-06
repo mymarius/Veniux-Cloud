@@ -67,7 +67,7 @@ export default function WarehouseTab() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Depo ayarları</h1>
-          <p className="text-sm text-gray-500 mt-1">Fiziksel depo tesislerinizi, raf adresleme formatlarını ve stok algoritmalarını yapılandırın.</p>
+          <p className="text-sm text-gray-500 mt-1">Depolarınız ve raf adresi düzeniniz.</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -98,7 +98,7 @@ export default function WarehouseTab() {
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-gray-900">{wh.name}</h3>
-                    <p className="text-[11px] text-gray-500 font-mono">ID: #{wh.id}</p>
+                    <p className="text-[11px] text-gray-500">Depo no: {wh.id}</p>
                   </div>
                 </div>
                 <StatusBadge status="active" text={wh.warehouse_type || 'NORMAL'} />
@@ -123,7 +123,7 @@ export default function WarehouseTab() {
       <div className="veniux-card p-6 space-y-6">
         <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
           <Settings2 className="w-5 h-5 text-brand-500" />
-          <h2 className="font-bold text-sm text-gray-900">Otomatik Stok Yönlendirme ve Tahsis Motoru</h2>
+          <h2 className="font-bold text-sm text-gray-900">Toplama kuralları (önizleme)</h2>
         </div>
 
         <p role="status" className="text-sm text-gray-500">Strateji seçenekleri önizlemedir; bu sürümde kaydedilemez ve stok kurallarını değiştirmez. Mevcut lot ve FEFO kuralları ilgili işlem ekranlarında uygulanır.</p>
@@ -131,19 +131,19 @@ export default function WarehouseTab() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
-                Toplama ve Çıkış Yönlendirme Algoritması (WMS Router)
+                Çıkışta hangi ürün önce alınsın?
               </label>
               <select
                 value={strategy.algorithm}
                 onChange={(e) => setStrategy({ ...strategy, algorithm: e.target.value })}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
               >
-                <option value="FEFO">FEFO (First Expired, First Out) - Son Kullanma Tarihi En Yakın Olan Önce Çıkar</option>
+                <option value="FEFO">Son kullanma tarihi en yakın olan önce</option>
                 <option value="FIFO">FIFO (First In, First Out) - İlk Giren Stok İlk Çıkar</option>
                 <option value="LIFO">LIFO (Last In, First Out) - Son Giren İlk Çıkar</option>
               </select>
               <p className="text-[11px] text-gray-500 mt-1">
-                Son kullanma tarihi izlenen ürünlerde önce miadı yaklaşan partiyi çıkarmak için FEFO kullanılabilir.
+                Son kullanma tarihi izlenen ürünlerde önce tarihi yaklaşan parti çıkar.
               </p>
             </div>
 

@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import api from '../api/client';
 import {defaults,clean,ScanQueue,Framer} from '../../../shared/scanner.mjs';
-export function useScanner(onCode){const latest=useRef(onCode);latest.current=onCode;const [config,setConfig]=useState(defaults),[status,setStatus]=useState('Manuel / HID alanı hazır'),[error,setError]=useState(''),[sample,setSample]=useState(null),[processing,setProcessing]=useState(0);const resource=useRef(null),queue=useRef(null),settings=useRef(config);settings.current=config;
+export function useScanner(onCode){const latest=useRef(onCode);latest.current=onCode;const [config,setConfig]=useState(defaults),[status,setStatus]=useState('Okutmaya hazır'),[error,setError]=useState(''),[sample,setSample]=useState(null),[processing,setProcessing]=useState(0);const resource=useRef(null),queue=useRef(null),settings=useRef(config);settings.current=config;
  if(!queue.current)queue.current=new ScanQueue(async event=>{const processed=clean(event.raw,settings.current);setSample({raw:event.raw,processed,source:event.source});await latest.current(event.raw,{processed,source:event.source});});
  const scan=(raw,source='manual',id)=>{setProcessing(n=>n+1);return queue.current.push({raw,source,id}).then(()=>true).catch(e=>{setError(e.response?.data?.error||e.message||'Barkod işlenemedi. Yeniden okutun.');return false;}).finally(()=>setProcessing(n=>n-1));};
  useEffect(()=>{let live=true;api.get('/scanner/settings').then(r=>{if(live)setConfig(r.data);}).catch(()=>{if(live)setError('Okuyucu ayarları alınamadı; varsayılan manuel giriş kullanılabilir.');});return()=>{live=false;resource.current?.close();};},[]);

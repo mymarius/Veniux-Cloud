@@ -9,6 +9,8 @@ import {
   Shield,
   Warehouse,
   Smartphone,
+  ScanBarcode,
+  Bot,
   Blocks,
   Bell,
   Palette,
@@ -42,54 +44,53 @@ export default function SettingsPage() {
     { id: 'users', label: 'Kullanıcılar', icon: Users },
     { id: 'roles', label: 'Roller ve yetkiler', icon: Shield },
     { id: 'warehouse', label: 'Depo ayarları', icon: Warehouse },
-    { id: 'scanner', label: 'Barkod okuyucular ve kasa', icon: Smartphone },
+    { id: 'scanner', label: 'Barkod okuyucular ve kasa', icon: ScanBarcode },
     { id: 'devices', label: 'El terminalleri', icon: Smartphone },
     { id: 'integrations', label: 'Entegrasyonlar', icon: Blocks },
     { id: 'notifications', label: 'Bildirimler', icon: Bell },
-    { id: 'automation', label: 'Asistan otomasyonu', icon: Bell },
+    { id: 'automation', label: 'Asistan otomasyonu', icon: Bot },
     { id: 'appearance', label: 'Görünüm', icon: Palette },
     { id: 'security', label: 'Güvenlik', icon: Lock },
     { id: 'license', label: 'Lisans ve plan', icon: Key },
     { id: 'system', label: 'Sistem', icon: Database },
   ];
+  const GROUPS = [
+    ['Hesabınız', ['account', 'security', 'appearance']],
+    ['İşletme', ['company', 'users', 'roles', 'license']],
+    ['Depo ve cihazlar', ['warehouse', 'scanner', 'devices']],
+    ['Bağlantılar', ['integrations', 'notifications', 'automation']],
+    ['Bakım', ['system']],
+  ];
   const activeTab=TABS.some(tab=>tab.id===requestedTab)?requestedTab:'account';
 
   return (
-    <div className="settings-workspace flex min-w-0 bg-white border border-gray-200 rounded-xl shadow-xs">
+    <div className="settings-workspace vx-set flex min-w-0">
       {/* Left Navigation */}
-      <div className="settings-navigation w-64 border-r border-gray-200 bg-gray-50/70 flex flex-col shrink-0">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="font-bold text-xs text-gray-900 font-mono uppercase tracking-widest">
-            Ayarlar
-          </h2>
-        </div>
-        <div className="p-3 space-y-1">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              aria-pressed={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-brand-500 text-white shadow-sm font-semibold'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
-              }`}
-            >
-              <tab.icon className={`w-4 h-4 shrink-0 ${activeTab === tab.id ? 'text-white' : 'text-gray-500'}`} />
-              <span className="text-left whitespace-normal">{tab.label}</span>
-            </button>
+      <div className="settings-navigation flex flex-col shrink-0">
+        <div className="vx-set-title"><h2>Ayarlar</h2></div>
+        <div className="vx-set-menu">
+          {GROUPS.map(([title, ids]) => (
+            <div className="vx-set-group" key={title}>
+              <p>{title}</p>
+              {ids.map(id => TABS.find(tab => tab.id === id)).map(tab => (
+                <button key={tab.id} type="button" aria-pressed={activeTab === tab.id} onClick={() => setActiveTab(tab.id)}>
+                  <tab.icon aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </div>
 
       {/* Right Content Area */}
-      <div className="min-w-0 flex-1 bg-gray-100/60 p-6 sm:p-8">
+      <div className="vx-set-body min-w-0 flex-1">
         {activeTab === 'account' && <AccountTab />}
         {activeTab === 'company' && <CompanyTab />}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'roles' && <RolesTab onNavigate={setActiveTab} />}
         {activeTab === 'warehouse' && <WarehouseTab />}
-        {activeTab === 'scanner' && <><ScannerPanel settingsMode onCode={async()=>{}} /><CashierPermissions /></>}
+        {activeTab === 'scanner' && <><div className="mb-5"><h1>Barkod okuyucular ve kasa</h1><p className="text-sm mt-2">Okuyucunuzu deneyin, bağlantı ayarlarını yapın ve kasiyer yetkilerini belirleyin.</p></div><ScannerPanel settingsMode onCode={async()=>{}} /><CashierPermissions /></>}
         {activeTab === 'devices' && <DevicesTab />}
         {activeTab === 'integrations' && <IntegrationsTab />}
         {activeTab === 'notifications' && <NotificationsTab />}

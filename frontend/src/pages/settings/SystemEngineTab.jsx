@@ -26,7 +26,7 @@ export default function SystemEngineTab() {
       const res = await apiClient.get('/settings/system-engine');
       setSystem(res.data);
     } catch (err) {
-      showToast('Sistem motoru telemetrisi alınamadı.', 'error');
+      showToast('Sistem bilgileri alınamadı.', 'error');
     } finally {
       setLoading(false);
     }
@@ -65,15 +65,15 @@ export default function SystemEngineTab() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Sistem durumu</h1>
-          <p className="text-sm text-gray-500 mt-1">Veritabanı altyapısı, bellek kullanımı, arka plan işçileri ve bakım operasyonları.</p>
+          <p className="text-sm text-gray-500 mt-1">Programın çalıştığı ortam, kayıt sayıları ve bakım işlemleri.</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowDatabaseMigration(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-xl text-xs font-semibold transition"
+            className="btn-secondary"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
-            <span>Veritabanı Geçişi</span>
+            <span>Veritabanı geçişi</span>
           </button>
           <button
             onClick={fetchSystemEngine}
@@ -89,7 +89,7 @@ export default function SystemEngineTab() {
             className="btn-primary"
           >
             {optimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-            <span>Veritabanını Optimize Et</span>
+            <span>Veritabanını düzenle</span>
           </button>
         </div>
       </div>
@@ -98,33 +98,32 @@ export default function SystemEngineTab() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="veniux-card p-5 space-y-3">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-gray-500 font-mono uppercase">Veritabanı Motoru</span>
-            <StatusBadge status="active" text="AKTİF MOTOR" />
+            <span className="text-xs font-bold text-gray-500">Veritabanı</span>
+            <StatusBadge status="active" text="Kullanımda" />
           </div>
           <h3 className="font-semibold text-base text-gray-900">{system?.engine || 'Ölçülmedi'}</h3>
-          <p className="text-xs text-gray-500 font-mono">Mod: {system?.journalMode || 'Ölçülmedi'}</p>
+          <p className="text-xs text-gray-500">Kayıt modu: {system?.journalMode || 'Ölçülmedi'}</p>
           <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-600">
-            <span>Disk Boyutu:</span>
+            <span>Disk boyutu</span>
             <span className="font-mono font-bold text-gray-900">{system?.dbSize || 'Ölçülmedi'}</span>
           </div>
         </div>
 
         <div className="veniux-card p-5 space-y-3">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-gray-500 font-mono uppercase">Node.js Çalışma Zamanı</span>
-            <StatusBadge status="success" text="STABLE" />
+            <span className="text-xs font-bold text-gray-500">Program sunucusu</span>
           </div>
           <h3 className="font-semibold text-base text-gray-900">{system?.nodeVersion || 'Ölçülmedi'}</h3>
-          <p className="text-xs text-gray-500 font-mono">Platform: {system?.platform || 'Ölçülmedi'}</p>
+          <p className="text-xs text-gray-500">Platform: {system?.platform || 'Ölçülmedi'}</p>
           <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-600">
-            <span>Kesintisiz Çalışma (Uptime):</span>
+            <span>Açık kaldığı süre</span>
             <span className="font-mono font-bold text-emerald-600">{system?.uptimeFormatted || 'Ölçülmedi'}</span>
           </div>
         </div>
 
         <div className="veniux-card p-5 space-y-3">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-gray-500 font-mono uppercase">Node.js heap belleği</span>
+            <span className="text-xs font-bold text-gray-500">Bellek kullanımı</span>
             <StatusBadge status="info" text={`%${memoryPercent}`} />
           </div>
           <h3 className="font-semibold text-base text-gray-900">
@@ -137,7 +136,7 @@ export default function SystemEngineTab() {
             ></div>
           </div>
           <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-600">
-            <span>Resident Set Size (RSS):</span>
+            <span>Toplam ayrılan bellek</span>
             <span className="font-mono font-bold text-gray-900">{system?.memoryUsage?.rssMB || 'Ölçülmedi'} MB</span>
           </div>
         </div>
@@ -146,29 +145,29 @@ export default function SystemEngineTab() {
       {/* Database Record Statistics */}
       <div className="veniux-card p-6 space-y-4">
         <h3 className="font-bold text-sm text-gray-900 pb-3 border-b border-gray-200">
-          Çekirdek Veri Tabloları İstatistiği
+          Kayıt sayıları
         </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
-            <span className="text-[10px] text-gray-400 font-mono block uppercase">Ürün SKU</span>
-            <span className="font-semibold text-lg text-gray-900 font-mono">{system?.counts?.products || 0}</span>
+            <span className="vx-set-stat-label block">Ürün</span>
+            <span className="vx-set-stat-value">{system?.counts?.products || 0}</span>
           </div>
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
-            <span className="text-[10px] text-gray-400 font-mono block uppercase">Aktif Depolar</span>
-            <span className="font-semibold text-lg text-gray-900 font-mono">{system?.counts?.warehouses || 0}</span>
+            <span className="vx-set-stat-label block">Depo</span>
+            <span className="vx-set-stat-value">{system?.counts?.warehouses || 0}</span>
           </div>
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
-            <span className="text-[10px] text-gray-400 font-mono block uppercase">Stok Girdisi</span>
-            <span className="font-semibold text-lg text-gray-900 font-mono">{system?.counts?.stockRecords || 0}</span>
+            <span className="vx-set-stat-label block">Stok kaydı</span>
+            <span className="vx-set-stat-value">{system?.counts?.stockRecords || 0}</span>
           </div>
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
-            <span className="text-[10px] text-gray-400 font-mono block uppercase">El Terminalleri</span>
-            <span className="font-semibold text-lg text-gray-900 font-mono">{system?.counts?.devices || 0}</span>
+            <span className="vx-set-stat-label block">El terminali</span>
+            <span className="vx-set-stat-value">{system?.counts?.devices || 0}</span>
           </div>
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
-            <span className="text-[10px] text-gray-400 font-mono block uppercase">Denetim Günlüğü</span>
-            <span className="font-semibold text-lg text-gray-900 font-mono">{system?.counts?.auditLogs || 0}</span>
+            <span className="vx-set-stat-label block">İşlem kaydı</span>
+            <span className="vx-set-stat-value">{system?.counts?.auditLogs || 0}</span>
           </div>
         </div>
       </div>
@@ -182,33 +181,33 @@ export default function SystemEngineTab() {
               Veritabanı geçişi ve kurtarma
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              SQLite ve MySQL/MariaDB hedefleri için ayrı veritabanında geçiş ve kabul kontrolleri.
+              Verileri başka bir veritabanına taşımadan önce ayrı bir kopyada denenir; mevcut verileriniz bu sırada değişmez.
             </p>
           </div>
           <button
             onClick={() => setShowDatabaseMigration(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-xs transition"
+            className="btn-secondary"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
-            <span>Veritabanı Geçişini Aç</span>
+            <span>Geçişi aç</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block uppercase">Şema Parite Skoru</span>
-            <span className="font-bold text-base text-brand-600">Hedefte doğrulanmalı</span>
-            <p className="text-[11px] text-slate-500">Şema uyumu geçiş önizlemesi ve kabul testleriyle ölçülür.</p>
+            <span className="vx-set-stat-label block">Uyum</span>
+            <span className="font-bold text-base text-brand-600">Geçişte denenir</span>
+            <p className="text-[11px] text-slate-500">Yeni veritabanının uyumu geçiş önizlemesinde kontrol edilir.</p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block uppercase">Çift Yazma Koruması</span>
-            <span className="font-bold text-base text-brand-600">Sunucuda erişim denetimi</span>
-            <p className="text-[11px] text-slate-500">Hedef kilidi ve geçiş durumu ayrıca doğrulanmalıdır.</p>
+            <span className="vx-set-stat-label block">Çakışma koruması</span>
+            <span className="font-bold text-base text-brand-600">Geçişte kontrol edilir</span>
+            <p className="text-[11px] text-slate-500">Geçiş sırasında iki veritabanına birden yazılmadığını ayrıca doğrulayın.</p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block uppercase">Kurtarma Kapsamı</span>
-            <span className="font-bold text-base text-slate-900">Güvenlik yedeği</span>
-            <p className="text-[11px] text-slate-500">Yeni hedefte yazı sonrası geri dönüş veri uzlaştırması gerektirir.</p>
+            <span className="vx-set-stat-label block">Geri dönüş</span>
+            <span className="font-bold text-base text-slate-900">Yedekten</span>
+            <p className="text-[11px] text-slate-500">Yeni veritabanına kayıt girildikten sonra geri dönmek, o kayıtların elle aktarılmasını gerektirir.</p>
           </div>
         </div>
       </div>
