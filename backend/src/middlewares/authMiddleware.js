@@ -61,7 +61,7 @@ const authMiddleware = async (req, res, next) => {
     }
     if(req.user.isPlatformAdmin) req.user.role='admin';
     req.user.moduleType = req.user.isPlatformAdmin ? 'BOTH' : await require('../services/moduleAccess').getModuleType(dbUser.tenant_id,req.centralLicense);
-    const path = req.originalUrl.split('?')[0];
+    const path = req.originalUrl.split('?')[0].toLowerCase();
     if (!req.user.isPlatformAdmin && req.user.moduleType==='NONE' && !/^\/api\/(auth|settings|license|business)(\/|$)/.test(path)) {
       return res.status(403).json({error:'Operasyon modülleri için aktif bir lisans paketi gereklidir.',code:'LICENSE_REQUIRED'});
     }

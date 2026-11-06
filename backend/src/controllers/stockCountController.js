@@ -82,6 +82,9 @@ const createStockCount = async (req, res) => {
     if (!warehouse_id) {
       return res.status(400).json({ error: 'Sayım yapılacak depo seçilmelidir.' });
     }
+    if (!(await client.query('SELECT id FROM warehouses WHERE id=$1 AND tenant_id=$2', [warehouse_id, tenantId])).rows.length) {
+      return res.status(404).json({ error: 'Depo bulunamadı.' });
+    }
 
     await client.query('BEGIN');
 

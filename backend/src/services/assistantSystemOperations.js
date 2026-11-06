@@ -81,6 +81,7 @@ function resolve(user,args){
  if(['NORMAL','PHARMACY'].includes(module)&&user.moduleType!=='BOTH'&&user.moduleType!==module)throw fail('Bu ürün modülüne erişiminiz yok.',403);
  return {op,params,body,query,url:path+(Object.keys(query).length?'?'+new URLSearchParams(query):'')};
 }
+function hasSecretField(value){if(Array.isArray(value))return value.some(hasSecretField);if(value&&typeof value==='object')return Object.entries(value).some(([k,v])=>/(password|secret|token|private.?key|api.?key|session_version)/i.test(k)||hasSecretField(v));return false;}
 function sanitize(value){
  if(Array.isArray(value))return value.slice(0,100).map(sanitize);
  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|secret|token|private.?key|api.?key|session_version)/i.test(k)).map(([k,v])=>[k,sanitize(v)]));
@@ -161,6 +162,8 @@ async function prepare(user,args,context,kind='system_operation'){
  const file=await fileFrom(user,args.file);
  if((r.op.raw||r.op.fileMode&&!r.body.content)&&!file)return {kind:'system_operation',params:args,title:'Dosya seçimi gerekli',impact:'Bu işlem için önce dosyanızı seçin.',requires_file:true,operation:r.op.id};
  if(file){const size=file.size||file.buffer.length;const limit=r.op.scope==='admin/medicines'?(r.op.path.endsWith('/image')?2:40):r.op.fileMode?6:500;if(size>limit*1024*1024)throw fail(`Bu işlem için dosya en fazla ${limit} MB olabilir.`);}
+ // The approval card hides secret fields, so an action carrying one could not be knowingly approved.
+ if(hasSecretField(r.body))throw fail('Parola veya gizli anahtar içeren işlemler asistanla yapılamaz. Bunu Ayarlar ekranından yapın.');
  const version=await revision();
  const deletion=r.op.deletion||workspace?.deletion;
  const cascade=deletion&&['products','warehouses'].includes(r.op.scope)?'\nBu kayıtla birlikte ilişkili stok, hareket ve işlem kayıtları da silinebilir.':'';

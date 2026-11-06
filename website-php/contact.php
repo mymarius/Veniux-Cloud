@@ -1,6 +1,19 @@
 <?php
 declare(strict_types=1);
 // Requests are queued outside the web root. No unconfigured mail transport is used.
+// The session cooldown is client-controlled; this limit is per address and kept on the server.
+function contactRateAllowed(array $config): bool {
+    $dir=(string)($config['request_dir']??'');
+    if($dir===''||(!is_dir($dir)&&!@mkdir($dir,0700,true)))return true;
+    $file=$dir.DIRECTORY_SEPARATOR.'rate-'.hash('sha256',($_SERVER['REMOTE_ADDR']??'unknown').'|'.(string)intdiv(time(),900));
+    $handle=@fopen($file,'c+');
+    if(!$handle||!flock($handle,LOCK_EX))return false;
+    try{
+        $count=(int)stream_get_contents($handle)+1;
+        rewind($handle);ftruncate($handle,0);fwrite($handle,(string)$count);fflush($handle);
+        return $count<=5;
+    }finally{flock($handle,LOCK_UN);fclose($handle);}
+}
 function contactSubmit(array $config): array {
     foreach(['plan','token','website','name','email','company','interest','consent','form_type','partner_type'] as $field){
         if(isset($_POST[$field])&&!is_string($_POST[$field])){
@@ -16,6 +29,7 @@ function contactSubmit(array $config): array {
     if (!hash_equals($_SESSION['contact_token'], (string)($_POST['token'] ?? ''))) { http_response_code(403); return [false,'Formun süresi doldu. Sayfayı yenileyip tekrar deneyin.']; }
     if (!empty($_POST['website'])) { http_response_code(400); return [false,'İstek doğrulanamadı.']; }
     if (time() - (int)($_SESSION['last_contact_at'] ?? 0) < 60) { http_response_code(429); return [false,'Yeni bir talep için bir dakika bekleyin.']; }
+    if (!contactRateAllowed($config)) { http_response_code(429); return [false,'Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin.']; }
     $name=trim((string)($_POST['name']??'')); $email=trim((string)($_POST['email']??'')); $company=trim((string)($_POST['company']??'')); $interest=(string)($_POST['interest']??'');
     if (strlen($name)<2 || strlen($name)>100 || strlen($company)>160 || strlen($email)>254 || !filter_var($email,FILTER_VALIDATE_EMAIL) || !in_array($interest,['stok','depo','lot'],true) || ($_POST['consent']??'')!=='1') { http_response_code(422); return [false,'Ad, geçerli e-posta, çözüm seçimi ve iletişim iznini kontrol edin.']; }
     $directory=$config['request_dir'];

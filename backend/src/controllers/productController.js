@@ -12,7 +12,7 @@ const getAllProducts = async (req, res) => {
         COALESCE((SELECT SUM(quantity) FROM stock_records WHERE product_id = p.id), 0) as total_quantity,
         COALESCE((SELECT COUNT(DISTINCT warehouse_id) FROM stock_records WHERE product_id = p.id AND quantity > 0), 0) as warehouse_count
       FROM products p 
-      LEFT JOIN suppliers s ON p.supplier_id = s.id 
+      LEFT JOIN suppliers s ON p.supplier_id = s.id AND s.tenant_id = p.tenant_id 
       WHERE p.tenant_id = $1 AND 1=1
     `;
     const params = [req.user.tenantId];
@@ -87,7 +87,7 @@ const getProductById = async (req, res) => {
     const result = await pool.query(`
       SELECT p.*, s.name as supplier_name, s.contact_name, s.email as supplier_email, s.phone as supplier_phone
       FROM products p 
-      LEFT JOIN suppliers s ON p.supplier_id = s.id 
+      LEFT JOIN suppliers s ON p.supplier_id = s.id AND s.tenant_id = p.tenant_id 
       WHERE p.id = $1 AND p.tenant_id = $2
     `, [id, req.user.tenantId]);
 
@@ -206,6 +206,7 @@ const updateProduct = async (req, res) => {
       max_stock_level = 1000,
       supplier_id = null
     } = req.body;
+    if (supplier_id && !(await pool.query('SELECT id FROM suppliers WHERE id=$1 AND tenant_id=$2',[supplier_id,req.user.tenantId])).rows.length) return res.status(404).json({error:'Tedarikçi bulunamadı.'});
 
     if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>1000000000)return res.status(400).json({error:'Minimum stok sıfır veya pozitif bir sayı olmalıdır.'});
     if (!sku || !name) {
@@ -217,6 +218,7 @@ const updateProduct = async (req, res) => {
     if (existingProduct.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
+    if (supplier_id && !(await pool.query('SELECT id FROM suppliers WHERE id=$1 AND tenant_id=$2',[supplier_id,req.user.tenantId])).rows.length) return res.status(404).json({error:'Tedarikçi bulunamadı.'});
 
     const taxBasis=req.body.purchase_price_tax_basis===undefined?existingProduct.rows[0].purchase_price_tax_basis:req.body.purchase_price_tax_basis;
     const vat=req.body.kdv_orani===undefined?existingProduct.rows[0].kdv_orani:req.body.kdv_orani;

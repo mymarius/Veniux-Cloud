@@ -4,17 +4,19 @@ const refs={warehouse_id:['warehouses','id'],warehouseId:['warehouses','id'],sou
 const denied=message=>Object.assign(Error(message),{status:403});
 module.exports=async(req,res,next)=>{
  try{
-  if(operational.test(req.originalUrl)&&!['sqlite','mysql'].includes(db.getEngine()))throw Object.assign(Error('Depo kapsamı bu veritabanı için doğrulanmadı. Operasyon erişimi kapalı.'),{status:503});
+  // Routes match case-insensitively and ignore the query, so every scope decision must too.
+  const path=req.originalUrl.split('?')[0].toLowerCase();
+  if(operational.test(path)&&!['sqlite','mysql'].includes(db.getEngine()))throw Object.assign(Error('Depo kapsamı bu veritabanı için doğrulanmadı. Operasyon erişimi kapalı.'),{status:503});
   const user=req.user,scope=user.isPlatformAdmin&&user.homeTenantId!==user.tenantId?{mode:'company',warehouse_ids:[]}:await access.read(user.userId,user.tenantId);
   user.accessScope=scope;
-  if(scope.mode!=='company'&&/^\/api\/settings\/(automation|whatsapp|company|system-engine)(\/|$)/.test(req.originalUrl))throw denied('Firma genelindeki ayar ve otomasyonlar firma genelinde erişim gerektirir.');
-  if(scope.mode!=='company'&&/^\/api\/(audit-logs|notifications)(\/|$)/.test(req.originalUrl))throw denied('Firma genelindeki işlem geçmişi için firma genelinde erişim gerekir.');
-  if(!operational.test(req.originalUrl))return next();
+  if(scope.mode!=='company'&&/^\/api\/settings\/(automation|whatsapp|company|system-engine)(\/|$)/.test(path))throw denied('Firma genelindeki ayar ve otomasyonlar firma genelinde erişim gerektirir.');
+  if(scope.mode!=='company'&&/^\/api\/(audit-logs|notifications)(\/|$)/.test(path))throw denied('Firma genelindeki işlem geçmişi için firma genelinde erişim gerekir.');
+  if(!operational.test(path))return next();
   if(scope.mode!=='company'&&!scope.warehouse_ids.length)throw denied('Depo erişiminiz atanmamış. Firma yöneticinizden erişim isteyin.');
   // These resources are company-wide, without a physical warehouse link.
   // Scoped users cannot change shared master/settings data or inspect global AI/audit histories.
-  const supplierReturn=req.method==='POST'&&/^\/api\/suppliers\/\d+\/returns(?:\?|$)/.test(req.originalUrl);
-  if(scope.mode!=='company'&&(/^\/api\/(ai|pharmacy|eczane-depo)(\/|$)/.test(req.originalUrl)||(!['GET','HEAD'].includes(req.method)&&!supplierReturn&&/^\/api\/(products|suppliers|warehouses)(?:\/|$)/.test(req.originalUrl))||/^\/api\/scanner\/settings/.test(req.originalUrl)&&req.method!=='GET'))throw denied('Bu işlem firma genelinde erişim gerektirir.');
+  const supplierReturn=req.method==='POST'&&/^\/api\/suppliers\/\d+\/returns$/.test(path);
+  if(scope.mode!=='company'&&(/^\/api\/(ai|pharmacy|eczane-depo)(\/|$)/.test(path)||(!['GET','HEAD'].includes(req.method)&&!supplierReturn&&/^\/api\/(products|suppliers|warehouses)(?:\/|$)/.test(path))||/^\/api\/scanner\/settings/.test(path)&&req.method!=='GET'))throw denied('Bu işlem firma genelinde erişim gerektirir.');
   return context.run({...scope,tenantId:user.tenantId},async()=>{
    try{
     const check=async(table,key,id)=>{
@@ -27,7 +29,7 @@ module.exports=async(req,res,next)=>{
     };
     const walk=async(value,depth=0)=>{if(depth>12)throw Object.assign(Error('İstek çok karmaşık.'),{status:400});if(Array.isArray(value)){for(const item of value)await walk(item,depth+1);}else if(value&&typeof value==='object'&&!Buffer.isBuffer(value))for(const[key,item]of Object.entries(value)){if(refs[key])await check(...refs[key],item);else if(item&&typeof item==='object')await walk(item,depth+1);}};
     await walk(req.query);await walk(req.body);
-    const path=req.originalUrl.split('?')[0];let match;
+    let match;
     for(const[pattern,table,key]of [[/^\/api\/warehouses\/(\d+)/,'warehouses','id'],[/^\/api\/purchase-orders\/(\d+)/,'purchase_orders','id'],[/^\/api\/stock-counts\/(\d+)/,'stock_counts','id'],[/^\/api\/scanner\/sales\/(\d+)/,'retail_sales','sale_id'],[/^\/api\/scanner\/shifts\/(\d+)/,'retail_shifts','id']])if((match=path.match(pattern)))await check(table,key,match[1]);
     next();
    }catch(e){next(e);}

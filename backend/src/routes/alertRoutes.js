@@ -15,7 +15,7 @@ router.use(authMiddleware);
 router.get('/', getAlerts);
 
 // PUT /api/alerts/:id - Update alert status
-router.put('/:id', updateAlertStatus);
+router.put('/:id', requireRole('admin', 'manager'), updateAlertStatus);
 
 // POST /api/alerts/run-rule-engine - Run rule engine manually (admin/manager only)
 router.post('/run-rule-engine', requireRole('admin', 'manager'), runRuleEngine);

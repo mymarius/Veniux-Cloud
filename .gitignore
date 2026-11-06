@@ -27,3 +27,6 @@ backend/storage/
 # Çalışma zamanı kayıtları ve etiket işleri kaynak değildir.
 backend/diagnostics/
 backend/label-print/
+
+# Arsivler kaynak agaca girmesin
+/*.zip

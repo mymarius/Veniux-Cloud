@@ -9,7 +9,8 @@ router.use(authMiddleware);
 router.get('/onboarding',async(req,res,next)=>{try{res.json(await require('../services/customerSetupService').get(req.user));}catch(e){next(e);}});
 router.put('/onboarding',requireRole('admin'),async(req,res,next)=>{try{res.json(await require('../services/customerSetupService').save(req.user,req.body));}catch(e){next(e);}});
 router.use('/mobile',requireRole('admin'),(req,res,next)=>{
- if(req.ip!=='127.0.0.1'&&req.ip!=='::ffff:127.0.0.1'&&req.ip!=='::1')return res.sendStatus(403);
+ // A proxied phone also arrives from loopback; pairing is managed only on the computer.
+ if(req.ip!=='127.0.0.1'&&req.ip!=='::ffff:127.0.0.1'&&req.ip!=='::1'||require('../services/mobileGateway').isCompanion(req))return res.sendStatus(403);
  next();
 });
 const mobileContext=req=>({authorization:req.get('authorization'),device_token:req.get('x-veniux-device-token'),device_fingerprint:req.get('x-device-id'),targetTenant:req.get('x-tenant-id')});
@@ -94,8 +95,10 @@ router.get('/users/:id/access-scope',requireRole('admin'),async(req,res,next)=>{
  res.json(await require('../services/accessScopeService').read(req.params.id,req.user.tenantId));
 }catch(e){next(e);}});
 router.put('/users/:id/access-scope',requireRole('admin'),async(req,res,next)=>{try{res.json(await require('../services/accessScopeService').change(req.user,req.params.id,req.body));}catch(e){next(e);}});
-router.post('/users', requireRole('admin'), require('../middlewares/licenseMiddleware')('users'), settingsController.createUser);
-router.post('/users/:id/mfa-reset',requireRole('admin'),require('express-rate-limit')({windowMs:300000,limit:10}),async(req,res,next)=>{try{
+// Same rule as access-scope changes: a warehouse-restricted admin must not control wider accounts.
+const companyAdmin=(req,res,next)=>req.user.accessScope?.mode==='company'?next():res.status(403).json({error:'Kullanıcı yönetimi için firma genelinde yönetici erişimi gerekir.'});
+router.post('/users', requireRole('admin'), companyAdmin, require('../middlewares/licenseMiddleware')('users'), settingsController.createUser);
+router.post('/users/:id/mfa-reset',requireRole('admin'),(...a)=>companyAdmin(...a),require('express-rate-limit')({windowMs:300000,limit:10}),async(req,res,next)=>{try{
  const db=require('../config/database'),bcrypt=require('bcrypt');
  const admin=(await db.query('SELECT password_hash FROM users WHERE id=$1',[req.user.userId])).rows[0];
  if(typeof req.body.password!=='string'||Buffer.byteLength(req.body.password)>72||!admin||!await bcrypt.compare(req.body.password,admin.password_hash))return res.status(403).json({error:'Mevcut parolanızı doğrulayın.'});
@@ -104,8 +107,8 @@ router.post('/users/:id/mfa-reset',requireRole('admin'),require('express-rate-li
  if(!req.user.isPlatformAdmin&&(await db.query('SELECT user_id FROM platform_admins WHERE user_id=$1',[target.id])).rows.length)return res.status(403).json({error:'Platform yöneticisi hesabı değiştirilemez.'});
  res.json({reset:await require('../services/mfaService').reset({...target,actor_email:req.user.email})});
 }catch(e){next(e);}});
-router.put('/users/:id', requireRole('admin'), settingsController.updateUser);
-router.delete('/users/:id', requireRole('admin'), settingsController.deleteUser);
+router.put('/users/:id', requireRole('admin'), companyAdmin, settingsController.updateUser);
+router.delete('/users/:id', requireRole('admin'), companyAdmin, settingsController.deleteUser);
 
 // 4. Roles
 router.get('/roles', settingsController.getRoles);

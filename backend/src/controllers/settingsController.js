@@ -42,11 +42,13 @@ const getAccount = async (req, res) => {
 const updateAccount = async (req, res) => {
   try {
     await ensureSettingsSchema();
-    const { fullName, phone, email } = req.body;
+    const { fullName, phone } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : undefined;
+    if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Geçerli bir e-posta adresi girin.' });
     
     // Check if new email is taken by someone else
     if (email && email !== req.user.email) {
-      const existing = await pool.query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, req.user.userId]);
+      const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2', [email, req.user.userId]);
       if (existing.rows.length > 0) {
         return res.status(409).json({ error: 'Bu e-posta adresi başka bir kullanıcı tarafından kullanılmaktadır.' });
       }
@@ -245,7 +247,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ error: 'Geçerli e-posta ve en az 8 karakter, en fazla 72 bayt şifre gereklidir.' });
     }
 
-    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'Bu e-posta adresi zaten kayıtlı.' });
     }

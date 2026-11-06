@@ -1,6 +1,8 @@
 const https=require('node:https'),http=require('node:http'),crypto=require('node:crypto'),os=require('node:os');
 let server,token,pin,starting;
 const tickets=new Map();
+// Compares fixed-size digests: attacker input of any byte length cannot make this throw.
+const safeEqual=(a,b)=>crypto.timingSafeEqual(crypto.createHash('sha256').update(String(a)).digest(),crypto.createHash('sha256').update(String(b)).digest());
 const privateIP=value=>{const ip=String(value||'').replace(/^::ffff:/,'');return /^10\./.test(ip)||/^192\.168\./.test(ip)||/^172\.(1[6-9]|2\d|3[01])\./.test(ip)||ip==='127.0.0.1';};
 function addresses(){return Object.values(os.networkInterfaces()).flat().filter(v=>v.family==='IPv4'&&!v.internal&&privateIP(v.address)).map(v=>v.address);}
 function status(){return {enabled:Boolean(server),addresses:server?addresses():[],port:17851};}
@@ -26,11 +28,11 @@ async function start(){
    res.setHeader('Cache-Control','no-store');
    const reject=()=>{res.writeHead(403,{'Content-Type':'text/plain; charset=utf-8'});res.end('Bilgisayardan yeni eşleştirme kodu alın.');};
    const cookie=String(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('veniux_companion='))?.slice(17)||'';
-   if(!privateIP(req.socket.remoteAddress)||cookie.length!==token?.length||!crypto.timingSafeEqual(Buffer.from(cookie),Buffer.from(token)))return reject();
+   if(!privateIP(req.socket.remoteAddress)||!token||!safeEqual(cookie,token))return reject();
    const origin=`https://${req.headers.host}`;
    if(req.headers.origin&&req.headers.origin!==origin)return reject();
    let pathname;try{pathname=decodeURIComponent(new URL(req.url,origin).pathname);}catch{return reject();}
-   if(/^\/api\/(?:settings\/mobile|runtime)(?:\/|$)/.test(pathname))return reject();
+   if(/^\/api\/(?:settings\/mobile|runtime)(?:\/|$)/i.test(pathname))return reject();
    const method=req.method==='POST'&&req.headers['x-veniux-method']==='PATCH'?'PATCH':req.method;
    const headers={...req.headers,host:`127.0.0.1:${upstreamPort}`};delete headers['x-veniux-method'];
    for(const name of ['origin','forwarded','x-forwarded-for','x-forwarded-host','x-forwarded-proto','x-veniux-companion'])delete headers[name];
@@ -50,5 +52,5 @@ async function start(){
  })();try{return await starting;}finally{starting=null;}
 }
 async function stop(){if(starting)await starting.catch(()=>{});tickets.clear();const active=server;server=null;token=null;pin=null;if(active){active.closeAllConnections();await new Promise(resolve=>active.close(resolve));}return status();}
-function isCompanion(req){const value=req.get('x-veniux-companion')||'';return Boolean(server&&['127.0.0.1','::ffff:127.0.0.1','::1'].includes(req.socket.remoteAddress)&&value.length===token?.length&&crypto.timingSafeEqual(Buffer.from(value),Buffer.from(token)));}
-module.exports={start,stop,status,pairing,privateIP,isCompanion,takeTicket};
+function isCompanion(req){const value=req.get('x-veniux-companion')||'';return Boolean(server&&['127.0.0.1','::ffff:127.0.0.1','::1'].includes(req.socket.remoteAddress)&&token&&safeEqual(value,token));}
+module.exports={safeEqual,start,stop,status,pairing,privateIP,isCompanion,takeTicket};
