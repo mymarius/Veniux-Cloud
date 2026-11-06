@@ -35,7 +35,7 @@ test('reports waiting draft orders of this tenant only',()=>{
 test('counts drafts per tenant',async()=>{
  const before=(await briefing({tenantId:a.tenantId,userId:a.userId},null)).facts.draft_orders;
  const supplier=(await db.query('INSERT INTO suppliers (tenant_id,name) VALUES ($1,$2) RETURNING id',[b.tenantId,'Gizli tedarikçi'])).rows[0].id;
- await db.query("INSERT INTO purchase_orders (tenant_id,supplier_id,order_no,target_warehouse_id,status) VALUES ($1,$2,$3,$4,'draft')",[b.tenantId,supplier,'T-'+b.tenantId,(await db.query('INSERT INTO warehouses (tenant_id,name) VALUES ($1,$2) RETURNING id',[b.tenantId,'Gizli depo'])).rows[0].id]);
+ await db.query("INSERT INTO purchase_orders (tenant_id,supplier_id,order_no,target_warehouse_id,status) VALUES ($1,$2,$3,$4,'draft')",[b.tenantId,supplier,'T-'+b.tenantId,(await db.query('INSERT INTO warehouses (tenant_id,name,type) VALUES ($1,$2,$3) RETURNING id',[b.tenantId,'Gizli depo','main'])).rows[0].id]);
  expect((await briefing({tenantId:a.tenantId,userId:a.userId},null)).facts.draft_orders).toBe(before);
  expect((await briefing({tenantId:b.tenantId,userId:b.userId},null)).facts.draft_orders).toBe(1);
 });
