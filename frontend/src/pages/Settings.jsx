@@ -1,6 +1,6 @@
 import CashierPermissions from './settings/CashierPermissions';
 import ScannerPanel from '../components/ScannerPanel';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   User,
@@ -63,12 +63,21 @@ export default function SettingsPage() {
   ];
   const activeTab=TABS.some(tab=>tab.id===requestedTab)?requestedTab:'account';
 
+  // Mobil şeritte seçili ayar görünür kalsın.
+  const menuRef = useRef(null);
+  useEffect(() => {
+    const menu = menuRef.current, active = menu?.querySelector('[aria-pressed="true"]');
+    if (!active || menu.scrollWidth <= menu.clientWidth) return;
+    const box = menu.getBoundingClientRect(), item = active.getBoundingClientRect();
+    menu.scrollLeft += item.left - box.left - (box.width - item.width) / 2;
+  }, [activeTab]);
+
   return (
     <div className="settings-workspace vx-set flex min-w-0">
       {/* Left Navigation */}
       <div className="settings-navigation flex flex-col shrink-0">
         <div className="vx-set-title"><h2>Ayarlar</h2></div>
-        <div className="vx-set-menu">
+        <div className="vx-set-menu" ref={menuRef}>
           {GROUPS.map(([title, ids]) => (
             <div className="vx-set-group" key={title}>
               <p>{title}</p>
