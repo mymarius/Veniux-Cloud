@@ -115,14 +115,13 @@
     word.append(letter);
     return letter;
   });
-  word.classList.add('vf-ready');
   let timer;
   new IntersectionObserver(([entry]) => {
     clearTimeout(timer);
-    if (!entry.isIntersecting) { word.classList.remove('vf-on', 'vf-idle'); return; }
-    word.classList.add('vf-on');
+    if (!entry.isIntersecting) { word.classList.remove('vf-on'); word.classList.add('vf-idle'); return; }
+    word.classList.remove('vf-idle'); word.classList.add('vf-on');
     timer = setTimeout(() => { word.classList.remove('vf-on'); word.classList.add('vf-idle'); }, 3400);
-  }, { threshold: .25 }).observe(word);
+  }, { threshold: .05 }).observe(word);
   if (calm || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   word.addEventListener('pointermove', event => {
     if (word.classList.contains('vf-on')) return;
@@ -131,7 +130,7 @@
       const box = letter.getBoundingClientRect();
       const pull = Math.max(0, 1 - Math.abs(event.clientX - (box.left + box.width / 2)) / (box.width * 1.5));
       letter.style.translate = `0 ${(-pull * 13).toFixed(1)}%`;
-      letter.style.color = pull > .35 ? '#e4570a' : '';
+      letter.style.color = pull > .35 ? '#fff' : '';
     }
   });
   word.addEventListener('pointerleave', () => {
