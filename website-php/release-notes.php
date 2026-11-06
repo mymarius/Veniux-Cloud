@@ -104,8 +104,13 @@ $recent = [[
  'groups'=>['Paket doğrulaması'=>['APK imzası ve indirme kanalındaki dosyanın boyutu ile SHA-256 değeri doğrulandı.']],
  'notice'=>'Fiziksel yazıcı, QR kamera eşleştirmesi ve telefon testleri ayrıca gerekir. Windows indirme sürümü '.$catalog['downloads']['windows'].' olarak kalır.'
 ]];
-foreach($catalog['releases'] as $release){$recent[]=[
- 'version'=>$release['version'],'date'=>'2026-10-15','date_label'=>$release['date'],'title'=>$release['title'],
+$newer=[];$months=['Ocak'=>1,'Şubat'=>2,'Mart'=>3,'Nisan'=>4,'Mayıs'=>5,'Haziran'=>6,'Temmuz'=>7,'Ağustos'=>8,'Eylül'=>9,'Ekim'=>10,'Kasım'=>11,'Aralık'=>12];
+foreach($catalog['releases'] as $release){
+ $parts=explode(' ',(string)$release['date']);$isoDate=count($parts)===3&&isset($months[$parts[1]])?sprintf('%04d-%02d-%02d',(int)$parts[2],$months[$parts[1]],(int)$parts[0]):'2026-10-15';
+ // 18 Ekim kayıtlarından yeni sürümler listenin başına gelir.
+ $target=version_compare($release['version'],'2.4.38','>')?'newer':'recent';
+ $$target[]=[
+ 'version'=>$release['version'],'date'=>$isoDate,'date_label'=>$release['date'],'title'=>$release['title'],
  'platforms'=>$release['platforms'],'summary'=>$release['title'].'.','groups'=>['Güncellenenler'=>$release['items']],'notice'=>$release['notice']
 ];}
-return array_merge(require __DIR__.'/release-notes-20261018.php',$recent,$history);
+return array_merge($newer,require __DIR__.'/release-notes-20261018.php',$recent,$history);
