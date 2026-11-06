@@ -229,3 +229,5 @@ html:root[data-design='veniux']:not([data-theme='dark']) .vx-shelf-tag em{displa
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-invite-code input{border-style:dashed!important;letter-spacing:.02em}
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-invite-note{padding:10px 12px;background:#fbeea8;color:#17263a;font-size:14.5px;line-height:1.4}
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-invite-error{display:flex;gap:8px;align-items:center;margin-bottom:16px;padding:10px 12px;border:2px solid #b92c1c;color:#b92c1c;font-weight:600}
+
+html:root[data-design='veniux'] .vx-compat-alert{margin-bottom:18px;padding:12px 16px;border:3px solid #b92c1c;background:#fbeea8;color:#17263a;font-weight:700}

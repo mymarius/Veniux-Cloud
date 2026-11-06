@@ -1,7 +1,19 @@
 {
-  "version": "2.4.41",
-  "date": "5 Kasım 2026",
+  "version": "2.4.42",
+  "date": "7 Kasım 2026",
+  "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.42",
+      "date": "7 Kasım 2026",
+      "title": "Yeni görünüm, sesli asistan ve otomatik güncelleme",
+      "items": [
+        "Program ve Android yeni raf etiketi tasarımına geçti; kenar menü daraltılabiliyor.",
+        "Giriş ve davet ekranları yenilendi.",
+        "Asistan sesi kullanılamadığında cihazın Türkçe sesiyle okuyor ve nedenini gösteriyor.",
+        "Güncellemeler arka planda iniyor; program ve sunucu sürüm uyumsuzluğunda uyarı çıkıyor."
+      ]
+    },
     {
       "version": "2.4.41",
       "date": "5 Kasım 2026",

@@ -68,6 +68,7 @@ app.get('/health', async (req, res) => {
 app.use(['/api/pharmacy','/api/eczane-depo','/api/pharmacy-migration','/api/medicines','/api/admin/medicines'],(req,res)=>res.status(410).json({code:'MODULE_REMOVED',error:'Bu modül artık sunulmuyor.'}));
 
 // Register all API routes
+app.get('/api/version',(req,res)=>{const {version,minClient}=require('./config/release.json');res.set('Cache-Control','no-store').json({version,minClient});});
 app.use('/api', require('./services/centralLicense').gate);
 app.use('/api/updates', (req,res,next)=>{
  if(!require('./services/updateStorage').validName(req.path.slice(1)))return res.sendStatus(404);
