@@ -519,3 +519,19 @@ main .vs-legacy h1,main h1{max-width:13em}
 }
 @media print{.vx-rv,.vx-print{opacity:1!important;translate:none!important;clip-path:none!important}.vx-progress{display:none}}
 @media (prefers-reduced-motion:reduce){.hx-shelf .hx-label:after,.hx-hero .hx-btn:after,.vx-band div{animation:none}.hx-tags a:hover,.hx-tags a:focus-visible,.hx-tags a:nth-child(even):hover{rotate:none}}
+/* Alt bilgideki dev VENIUX: harfler raftan fırlar, tarayıcı ışığı adı okur, harfler sırayla yanar. */
+@keyframes vf-up{0%{opacity:0;translate:0 75%;rotate:var(--r);scale:.86}55%{opacity:1;translate:0 -9%;rotate:calc(var(--r) * -.45);scale:1.03}78%{translate:0 2%;rotate:calc(var(--r) * .15);scale:.995}100%{translate:0 0;rotate:0deg;scale:1}}
+@keyframes vf-burn{0%{color:#22354e;text-shadow:none}18%{color:#fff;text-shadow:0 0 34px #ff8a3d}45%{color:#e4570a;text-shadow:0 0 54px #e4570a99}100%{color:#22354e;text-shadow:none}}
+@keyframes vf-sweep{0%{left:-4%;opacity:0}6%{opacity:1}94%{opacity:1}100%{left:102%;opacity:0}}
+@keyframes vf-wave{0%,10%,100%{color:#22354e;translate:0 0}4%{color:#e4570a;translate:0 -3.5%}}
+.vf-word{position:relative;overflow:hidden;padding-top:.05em}
+.vf-word.vf-ready{opacity:1}
+.vf-word .vf-l{display:inline-block;--r:calc((var(--i) - 2.5) * 5deg);transform-origin:50% 100%;will-change:translate;transition:translate .28s cubic-bezier(.2,1.4,.4,1),color .25s}
+.vf-word.vf-ready:not(.vf-on):not(.vf-idle) .vf-l{opacity:0}
+.vf-word.vf-on .vf-l{animation:vf-up .95s calc(var(--i) * 95ms) cubic-bezier(.2,.8,.25,1) backwards,vf-burn 1.3s calc(.95s + var(--i) * 110ms) ease-out backwards}
+.vf-word.vf-idle .vf-l{animation:vf-wave 9s calc(var(--i) * 130ms) ease-in-out infinite}
+.vf-word.vf-near .vf-l{animation:none}
+.vf-word:after{content:'';position:absolute;top:0;bottom:0;left:-4%;width:5px;background:#ff7a26;box-shadow:0 0 26px 8px #e4570a99,-70px 0 90px 34px #e4570a26;opacity:0;pointer-events:none}
+.vf-word.vf-on:after{animation:vf-sweep 1.5s .85s cubic-bezier(.45,0,.55,1)}
+.vf-word.vf-idle:after{animation:none}
+@media (prefers-reduced-motion:reduce){.vf-word.vf-idle .vf-l{animation:none}}
