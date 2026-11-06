@@ -1,8 +1,19 @@
 {
-  "version": "2.4.44",
+  "version": "2.4.45",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.45",
+      "date": "7 Kasım 2026",
+      "title": "Sesli komut, sipariş taslakları ve yeni tarama ekranı",
+      "items": [
+        "Asistana mikrofon düğmesiyle sesli soru sorulabiliyor; veri değiştiren işlemler yine onay ister.",
+        "Otomasyon, azalan ürünler için isteğe bağlı sipariş taslağı hazırlıyor; taslak kimseye gönderilmez.",
+        "Barkod tarama ekranı yenilendi.",
+        "Bekleyen davetler ve davetle gelen üyeler paket kullanıcı limitine sayılıyor."
+      ]
+    },
     {
       "version": "2.4.44",
       "date": "6 Kasım 2026",

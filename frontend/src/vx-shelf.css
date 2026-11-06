@@ -516,3 +516,45 @@ html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome li:nth-chil
 /* Lisans ekranı: uzun cihaz kimliği kutudan taşmaz. */
 html:root[data-design='veniux'] [data-testid='panel-device-information']>div{flex-wrap:wrap}
 html:root[data-design='veniux'] [data-testid='panel-device-information'] *{min-width:0;overflow-wrap:anywhere}
+
+/* Barkod tarama ekranı: kamera tam ekran, odak çerçevesi, altta raf etiketi kartı. */
+@keyframes vx-scan-beam{0%,100%{top:8%}50%{top:calc(92% - 3px)}}
+html:root[data-design='veniux'] .mobile-camera{background:#0d1621!important}
+html:root[data-design='veniux'] .mobile-camera>header{position:relative;z-index:2;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'tools . close' 'mode mode mode';gap:10px;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px!important;background:linear-gradient(#0d1621e6,#0d162100)!important}
+html:root[data-design='veniux'] .mobile-camera .reader-camera-tools{grid-area:tools;display:flex!important;flex-direction:row!important;gap:8px}
+html:root[data-design='veniux'] .mobile-camera>header>button{grid-area:close;justify-self:end}
+html:root[data-design='veniux'] .mobile-camera>header button:not(.reader-mode button){width:46px!important;height:46px!important;min-width:46px;padding:0!important;display:grid;place-items:center;background:#17263acc!important;border:1px solid #ffffff38!important;border-radius:3px!important;color:#fff!important;box-shadow:none!important}
+html:root[data-design='veniux'] .mobile-camera>header button:disabled{opacity:.45}
+html:root[data-design='veniux'] .mobile-camera>header button[aria-pressed=true]:not(.reader-mode button){background:#e4570a!important;border-color:#e4570a!important}
+html:root[data-design='veniux'] .mobile-camera .reader-camera-mode{grid-area:mode;display:grid!important;grid-template-columns:1fr 1fr;gap:0!important;width:100%;max-width:none!important;padding:0!important;background:#17263acc!important;border:1px solid #ffffff38!important;border-radius:3px!important;box-shadow:none!important}
+html:root[data-design='veniux'] .mobile-camera .reader-camera-mode button{width:auto!important;height:46px!important;padding:0 10px!important;background:transparent!important;border:0!important;border-radius:0!important;color:#dfe5ee!important;font:700 16px/1 Archivo,sans-serif!important;box-shadow:none!important}
+html:root[data-design='veniux'] .mobile-camera .reader-camera-mode button[aria-pressed=true]{background:#e4570a!important;color:#fff!important}
+html:root[data-design='veniux'] .mobile-camera-guide{position:relative;z-index:1;flex:1;min-height:0;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:6px 16px!important}
+html:root[data-design='veniux'] .mobile-camera-frame{position:relative;width:min(100%,520px)!important;max-height:100%;aspect-ratio:3/2;flex:0 1 auto;overflow:hidden;border:0!important;border-radius:0!important;box-shadow:0 0 0 100vmax #0d162199!important;--c:#ff7a26;background:
+ linear-gradient(var(--c),var(--c)) 0 0/44px 4px,linear-gradient(var(--c),var(--c)) 0 0/4px 44px,
+ linear-gradient(var(--c),var(--c)) 100% 0/44px 4px,linear-gradient(var(--c),var(--c)) 100% 0/4px 44px,
+ linear-gradient(var(--c),var(--c)) 0 100%/44px 4px,linear-gradient(var(--c),var(--c)) 0 100%/4px 44px,
+ linear-gradient(var(--c),var(--c)) 100% 100%/44px 4px,linear-gradient(var(--c),var(--c)) 100% 100%/4px 44px!important;background-repeat:no-repeat!important}
+html:root[data-design='veniux'] .mobile-camera-frame:before{content:'';position:absolute;left:4%;right:4%;top:8%;height:3px;background:#ff7a26;box-shadow:0 0 14px 3px #e4570a99;animation:vx-scan-beam 2.6s ease-in-out infinite}
+html:root[data-design='veniux'] .mobile-camera-frame:after{content:none!important}
+html:root[data-design='veniux'] .mobile-camera-guide p{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#fff!important;font:600 16px/1.3 Archivo,sans-serif!important;text-align:center;text-shadow:0 1px 6px #000}
+html:root[data-design='veniux'] .mobile-camera>footer{position:relative;z-index:2;display:grid!important;gap:10px;padding:0 16px calc(env(safe-area-inset-bottom) + 12px)!important;background:linear-gradient(#0d162100,#0d1621f2 30%)!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-panel{position:relative;margin:0!important;padding:18px 18px 14px!important;background:#fffdf8!important;border:0!important;border-top:6px solid #e4570a!important;border-radius:0!important;box-shadow:6px 6px 0 #00000059!important;color:#17263a!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px}
+html:root[data-design='veniux'] .mobile-camera .reader-result-heading span{color:#17263a!important;font:800 24px/1.05 Archivo,sans-serif!important;font-stretch:76%!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-heading button{width:42px!important;height:42px!important;flex:none;display:grid;place-items:center;padding:0!important;background:transparent!important;border:1px solid #bfb196!important;border-radius:3px!important;color:#17263a!important;box-shadow:none!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-panel>p{margin:0!important;color:#4d5a6b!important;font-size:15.5px!important;line-height:1.4!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-panel h3{margin:0 0 2px!important;color:#17263a!important;font:800 28px/1.05 Archivo,sans-serif!important;font-stretch:75%!important}
+html:root[data-design='veniux'] .mobile-camera .reader-result-panel .reader-code{color:#4d5a6b!important;font-size:14px!important;letter-spacing:.04em}
+html:root[data-design='veniux'] .mobile-camera .reader-product-values{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:10px 0;border-block:1px dashed #bfb196}
+html:root[data-design='veniux'] .mobile-camera .reader-product-values div{padding:8px 0;background:transparent!important;border:0!important;border-radius:0!important}
+html:root[data-design='veniux'] .mobile-camera .reader-product-values small{color:#4d5a6b!important;font-size:13px!important}
+html:root[data-design='veniux'] .mobile-camera .reader-product-values strong{display:block;color:#17263a!important;font:900 25px/1.1 Archivo,sans-serif!important;font-stretch:70%!important}
+html:root[data-design='veniux'] .mobile-camera .reader-primary{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;background:#e4570a!important;border:0!important;border-radius:3px!important;color:#fff!important;font:700 17px/1 Archivo,sans-serif!important}
+html:root[data-design='veniux'] .mobile-camera .reader-note{display:block;margin-top:8px;padding-top:8px;border-top:1px dashed #d6c9b2;color:#4d5a6b!important;font-size:13px!important}
+html:root[data-design='veniux'] .mobile-camera .reader-error{color:#b92c1c!important;font-weight:600}
+html:root[data-design='veniux'] .mobile-camera .reader-manual-button{width:100%;min-height:48px;background:transparent!important;border:1px solid #ffffff59!important;border-radius:3px!important;color:#fff!important;font:600 16px/1 Archivo,sans-serif!important;box-shadow:none!important}
+html:root[data-design='veniux'] .mobile-camera>footer>small{color:#bcc6d4!important;font-size:12.5px!important;text-align:center}
+@media(max-height:680px){html:root[data-design='veniux'] .mobile-camera .reader-note{display:none}html:root[data-design='veniux'] .mobile-camera-frame{aspect-ratio:2/1}}
+
+@media all{html:root[data-design='veniux'] .mobile-camera .reader-result-panel:has(.reader-primary) .reader-note{display:none}}
