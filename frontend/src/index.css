@@ -241,6 +241,4 @@
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 6px; }
 ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
+/* Hareketi kapatma Görünüm ayarındadır (data-motion='off'). */

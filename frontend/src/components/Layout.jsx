@@ -117,17 +117,14 @@ export function Layout({ children }) {
   const location = useLocation();
   const contentRef = useRef(null);
   useEffect(() => {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (preference.matches || document.documentElement.dataset.motion==='off' || !contentRef.current?.animate) return;
+    if (document.documentElement.dataset.motion==='off' || !contentRef.current?.animate) return;
     // Kısa bir kayma + belirme. Dönüşüm yalnızca animasyon süresince uygulanır
     // (fill yok); pencereler artık body'ye portal ile açıldığından etkilenmez.
     const transition = contentRef.current.animate(
-      [{ opacity: 0.85 }, { opacity: 1 }],
-      { duration: 140, easing: 'ease-out' }
+      [{ opacity: 0, translate: '0 14px' }, { opacity: 1, translate: '0 0' }],
+      { duration: 320, easing: 'cubic-bezier(.16,1,.3,1)' }
     );
-    const stop = () => { if (preference.matches) transition.cancel(); };
-    preference.addEventListener('change', stop);
-    return () => { transition.cancel(); preference.removeEventListener('change', stop); };
+    return () => transition.cancel();
   }, [location.pathname, location.search]);
   const { showToast } = useToast();
   const [, setUserRevision] = useState(0);

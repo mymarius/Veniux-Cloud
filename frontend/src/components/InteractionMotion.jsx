@@ -9,7 +9,7 @@ export default function InteractionMotion() {
     let sequence = 0;
     const clear = () => setRipples(previous => previous.length ? [] : previous);
     const press = event => {
-      if (preference.matches || document.documentElement.dataset.motion==='off' || event.button !== 0) return;
+      if (document.documentElement.dataset.motion==='off' || event.button !== 0) return;
       const button = event.target instanceof Element
         ? event.target.closest('button, a.btn-primary, a.btn-secondary') : null;
       if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;

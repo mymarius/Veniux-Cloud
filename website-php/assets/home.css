@@ -456,8 +456,9 @@ main .vs-legacy h1,main h1{max-width:13em}
 .ap-tickets .pg-ticket h2{font-size:clamp(46px,4.2vw,60px)}
 @media(max-width:600px){.ap-company{display:none}}
 
-/* Hareket: raf etiketi asılır, barkod okunur, damga vurulur, fiş yazıcıdan çıkar. */
-@media (prefers-reduced-motion:no-preference){
+/* Hareket: raf etiketi asılır, barkod okunur, damga vurulur, fiş yazıcıdan çıkar.
+   Tek seferlik girişler her modda oynar; sürekli ve fareyi izleyen hareket azaltılmış modda kapanır. */
+@media all{
  @keyframes vx-rise{from{opacity:0;translate:0 26px}}
  @keyframes vx-hang{0%{opacity:0;translate:0 -130px;rotate:-10deg}45%{opacity:1;translate:0 0;rotate:4deg}68%{rotate:-2deg}85%{rotate:.8deg}100%{rotate:0deg}}
  @keyframes vx-bars{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
@@ -496,10 +497,25 @@ main .vs-legacy h1,main h1{max-width:13em}
  .hx-tags a{transform-origin:top center;transition:rotate .25s cubic-bezier(.3,1.6,.5,1),translate .25s,box-shadow .25s,border-color .2s}
  .hx-tags a:hover,.hx-tags a:focus-visible{rotate:-1.4deg;translate:0 -4px;box-shadow:0 10px 0 -4px #17263a33}
  .hx-tags a:nth-child(even):hover,.hx-tags a:nth-child(even):focus-visible{rotate:1.4deg}
- .vx-rv{opacity:0;translate:0 26px}
- .vx-rv.vx-in{opacity:1;translate:0 0;transition:opacity .6s var(--vx-d,0s),translate .6s var(--vx-d,0s) cubic-bezier(.2,.8,.2,1)}
+ .vx-rv{opacity:0;translate:0 46px;scale:.97}
+ .vx-rv.vx-in{opacity:1;translate:0 0;scale:1;transition:opacity .7s var(--vx-d,0s),translate .8s var(--vx-d,0s) cubic-bezier(.16,1,.3,1),scale .8s var(--vx-d,0s) cubic-bezier(.16,1,.3,1)}
+ @keyframes vx-head{from{translate:0 -100%}}
+ @keyframes vx-shine{0%,72%{translate:-130% 0}100%{translate:330% 0}}
+ @keyframes vx-band{to{translate:-50% 0}}
+ .vs-header{animation:vx-head .6s cubic-bezier(.16,1,.3,1) backwards}
+ main h2:after{content:'';display:block;width:72px;height:6px;margin-top:16px;background:var(--orange);transform-origin:left;transition:transform .8s .25s cubic-bezier(.16,1,.3,1)}
+ main h2.vx-rv:not(.vx-in):after{transform:scaleX(0)}
+ .hx-btn{position:relative;overflow:hidden}
+ .hx-btn:after{content:'';position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(100deg,#fff0,#fff7,#fff0);translate:-130% 0;pointer-events:none}
+ .hx-hero .hx-btn:after{animation:vx-shine 5s 2.2s ease-in-out infinite}
+ .hx-btn:hover:after{animation:vx-shine .8s ease-out}
+ .vx-print.vx-in .hx-receipt-diff{animation:vx-slam .4s 1s ease-in backwards}
+ .vx-band{overflow:hidden;background:var(--orange);color:#fff;font-weight:800;font-stretch:75%;font-size:22px;line-height:1;white-space:nowrap}
+ .vx-band div{display:inline-block;padding:13px 0;animation:vx-band 34s linear infinite}
+ .vx-band span{padding:0 22px}
  .vx-print{clip-path:inset(0 0 100% 0);translate:0 -18px}
  .vx-print.vx-in{clip-path:inset(0 0 -12px 0);translate:0 0;transition:clip-path 1.1s steps(16),translate 1.1s steps(16)}
  .vx-progress{position:fixed;left:0;right:0;top:0;z-index:1000;height:4px;background:repeating-linear-gradient(90deg,#e4570a 0 3px,transparent 3px 5px,#e4570a 5px 11px,transparent 11px 14px);transform:scaleX(0);transform-origin:left;pointer-events:none}
 }
 @media print{.vx-rv,.vx-print{opacity:1!important;translate:none!important;clip-path:none!important}.vx-progress{display:none}}
+@media (prefers-reduced-motion:reduce){.hx-shelf .hx-label:after,.hx-hero .hx-btn:after,.vx-band div{animation:none}.hx-tags a:hover,.hx-tags a:focus-visible,.hx-tags a:nth-child(even):hover{rotate:none}}

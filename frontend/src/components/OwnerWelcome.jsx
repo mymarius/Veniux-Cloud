@@ -66,6 +66,9 @@ export default function OwnerWelcome({ userId }) {
         window.addEventListener('keydown', retry.current, true);
       }
       else {
+        let reason = '';
+        try { reason = JSON.parse(await error?.response?.data?.text?.() || '{}').error || ''; } catch { /* yanıt JSON değil */ }
+        if (mine === run.current) setVoiceNote(`Gemini sesi kullanılamadı${reason ? `: ${reason}` : '.'} Cihaz sesi kullanılıyor.`);
         try { await speakOnDevice(text); }
         catch { if (mine === run.current) setVoiceNote('Ses şu anda kullanılamıyor.'); }
       }

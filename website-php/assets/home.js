@@ -12,7 +12,7 @@
   const pos = document.getElementById('hx-pos'), play = document.getElementById('hx-play');
   if (!pos || !play) return;
   const lines = [...pos.querySelectorAll('.hx-pos-line')], total = document.getElementById('hx-total'), pay = document.getElementById('hx-paybtn'), foot = document.getElementById('hx-foot');
-  const amounts = ['0,00 ₺', '46,00 ₺', '114,00 ₺', '204,00 ₺'], reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const amounts = ['0,00 ₺', '46,00 ₺', '114,00 ₺', '204,00 ₺'];
   let timers = [];
   const reset = () => {
     timers.forEach(clearTimeout); timers = [];
@@ -30,7 +30,7 @@
     timers.push(setTimeout(() => { foot.textContent = 'Stok düştü: filtre kahve 18 → 17'; foot.setAttribute('data-done', ''); }, 3800));
   };
   play.addEventListener('click', run);
-  if (!reduced && 'IntersectionObserver' in window) {
+  if ('IntersectionObserver' in window) {
     const once = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { once.disconnect(); run(); }
     }, { threshold: 0.5 });
@@ -40,7 +40,8 @@
 
 // Görünüm hareketleri. Ekranın altında kalanları gizler; betik çalışmazsa içerik olduğu gibi görünür.
 (() => {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  if (!('IntersectionObserver' in window)) return;
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const main = document.querySelector('main') || document.body;
 
   const reveal = new IntersectionObserver(entries => {
@@ -69,6 +70,15 @@
     steps.forEach(step => active.observe(step));
   }
 
+  const journey = main.querySelector('.hx-journey');
+  if (journey) {
+    const band = document.createElement('div'), words = ['Mal kabul', 'Raf', 'Kasa', 'Sipariş önerisi', 'Sayım', 'Lot ve miat', 'El terminali'];
+    band.className = 'vx-band'; band.setAttribute('aria-hidden', 'true');
+    const line = document.createElement('div');
+    for (let i = 0; i < 6; i++) for (const word of words) { const item = document.createElement('span'); item.textContent = word + ' ·'; line.append(item); }
+    band.append(line); journey.before(band);
+  }
+
   const total = document.getElementById('hx-total');
   if (total) new MutationObserver(() => total.animate([{ scale: 1.14, color: '#ffb48a' }, { scale: 1 }], { duration: 320, easing: 'ease-out' })).observe(total, { childList: true });
 
@@ -81,7 +91,7 @@
   paint();
 
   const shelf = document.querySelector('.hx-shelf'), label = shelf?.querySelector('.hx-label'), stamp = shelf?.querySelector('.hx-stamp');
-  if (label && stamp && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  if (!calm && label && stamp && matchMedia('(hover: hover) and (pointer: fine)').matches) {
     const hero = shelf.closest('.hx-hero');
     hero.addEventListener('pointermove', event => {
       const box = hero.getBoundingClientRect(), x = (event.clientX - box.left) / box.width - .5, y = (event.clientY - box.top) / box.height - .5;

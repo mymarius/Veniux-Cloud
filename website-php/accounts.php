@@ -237,7 +237,7 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
-    <link rel="stylesheet" href="/assets/veniux-site.css">
+    <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
     <link rel="stylesheet" href="/assets/home.css">
 </head>
 <body>

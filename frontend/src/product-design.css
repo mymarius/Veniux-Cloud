@@ -56,7 +56,6 @@ html body,html button,html input,html select,html textarea,html code,html kbd {f
   .enterprise-content :is(.ax-kpi,.veniux-card,.ax-panel) {transition:border-color 180ms ease,box-shadow 180ms ease}
   .enterprise-content a.ax-kpi:hover {box-shadow:0 3px 12px #182e4010;border-color:var(--color-brand-300)}
 }
-@media(prefers-reduced-motion:reduce) {*,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media(max-width:900px) {.enterprise-shell .enterprise-content{padding:20px 16px 32px}.enterprise-content h1,.enterprise-content .ax-head h1{font-size:24px!important}}
 @media print {.enterprise-shell .enterprise-content{background:#fff}.sb,.enterprise-header,.desktop-titlebar{display:none!important}}
 .operations-brief{display:flex;flex-wrap:wrap;align-items:center;gap:20px;padding:16px 20px;border:1px solid var(--color-border);border-radius:var(--vx-radius);background:var(--color-surface);margin-bottom:22px}

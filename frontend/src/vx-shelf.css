@@ -478,3 +478,41 @@ html:root[data-design='veniux'] .vx-welcome button:focus-visible{outline:3px sol
 html:root[data-design='veniux'] .vx-welcome-off{display:flex;align-items:center;gap:9px;padding:0 24px 20px;color:#4d5a6b;font-size:14px}
 html:root[data-design='veniux'] .vx-welcome-off input{width:20px;height:20px;margin:0;accent-color:#e4570a}
 html:root[data-design='veniux'] .vx-welcome-wrap{background:#17263acc!important;max-width:none!important;width:auto!important;height:auto!important;border:0!important;box-shadow:none!important}
+
+/* Program ve uygulama hareketleri. Ayarlardaki hareket seçeneği kapatır. */
+@keyframes vxa-rise{from{opacity:0;translate:0 22px}}
+@keyframes vxa-row{from{opacity:0;translate:-12px 0}}
+@keyframes vxa-hang{0%{opacity:0;translate:0 -110px;rotate:-9deg}45%{opacity:1;translate:0 0;rotate:4deg}68%{rotate:-2deg}85%{rotate:.8deg}100%{rotate:0deg}}
+@keyframes vxa-pop{0%{opacity:0;translate:0 30px;scale:.95}70%{opacity:1;translate:0 -3px;scale:1.01}100%{translate:0 0;scale:1}}
+@keyframes vxa-fade{from{opacity:0}}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile){animation:vxa-rise .5s cubic-bezier(.16,1,.3,1) backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile):nth-child(2){animation-delay:.06s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile):nth-child(3){animation-delay:.12s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile):nth-child(4){animation-delay:.18s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile):nth-child(n+5){animation-delay:.24s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr{animation:vxa-row .35s ease-out backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr:nth-child(2){animation-delay:.03s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr:nth-child(3){animation-delay:.06s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr:nth-child(4){animation-delay:.09s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr:nth-child(5){animation-delay:.12s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr:nth-child(n+6){animation-delay:.15s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content tbody tr{transition:background-color .15s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content :is(.veniux-card,.motion-tile){transition:translate .18s,box-shadow .18s}
+html:root[data-design='veniux']:not([data-motion='off']) .enterprise-content a:is(.veniux-card,.motion-tile):hover{translate:0 -3px}
+html:root[data-design='veniux']:not([data-motion='off']) button:not(:disabled){transition:translate .12s,background-color .15s,box-shadow .15s,border-color .15s}
+html:root[data-design='veniux']:not([data-motion='off']) button:not(:disabled):active{translate:0 2px}
+html:root[data-design='veniux']:not([data-motion='off']) .sb a{transition:translate .15s,background-color .15s,color .15s}
+html:root[data-design='veniux']:not([data-motion='off']) .sb a:hover{translate:4px 0}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-dialog[data-state='open'] .vx-dialog-backdrop{animation:vxa-fade .2s ease-out backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-dialog[data-state='open'] .vx-dialog-panel{animation:vxa-pop .38s cubic-bezier(.16,1,.3,1) backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-shelf-tag{animation:vxa-hang 1.1s .1s ease-out backwards;transform-origin:top center}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-auth-column>*{animation:vxa-rise .55s .1s cubic-bezier(.16,1,.3,1) backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome-wrap{animation:vxa-fade .2s ease-out backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome{animation:vxa-pop .45s cubic-bezier(.16,1,.3,1) backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome li{animation:vxa-row .4s .25s ease-out backwards}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome li:nth-child(2){animation-delay:.4s}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome li:nth-child(3){animation-delay:.55s}
+html:root[data-design='veniux']:not([data-motion='off']) .vx-welcome li:nth-child(n+4){animation-delay:.7s}
+/* Lisans ekranı: uzun cihaz kimliği kutudan taşmaz. */
+html:root[data-design='veniux'] [data-testid='panel-device-information']>div{flex-wrap:wrap}
+html:root[data-design='veniux'] [data-testid='panel-device-information'] *{min-width:0;overflow-wrap:anywhere}
