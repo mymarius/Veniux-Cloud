@@ -257,7 +257,7 @@ const createUser = async (req, res) => {
     const result = await pool.query(
       `INSERT INTO users (tenant_id, email, password_hash, role, full_name, phone, status) 
        VALUES ($1, $2, $3, $4, $5, $6, 'active') RETURNING id, email, role, full_name, phone, created_at`,
-      [tenantId, email, hash, role, fullName || email.split('@')[0], phone || '']
+      [tenantId, String(email).trim().toLowerCase(), hash, role, fullName || email.split('@')[0], phone || '']
     );
 
     res.status(201).json({

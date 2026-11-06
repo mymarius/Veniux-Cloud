@@ -228,7 +228,7 @@ class LicenseService {
           await client.query(`
             INSERT INTO users (email, password_hash, role, tenant_id) 
             VALUES ($1, $2, 'admin', $3)
-          `, [email, password_hash, tenant.id]);
+          `, [String(email).trim().toLowerCase(), password_hash, tenant.id]);
         }
       }
 

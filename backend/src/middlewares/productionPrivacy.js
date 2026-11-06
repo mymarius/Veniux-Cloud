@@ -1,3 +1,4 @@
+const crypto=require('crypto');
 // Protect the response boundary, including controllers that handle their own errors.
 const sensitive = /password|passwd|secret|token|authorization|api[_-]?key|connection[_-]?string|database[_-]?url/i;
 // The built UI executes only same-origin JavaScript. Inline CSS is needed by React,
@@ -21,6 +22,15 @@ const contentSecurityPolicy = [
 function defaultOrigins(port, mode=process.env.NODE_ENV) {
   const origins=[`http://127.0.0.1:${port}`,`http://localhost:${port}`,'null'];
   return mode==='production' ? origins : [...origins,'http://127.0.0.1:3000','http://localhost:3000','http://127.0.0.1:5173','http://localhost:5173'];
+}
+// A packaged desktop page is file:// and sends Origin: null, but so does any sandboxed web iframe.
+// When the desktop started this server, null is accepted only with the secret it adds to its own requests.
+function originAllowed(origin, allowed, supplied, token = process.env.VENIUX_DESKTOP_ORIGIN_TOKEN) {
+  if (!origin) return true;
+  if (!allowed.has(origin)) return false;
+  if (origin !== 'null' || !token) return true;
+  const digest = value => crypto.createHash('sha256').update(String(value || '')).digest();
+  return crypto.timingSafeEqual(digest(supplied), digest(token));
 }
 function text(value, env = process.env) {
   let result = String(value);
@@ -81,4 +91,4 @@ function boundary(req,res,next) {
   };
   next();
 }
-module.exports={text,logValue,installLogs,boundary,defaultOrigins,errorBody,contentSecurityPolicy};
+module.exports={originAllowed,text,logValue,installLogs,boundary,defaultOrigins,errorBody,contentSecurityPolicy};

@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog } = require('electron');
+const desktopOriginToken=require('crypto').randomBytes(32).toString('hex');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const os = require('os');
@@ -56,7 +57,7 @@ if (!gotTheLock) {
       if(selection.kind==='managed') {
         runtime.apiBase='http://127.0.0.1:17849/api';runtime.healthURL='http://127.0.0.1:17849/health';
         preparingServer=true;
-        localServer=require('child_process').spawn(bundledNode,[path.join(process.resourcesPath,'local-server/local-server.cjs')],{windowsHide:true,stdio:['ignore','ignore','ignore','ipc'],env:{...process.env,VENIUX_LOCAL_DATA:path.join(app.getPath('userData'),'local-runtime'),VENIUX_LOCAL_BACKEND:path.join(process.resourcesPath,'backend')}});
+        localServer=require('child_process').spawn(bundledNode,[path.join(process.resourcesPath,'local-server/local-server.cjs')],{windowsHide:true,stdio:['ignore','ignore','ignore','ipc'],env:{...process.env,VENIUX_DESKTOP_ORIGIN_TOKEN:desktopOriginToken,VENIUX_LOCAL_DATA:path.join(app.getPath('userData'),'local-runtime'),VENIUX_LOCAL_BACKEND:path.join(process.resourcesPath,'backend')}});
         localServer.on('message',state=>{preparingServer=false;if(!state.ready)dialog.showErrorBox('Veniux kurulumu',state.error||'Yerel sunucu hazırlanamadı.');});
         localServer.on('error',()=>{preparingServer=false;dialog.showErrorBox('Veniux kurulumu','Yerel sunucu başlatılamadı.');});
         localServer.on('exit',code=>{if(preparingServer&&code){preparingServer=false;dialog.showErrorBox('Veniux kurulumu','Yerel hazırlık tamamlanamadı; işlemler açılmadı.');}});
@@ -90,6 +91,7 @@ function createWindow() {
       devTools: process.env.NODE_ENV !== 'production'
     }
   });
+  mainWindow.webContents.session.webRequest.onBeforeSendHeaders({urls:['http://127.0.0.1:17849/*']},(details,callback)=>callback({requestHeaders:{...details.requestHeaders,'x-veniux-desktop-origin':desktopOriginToken}}));
   mainWindow.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   mainWindow.webContents.session.setPermissionCheckHandler(()=>false);
   if (!process.env.ELECTRON_START_URL) mainWindow.webContents.session.webRequest.onHeadersReceived((details,callback)=>{

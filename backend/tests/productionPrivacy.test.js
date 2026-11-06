@@ -4,6 +4,16 @@ test('production default origins omit unrelated developer ports while retaining 
  expect(privacy.defaultOrigins(44079,'production')).toEqual(['http://127.0.0.1:44079','http://localhost:44079','null']);
  expect(privacy.defaultOrigins(44079,'development')).toContain('http://localhost:5173');
 });
+test('null origin needs the desktop secret when the desktop started the server',()=>{
+ const allowed=new Set(['null','http://127.0.0.1:1']);
+ expect(privacy.originAllowed('null',allowed,undefined,'secret')).toBe(false);
+ expect(privacy.originAllowed('null',allowed,'wrong','secret')).toBe(false);
+ expect(privacy.originAllowed('null',allowed,'secret','secret')).toBe(true);
+ expect(privacy.originAllowed('null',allowed,undefined,'')).toBe(true);
+ expect(privacy.originAllowed('https://evil.example',allowed,'secret','secret')).toBe(false);
+ expect(privacy.originAllowed('http://127.0.0.1:1',allowed,undefined,'secret')).toBe(true);
+ expect(privacy.originAllowed(undefined,allowed,undefined,'secret')).toBe(true);
+});
 test('production hides controller-handled failures and preserves validation and success contracts',async()=>{
  const old=process.env.NODE_ENV;process.env.NODE_ENV='production';
  try {
