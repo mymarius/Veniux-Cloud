@@ -1,8 +1,17 @@
 {
-  "version": "2.4.45",
+  "version": "2.4.46",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.46",
+      "date": "7 Kasım 2026",
+      "title": "Telefonda kasa ekranı ve asistan düzeltmesi",
+      "items": [
+        "Kasa ekranı telefonda tek sütuna geçti; taşan ve üst üste binen alanlar düzeltildi.",
+        "Asistanın yapay zekâ sağlayıcısı yanıt vermediğinde yedek sağlayıcıya geçmesi sağlandı."
+      ]
+    },
     {
       "version": "2.4.45",
       "date": "7 Kasım 2026",

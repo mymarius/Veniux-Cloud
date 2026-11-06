@@ -558,3 +558,55 @@ html:root[data-design='veniux'] .mobile-camera>footer>small{color:#bcc6d4!import
 @media(max-height:680px){html:root[data-design='veniux'] .mobile-camera .reader-note{display:none}html:root[data-design='veniux'] .mobile-camera-frame{aspect-ratio:2/1}}
 
 @media all{html:root[data-design='veniux'] .mobile-camera .reader-result-panel:has(.reader-primary) .reader-note{display:none}}
+
+/* Telefonda kasa: tek sütun, sırayla tara, sepet, öde. */
+@media(max-width:760px){
+ html:root[data-design='veniux'] .pos-terminal .pos-topbar{height:auto!important;min-height:56px;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:8px!important;padding:6px 10px!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-brand{min-width:0}
+ html:root[data-design='veniux'] .pos-terminal .pos-brand span{font-size:17px!important;white-space:nowrap}
+ html:root[data-design='veniux'] .pos-terminal .pos-brand img{width:26px;height:26px}
+ html:root[data-design='veniux'] .pos-terminal .pos-session{min-width:0;display:block!important;overflow:hidden}
+ html:root[data-design='veniux'] .pos-terminal .pos-session>b,html:root[data-design='veniux'] .pos-terminal .pos-session>span:last-child{display:none!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-session>span:first-child{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 6px;font-size:12px}
+ html:root[data-design='veniux'] .pos-terminal .pos-top-actions{display:flex!important;gap:4px;flex:none}
+ html:root[data-design='veniux'] .pos-terminal .pos-top-actions button{width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;padding:0!important;font-size:0!important;border-radius:3px!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-top-actions button:first-child{display:none!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-main{display:block!important;flex:1;min-height:0;overflow-x:hidden!important;overflow-y:auto!important;padding:10px!important;-webkit-overflow-scrolling:touch}
+ html:root[data-design='veniux'] .pos-terminal .pos-sales{display:block!important;min-width:0;overflow:visible!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-sales>*{margin-bottom:10px;min-height:0!important;max-height:none!important;flex:none!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-scan{display:block!important;height:auto!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-scan>svg{display:none!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner{width:100%;margin:0;padding:12px!important;gap:10px!important;background:#fffdf8!important;border:1px solid #bfb196!important;border-radius:0!important;box-shadow:none!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner .reader-mode{display:grid!important;grid-template-columns:1fr 1fr;gap:0!important;padding:0!important;background:transparent!important;border:1px solid #17263a!important;border-radius:3px!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner .reader-mode button{min-height:42px;border-radius:0!important;background:transparent!important;color:#17263a!important;font-weight:700!important;box-shadow:none!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner .reader-mode button[aria-pressed=true]{background:#17263a!important;color:#fff!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scan-launch{width:100%;min-height:84px!important;padding:12px!important;display:grid!important;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center;text-align:left;border-radius:0!important;box-shadow:4px 4px 0 #17263a!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scan-launch svg{grid-row:span 2;width:36px!important;height:36px!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scan-launch span{font-size:21px;font-weight:800;line-height:1.1}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scan-launch small{font-size:14px;margin:0!important}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;margin-top:4px}
+ html:root[data-design='veniux'] .pos-terminal .mobile-scanner-actions>*{min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 6px!important;background:transparent!important;border:1px solid #bfb196!important;border-radius:3px!important;color:#17263a!important;font-size:14px!important;font-weight:600;text-align:center;line-height:1.15;text-decoration:none}
+ html:root[data-design='veniux'] .pos-terminal .pos-find{width:100%;min-height:44px;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;background:#fffdf8!important;border:1px solid #bfb196!important;border-radius:3px!important;color:#17263a!important;font-weight:600}
+ html:root[data-design='veniux'] .pos-terminal .retail-cart{padding:12px!important;border-radius:0!important;box-shadow:none!important}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty{padding:14px 8px!important}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty span{display:none}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty h3{font-size:18px;margin:0 0 2px}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty p{font-size:14px;margin:0}
+ html:root[data-design='veniux'] .pos-terminal .retail-cart table{min-width:540px}
+ html:root[data-design='veniux'] .pos-terminal .pos-actions{display:block!important;height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-total{display:flex!important;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;padding:12px 14px 22px!important;margin-bottom:0}
+ html:root[data-design='veniux'] .pos-terminal .pos-total strong{font-size:40px!important;white-space:nowrap}
+ html:root[data-design='veniux'] .pos-terminal .pos-pay{width:100%;min-height:54px!important;margin:8px 0 10px;border-radius:3px!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-action-grid button{min-height:64px!important;padding:6px 3px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:3px!important;font-size:13px!important;line-height:1.15;text-align:center}
+ html:root[data-design='veniux'] .pos-terminal .pos-action-grid svg{width:20px;height:20px}
+ html:root[data-design='veniux'] .pos-terminal .pos-hint{font-size:13px;padding:6px 12px!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-sales,html:root[data-design='veniux'] .pos-terminal .retail-cart,html:root[data-design='veniux'] .pos-terminal .retail-cart>*{height:auto!important;max-height:none!important;overflow:visible!important;flex:none!important}
+ html:root[data-design='veniux'] .pos-terminal .retail-cart>.overflow-auto{overflow-x:auto!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-actions,html:root[data-design='veniux'] .pos-terminal .pos-total{position:static!important;inset:auto!important;width:auto!important;margin-left:0!important;margin-right:0!important;transform:none!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-total{margin-top:0!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-find{font-size:15px!important;color:#17263a!important}
+ html:root[data-design='veniux'] .pos-terminal .pos-find>*{font-size:15px}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty{position:static!important;inset:auto!important;transform:none!important;display:block!important;text-align:center;color:#17263a!important}
+ html:root[data-design='veniux'] .pos-terminal .retail-empty p{color:#4d5a6b!important}
+}
