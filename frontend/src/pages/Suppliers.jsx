@@ -160,11 +160,11 @@ export default function Suppliers() {
                 Tedarikçiler
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-500 dark:text-brand-500 border border-brand-500/20 font-mono">
-                {suppliers.length} AKTİF TEDARİKÇİ
+                {suppliers.length} aktif tedarikçi
               </span>
             </div>
             <p className="text-xs text-gray-500 text-gray-500 mt-0.5">
-              Selçuk Ecza, Alliance Healthcare, Hedef Ecza ve sözleşmeli lojistik dağıtım ortakları
+              Ürün aldığınız firmalar ve ortalama teslim süreleri.
             </p>
           </div>
         </div>
@@ -188,21 +188,21 @@ export default function Suppliers() {
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-500">ORTALAMA TEMİN SÜRESİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-500">Ortalama temin süresi</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-brand-500">
             {(suppliers.reduce((s, d) => s + (d.lead_time_days || 3), 0) / (suppliers.length || 1)).toFixed(1)} Gün
           </p>
-          <span className="text-[10px] text-gray-500 block">Lead-time ortalaması</span>
+          <span className="text-[10px] text-gray-500 block">Ortalama teslim süresi</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">TEDARİK EDİLEN ÜRÜNLER</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">Tedarik edilen ürünler</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-emerald-500">{suppliers.reduce((n,s)=>n+Number(s.product_count||0),0)}</p>
           <span className="text-[10px] text-gray-500 block">Tedarikçi ürün bağlantıları</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">SİPARİŞ GEÇMİŞİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Sipariş geçmişi</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-gray-900 text-gray-900">{suppliers.reduce((n,s)=>n+Number(s.order_count||0),0)}</p>
           <span className="text-[10px] text-gray-500 block">Otomatik dış gönderim kapalı</span>
         </div>
@@ -210,6 +210,7 @@ export default function Suppliers() {
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredSuppliers.length === 0 && <div className="ax-empty col-span-full p-10 text-center"><strong>Henüz tedarikçi yok</strong><p className="mt-2">Üstteki düğmeyle ilk tedarikçinizi ekleyin.</p></div>}
         {filteredSuppliers.map((s) => {
           const isSelected = selectedSupplierDetail?.id === s.id;
 

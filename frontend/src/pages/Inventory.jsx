@@ -109,7 +109,7 @@ export default function Inventory() {
   const totalUnitCount = stockRecords.reduce((sum, r) => sum + (r.quantity || 0), 0);
   const criticalCount = stockRecords.filter((r) => r.min_stock_level > 0 && r.quantity <= r.min_stock_level && r.quantity > 0).length;
   const outOfStockCount = stockRecords.filter((r) => r.quantity === 0).length;
-  const totalValuation = stockRecords.reduce((sum, r) => sum + ((r.quantity || 0) * (r.price || 0)), 0);
+  const totalValuation = stockRecords.reduce((sum, r) => sum + Number(r.stock_valuation ?? (r.quantity || 0) * (r.purchase_price || 0)), 0);
 
   const columns = [
     {
