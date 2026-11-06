@@ -533,3 +533,9 @@ main .vs-legacy h1,main h1{max-width:13em}
 .vf-word.vf-on:after{animation:vf-sweep 1.5s .85s cubic-bezier(.45,0,.55,1)}
 .vf-word.vf-idle:after{animation:none}
 @media (prefers-reduced-motion:reduce){.vf-word.vf-idle .vf-l{animation:none}}
+.pr-tag,.pg-ticket,.hx-hang,.vf-grid a,main details{transition:rotate .25s cubic-bezier(.3,1.6,.5,1),translate .25s,box-shadow .25s}
+.pr-tag:hover,.pg-ticket:hover{translate:0 -6px;box-shadow:0 12px 0 -4px #17263a33}
+.pr-tag{transform-origin:top center}.pr-tag:hover{rotate:-1deg}.pr-tag:nth-child(even):hover{rotate:1deg}
+.vf-grid a:hover{translate:5px 0;color:#ffb27f}
+main a:not([class]){transition:color .15s}
+@media (prefers-reduced-motion:reduce){.pr-tag:hover,.pr-tag:nth-child(even):hover{rotate:none}}

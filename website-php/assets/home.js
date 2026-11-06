@@ -53,14 +53,23 @@
     }
   }, { rootMargin: '0px 0px -8% 0px' });
   const prepare = (element, name) => {
-    if (element.getBoundingClientRect().top < innerHeight) return;
     const order = [...element.parentElement.children].indexOf(element) % 6;
     element.classList.add(name);
     element.style.setProperty('--vx-d', `${order * 70}ms`);
     reveal.observe(element);
   };
-  main.querySelectorAll('h2,.hx-step,.hx-pos,.hx-tags a,.hx-table tbody tr,.hx-list li,.hx-qa>div,.pr-tag,.pg-ticket,.vf-grid>*,.hx-frame,.hx-hang').forEach(el => prepare(el, 'vx-rv'));
-  main.querySelectorAll('.hx-receipt').forEach(el => prepare(el, 'vx-print'));
+  // Her sayfanın içeriğini gezer: düzen kutularına iner, içerik bloklarını sırayla getirir.
+  const skip = '.hx-shelf,.hx-obj,.hx-stage,.hx-hero h1,.hx-lead,.hx-cta,.vx-band,dialog,script,style,[hidden]';
+  const atomic = 'form,table,figure,details,pre,img,svg,h1,h2,h3,h4,p,a,button,.hx-pos,.hx-step,.hx-card,.pr-tag,.pg-ticket,.hx-hang';
+  const walk = (element, depth) => {
+    if (element.matches(skip) || !element.getClientRects().length) return;
+    if (element.matches('.hx-receipt')) { prepare(element, 'vx-print'); return; }
+    const blocks = [...element.children].filter(child => getComputedStyle(child).display !== 'inline');
+    if (element.matches('table') ) { element.querySelectorAll('tbody tr').forEach(row => prepare(row, 'vx-rv')); return; }
+    if (depth < 6 && !element.matches(atomic) && blocks.length) { blocks.forEach(child => walk(child, depth + 1)); return; }
+    prepare(element, 'vx-rv');
+  };
+  [...main.children].forEach(child => walk(child, 0));
 
   const steps = main.querySelectorAll('.hx-step');
   if (steps.length) {
