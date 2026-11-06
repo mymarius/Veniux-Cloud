@@ -455,3 +455,51 @@ main .vs-legacy h1,main h1{max-width:13em}
 @media(min-width:1180px){.ap-tickets{grid-template-columns:repeat(2,minmax(0,1fr))}.ap-tickets .pg-ticket{grid-template-columns:minmax(0,1fr) 124px}}
 .ap-tickets .pg-ticket h2{font-size:clamp(46px,4.2vw,60px)}
 @media(max-width:600px){.ap-company{display:none}}
+
+/* Hareket: raf etiketi asılır, barkod okunur, damga vurulur, fiş yazıcıdan çıkar. */
+@media (prefers-reduced-motion:no-preference){
+ @keyframes vx-rise{from{opacity:0;translate:0 26px}}
+ @keyframes vx-hang{0%{opacity:0;translate:0 -130px;rotate:-10deg}45%{opacity:1;translate:0 0;rotate:4deg}68%{rotate:-2deg}85%{rotate:.8deg}100%{rotate:0deg}}
+ @keyframes vx-bars{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+ @keyframes vx-laser{0%{top:0;opacity:0}2%{opacity:1}16%{top:100%;opacity:1}18%,100%{top:100%;opacity:0}}
+ @keyframes vx-slam{0%{opacity:0;scale:2.3}62%{opacity:1;scale:.93}80%{scale:1.04}100%{scale:1}}
+ @keyframes vx-drop{0%{opacity:0;translate:0 -60px;rotate:5deg}60%{opacity:1;translate:0 5px;rotate:-1deg}100%{translate:0 0;rotate:0deg}}
+ @keyframes vx-card{from{opacity:0;translate:0 20px;rotate:1.6deg}}
+ @keyframes vx-row{from{opacity:0;translate:14px 0}}
+ @keyframes vx-beep{0%{opacity:0;translate:-16px 0;background:#e4570a55}55%{opacity:1;translate:0 0;background:#e4570a55}100%{background:transparent}}
+ @keyframes vx-done{0%{scale:1}40%{scale:1.07}100%{scale:1}}
+ .hx-hero h1{animation:vx-rise .7s cubic-bezier(.2,.8,.2,1) backwards}
+ .hx-hero .hx-lead{animation:vx-rise .7s .12s cubic-bezier(.2,.8,.2,1) backwards}
+ .hx-hero .hx-cta{animation:vx-rise .7s .22s cubic-bezier(.2,.8,.2,1) backwards}
+ .hx-shelf .hx-label{animation:vx-hang 1.1s .15s ease-out backwards;transition:translate .25s ease-out}
+ .hx-shelf .hx-label .hx-barcode{animation:vx-bars .55s .95s steps(14) backwards}
+ .hx-shelf .hx-label:after{content:'';position:absolute;left:-8px;right:-8px;top:0;height:44px;margin-top:-44px;background:linear-gradient(to bottom,#e4570a00,#e4570a2e calc(100% - 3px),#e4570a calc(100% - 3px));opacity:0;pointer-events:none;animation:vx-laser 8s 1.35s linear infinite}
+ .hx-stamp{animation:vx-slam .42s 1.75s ease-in backwards;transition:translate .25s ease-out}
+ .hx-obj{animation:vx-drop .8s .15s ease-out backwards}
+ .hx-obj .hx-stamp{animation-delay:.95s}
+ .hx-stage .hx-card[data-on]{animation:vx-card .38s cubic-bezier(.2,.8,.2,1)}
+ .hx-stage .hx-card[data-on] .hx-card-row{animation:vx-row .32s ease-out backwards}
+ .hx-stage .hx-card[data-on] .hx-card-row:nth-of-type(3){animation-delay:.06s}
+ .hx-stage .hx-card[data-on] .hx-card-row:nth-of-type(4){animation-delay:.12s}
+ .hx-stage .hx-card[data-on] .hx-card-state{animation:vx-slam .3s .24s ease-in backwards}
+ .hx-step{position:relative}
+ .hx-step:before{content:'';position:absolute;left:0;right:0;top:-2px;height:2px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+ .hx-step[data-active]:before{transform:scaleX(1)}
+ .hx-step-tag{transition:color .25s,translate .25s}
+ .hx-step[data-active] .hx-step-tag{color:#b84405;translate:6px 0}
+ .js-play .hx-pos-line[data-on]{animation:vx-beep .6s ease-out}
+ .hx-pos-side em{transition:background-color .25s}
+ .hx-pos-side em[data-done]{animation:vx-done .4s ease-out}
+ .hx-btn,.vs-btn{transition:background-color .15s,translate .15s,box-shadow .15s}
+ .hx-btn:hover{translate:0 -2px;box-shadow:0 4px 0 #17263a}
+ .hx-btn:active{translate:0 1px;box-shadow:none}
+ .hx-tags a{transform-origin:top center;transition:rotate .25s cubic-bezier(.3,1.6,.5,1),translate .25s,box-shadow .25s,border-color .2s}
+ .hx-tags a:hover,.hx-tags a:focus-visible{rotate:-1.4deg;translate:0 -4px;box-shadow:0 10px 0 -4px #17263a33}
+ .hx-tags a:nth-child(even):hover,.hx-tags a:nth-child(even):focus-visible{rotate:1.4deg}
+ .vx-rv{opacity:0;translate:0 26px}
+ .vx-rv.vx-in{opacity:1;translate:0 0;transition:opacity .6s var(--vx-d,0s),translate .6s var(--vx-d,0s) cubic-bezier(.2,.8,.2,1)}
+ .vx-print{clip-path:inset(0 0 100% 0);translate:0 -18px}
+ .vx-print.vx-in{clip-path:inset(0 0 -12px 0);translate:0 0;transition:clip-path 1.1s steps(16),translate 1.1s steps(16)}
+ .vx-progress{position:fixed;left:0;right:0;top:0;z-index:1000;height:4px;background:repeating-linear-gradient(90deg,#e4570a 0 3px,transparent 3px 5px,#e4570a 5px 11px,transparent 11px 14px);transform:scaleX(0);transform-origin:left;pointer-events:none}
+}
+@media print{.vx-rv,.vx-print{opacity:1!important;translate:none!important;clip-path:none!important}.vx-progress{display:none}}
