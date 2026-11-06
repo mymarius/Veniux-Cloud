@@ -1,8 +1,19 @@
 {
-  "version": "2.4.43",
+  "version": "2.4.44",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.44",
+      "date": "6 Kasım 2026",
+      "title": "Açılış karşılaması, güvenlik ve hareketler",
+      "items": [
+        "Program açılınca kayıtlı durumu kısaca söyleyen sesli karşılama eklendi; açık uyarılar, azalan ürünler ve onay bekleyen sipariş taslakları anlatılır.",
+        "Yetki ve firma sınırlarını güçlendiren güvenlik düzeltmeleri yapıldı; kullanıcı yönetimi yalnız firma genelindeki yöneticilere açık.",
+        "Sayfa geçişleri, kartlar, tablolar ve pencereler hareketli açılıyor; Görünüm ayarından kapatılabilir.",
+        "Lisans ekranında uzun cihaz kimliği artık kutudan taşmıyor."
+      ]
+    },
     {
       "version": "2.4.43",
       "date": "7 Kasım 2026",
