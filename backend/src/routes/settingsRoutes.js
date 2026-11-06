@@ -47,6 +47,8 @@ router.put('/automation',requireRole('admin'),async(req,res,next)=>{try{
  const data=req.body;
  if(data.whatsappOnCompletion===undefined)data.whatsappOnCompletion=false;
  if(typeof data.whatsappOnCompletion!=='boolean')return res.status(400).json({error:'Geçersiz WhatsApp ayarı.'});
+ if(data.draftOrders===undefined)data.draftOrders=false;
+ if(typeof data.draftOrders!=='boolean')return res.status(400).json({error:'Geçersiz taslak ayarı.'});
  if(['enabled','ruleChecks','aiAnalysis','smsOnCompletion'].some(k=>typeof data[k]!=='boolean')||![60,360,1440].includes(data.intervalMinutes)||(!data.ruleChecks&&!data.aiAnalysis))return res.status(400).json({error:'Geçersiz otomasyon ayarı.'});
  if((data.smsOnCompletion||data.whatsappOnCompletion)&&data.enabled){const company=(await require('../config/database').query('SELECT owner_phone FROM tenants WHERE id=$1',[req.user.tenantId])).rows[0];if(!require('../services/ownerPhone').normalizePhone(company?.owner_phone))return res.status(400).json({error:'Önce Şirket Profili bölümünden firma sahibinin cep telefonunu kaydedin.'});}
  res.json(await policies.save(req.user.tenantId,'automation',Object.fromEntries(Object.keys(automation.defaults).map(k=>[k,data[k]]))));

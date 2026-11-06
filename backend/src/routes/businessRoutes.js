@@ -32,7 +32,7 @@ router.post('/partners',admin,safe(async(req,res)=>{
  const row=(await db.query('INSERT INTO business_partners(tenant_id,name,contact_name,phone,email) VALUES($1,$2,$3,$4,$5) RETURNING id',[req.user.tenantId,name,text(req.body.contact_name,100),text(req.body.phone,30),text(req.body.email,254)])).rows[0];res.status(201).json(row);
 }));
 router.get('/catalog',safe(async(req,res)=>res.json((await db.query("SELECT id,name,sku,barcode,unit,sale_price FROM products WHERE tenant_id=$1 AND module_type='NORMAL' ORDER BY name LIMIT 2000",[req.user.tenantId])).rows)));
-router.post('/invitations',admin,safe(async(req,res)=>{
+router.post('/invitations',admin,require('../middlewares/licenseMiddleware')('users'),safe(async(req,res)=>{
  const email=text(req.body.email,254).toLowerCase(),role=req.body.role;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!['field','dealer'].includes(role))access.fail('Geçerli e-posta ve rol gerekli.',400);
  const p=await access.partner(req.user,req.business,req.body.partner_id);
  if((await db.query('SELECT id FROM users WHERE LOWER(email)=$1',[email])).rows.length)access.fail('E-posta zaten kayıtlı.',409);

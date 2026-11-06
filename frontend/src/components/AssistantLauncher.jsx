@@ -1,7 +1,7 @@
 import veniuxLogo from '../assets/veniux-logo.webp';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { X, Send, Maximize2, Volume2, VolumeX } from 'lucide-react';
+import { X, Send, Maximize2, Volume2, VolumeX, Mic, Square } from 'lucide-react';
 import apiClient, { broadcastSync } from '../api/client';
 import './AssistantLauncher.css';
 import AssistantMarkdown from './AssistantMarkdown';
@@ -48,6 +48,32 @@ export default function AssistantLauncher() {
     const task=apiClient.post('/ai/speech',{text,profile:'google-soft'},{responseType:'blob',timeout:55000}).then(response=>response.data).catch(error=>{if(cache.get(text)===task)cache.delete(text);throw error;});
     if(cache.size>=4)cache.delete(cache.keys().next().value);
     cache.set(text,task);return task;
+  }
+  // Basılınca dinler, ikinci basışta veya 20 saniyede durur. Metin sohbete gider; işlemler yine onay ister.
+  const [listening,setListening]=useState(false),[transcribing,setTranscribing]=useState(false);
+  const recorder=useRef(null);
+  async function toggleVoice(){
+    if(recorder.current){recorder.current.stop();return;}
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){setError('Bu cihazda mikrofon kullanılamıyor.');return;}
+    setError('');stopSpeech();
+    let stream;
+    try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch{setError('Mikrofon izni verilmedi.');return;}
+    const type=['audio/webm','audio/ogg','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+    const rec=new MediaRecorder(stream,type?{mimeType:type}:undefined),parts=[];
+    const limit=setTimeout(()=>{if(rec.state==='recording')rec.stop();},20000);
+    rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};
+    rec.onstop=async()=>{
+      clearTimeout(limit);stream.getTracks().forEach(t=>t.stop());recorder.current=null;setListening(false);
+      if(!parts.length)return;
+      setTranscribing(true);
+      try{
+        const blob=new Blob(parts,{type:rec.mimeType});
+        const {data}=await apiClient.post('/ai/transcribe',blob,{headers:{'Content-Type':rec.mimeType.split(';')[0]},timeout:40000});
+        if(data.text)send(null,data.text);else setError('Konuşma anlaşılamadı. Tekrar deneyin.');
+      }catch(failure){setError(failure.response?.data?.error||'Ses metne çevrilemedi.');}
+      finally{setTranscribing(false);}
+    };
+    recorder.current=rec;rec.start();setListening(true);
   }
   const [speechStatus,setSpeechStatus]=useState('');
   const [voiceNotice,setVoiceNotice]=useState('');
@@ -223,7 +249,7 @@ export default function AssistantLauncher() {
         </>}
         <div ref={bottom} />
       </div>
-      {canChat && <form onSubmit={send}><input ref={field} aria-label="Asistana mesaj" placeholder={visitor?'İhtiyacınızı anlatın…':'Bir şey sorun…'} maxLength={visitor?2000:4000} value={input} onChange={e => setInput(e.target.value)} /><button type="submit" disabled={busy || !input.trim()} aria-label="Mesajı gönder"><Send size={18} /></button></form>}
+      {canChat && <form onSubmit={send}><input ref={field} aria-label="Asistana mesaj" placeholder={visitor?'İhtiyacınızı anlatın…':'Bir şey sorun…'} maxLength={visitor?2000:4000} value={input} onChange={e => setInput(e.target.value)} />{!visitor&&<button type="button" onClick={toggleVoice} disabled={busy||transcribing} aria-pressed={listening} aria-label={listening?'Dinlemeyi bitir':'Sesle sor'} title="Sesiniz metne çevrilmek için Google Gemini'ye gönderilir, saklanmaz.">{listening?<Square size={18}/>:<Mic size={18}/>}</button>}<button type="submit" disabled={busy || !input.trim()} aria-label="Mesajı gönder"><Send size={18} /></button></form>}
       <footer>{visitor?'Yapay zekâ destekli danışman · Paket fiyatlarında para birimi belirtilir':voice?'Sesli uyarılar açık · Değişiklikler onayınıza bağlı':'Sesli uyarılar için hoparlörü açın · Değişiklikler onayınıza bağlı'}</footer>
     </section>}
     <button ref={launcher} className="veniux-assistant-launcher" aria-label={open ? 'Veniux asistanını kapat' : 'Veniux asistanını aç'} aria-expanded={open} aria-controls="veniux-quick-chat" onClick={() => setOpen(v => !v)} title="Veniux AI Asistanı">

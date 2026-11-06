@@ -27,6 +27,7 @@ router.use(rateLimit({windowMs:60000,max:20,message:{error:'AI istek sınırı a
 const { chatWithAI, getInventoryForecast } = require('../controllers/aiController');
 const { runAIAnalysis } = require('../services/aiAnalysisService');
 
+router.post('/transcribe',authMiddleware,requireRole('admin','manager'),rateLimit({windowMs:60000,max:10,message:{error:'Ses istek sınırına ulaşıldı. Biraz sonra deneyin.'}}),express.raw({type:()=>true,limit:'5mb'}),async(req,res,next)=>{try{res.set('Cache-Control','no-store').json({text:await require('../services/speechToText').transcribe(req.body,req.get('content-type'))});}catch(e){next(e);}});
 router.post('/chat', chatWithAI);
 router.get('/forecast', getInventoryForecast);
 

@@ -92,8 +92,8 @@ function createWindow() {
     }
   });
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders({urls:['http://127.0.0.1:17849/*']},(details,callback)=>callback({requestHeaders:{...details.requestHeaders,'x-veniux-desktop-origin':desktopOriginToken}}));
-  mainWindow.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
-  mainWindow.webContents.session.setPermissionCheckHandler(()=>false);
+  mainWindow.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(permission==='media'&&contents===mainWindow.webContents&&Array.isArray(details?.mediaTypes)&&details.mediaTypes.length===1&&details.mediaTypes[0]==='audio'));
+  mainWindow.webContents.session.setPermissionCheckHandler((contents,permission)=>permission==='media'&&contents===mainWindow.webContents);
   if (!process.env.ELECTRON_START_URL) mainWindow.webContents.session.webRequest.onHeadersReceived((details,callback)=>{
     if (!details.url.startsWith('file:')) return callback({responseHeaders:details.responseHeaders});
     const policy=`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ${new URL(runtime.apiBase).origin}; object-src 'none'; frame-src 'none'; base-uri 'none'`;

@@ -1,6 +1,13 @@
 const db=require('../config/database');
 const policies=require('./settingsPolicyService');
-const defaults={enabled:false,intervalMinutes:1440,ruleChecks:true,aiAnalysis:true,smsOnCompletion:true,whatsappOnCompletion:false};
+const defaults={enabled:false,intervalMinutes:1440,ruleChecks:true,aiAnalysis:true,smsOnCompletion:true,whatsappOnCompletion:false,draftOrders:false};
+// Yalnız taslak hazırlar: tedarikçiye gönderim ve onay her zaman yetkili kişidedir. Aynı gün ikinci taslak açılmaz.
+async function prepareDrafts(tenant){
+ const owner=(await db.query("SELECT id,email,role FROM users WHERE tenant_id=$1 AND role='admin' AND COALESCE(status,'active')='active' ORDER BY id LIMIT 1",[tenant])).rows[0];
+ if(!owner)return {orders:[],skipped:[]};
+ try{return await require('./procurementService').draftsFromForecast({tenantId:tenant,userId:owner.id,email:owner.email,role:owner.role},{},'automation-'+new Date().toISOString().slice(0,10));}
+ catch(error){if(error.message==='Sipariş önerilen ürün bulunamadı.')return {orders:[],skipped:[]};throw error;}
+}
 async function config(tenant){return {...defaults,...await policies.read(tenant,'automation')};}
 async function run(tenant,{scheduled=false,centralLicense}={}){
  const settings=await config(tenant);
@@ -21,6 +28,7 @@ async function run(tenant,{scheduled=false,centralLicense}={}){
   const moduleType=await require('./moduleAccess').getModuleType(tenant,centralLicense);
   const overview=await require('./assistantMonitor').overview({tenantId:tenant,moduleType});
   summary=`Kontroller tamamlandı. ${created} yeni uyarı kaydedildi. ${overview.summary}`;
+  if(settings.draftOrders){const drafts=await prepareDrafts(tenant);if(drafts.orders.length)summary+=` ${drafts.orders.length} sipariş taslağı onayınızı bekliyor.`;if(drafts.skipped.length)summary+=` ${drafts.skipped.length} ürün tedarikçisi veya deposu olmadığı için taslağa eklenmedi.`;}
  }catch{status='failed';summary='Otomatik kontrolün bazı adımları tamamlanamadı. Yapılan işlemler ve işletme uyarıları panelden kontrol edilmelidir.';}
  await db.query('UPDATE assistant_runs SET summary=$1 WHERE tenant_id=$2 AND id=$3',[summary,tenant,id]);
  let sms={status:'not_requested'};
@@ -50,4 +58,4 @@ async function tick({centralLicense}={}){
   catch{console.error('[Owner automation] Tenant job failed:',tenant.id);}
  }
 }
-module.exports={defaults,config,run,tick};
+module.exports={prepareDrafts,defaults,config,run,tick};

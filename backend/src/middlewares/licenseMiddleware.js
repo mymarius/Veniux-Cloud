@@ -37,7 +37,8 @@ const checkEntitlement = (resourceName) => {
       }
 
       if (resourceName === 'users') {
-        const countRes = await pool.query('SELECT COUNT(*) as count FROM users WHERE tenant_id = $1', [tenantId]);
+        // Aktif kullanıcılar ve süresi dolmamış davetler koltuk sayılır; pasif hesaplar yer tutmaz.
+        const countRes = await pool.query("SELECT (SELECT COUNT(*) FROM users WHERE tenant_id=$1 AND COALESCE(status,'active')='active')+(SELECT COUNT(*) FROM business_invitations WHERE tenant_id=$1 AND redeemed_at IS NULL AND expires_at>$2) AS count", [tenantId, new Date().toISOString().replace('T',' ').replace('Z','')]);
         if (parseInt(countRes.rows[0].count) >= planDetails.max_users) {
           return res.status(403).json({ error: 'Maximum users limit reached for this license plan' });
         }
