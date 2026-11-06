@@ -610,3 +610,35 @@ html:root[data-design='veniux'] .mobile-camera>footer>small{color:#bcc6d4!import
  html:root[data-design='veniux'] .pos-terminal .retail-empty{position:static!important;inset:auto!important;transform:none!important;display:block!important;text-align:center;color:#17263a!important}
  html:root[data-design='veniux'] .pos-terminal .retail-empty p{color:#4d5a6b!important}
 }
+
+/* Tarama: arama kutusu, fiyat listesi, etiket kontrolü. */
+html:root[data-design='veniux'] .mobile-camera .reader-camera-mode{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html:root[data-design='veniux'] .mobile-camera .reader-camera-mode button{font-size:14px!important;padding:0 4px!important;white-space:nowrap}
+html:root[data-design='veniux'] .mobile-scanner>.reader-mode{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))}
+html:root[data-design='veniux'] .mobile-scanner>.reader-mode button{padding-inline:2px!important;font-size:13px!important;white-space:nowrap}
+html:root[data-design='veniux'] .reader-search{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:0 0 0 12px;background:#fff;border:1px solid #17263a;border-radius:3px;color:#4d5a6b}
+html:root[data-design='veniux'] .reader-search input{flex:1;min-width:0;height:46px;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;outline:0;color:#17263a!important;font-size:16px!important}
+html:root[data-design='veniux'] .reader-search>button:not(.reader-search-go){width:34px;height:34px;display:grid;place-items:center;padding:0!important;background:transparent!important;border:0!important;color:#4d5a6b!important}
+html:root[data-design='veniux'] .reader-search .reader-search-go{height:46px;padding:0 16px!important;background:#17263a!important;border:0!important;border-radius:0!important;color:#fff!important;font-weight:700}
+html:root[data-design='veniux'] .reader-search .reader-search-go:disabled{opacity:.45}
+html:root[data-design='veniux'] .reader-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+html:root[data-design='veniux'] .reader-result-panel .reader-primary:disabled{background:#d6c9b2!important;color:#fff!important}
+html:root[data-design='veniux'] .reader-result-panel .reader-secondary{width:100%;min-height:48px;background:#fffdf8!important;border:2px solid #17263a!important;border-radius:3px!important;color:#17263a!important;font:700 16px/1 Archivo,sans-serif!important}
+html:root[data-design='veniux'] .reader-result-panel .reader-secondary:disabled{border-color:#d6c9b2!important;color:#8d9bb3!important}
+html:root[data-design='veniux'] .reader-result-panel :is(.reader-right,.reader-wrong){min-height:54px;display:flex;align-items:center;justify-content:center;gap:8px;border:0!important;border-radius:3px!important;color:#fff!important;font:800 18px/1 Archivo,sans-serif!important}
+html:root[data-design='veniux'] .reader-result-panel .reader-right{background:#0d7a57!important}
+html:root[data-design='veniux'] .reader-result-panel .reader-wrong{background:#b92c1c!important}
+html:root[data-design='veniux'] .reader-result-panel .reader-ask{margin:10px 0 0!important;color:#17263a!important;font-weight:700!important}
+html:root[data-design='veniux'] .reader-counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
+html:root[data-design='veniux'] .reader-counters div{padding:8px 10px;background:#f4eee2;border-top:4px solid #17263a}
+html:root[data-design='veniux'] .reader-counters div[data-tone=good]{background:#e3f4ec;border-top-color:#0d7a57}
+html:root[data-design='veniux'] .reader-counters div[data-tone=bad]{background:#fbe6e3;border-top-color:#b92c1c}
+html:root[data-design='veniux'] .reader-counters strong{display:block;color:#17263a;font:900 32px/1 Archivo,sans-serif;font-stretch:68%}
+html:root[data-design='veniux'] .reader-counters small{color:#4d5a6b;font-size:13px}
+html:root[data-design='veniux'] .reader-list-panel{max-height:52dvh;overflow:auto}
+html:root[data-design='veniux'] .reader-list{margin:0;padding:0;list-style:none}
+html:root[data-design='veniux'] .reader-list li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #d6c9b2}
+html:root[data-design='veniux'] .reader-list b{display:block;overflow:hidden;color:#17263a;font-size:15px;text-overflow:ellipsis;white-space:nowrap}
+html:root[data-design='veniux'] .reader-list small{color:#4d5a6b;font-size:12.5px}
+html:root[data-design='veniux'] .reader-list strong{color:#17263a;font-weight:800;white-space:nowrap}
+html:root[data-design='veniux'] .reader-list :is(button,a){width:40px;height:40px;display:grid;place-items:center;padding:0!important;background:transparent!important;border:1px solid #bfb196!important;border-radius:3px!important;color:#17263a!important}
