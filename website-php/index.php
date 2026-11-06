@@ -241,7 +241,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                         <span hidden data-conversion-receipt="<?=e($contactConversion['receipt'])?>" data-conversion-event="<?=e($contactConversion['event'])?>" data-conversion-type="<?=e($contactConversion['form_type'])?>"></span>
                     <?php endif;?>
 
-                    <form method="post" action="/#iletisim" class="dp-form">
+                    <form method="post" action="/#iletisim" class="dp-form contact-form">
                         <?php if($selectedPlan):?>
                             <div class="vs-plan-box">
                                 <p class="vs-plan-kicker">SEÇTİĞİNİZ PLAN</p>

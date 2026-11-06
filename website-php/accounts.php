@@ -249,8 +249,8 @@ function accountRoutes(string $path,array $config):bool {
         </a>
         <div class="dp-nav-actions">
             <?php if($account):?>
-                <span class="dp-pill-text" style="color:#aab4c6; font-size:13px;"><?=e($account['company'])?></span>
-                <form action="/cikis" method="post" style="margin:0; display:inline;">
+                <span class="dp-pill-text ap-company"><?=e($account['company'])?></span>
+                <form action="/cikis" method="post">
                     <input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>">
                     <button type="submit" class="dp-btn dp-btn--outline dp-btn--sm">Çıkış Yap</button>
                 </form>
@@ -264,315 +264,57 @@ function accountRoutes(string $path,array $config):bool {
 
 <main class="dp-container dp-portal" id="main">
 <?php if($isPortal):?>
-    <div class="dp-portal-layout">
-        <!-- Sidebar Navigation -->
-        <aside class="dp-portal-nav">
-            <div class="dp-portal-user-summary">
-                <span class="dp-portal-user-company"><?=e($account['company'])?></span>
-                <span class="dp-portal-user-email"><?=e($account['email'])?></span>
-                <span style="display:inline-block; margin-top:8px; font-size:11px; padding:2px 8px; border-radius:9999px; background:#f2711c; color:#fff; font-weight:700;">
-                    <?=e($permissions['name'])?> Paketi
-                </span>
-            </div>
-            <nav class="dp-portal-menu" aria-label="Müşteri paneli bölümleri">
-                <a class="dp-portal-menu-link <?=$currentTab==='genel-bakis'?'active':''?>" href="/hesap?tab=genel-bakis">
-                    <span aria-hidden="true">▣</span> Genel Bakış
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='lisanslarim'?'active':''?>" href="/hesap?tab=lisanslarim">
-                    <span aria-hidden="true">🔑</span> Lisanslarım
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='paketim'?'active':''?>" href="/hesap?tab=paketim">
-                    <span aria-hidden="true">📦</span> Paketim
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='faturalarim'?'active':''?>" href="/hesap?tab=faturalarim">
-                    <span aria-hidden="true">📑</span> Faturalarım
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='indirmeler'?'active':''?>" href="/indir">
-                    <span aria-hidden="true">↓</span> İndirmeler
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='taleplerim'?'active':''?>" href="/hesap?tab=taleplerim">
-                    <span aria-hidden="true">💬</span> Taleplerim
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='guvenlik'?'active':''?>" href="/hesap?tab=guvenlik">
-                    <span aria-hidden="true">🛡️</span> Hesap Güvenliği
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='bildirimler'?'active':''?>" href="/hesap?tab=bildirimler">
-                    <span aria-hidden="true">🔔</span> Bildirimler
-                </a>
-                <a class="dp-portal-menu-link <?=$currentTab==='destek'?'active':''?>" href="/hesap?tab=destek">
-                    <span aria-hidden="true">🎧</span> Destek
-                </a>
+    <?php $downloads=(require __DIR__.'/release-catalog.php')['downloads']; $legacyTabs=['lisanslarim'=>'lisans','paketim'=>'lisans','faturalarim'=>'faturalar','taleplerim'=>'talepler','bildirimler'=>'genel-bakis']; $currentTab=$legacyTabs[$currentTab]??$currentTab; ?>
+    <div class="ap-layout">
+        <aside class="ap-nav">
+            <div class="ap-user"><b><?=e($account['company'])?></b><span><?=e($account['email'])?></span></div>
+            <nav aria-label="Müşteri paneli bölümleri">
+                <?php foreach([['genel-bakis','Genel bakış'],['lisans','Lisans ve paket'],['faturalar','Faturalar'],['indirmeler','İndirmeler'],['talepler','Talepler'],['guvenlik','Hesap güvenliği'],['destek','Destek']] as [$tab,$label]):?><a <?=$currentTab===$tab?'aria-current="page"':''?> href="<?=$tab==='indirmeler'?'/indir':'/hesap?tab='.$tab?>"><?=$label?></a><?php endforeach;?>
             </nav>
         </aside>
-
-        <!-- Main Panel Content -->
-        <div class="dp-portal-main">
-            <?php if($error):?><div class="dp-toast dp-toast--error" style="background:#3a141a; border:1px solid #73232b; color:#ff9da8; padding:12px 18px; border-radius:10px; margin-bottom:20px;"><?=e($error)?></div><?php endif;?>
-
-            <?php if($currentTab==='genel-bakis'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Genel Bakış</h1>
-                        <span style="font-size:12px; color:#2CA58D; font-weight:700;">● Sistem Aktif & Lisanslı</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Hoş geldiniz, <?=e($account['company'])?>. İşletmenizin Veniux kurulum detayları ve lisans durumu aşağıda özetlenmiştir.</p>
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:32px;">
-                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Tanımlı Paket</span>
-                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=e($permissions['name'])?></strong>
-                            <small style="color:#2CA58D; font-size:12px;">Yıllık Lisans Kapsamında</small>
-                        </div>
-                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Cihaz / Terminal Sınırı</span>
-                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=$permissions['max_devices']?> Terminal</strong>
-                            <small style="color:#aab4c6; font-size:12px;">Windows & Android Bağlantısı</small>
-                        </div>
-                        <div style="background:#212838; padding:20px; border-radius:12px; border:1px solid #2d3547;">
-                            <span style="font-size:11px; text-transform:uppercase; color:#aab4c6; font-weight:700;">Depo Kapsamı</span>
-                            <strong style="display:block; font-size:20px; color:#e8ecf4; margin-top:6px;"><?=$permissions['max_depo']?> Depo</strong>
-                            <small style="color:#aab4c6; font-size:12px;">Raf ve WMS Erişimi</small>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-                        <a href="/dosya/windows" class="dp-btn dp-btn--primary">Windows Programını İndir ↓</a>
-                        <a href="/dosya/android" class="dp-btn dp-btn--outline">Android APK İndir ↓</a>
-                        <a href="/hesap?tab=paketim" class="dp-btn dp-btn--ghost">Modül Yetkilerini İncele →</a>
-                    </div>
-                </section>
-
-            <?php elseif($currentTab==='lisanslarim'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Lisanslarım</h1>
-                        <span style="color:#2CA58D; font-size:12px; font-weight:700;">1 Aktif Anahtar</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Veniux masaüstü programınızı veya mobil terminallerinizi etkinleştirmek için aşağıdaki anahtarı kullanın.</p>
-                    <div style="background:#12161f; border:1px solid #2d3547; border-radius:12px; padding:24px; margin-bottom:24px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                            <div>
-                                <span style="font-size:11px; color:#aab4c6; text-transform:uppercase; font-weight:700;">Birincil Ürün Anahtarı</span>
-                                <div style="font-family:ui-monospace,monospace; font-size:18px; font-weight:750; color:#ff9a5c; margin-top:4px; letter-spacing:0.06em;">
-                                    <?=e($account['license_key']??'VNX-2026-PRECISION-ENTERPRISE')?>
-                                </div>
-                            </div>
-                            <span style="background:rgba(44,165,141,0.2); border:1px solid #2CA58D; color:#2CA58D; padding:6px 14px; border-radius:9999px; font-size:12px; font-weight:700;">
-                                Etkin & Doğrulanmış
-                            </span>
-                        </div>
-                        <div style="margin-top:18px; padding-top:16px; border-top:1px solid #212838; font-size:12px; color:#aab4c6; display:flex; gap:24px;">
-                            <span>Cihaz Kotası: <strong><?=$permissions['max_devices']?> Cihaz</strong></span>
-                            <span>Kullanıcı Sınırı: <strong><?=$permissions['max_user']?> Kullanıcı</strong></span>
-                            <span>Durum: <strong>Süresiz / Kurumsal</strong></span>
-                        </div>
-                    </div>
-                    <p style="font-size:12px; color:#64748B;">Lisans anahtarları donanım parmak izi (fingerprint) ile eşleşir ve yetkisiz kopyalamayı engellemek için merkezi sunucu üzerinden imzalanır.</p>
-                </section>
-
-            <?php elseif($currentTab==='paketim'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Paketim ve Modül Yetkileri</h1>
-                        <span style="background:#212838; border:1px solid #2d3547; color:#e8ecf4; padding:4px 12px; border-radius:9999px; font-size:12px; font-weight:700;">
-                            <?=e($permissions['name'])?> Seviyesi
-                        </span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Bu hesap için sunucu tarafında doğrulanmış modül erişim tablosu aşağıdadır. Yetkiler lisans otoritesi tarafından kontrol edilir.</p>
-                    <div style="border:1px solid #2d3547; border-radius:12px; overflow:hidden;">
-                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
-                            <thead>
-                                <tr style="background:#212838; color:#e8ecf4; border-bottom:1px solid #2d3547;">
-                                    <th style="padding:14px 18px;">Modül Adı</th>
-                                    <th style="padding:14px 18px;">İşlev Kapsamı</th>
-                                    <th style="padding:14px 18px; text-align:right;">Yetki Durumu</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux CRM</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Müşteri kartları, borç/alacak, görüşme ve satış fırsatları</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Stok & Envanter</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Ürün barkod kataloğu, lot/miat, kritik seviye takibi</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Depo & WMS</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Mal kabul, raf yerleşimi, palet barkodlama, transferler</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Market / POS</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Dokunmatik hızlı satış, barkodlu okuma, fiş/fatura yazdırma</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Satış Yönetimi</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">B2B/B2C siparişler, teklifler, iskonto ve vade operasyonları</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Raporlama</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Ciro grafikleri, net kârlılık, devir hızı ve gün sonu z-raporu</td>
-                                    <td style="padding:14px 18px; text-align:right; color:#2CA58D; font-weight:700;">✓ Erişilebilir</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:14px 18px; font-weight:650; color:#e8ecf4;">Veniux Intelligence</td>
-                                    <td style="padding:14px 18px; color:#aab4c6;">Yapay zekâ stok tahminleri, anomali tespiti ve karar desteği</td>
-                                    <td style="padding:14px 18px; text-align:right; color:<?=$permissions['intelligence']?'#2CA58D':'#aab4c6'?>; font-weight:700;">
-                                        <?=$permissions['intelligence']?'✓ Erişilebilir':'Paket Yükseltme Gerekli'?>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-            <?php elseif($currentTab==='faturalarim'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Faturalarım ve Ödemeler</h1>
-                        <span style="color:#aab4c6; font-size:12px;">Resmî e-Fatura Kayıtları</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Veniux yazılım lisansı ve ek hizmet bedellerine ait faturalar aşağıda listelenmiştir.</p>
-                    <div style="border:1px solid #2d3547; border-radius:12px; overflow:hidden;">
-                        <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
-                            <thead>
-                                <tr style="background:#212838; color:#e8ecf4;">
-                                    <th style="padding:12px 16px;">Fatura No</th>
-                                    <th style="padding:12px 16px;">Tarih</th>
-                                    <th style="padding:12px 16px;">Açıklama</th>
-                                    <th style="padding:12px 16px;">Tutar</th>
-                                    <th style="padding:12px 16px; text-align:right;">Durum</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="border-bottom:1px solid #212838;">
-                                    <td style="padding:14px 16px; font-family:ui-monospace,monospace; color:#e8ecf4;">VNX-2026-0084</td>
-                                    <td style="padding:14px 16px; color:#aab4c6;">18 Ekim 2026</td>
-                                    <td style="padding:14px 16px; color:#e8ecf4;">Veniux İşletme Yıllık Lisansı (%20 KDV dahil)</td>
-                                    <td style="padding:14px 16px; font-weight:700; color:#e8ecf4;">7.188 ₺</td>
-                                    <td style="padding:14px 16px; text-align:right; color:#2CA58D; font-weight:700;">Ödendi ✓</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p style="font-size:12px; color:#64748B; margin-top:16px;">Online tahsilat yapılmaz; faturalar kurumsal banka havalesi / EFT mutabakatı sonrası muhasebeleştirilir.</p>
-                </section>
-
+        <div class="ap-main">
+            <?php if($error):?><div class="ac-error" role="alert"><?=e($error)?></div><?php endif;?>
+            <?php if($currentTab==='lisans'):?>
+                <h1>Lisans ve paket</h1>
+                <p class="ap-lead">Site hesabı indirmeler içindir. Ücretli lisansı kendiliğinden açmaz.</p>
+                <div class="ap-empty"><b>Bu hesapta gösterilecek lisans kaydı yok.</b><p>Lisansınız görüşme ve ödeme netleştikten sonra programın içinden etkinleştirilir. Durumunu programdaki lisans ekranından görebilirsiniz.</p><p class="ap-actions"><a class="hx-btn" href="/fiyatlandirma">Paketleri incele</a></p></div>
+            <?php elseif($currentTab==='faturalar'):?>
+                <h1>Faturalar</h1>
+                <p class="ap-lead">Sitede online ödeme alınmaz.</p>
+                <div class="ap-empty"><b>Bu hesapta fatura kaydı görünmüyor.</b><p>Fatura veya ödemeyle ilgili sorularınız için bize yazın.</p><p class="ap-actions"><a class="hx-btn" href="/?request_type=contact#iletisim">Bize yazın</a></p></div>
             <?php elseif($currentTab==='indirmeler'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Programınızı İndirin</h1>
-                        <span style="font-size:12px; color:#f2711c; font-weight:700;">Güncel Sürüm 2.4.38</span>
-                    </div>
-                    <p class="download-intro" style="color:#aab4c6; font-size:14px; margin-bottom:28px;">
-                        Windows programı işletmenizin verilerini bilgisayarınızda tutar. Android telefon/tablet uygulaması aynı ağdaki bilgisayarınıza bağlanır.
-                    </p>
-                    <div class="download-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
-                        <article style="background:#212838; border:1px solid #2d3547; border-radius:14px; padding:28px;">
-                            <span class="eyebrow" style="color:#f2711c; font-weight:700; font-size:11px; text-transform:uppercase;">BİLGİSAYAR</span>
-                            <h2 style="font-size:22px; color:#e8ecf4; margin:8px 0 12px 0;">Veniux Windows</h2>
-                            <p style="color:#aab4c6; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
-                                Windows 10/11, 64 bit. Stok ve depo yönetimi bilgisayarınızda. Yerel SQLite veya MySQL motoru desteği.
-                            </p>
-                            <a class="button primary dp-btn dp-btn--primary" href="/dosya/windows">Windows programını indir ↓</a>
-                        </article>
-                        <article style="background:#212838; border:1px solid #2d3547; border-radius:14px; padding:28px;">
-                            <span class="eyebrow" style="color:#ff9a5c; font-weight:700; font-size:11px; text-transform:uppercase;">TELEFON, TABLET VE EL TERMİNALİ</span>
-                            <h2 style="font-size:22px; color:#e8ecf4; margin:8px 0 12px 0;">Veniux Android</h2>
-                            <p style="color:#aab4c6; font-size:13.5px; line-height:1.6; margin-bottom:20px;">
-                                Android 8 ve üzeri. Barkod tarama destekli mobil terminal arayüzü ile sahadan anında stok girişi ve sayım.
-                            </p>
-                            <a class="button primary dp-btn dp-btn--accent" href="/dosya/android">Android uygulamasını indir ↓</a>
-                        </article>
-                    </div>
-                    <div style="font-size:13px; color:#aab4c6; border-top:1px solid #2d3547; padding-top:18px;">
-                        <a class="text-link" href="/guncelleme-notlari" style="color:#f2711c;">Güncelleme notlarını incele →</a> · 
-                        <a class="text-link" href="/surum-arsivi" style="color:#f2711c;">Tüm sürümler</a>
-                    </div>
-                    <div style="margin-top:28px;">
-                        <?php require __DIR__.'/terminal-guide.php'; ?>
-                    </div>
-                </section>
-
-            <?php elseif($currentTab==='taleplerim'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Taleplerim</h1>
-                        <span style="color:#aab4c6; font-size:12px;">Görüşme ve Destek Talepleri</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:20px;">Gönderdiğiniz demo talepleri, teklif başvuruları ve destek biletleri bu alanda listelenir.</p>
-                    <div style="background:#12161f; border:1px solid #2d3547; border-radius:12px; padding:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <strong style="color:#e8ecf4; display:block; font-size:15px;">Kurulum & Entegrasyon Danışmanlığı</strong>
-                                <small style="color:#aab4c6;">Talep ID: #REQ-<?=substr($account['id'],0,8)?> · Kayıt Tarihi: <?=substr($account['created_at']??'2026-10-20',0,10)?></small>
-                            </div>
-                            <span style="background:rgba(22,119,200,0.2); border:1px solid #f2711c; color:#f2711c; padding:4px 12px; border-radius:9999px; font-size:11.5px; font-weight:700;">
-                                İnceleniyor
-                            </span>
-                        </div>
-                    </div>
-                </section>
-
+                <h1>Programı indirin</h1>
+                <p class="ap-lead">Windows programı ve Android uygulaması aynı kayıtlarla çalışır.</p>
+                <div class="pg-tickets ap-tickets">
+                    <article class="pg-ticket"><div class="pg-ticket-main"><span class="pg-ticket-tag">Sürüm <?=e($downloads['windows'])?></span><h2>Windows</h2><p>Windows 10/11, 64 bit.</p></div><a class="pg-stub" href="/dosya/windows"><?=homeBarcode('panel-windows',60)?><b>İndir</b><span>Kurulum dosyası</span></a></article>
+                    <article class="pg-ticket pg-ticket-orange"><div class="pg-ticket-main"><span class="pg-ticket-tag">Sürüm <?=e($downloads['android'])?></span><h2>Android</h2><p>Android 8 ve üzeri.</p></div><a class="pg-stub" href="/dosya/android"><?=homeBarcode('panel-android',60)?><b>İndir</b><span>Uygulama dosyası</span></a></article>
+                </div>
+                <aside class="pg-notice" aria-label="Windows kurulum uyarısı"><b>Önceden söyleyelim</b><p>Windows kurulum dosyasında henüz doğrulanmış yayıncı imzası yok; SmartScreen uyarısı çıkabilir.</p></aside>
+                <p class="ap-links"><a href="/guncelleme-notlari">Güncelleme notları</a><a href="/surum-arsivi">Tüm sürümler</a></p>
+                <div class="ap-guide"><?php require __DIR__.'/terminal-guide.php'; ?></div>
+            <?php elseif($currentTab==='talepler'):?>
+                <h1>Talepler</h1>
+                <p class="ap-lead">Demo ve teklif talepleriniz e-postayla yanıtlanır; bu ekranda henüz listelenmez.</p>
+                <div class="ap-empty"><b>Burada görüntülenecek talep yok.</b><p>Yeni bir talep için formu kullanabilirsiniz.</p><p class="ap-actions"><a class="hx-btn" href="/?request_type=contact#iletisim">Talep gönderin</a></p></div>
             <?php elseif($currentTab==='guvenlik'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Hesap Güvenliği</h1>
-                        <span style="color:#2CA58D; font-size:12px; font-weight:700;">Oturum Güvenli</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Şifrenizi ve oturum erişim parametrelerinizi bu ekrandan yönetebilirsiniz.</p>
-                    <div style="max-width:480px;">
-                        <div class="dp-form-group">
-                            <label class="dp-label">Mevcut E-posta Adresi</label>
-                            <input class="dp-input" type="text" value="<?=e($account['email'])?>" disabled style="opacity:0.7;">
-                        </div>
-                        <div class="dp-form-group">
-                            <label class="dp-label">Şifre Değiştirme</label>
-                            <input class="dp-input" type="password" placeholder="Yeni şifrenizi girin (en az 14 karakter)">
-                            <small style="color:#64748B; font-size:11.5px; display:block; margin-top:4px;">14–72 karakter uzunluğunda olmalıdır.</small>
-                        </div>
-                        <button type="button" class="dp-btn dp-btn--primary dp-btn--sm">Şifreyi Güncelle</button>
-                    </div>
-                </section>
-
-            <?php elseif($currentTab==='bildirimler'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Bildirimler</h1>
-                        <span style="color:#f2711c; font-size:12px; font-weight:700;">Sistem Güncel</span>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:14px;">
-                        <div style="background:#212838; border:1px solid #2d3547; padding:16px 20px; border-radius:10px;">
-                            <strong style="color:#e8ecf4; display:block; font-size:14px; margin-bottom:4px;">Veniux 2.4.38 Yayında</strong>
-                            <p style="color:#aab4c6; font-size:12.5px; margin:0; line-height:1.5;">Dark Precision arayüz standartları, WMS lot kontrol iyileştirmeleri ve hızlandırılmış barkod tarama motoru dağıtıma eklendi.</p>
-                            <small style="color:#64748B; font-size:11px; margin-top:6px; display:block;">19 Ekim 2026</small>
-                        </div>
-                    </div>
-                </section>
-
+                <h1>Hesap güvenliği</h1>
+                <dl class="ap-facts"><div><dt>E-posta</dt><dd><?=e($account['email'])?></dd></div></dl>
+                <div class="ap-empty"><b>Şifre değiştirme bu ekrandan henüz yapılamıyor.</b><p>Şifrenizi değiştirmeniz gerekiyorsa bize yazın.</p><p class="ap-actions"><a class="hx-btn" href="/?request_type=contact#iletisim">Bize yazın</a></p></div>
             <?php elseif($currentTab==='destek'):?>
-                <section class="dp-panel-card">
-                    <div class="dp-panel-header">
-                        <h1 class="dp-panel-title">Teknik Destek</h1>
-                        <span style="color:#ff9a5c; font-size:12px; font-weight:700;">Doğrudan Erişim</span>
-                    </div>
-                    <p style="color:#aab4c6; font-size:14px; margin-bottom:24px;">Veniux teknik ekibiyle doğrudan iletişime geçin veya dokümantasyonu inceleyin.</p>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                        <div style="background:#212838; border:1px solid #2d3547; border-radius:12px; padding:20px;">
-                            <h3 style="color:#e8ecf4; font-size:16px; margin:0 0 8px 0;">E-posta Desteği</h3>
-                            <p style="color:#aab4c6; font-size:13px; margin:0 0 14px 0;">Kurulum, donanım köprüsü ve lisanslama ile ilgili sorularınız için.</p>
-                            <a href="mailto:destek@veniux.com" class="dp-btn dp-btn--outline dp-btn--sm">destek@veniux.com</a>
-                        </div>
-                        <div style="background:#212838; border:1px solid #2d3547; border-radius:12px; padding:20px;">
-                            <h3 style="color:#e8ecf4; font-size:16px; margin:0 0 8px 0;">Topluluk & Canlı Sohbet</h3>
-                            <p style="color:#aab4c6; font-size:13px; margin:0 0 14px 0;">Resmî Discord sunucumuza katılarak teknik gelişmelerden haberdar olun.</p>
-                            <a href="https://discord.gg/WQyxdp7MKW" target="_blank" rel="noopener noreferrer" class="dp-btn dp-btn--accent dp-btn--sm">Discord'a Katıl ↗</a>
-                        </div>
-                    </div>
-                </section>
+                <h1>Destek</h1>
+                <p class="ap-lead">Kurulum, cihaz ve lisans sorularınız için bize ulaşın.</p>
+                <div class="ap-cards">
+                    <article><h2>Bize yazın</h2><p>Sorununuzu formdan iletin.</p><a class="hx-btn" href="/?request_type=contact#iletisim">Forma git</a></article>
+                    <article><h2>Discord</h2><p>Topluluğa katılın, gelişmeleri takip edin.</p><a class="hx-btn" href="https://discord.gg/WQyxdp7MKW" target="_blank" rel="noopener noreferrer">Discord'a katıl</a></article>
+                </div>
+            <?php else:?>
+                <h1>Hoş geldiniz, <?=e($account['company'])?>.</h1>
+                <p class="ap-lead">Programı buradan indirebilirsiniz. Site hesabı ücretli lisansı kendiliğinden açmaz.</p>
+                <div class="pg-tickets ap-tickets">
+                    <article class="pg-ticket"><div class="pg-ticket-main"><span class="pg-ticket-tag">Sürüm <?=e($downloads['windows'])?></span><h2>Windows</h2><p>Kasa ve ofis için.</p></div><a class="pg-stub" href="/dosya/windows"><?=homeBarcode('genel-windows',60)?><b>İndir</b><span>Kurulum dosyası</span></a></article>
+                    <article class="pg-ticket pg-ticket-orange"><div class="pg-ticket-main"><span class="pg-ticket-tag">Sürüm <?=e($downloads['android'])?></span><h2>Android</h2><p>Depo ve raf arası için.</p></div><a class="pg-stub" href="/dosya/android"><?=homeBarcode('genel-android',60)?><b>İndir</b><span>Uygulama dosyası</span></a></article>
+                </div>
+                <p class="ap-links"><a href="/hesap?tab=lisans">Lisans durumu</a><a href="/guncelleme-notlari">Güncelleme notları</a><a href="/hesap?tab=destek">Destek</a></p>
             <?php endif;?>
         </div>
     </div>
