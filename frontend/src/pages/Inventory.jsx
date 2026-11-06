@@ -69,7 +69,7 @@ export default function Inventory() {
       setCategories(catRes.data || []);
     } catch (err) {
       console.error(err);
-      showToast('Error loading stock records.', 'error');
+      showToast('Stok kayıtları yüklenemedi.', 'error');
     } finally {
       setLoading(false);
     }
@@ -85,10 +85,10 @@ export default function Inventory() {
         new_quantity: newQty,
         reason: delta > 0 ? `Fast +${delta} Adjustment` : `Fast ${delta} Adjustment`
       });
-      showToast(`Stock updated to ${newQty} ${record.unit || 'Unit'}.`, 'success');
+      showToast(`Stok ${newQty} ${record.unit || 'adet'} olarak güncellendi.`, 'success');
       fetchData();
     } catch (err) {
-      showToast(err.response?.data?.error || 'Adjustment failed.', 'error');
+      showToast(err.response?.data?.error || 'Stok düzeltilemedi.', 'error');
     }
   };
 
@@ -114,7 +114,7 @@ export default function Inventory() {
   const columns = [
     {
       key: 'product',
-      label: 'Product & SKU',
+      label: 'Ürün ve SKU',
       render: (row) => (
         <div className="flex items-center gap-2.5">
           <span className={`w-2 h-2 rounded-full shrink-0 ${row.is_medicine ? 'bg-info' : 'bg-brand-500'}`} />
@@ -125,10 +125,10 @@ export default function Inventory() {
         </div>
       )
     },
-    { key: 'category', label: 'Category', render: (row) => <span className="text-gray-500">{row.category || 'General'}</span> },
+    { key: 'category', label: 'Kategori', render: (row) => <span className="text-gray-500">{row.category || 'Genel'}</span> },
     {
       key: 'location',
-      label: 'Warehouse & Bin',
+      label: 'Depo ve raf',
       render: (row) => (
         <div className="flex items-center gap-1.5 text-gray-500">
           <MapPin className="w-3.5 h-3.5 text-brand-500" />
@@ -143,53 +143,53 @@ export default function Inventory() {
     },
     {
       key: 'quantity',
-      label: 'Physical Stock',
+      label: 'Stok',
       align: 'right',
       render: (row) => {
         const isZero = row.quantity === 0;
         const isCritical = !isZero && row.min_stock_level > 0 && row.quantity <= row.min_stock_level;
         return (
           <span className={`font-bold tabular-nums text-sm ${isZero ? 'text-red-500' : isCritical ? 'text-yellow-600' : 'text-green-600'}`}>
-            {row.quantity} {row.unit || 'Units'}
+            {row.quantity} {row.unit || 'adet'}
           </span>
         );
       }
     },
     {
       key: 'min',
-      label: 'Min Level',
+      label: 'Minimum',
       align: 'right',
       render: (row) => <span className="text-gray-500 tabular-nums">{row.min_stock_level || 0}</span>
     },
     {
       key: 'status',
-      label: 'Status',
+      label: 'Durum',
       align: 'center',
       render: (row) => {
         const isZero = row.quantity === 0;
         const isCritical = !isZero && row.min_stock_level > 0 && row.quantity <= row.min_stock_level;
-        if (isZero) return <StatusBadge status="danger" text="DEPLETED" />;
-        if (isCritical) return <StatusBadge status="warning" text="CRITICAL" />;
-        return <StatusBadge status="success" text="OPTIMAL" />;
+        if (isZero) return <StatusBadge status="danger" text="TÜKENDİ" />;
+        if (isCritical) return <StatusBadge status="warning" text="KRİTİK" />;
+        return <StatusBadge status="success" text="YETERLİ" />;
       }
     },
     {
       key: 'actions',
-      label: 'Quick Adjust',
+      label: 'Hızlı düzeltme',
       align: 'right',
       render: (row) => (
         <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={(e) => handleQuickAdjust(row, -1, e)}
             className="p-1 rounded bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 border border-gray-200 transition"
-            title="-1 Qty"
+            title="1 azalt"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={(e) => handleQuickAdjust(row, 1, e)}
             className="p-1 rounded bg-gray-100 hover:bg-green-50 text-gray-500 hover:text-green-600 border border-gray-200 transition"
-            title="+1 Qty"
+            title="1 artır"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -208,41 +208,41 @@ export default function Inventory() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 font-mono uppercase">
+              <h1 className="text-xl font-bold tracking-tight text-gray-900">
                 Stok listesi
               </h1>
-              <StatusBadge status="info" text={`${totalSKUCount} REGISTERED SKUS`} />
+              <StatusBadge status="info" text={`${totalSKUCount} kayıtlı ürün`} />
             </div>
-            <p className="text-xs text-gray-500 mt-1 font-mono">
-              Double-Entry Immutable Stock Ledger • Bin Location Mapping
+            <p className="text-xs text-gray-500 mt-1">
+              Ürünlerinizin depo ve raf bazında güncel stoğu.
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-2.5 text-xs">
           <button
             onClick={() => { setSelectedProductForModal(null); setStockModalType('inbound'); setStockModalOpen(true); }}
             className="btn-primary"
           >
             <Plus className="w-4 h-4" />
-            <span>Goods Receipt (F2)</span>
+            <span>Stok girişi (F2)</span>
           </button>
           <button
             onClick={() => { setSelectedProductForModal(null); setStockModalType('outbound'); setStockModalOpen(true); }}
             className="btn-secondary text-red-500 hover:bg-red-50 hover:border-danger/30"
           >
             <Minus className="w-4 h-4" />
-            <span>Goods Issue (F3)</span>
+            <span>Stok çıkışı (F3)</span>
           </button>
           <button
             onClick={() => setTransferModalOpen(true)}
             className="btn-secondary"
           >
             <ArrowRightLeft className="w-4 h-4" />
-            <span>Bin Transfer</span>
+            <span>Transfer</span>
           </button>
-          <button onClick={fetchData} className="btn-secondary" title="Refresh">
+          <button onClick={fetchData} className="btn-secondary" title="Yenile">
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
@@ -250,10 +250,10 @@ export default function Inventory() {
 
       {/* 2. Tactical Metric HUD Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard title="Total SKU Variants" value={totalSKUCount} trendLabel="Active products in catalog" />
-        <MetricCard title="Total Physical Units" value={totalUnitCount.toLocaleString()} trendLabel="Available reserved stock" />
-        <MetricCard title="Critical Level Alerts" value={criticalCount} trendLabel="Requires replenishment" />
-        <MetricCard title="Inventory Valuation" value={`$${totalValuation.toLocaleString()}`} trendLabel="Net asset value" />
+        <MetricCard title="Ürün sayısı" value={totalSKUCount} trendLabel="Katalogdaki etkin ürünler" />
+        <MetricCard title="Toplam stok" value={totalUnitCount.toLocaleString('tr-TR')} trendLabel="Depolardaki toplam birim" />
+        <MetricCard title="Kritik ürünler" value={criticalCount} trendLabel="Minimum seviyede veya altında" />
+        <MetricCard title="Stok değeri" value={`${totalValuation.toLocaleString('tr-TR')} ₺`} trendLabel="Alış fiyatıyla" />
       </div>
 
       {/* 3. Table Toolbar & Dense Data Matrix */}
@@ -262,10 +262,9 @@ export default function Inventory() {
           {/* Quick Filter Chips */}
           <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs overflow-x-auto w-full lg:w-auto">
             {[
-              { id: 'all', label: `All (${stockRecords.length})` },
-              { id: 'critical', label: `Critical (${criticalCount})` },
-              { id: 'out_of_stock', label: `Depleted (${outOfStockCount})` },
-              { id: 'medicines', label: `Regulated (${stockRecords.filter(r => r.is_medicine).length})` }
+              { id: 'all', label: `Tümü (${stockRecords.length})` },
+              { id: 'critical', label: `Kritik (${criticalCount})` },
+              { id: 'out_of_stock', label: `Tükenen (${outOfStockCount})` },
             ].map(t => (
               <button
                 key={t.id}
@@ -286,7 +285,7 @@ export default function Inventory() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
-                placeholder="Search SKU or name..."
+                placeholder="SKU veya ürün adı ara…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-gray-100 border border-gray-200 text-gray-900 text-xs rounded-xl pl-9 pr-3 py-2 outline-none focus:border-brand-500 transition"
@@ -297,7 +296,7 @@ export default function Inventory() {
               onChange={(e) => setSelectedWarehouse(e.target.value)}
               className="bg-gray-100 border border-gray-200 text-gray-900 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-brand-500 cursor-pointer transition"
             >
-              <option value="">All Warehouses</option>
+              <option value="">Tüm depolar</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>{w.name}</option>
               ))}

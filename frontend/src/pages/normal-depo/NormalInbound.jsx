@@ -162,7 +162,7 @@ export default function NormalInbound() {
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
-              Rampa İrsaliye Kabulü • Kör Kalite Kontrol • Algoritmik Hedef Raf Slotting
+              Gelen ürünü irsaliyeyle karşılaştırın, kontrol edin ve rafa yerleştirin.
             </p>
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function NormalInbound() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900">Yeni İrsaliyeli Mal Kabul Belgesi</h3>
-                  <p className="text-[11px] text-gray-500">Rampa kabulü ve otomatik raf slotting kaydı</p>
+                  <p className="text-[11px] text-gray-500">Mal kabul ve raf yerleştirme kaydı</p>
                 </div>
               </div>
               <button 

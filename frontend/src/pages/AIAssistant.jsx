@@ -1,6 +1,7 @@
 import AssistantMarkdown from '../components/AssistantMarkdown';
 import AssistantFileInput from '../components/AssistantFileInput';
 import AssistantOperationResult from '../components/AssistantOperationResult';
+import veniuxLogo from '../assets/veniux-logo.webp';
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
 import {
@@ -174,7 +175,7 @@ export default function AIAssistant() {
                 >
                   {!isUser && (
                     <div className="vx-ai-mark flex items-center justify-center shrink-0">
-                      V
+                      <img src={veniuxLogo} alt="Veniux" />
                     </div>
                   )}
 

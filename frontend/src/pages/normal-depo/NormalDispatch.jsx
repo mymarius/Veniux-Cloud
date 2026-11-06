@@ -171,8 +171,8 @@ export default function NormalDispatch() {
             <Truck className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Paketleme, Desi & Sevkiyat Çıkış Masası</h1>
-            <p className="text-sm text-gray-500">Taşıma birimleri (Palet / Koli / SSCC), tartım varyans kontrolü ve rampa randevu yönetimi</p>
+            <h1 className="text-2xl font-bold text-gray-900">Sevkiyat</h1>
+            <p className="text-sm text-gray-500">Paketleme, koli ve palet, tartım kontrolü ve çıkış randevuları.</p>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ export default function NormalDispatch() {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 flex items-center space-x-2">
                 <Boxes className="w-5 h-5 text-brand-500" />
-                <span>Taşıma Birimleri (Handling Units / Palet / Koli)</span>
+                <span>Koli ve paletler</span>
               </h2>
               <span className="text-xs text-gray-500">{handlingUnits.length} Kayıt</span>
             </div>
@@ -275,7 +275,7 @@ export default function NormalDispatch() {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-brand-500" />
-                <span>Rampa & Kapı Randevuları</span>
+                <span>Çıkış randevuları</span>
               </h2>
               <button
                 onClick={() => setShowAppModal(true)}

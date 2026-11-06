@@ -116,7 +116,7 @@ export default function WMSCycleCount() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold tracking-tight text-gray-900 uppercase">
-                SmartCount · Stok sayımı ve mutabakat
+                Stok sayımı
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-600 border border-brand-200">
                 {locations.length} GÖZ LİSTELENDİ

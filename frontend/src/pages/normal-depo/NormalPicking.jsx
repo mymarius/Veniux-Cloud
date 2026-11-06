@@ -148,7 +148,7 @@ export default function NormalPicking() {
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
-              Dijkstra En Kısa Yürüme Rotası • Toplu Sipariş Gruplama • Lazer Onaylı Toplama
+              Siparişleri gruplayın, ürünleri raftan toplayın ve okutarak onaylayın.
             </p>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function NormalPicking() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{selectedWave.wave_no || `WAV-${selectedWave.id}`}</h2>
-                <p className="text-xs text-gray-500">Dijkstra Optimize Rota • {selectedWave.warehouse_name}</p>
+                <p className="text-xs text-gray-500">Toplama rotası • {selectedWave.warehouse_name}</p>
               </div>
             </div>
             <button onClick={() => setSelectedWave(null)} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100">

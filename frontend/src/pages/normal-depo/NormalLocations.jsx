@@ -217,7 +217,7 @@ export default function NormalLocations() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold tracking-tight text-slate-800">
-                Raf ve Lokasyon Haritası
+                Raf ve lokasyonlar
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                 {locations.length} GÖZ (BİN)

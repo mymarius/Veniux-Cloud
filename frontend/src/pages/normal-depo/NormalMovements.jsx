@@ -222,7 +222,7 @@ export default function NormalMovements() {
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold tracking-tight text-slate-800">
-              Stok Hareketleri ve Denetim İzi
+              Stok hareketleri
             </h1>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
               Denetim kaydı
@@ -275,7 +275,7 @@ export default function NormalMovements() {
         <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Raf transferleri</span>
           <p className="text-3xl font-light text-slate-800">{totalTransfers}</p>
-          <span className="text-xs text-slate-400 mt-1">Bin-to-bin ikmal hareketleri</span>
+          <span className="text-xs text-slate-400 mt-1">Raflar arası hareketler</span>
         </div>
       </div>
 
