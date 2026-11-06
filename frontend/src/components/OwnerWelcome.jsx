@@ -107,6 +107,7 @@ export default function OwnerWelcome({ userId }) {
             {speaking ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}{speaking ? 'Sustur' : 'Dinle'}
           </button>
           {data.facts.alerts > 0 && <button type="button" onClick={() => go('/alerts')}>Uyarılara git</button>}
+          {data.facts.draft_orders > 0 && <button type="button" onClick={() => go('/purchase-orders')}>Taslakları gör</button>}
           <button type="button" onClick={() => go('/ai-assistant')}>Asistana sor</button>
           <button type="button" className="is-primary" onClick={close}>Tamam</button>
         </footer>
