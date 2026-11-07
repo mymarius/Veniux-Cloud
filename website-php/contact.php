@@ -31,7 +31,7 @@ function contactSubmit(array $config): array {
     if (time() - (int)($_SESSION['last_contact_at'] ?? 0) < 60) { http_response_code(429); return [false,'Yeni bir talep için bir dakika bekleyin.']; }
     if (!contactRateAllowed($config)) { http_response_code(429); return [false,'Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin.']; }
     $name=trim((string)($_POST['name']??'')); $email=trim((string)($_POST['email']??'')); $company=trim((string)($_POST['company']??'')); $interest=(string)($_POST['interest']??'');
-    if (strlen($name)<2 || strlen($name)>100 || strlen($company)>160 || strlen($email)>254 || !filter_var($email,FILTER_VALIDATE_EMAIL) || !in_array($interest,['stok','depo','lot'],true) || ($_POST['consent']??'')!=='1') { http_response_code(422); return [false,'Ad, geçerli e-posta, çözüm seçimi ve iletişim iznini kontrol edin.']; }
+    if (!mb_check_encoding($name.$company,'UTF-8') || preg_match('/[\x00-\x1F\x7F]/',$name.$company) || strlen($name)<2 || strlen($name)>100 || strlen($company)>160 || strlen($email)>254 || !filter_var($email,FILTER_VALIDATE_EMAIL) || !in_array($interest,['stok','depo','lot'],true) || ($_POST['consent']??'')!=='1') { http_response_code(422); return [false,'Ad, geçerli e-posta, çözüm seçimi ve iletişim iznini kontrol edin.']; }
     $directory=$config['request_dir'];
     if (!is_dir($directory) && !@mkdir($directory,0700,true)) { http_response_code(503); return [false,'Talep şu anda kaydedilemiyor. Daha sonra tekrar deneyin.']; }
     $root=realpath(__DIR__); $resolved=realpath($directory);

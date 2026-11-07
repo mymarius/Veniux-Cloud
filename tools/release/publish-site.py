@@ -7,7 +7,7 @@ Kullanım:
   python tools/release/publish-site.py --local KLASÖR  Sunucu yerine klasöre yayınlar (deneme için)
 Parola komut satırına veya dosyaya yazılmaz; yalnız bu çalıştırmada kullanılır.
 """
-import argparse, datetime, ftplib, getpass, hashlib, io, json, pathlib, re, shutil, ssl, subprocess, sys
+import argparse, datetime, ftplib, getpass, hashlib, importlib.util, io, json, pathlib, re, shutil, ssl, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 WEB = ROOT / 'website-php'
@@ -31,6 +31,14 @@ def site_files():
     return files
 
 
+def hosting_password():
+    # Sürüm yayınıyla aynı şifreli kayıt kullanılır; kayıt yoksa sorulur.
+    spec = importlib.util.spec_from_file_location('publish_release', pathlib.Path(__file__).with_name('publish-release.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.saved_password() or getpass.getpass('Hosting parolası: ')
+
+
 class Folder:
     def __init__(self, base): self.base = pathlib.Path(base)
     def get(self, name):
@@ -47,7 +55,7 @@ class Ftps:
     def __init__(self):
         self.ftp = ftplib.FTP_TLS(context=ssl.create_default_context(), timeout=90)
         self.ftp.connect(HOST)
-        self.ftp.login(USER, getpass.getpass('Hosting parolası: '))
+        self.ftp.login(USER, hosting_password())
         self.ftp.prot_p()
         self.dirs = set()
     def get(self, name):
