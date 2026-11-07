@@ -1,8 +1,17 @@
 {
-  "version": "2.4.48",
+  "version": "2.4.49",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.49",
+      "date": "7 Kasım 2026",
+      "title": "Yeni kasa ekranları",
+      "items": [
+        "Bilgisayarda dokunmatik market kasası",
+        "Telefonda kamerayla satış"
+      ]
+    },
     {
       "version": "2.4.48",
       "date": "7 Kasım 2026",
