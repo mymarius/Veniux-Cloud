@@ -30,3 +30,5 @@ backend/label-print/
 
 # Arsivler kaynak agaca girmesin
 /*.zip
+
+__pycache__/
