@@ -109,6 +109,27 @@ def backend_changed():
     return [name for name in changed if not name.endswith('config/release.json')]
 
 
+def pending_upload(publisher, version):
+    try:
+        with urllib.request.urlopen(FEED + 'windows.json', timeout=30) as response: live = json.load(response)['version']
+        publisher.windows_package(version); publisher.android_package(version)
+    except (SystemExit, OSError, ValueError, KeyError):
+        return False
+    return publisher.version_key(version) > publisher.version_key(live)
+
+
+def upload_and_verify(publisher, version):
+    step('Yükleme (Windows dosyası büyük, birkaç dakika sürebilir)')
+    _, releases = publisher.load_release(version)
+    packages = [publisher.windows_package(version), publisher.android_package(version)]
+    target = publisher.Ftps()
+    try: publisher.publish(target, version, releases, packages)
+    finally: target.close()
+    verify(version, packages)
+    subprocess.run(['git', 'push', 'origin', 'HEAD'], cwd=ROOT)
+    print(f'\nTAMAM: {version} yayında. Program ve uygulama kendiliğinden güncellenecek.')
+
+
 def check_only(publisher):
     missing = [str(path) for path in [TOOLS / 'build-windows.cjs', TOOLS / 'build-android.ps1', ROOT / '.local/android-signing/signing.json', ROOT / '.local/android-signing/veniux-release.jks'] if not path.exists()]
     print('Eksik dosya:' if missing else 'Derleme dosyaları tamam.', *missing)
@@ -132,6 +153,12 @@ def main():
     print('Sunucu bağlantısı kontrol ediliyor...', flush=True)
     publisher.Ftps().close()
     print('Bağlantı tamam.')
+    # Önceki deneme derleyip yükleyemeden kaldıysa baştan başlamaz, hazır paketi yükler.
+    current = json.loads(RELEASE.read_text(encoding='utf-8'))['version']
+    if pending_upload(publisher, current):
+        print(f'{current} daha önce derlenmiş ama yüklenmemiş; kaldığı yerden devam ediliyor.')
+        upload_and_verify(publisher, current)
+        return 0
     title, items = ask_notes()
     version = bump(title, items)
     print('Yeni sürüm:', version)
@@ -147,15 +174,7 @@ def main():
     run(['git', 'commit', '-m', f'Surum {version}: {title}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'])
     try: build()
     except (RuntimeError, KeyboardInterrupt) as error: raise SystemExit(f'\nDURDU, hiçbir şey yayınlanmadı. Sürüm {version} commit edildi; düzeltip yeniden derlemek gerekir. {error}')
-    step('Yükleme (Windows dosyası büyük, birkaç dakika sürebilir)')
-    _, releases = publisher.load_release(version)
-    packages = [publisher.windows_package(version), publisher.android_package(version)]
-    target = publisher.Ftps()
-    try: publisher.publish(target, version, releases, packages)
-    finally: target.close()
-    verify(version, packages)
-    subprocess.run(['git', 'push', 'origin', 'HEAD'], cwd=ROOT)
-    print(f'\nTAMAM: {version} yayında. Program ve uygulama kendiliğinden güncellenecek.')
+    upload_and_verify(publisher, version)
     changed = backend_changed()
     if changed:
         print('\nDİKKAT: Sunucu kodu da değişti, bu araç sunucuyu güncellemez. Claude\'a "sunucuyu güncelle" deyin:')
