@@ -129,6 +129,9 @@ def main():
     if args.deneme: return check_only(publisher)
     if subprocess.run(['git', 'status', '--short'], cwd=ROOT, capture_output=True, text=True).stdout.strip():
         raise SystemExit('Kaydedilmemiş değişiklikler var. Önce commit edin; yayın bilinmeyen kodu içermemeli.')
+    print('Sunucu bağlantısı kontrol ediliyor...', flush=True)
+    publisher.Ftps().close()
+    print('Bağlantı tamam.')
     title, items = ask_notes()
     version = bump(title, items)
     print('Yeni sürüm:', version)

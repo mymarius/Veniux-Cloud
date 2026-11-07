@@ -18,6 +18,7 @@ UNSIGNED = 'Geçici imzasız Windows yayını; SmartScreen uyarısı çıkabilir
 FIRST_NOTES = 24
 
 
+PASSWORD_DROP = ROOT / '.local' / 'ftp-parola.txt'
 PASSWORD_FILE = pathlib.Path(os.environ.get('LOCALAPPDATA', str(ROOT))) / 'Veniux' / 'ftp-password.dpapi'
 
 
@@ -27,6 +28,10 @@ def _powershell(script, text=None):
 
 def saved_password():
     """Windows DPAPI ile şifreli parolayı okur; bu kullanıcı ve bu bilgisayar dışında çözülemez."""
+    if PASSWORD_DROP.is_file():
+        # Parola bu dosyaya bir kez yazılır: şifrelenip saklanır, düz metin dosya hemen silinir.
+        typed = PASSWORD_DROP.read_text(encoding='utf-8-sig').strip()
+        if typed and save_password(typed): PASSWORD_DROP.unlink()
     if not PASSWORD_FILE.is_file(): return None
     script = "[Console]::OutputEncoding=[Text.Encoding]::UTF8;Add-Type -AssemblyName System.Security;$b=[Convert]::FromBase64String([Console]::In.ReadToEnd().Trim());[Text.Encoding]::UTF8.GetString([Security.Cryptography.ProtectedData]::Unprotect($b,$null,'CurrentUser'))"
     result = _powershell(script, PASSWORD_FILE.read_text(encoding='ascii'))
