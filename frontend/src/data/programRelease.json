@@ -1,8 +1,18 @@
 {
-  "version": "2.4.49",
+  "version": "2.4.50",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.50",
+      "date": "7 Kasım 2026",
+      "title": "Güvenlik güncellemesi",
+      "items": [
+        "E-posta değişikliği artık mevcut şifre ister",
+        "Depo yetkisi sınırlı kullanıcılar için firma ayarları kapatıldı",
+        "Kör sayımda kayıtlı miktar yalnız yöneticiye görünür"
+      ]
+    },
     {
       "version": "2.4.49",
       "date": "7 Kasım 2026",
