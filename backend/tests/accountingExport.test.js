@@ -83,3 +83,23 @@ test('API dosyayı indirir ve geçersiz tarihi reddeder', async () => {
   expect(file.headers['content-disposition']).toContain('.csv');
   await request(app).post('/api/accounting-exports/preview').set(auth(owner)).send({ ...range, from: '2026-13-01' }).expect(400);
 });
+
+test('tahsilat, iade, alış, stok ve cari dosyaları doğru üretilir', async () => {
+  const saleId = await sale(owner, 'Çay');
+  const u = actor(owner), { from, to } = range;
+  await service.saveMaps(u, { maps: { 'payment:cash': '100', 'return:vat:20': '610', purchase: '153' } });
+  const text = async type => (await service.file(u, (await service.create(u, { type, from, to })).id)).content;
+  expect(await text('payments')).toContain(';Nakit;120,00;100\r\n');
+  await db.query("INSERT INTO retail_reversals (id,tenant_id,sale_id,kind,business_date,amount_cents,data_json) VALUES ($1,$2,$3,'return',$4,$5,$6)", ['IADE-' + saleId, owner.tenantId, saleId, day, 6000, JSON.stringify({ items: [{ id: 1, quantity: 0.5, amount_cents: 6000, refund_ex_vat_cents: 5000, vat_rate: 20 }] })]);
+  expect(await text('returns')).toContain(';İade;Çay;0,5;50,00;20;10,00;60,00;610\r\n');
+  const supplier = (await db.query("INSERT INTO suppliers (tenant_id,name,tax_no) VALUES ($1,'=Tedarik','123') RETURNING id", [owner.tenantId])).rows[0].id;
+  const wh = (await db.query('SELECT id FROM warehouses WHERE tenant_id=$1 LIMIT 1', [owner.tenantId])).rows[0].id;
+  const product = (await db.query("INSERT INTO products (tenant_id,sku,name,unit) VALUES ($1,$2,'Un','adet') RETURNING id", [owner.tenantId, 'ACC-' + Date.now()])).rows[0].id;
+  const order = (await db.query("INSERT INTO purchase_orders (tenant_id,order_no,supplier_id,target_warehouse_id,status,created_at) VALUES ($1,$2,$3,$4,'completed',$5) RETURNING id", [owner.tenantId, 'PO-' + Date.now(), supplier, wh, day + ' 09:00:00'])).rows[0].id;
+  await db.query('INSERT INTO purchase_order_items (tenant_id,order_id,product_id,quantity,unit_price,received_quantity) VALUES ($1,$2,$3,5,12.5,5)', [owner.tenantId, order, product]);
+  expect((await service.preview(u, { type: 'purchases', from, to })).warnings.join()).toContain('tedarikçi faturası değildir');
+  expect(await text('purchases')).toContain(`'=Tedarik;123;Un;5;12,50;Yok;153\r\n`);
+  await db.query("INSERT INTO inventory_transactions (tenant_id,warehouse_id,product_id,transaction_type,quantity,created_at) VALUES ($1,$2,$3,'COUNT_ADJUSTMENT',-2,$4)", [owner.tenantId, wh, product, day + ' 10:00:00']);
+  expect(await text('stock')).toContain(';Un;COUNT_ADJUSTMENT;-2;');
+  expect(await text('contacts')).toContain(`TED-${supplier};Tedarikçi;'=Tedarik;123;`);
+});

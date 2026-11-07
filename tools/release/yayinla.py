@@ -109,6 +109,17 @@ def backend_changed():
     return [name for name in changed if not name.endswith('config/release.json')]
 
 
+# Kurulu masaüstü programları MySQL şeması değişince açılmaz (SCHEMA_NOT_CURRENT). Yükseltme yolu gerçek kurulumda
+# denenmeden bu değer değiştirilmemeli.
+SHIPPABLE_MYSQL_SCHEMA = '005-marketplace'
+
+
+def schema_guard():
+    latest = sorted(path.stem for path in (ROOT / 'backend/src/database/mysql').glob('*.json'))[-1]
+    if latest != SHIPPABLE_MYSQL_SCHEMA:
+        raise SystemExit(f'DURDU: Yeni veritabanı şeması ({latest}) kurulu masaüstü programlarını açılmaz hale getirebilir. Önce yükseltme yolu tamamlanmalı; hiçbir şey değiştirilmedi.')
+
+
 def pending_upload(publisher, version):
     try:
         with urllib.request.urlopen(FEED + 'windows.json', timeout=30) as response: live = json.load(response)['version']
@@ -150,6 +161,7 @@ def main():
     if args.deneme: return check_only(publisher)
     if subprocess.run(['git', 'status', '--short'], cwd=ROOT, capture_output=True, text=True).stdout.strip():
         raise SystemExit('Kaydedilmemiş değişiklikler var. Önce commit edin; yayın bilinmeyen kodu içermemeli.')
+    schema_guard()
     print('Sunucu bağlantısı kontrol ediliyor...', flush=True)
     publisher.Ftps().close()
     print('Bağlantı tamam.')
