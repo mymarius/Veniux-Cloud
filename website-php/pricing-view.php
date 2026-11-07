@@ -1,4 +1,13 @@
-<?php $annual=($_GET['donem']??'yillik')!=='uc-aylik'; $period=$annual?'yillik':'uc-aylik'; $plans=sitePlans(); ?>
+<?php $annual=($_GET['donem']??'yillik')!=='uc-aylik'; $period=$annual?'yillik':'uc-aylik'; $plans=sitePlans();
+$need=['depo'=>siteCount($_GET['depo']??null),'kullanici'=>siteCount($_GET['kullanici']??null),'cihaz'=>siteCount($_GET['cihaz']??null)];
+$asked=isset($_GET['depo'])||isset($_GET['kullanici'])||isset($_GET['cihaz']);
+$complete=!in_array(null,$need,true);
+$match=$complete?sitePlanFor($need['depo'],$need['kullanici'],$need['cihaz']):null;
+$compare=[
+ ['Ürün ve barkod kataloğu',1,1,1],['Stok hareketleri ve mal kabul',1,1,1],['Sipariş toplama kayıtları',1,1,1],['Firma ve kullanıcı yetkileri',1,1,1],
+ ['Depolar arası operasyon takibi',0,1,1],['Lot ve miat görünümü',0,1,1],['Ürün partileri ve tarih kontrolü',0,1,1],
+ ['Firma ve depo bazında erişim',0,0,1],['Geniş ekiplerle ortak çalışma alanı',0,0,1],
+]; ?>
 <section class="pr-hero">
   <div class="hx-wrap">
     <h1>Fiyat etiketleri ortada.</h1>
@@ -29,13 +38,46 @@
   <p class="hx-wrap pr-terms"><?=$annual?'Tasarruf, aynı paketin dört adet 3 aylık dönem toplamına göre hesaplanır. ':''?>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Yenileme için yeniden teklif verilir.</p>
 </section>
 
+<section class="pr-finder" id="uygun-paket">
+  <div class="hx-wrap pr-finder-grid">
+    <div>
+      <h2>Hangi paket bana uygun?</h2>
+      <p>Üç sayıyı yazın, ihtiyacınızı karşılayan en küçük paketi söyleyelim.</p>
+      <form method="get" action="/fiyatlandirma#uygun-paket" class="pr-finder-form">
+        <input type="hidden" name="donem" value="<?=$period?>">
+        <?php foreach(['depo'=>'Depo veya şube','kullanici'=>'Kullanıcı','cihaz'=>'Cihaz'] as $name=>$label):?>
+        <label><?=$label?><input type="number" name="<?=$name?>" min="1" max="100000" step="1" inputmode="numeric" required value="<?=$need[$name]??''?>"></label>
+        <?php endforeach;?>
+        <button class="hx-btn" type="submit">Paketi bul</button>
+      </form>
+    </div>
+    <div class="pr-finder-result" role="status">
+    <?php if($asked&&!$complete):?>
+      <b>Sayıları kontrol edin</b><p>Üç alana da 1 veya daha büyük bir tam sayı yazın.</p>
+    <?php elseif($match):$found=$plans[$match];?>
+      <small>Size uygun paket</small><b><?=e($found['name'])?></b>
+      <p><?=$found['warehouses']?> depo, <?=$found['users']?> kullanıcı, <?=$found['devices']?> cihaza kadar. <?=siteMoney($found[$annual?'annual':'quarter'])?> / <?=$annual?'yıl':'3 ay'?>, KDV dahil.</p>
+      <a class="hx-btn" href="/?request_type=quote&amp;plan=<?=$match?>%3A<?=$period?>#iletisim"><?=e($found['name'])?> için görüşelim</a>
+    <?php elseif($complete):?>
+      <small>Standart paketlerin üstünde</small><b>Size özel teklif</b>
+      <p>Bu ihtiyaç Kurumsal paketin sınırlarını aşıyor. Kapsamı birlikte netleştirelim.</p>
+      <a class="hx-btn" href="/?request_type=quote&amp;plan=kurumsal%3A<?=$period?>#iletisim">Görüşelim</a>
+    <?php else:?>
+      <small>Sonuç</small><b>Sayıları bekliyor</b><p>Emin değilseniz bugünkü ihtiyacınızı yazın; sonra paket değiştirebilirsiniz.</p>
+    <?php endif;?>
+    </div>
+  </div>
+</section>
+
 <section class="pr-ledger">
   <div class="hx-wrap pr-ledger-grid">
     <div>
       <h2>Paketler yan yana</h2>
       <div class="hx-table-scroll" tabindex="0" role="region" aria-label="Paket karşılaştırması, yatay kaydırılabilir"><table class="hx-table pr-table"><caption class="sr-only">Paket kapsamları</caption><thead><tr><th scope="col">Kapsam</th><?php foreach($plans as $plan):?><th scope="col"><?=e($plan['name'])?></th><?php endforeach;?></tr></thead><tbody>
+      <tr><th scope="row">Yıllık (KDV dahil)</th><?php foreach($plans as $plan):?><td><?=siteMoney($plan['annual'])?></td><?php endforeach;?></tr>
+      <tr><th scope="row">3 aylık (KDV dahil)</th><?php foreach($plans as $plan):?><td><?=siteMoney($plan['quarter'])?></td><?php endforeach;?></tr>
       <?php foreach(['warehouses'=>'Depo','users'=>'Kullanıcı','devices'=>'Cihaz'] as $key=>$label):?><tr><th scope="row"><?=$label?></th><?php foreach($plans as $plan):?><td><?=$plan[$key]?></td><?php endforeach;?></tr><?php endforeach;?>
-      <tr><th scope="row">Ürün, stok, mal kabul</th><td>Dahil</td><td>Dahil</td><td>Dahil</td></tr>
+      <?php foreach($compare as $row):?><tr><th scope="row"><?=e($row[0])?></th><?php foreach([1,2,3] as $i):?><td><?=$row[$i]?'Dahil':'<span class="pr-no">Yok</span>'?></td><?php endforeach;?></tr><?php endforeach;?>
       <tr><th scope="row">Android bağlantısı</th><td>Cihaz sınırı içinde</td><td>Cihaz sınırı içinde</td><td>Cihaz sınırı içinde</td></tr>
       </tbody></table></div>
     </div>

@@ -13,4 +13,14 @@ function sitePlanSelection($value): ?array {
     $plan=sitePlans()[$match[1]];
     return ['code'=>$value,'name'=>$plan['name'],'period'=>$match[2]==='yillik'?'Yıllık (12 ay)':'3 aylık','amount_try'=>$plan[$match[2]==='yillik'?'annual':'quarter'],'tax'=>'%20 KDV dahil'];
 }
+// Depo, kullanıcı ve cihaz ihtiyacının üçünü de karşılayan en küçük paket; hiçbiri yetmezse null.
+function sitePlanFor(int $warehouses, int $users, int $devices): ?string {
+    foreach (sitePlans() as $code=>$plan) if ($warehouses<=$plan['warehouses'] && $users<=$plan['users'] && $devices<=$plan['devices']) return $code;
+    return null;
+}
+function siteCount($value): ?int {
+    if (!is_string($value)) return null;
+    $number=filter_var($value,FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>100000]]);
+    return $number===false?null:$number;
+}
 function siteMoney(int $amount): string { return number_format($amount,0,',','.').' ₺'; }
