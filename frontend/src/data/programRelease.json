@@ -1,8 +1,18 @@
 {
-  "version": "2.4.46",
+  "version": "2.4.47",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.47",
+      "date": "7 Kasım 2026",
+      "title": "Barkod ekranında arama, fiyat listesi ve etiket kontrolü",
+      "items": [
+        "Barkod ekranına numara ile arama eklendi.",
+        "Fiyat gör modunda ürünler listeye eklenebiliyor.",
+        "Etiket kontrol modunda doğru ve hatalı etiketler sayılıyor, hatalı etiket yeniden yazdırılabiliyor."
+      ]
+    },
     {
       "version": "2.4.46",
       "date": "7 Kasım 2026",
