@@ -15,7 +15,11 @@ const fail = (message, status = 400) => { throw Object.assign(Error(message), { 
 const guard = user => { if (!['admin', 'manager'].includes(user.role) || (user.accessScope?.mode && user.accessScope.mode !== 'company')) fail('Muhasebe aktarımı için firma genelinde yönetici yetkisi gerekir.', 403); };
 const money = cents => { const abs = Math.abs(cents); return (cents < 0 ? '-' : '') + Math.floor(abs / 100) + ',' + String(abs % 100).padStart(2, '0'); };
 const quantity = value => String(value).replace('.', ',');
-const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(value + 'T12:00:00Z').toISOString().slice(0, 10) === value;
+const validDate = value => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + 'T12:00:00Z');
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
 
 // Metin hücresi formül sayılmasın diye başına tek tırnak eklenir; sayısal hücreler işlenmez.
 function cell(value) {
