@@ -10,12 +10,39 @@ Parola komut satırına veya dosyaya yazılmaz. Site sürümü ve notları yeni 
 Sıra önemlidir: paketler geçici adla yüklenip doğrulanır, kanal dosyaları en son değişir. Bu yüzden
 yükleme yarıda kalırsa cihazlar eski sürümde kalır. Yayınlanmış bir sürüm üzerine yazılmaz, eski sürüme dönülmez.
 """
-import argparse, base64, datetime, ftplib, getpass, hashlib, io, json, pathlib, re, ssl, sys
+import argparse, base64, datetime, ftplib, getpass, hashlib, io, json, os, pathlib, re, ssl, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST, USER, REMOTE = 'plesk.hostimux.tr', 'veniu8e1', 'license-private'
 UNSIGNED = 'Geçici imzasız Windows yayını; SmartScreen uyarısı çıkabilir.'
 FIRST_NOTES = 24
+
+
+PASSWORD_FILE = pathlib.Path(os.environ.get('LOCALAPPDATA', str(ROOT))) / 'Veniux' / 'ftp-password.dpapi'
+
+
+def _powershell(script, text=None):
+    return subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command', script], input=text, capture_output=True, text=True, encoding='utf-8')
+
+
+def saved_password():
+    """Windows DPAPI ile şifreli parolayı okur; bu kullanıcı ve bu bilgisayar dışında çözülemez."""
+    if not PASSWORD_FILE.is_file(): return None
+    script = "[Console]::OutputEncoding=[Text.Encoding]::UTF8;Add-Type -AssemblyName System.Security;$b=[Convert]::FromBase64String([Console]::In.ReadToEnd().Trim());[Text.Encoding]::UTF8.GetString([Security.Cryptography.ProtectedData]::Unprotect($b,$null,'CurrentUser'))"
+    result = _powershell(script, PASSWORD_FILE.read_text(encoding='ascii'))
+    return result.stdout.rstrip('\r\n') if result.returncode == 0 and result.stdout.strip() else None
+
+
+def save_password(password):
+    script = "[Console]::InputEncoding=[Text.Encoding]::UTF8;Add-Type -AssemblyName System.Security;$p=[Console]::In.ReadToEnd();[Convert]::ToBase64String([Security.Cryptography.ProtectedData]::Protect([Text.Encoding]::UTF8.GetBytes($p),$null,'CurrentUser'))"
+    result = _powershell(script, password)
+    if result.returncode: return False
+    PASSWORD_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PASSWORD_FILE.write_text(result.stdout.strip(), encoding='ascii')
+    return True
+
+
+def forget_password(): PASSWORD_FILE.unlink(missing_ok=True)
 
 
 def version_key(value): return tuple(int(x) for x in value.split('.'))
@@ -70,7 +97,13 @@ class Ftps:
     def __init__(self):
         self.ftp = ftplib.FTP_TLS(context=ssl.create_default_context(), timeout=180)
         self.ftp.connect(HOST)
-        self.ftp.login(USER, getpass.getpass('Hosting parolası: '))
+        saved = saved_password()
+        password = saved or getpass.getpass('Hosting (FTP) parolası: ')
+        try: self.ftp.login(USER, password)
+        except ftplib.error_perm:
+            forget_password()
+            raise SystemExit('FTP parolası reddedildi; dosyalara dokunulmadı. Plesk > Web Hosting Access ekranından parolayı kontrol edip yeniden deneyin.')
+        if not saved: save_password(password)
         self.ftp.prot_p()
     def get(self, name):
         out = io.BytesIO()
