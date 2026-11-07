@@ -5,7 +5,7 @@ $complete=!in_array(null,$need,true);
 $match=$complete?sitePlanFor($need['depo'],$need['kullanici'],$need['cihaz']):null;
 $compare=[
  ['Ürün ve barkod kataloğu',1,1,1],['Stok hareketleri ve mal kabul',1,1,1],['Sipariş toplama kayıtları',1,1,1],['Firma ve kullanıcı yetkileri',1,1,1],
- ['Depolar arası operasyon takibi',0,1,1],['Lot ve miat görünümü',0,1,1],['Ürün partileri ve tarih kontrolü',0,1,1],
+ ['Lot ve miat görünümü',1,1,1],['Ürün partileri ve tarih kontrolü',1,1,1],['Depolar arası operasyon takibi',0,1,1],
  ['Firma ve depo bazında erişim',0,0,1],['Geniş ekiplerle ortak çalışma alanı',0,0,1],
 ]; ?>
 <section class="pr-hero">
