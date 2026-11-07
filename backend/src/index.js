@@ -101,6 +101,7 @@ app.use('/api/scanner', require('./routes/scannerRoutes'));
 app.use('/api/labels', require('./routes/labelRoutes'));
 app.use('/api/retail', require('./routes/retailRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
+app.use('/api/edocuments', require('./routes/edocumentRoutes'));
 
 // Serve the built panel from the same local API server.
 const frontendDirectory=path.join(__dirname,'../../frontend/dist');

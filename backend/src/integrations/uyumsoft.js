@@ -12,13 +12,14 @@ function parameters(action,data={}){
  if(!Array.isArray(ids)||!ids.length||ids.length>50||ids.some(id=>typeof id!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))throw Object.assign(Error('Geçerli belge UUID kimliği gerekli.'),{status:400});
  return action==='status'?{invoiceIds:{string:ids}}:{invoiceId:ids[0]};
 }
-async function invoke(action,data){
+async function invoke(action,data,credentials){
  const args=parameters(action,data);
- if(!status().configured)throw Object.assign(Error('Uyumsoft hesabı henüz bağlanmadı.'),{status:503});
+ const username=credentials?.username||process.env.UYUMSOFT_USERNAME,password=credentials?.password||process.env.UYUMSOFT_PASSWORD;
+ if(!username||!password)throw Object.assign(Error('Uyumsoft hesabı henüz bağlanmadı.'),{status:503});
  const started=Date.now();
  try{
  const client=await soap.createClientAsync(path.join(__dirname,'contracts/uyumsoft-read.wsdl'),{endpoint,disableCache:true,wsdl_options:{timeout:15000}});
- client.setSecurity(new soap.WSSecurity(process.env.UYUMSOFT_USERNAME,process.env.UYUMSOFT_PASSWORD,{passwordType:'PasswordText',hasTimeStamp:true}));
+ client.setSecurity(new soap.WSSecurity(username,password,{passwordType:'PasswordText',hasTimeStamp:true}));
  const [response]=await client[actions[action]+'Async'](args,{timeout:20000});
  const result=response[actions[action]+'Result'];
  if(!result||![true,'true'].includes(result.attributes?.IsSucceded??result.IsSucceded))throw Error('provider_rejected');
