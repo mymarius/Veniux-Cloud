@@ -57,7 +57,7 @@ export default function AssistantLauncher() {
     if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){setError('Bu cihazda mikrofon kullanılamıyor.');return;}
     setError('');stopSpeech();
     let stream;
-    try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch{setError('Mikrofon izni verilmedi.');return;}
+    try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(failure){setError(failure?.name==='NotAllowedError'?'Mikrofon izni verilmedi. Telefon ayarlarından Veniux için mikrofona izin verin.':failure?.name==='NotFoundError'?'Bu cihazda mikrofon bulunamadı.':'Mikrofon açılamadı: '+(failure?.name||'bilinmeyen hata'));return;}
     const type=['audio/webm','audio/ogg','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
     const rec=new MediaRecorder(stream,type?{mimeType:type}:undefined),parts=[];
     const limit=setTimeout(()=>{if(rec.state==='recording')rec.stop();},20000);

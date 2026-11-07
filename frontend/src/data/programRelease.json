@@ -1,8 +1,18 @@
 {
-  "version": "2.4.47",
+  "version": "2.4.48",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.48",
+      "date": "7 Kasım 2026",
+      "platform": "Android",
+      "title": "Android mikrofon düzeltmesi",
+      "items": [
+        "Asistanda mikrofonun Android uygulamasında açılması için gereken izin eklendi.",
+        "Mikrofon açılamadığında nedeni daha açık gösteriliyor."
+      ]
+    },
     {
       "version": "2.4.47",
       "date": "7 Kasım 2026",
