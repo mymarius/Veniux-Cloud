@@ -32,3 +32,5 @@ backend/label-print/
 /*.zip
 
 __pycache__/
+
+ftp-parola*
