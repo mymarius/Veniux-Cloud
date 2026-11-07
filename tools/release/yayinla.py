@@ -19,9 +19,22 @@ NPM = 'npm.cmd' if sys.platform == 'win32' else 'npm'
 def step(text): print(f'\n=== {text}', flush=True)
 
 
+LOG = ROOT / '.local/son-yayin.log'
+VERSION_FILES = ['frontend/src/data/programRelease.json', 'desktop/package.json', 'desktop/package-lock.json', 'backend/src/config/release.json', 'mobile/android/AndroidManifest.xml', 'mobile/android/src/com/veniux/companion/MainActivity.java']
+
+
 def run(command, cwd=ROOT, shell=False):
-    result = subprocess.run(command, cwd=cwd, shell=shell)
-    if result.returncode: raise SystemExit(f'DURDU: {" ".join(map(str, command)) if not shell else command} başarısız oldu. Hiçbir şey yayınlanmadı.')
+    # Test ve derleme çıktısı ekrana değil dosyaya gider; hata olursa yalnız son satırlar gösterilir.
+    with LOG.open('a', encoding='utf-8', errors='replace') as log:
+        result = subprocess.run(command, cwd=cwd, shell=shell, stdout=log, stderr=subprocess.STDOUT)
+    if result.returncode:
+        tail = LOG.read_text(encoding='utf-8', errors='replace').splitlines()[-25:]
+        print('\n'.join(tail))
+        raise RuntimeError(f'{command if shell else " ".join(map(str, command))} başarısız oldu. Ayrıntı: {LOG}')
+
+
+def undo_version():
+    subprocess.run(['git', 'checkout', '--', *VERSION_FILES], cwd=ROOT)
 
 
 def load_publisher():
@@ -62,14 +75,14 @@ def bump(title, items):
 
 
 def tests():
-    step('Testler')
+    step('Testler çalışıyor, yaklaşık 3-5 dakika sürer. Pencereyi kapatmayın.')
     run(f'{NPM} test', cwd=ROOT / 'backend', shell=True)
     run('node --test tests/*.test.js src/lib/*.test.mjs ../shared/countScan.test.mjs', cwd=ROOT / 'frontend', shell=True)
     run(['node', 'desktop/update-check.cjs'])
 
 
 def build():
-    step('Derleme')
+    step('Derleniyor, yaklaşık 3-5 dakika sürer.')
     run(f'{NPM} run build', cwd=ROOT / 'frontend', shell=True)
     run(['node', str(TOOLS / 'build-windows.cjs')])
     run(['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(TOOLS / 'build-android.ps1')])
@@ -119,12 +132,18 @@ def main():
     title, items = ask_notes()
     version = bump(title, items)
     print('Yeni sürüm:', version)
-    run(['node', 'tools/release/sync-versions.cjs'])
-    run(f'{NPM} version {version} --no-git-tag-version --allow-same-version', cwd=ROOT / 'desktop', shell=True)
-    tests()
+    LOG.write_text('', encoding='utf-8')
+    try:
+        run(['node', 'tools/release/sync-versions.cjs'])
+        run(f'{NPM} version {version} --no-git-tag-version --allow-same-version', cwd=ROOT / 'desktop', shell=True)
+        tests()
+    except (RuntimeError, KeyboardInterrupt) as error:
+        undo_version()
+        raise SystemExit(f'\nDURDU, hiçbir şey yayınlanmadı ve sürüm geri alındı. {error}')
     run(['git', 'add', '-A', 'frontend', 'backend', 'desktop', 'mobile'])
     run(['git', 'commit', '-m', f'Surum {version}: {title}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'])
-    build()
+    try: build()
+    except (RuntimeError, KeyboardInterrupt) as error: raise SystemExit(f'\nDURDU, hiçbir şey yayınlanmadı. Sürüm {version} commit edildi; düzeltip yeniden derlemek gerekir. {error}')
     step('Yükleme (Windows dosyası büyük, birkaç dakika sürebilir)')
     _, releases = publisher.load_release(version)
     packages = [publisher.windows_package(version), publisher.android_package(version)]
