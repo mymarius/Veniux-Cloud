@@ -34,3 +34,8 @@ backend/label-print/
 __pycache__/
 
 ftp-parola*
+
+*.pfx
+*.p12
+*.jks
+*.keystore

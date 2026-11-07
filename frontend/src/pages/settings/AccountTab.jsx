@@ -64,6 +64,10 @@ export default function AccountTab() {
     }
   };
 
+  const [emailPassword, setEmailPassword] = useState('');
+  const [savedEmail, setSavedEmail] = useState(null);
+  useEffect(() => { if (savedEmail === null && profile.email) setSavedEmail(profile.email); }, [profile.email, savedEmail]);
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
@@ -71,8 +75,11 @@ export default function AccountTab() {
       await apiClient.put('/settings/account', {
         fullName: profile.fullName,
         phone: profile.phone,
-        email: profile.email
+        email: profile.email,
+        ...(emailPassword ? { currentPassword: emailPassword } : {})
       });
+      setSavedEmail(profile.email);
+      setEmailPassword('');
       updateStoredUser({ full_name: profile.fullName, email: profile.email });
       showToast('Hesap profiliniz başarıyla güncellendi.', 'success');
     } catch (err) {
@@ -221,6 +228,16 @@ export default function AccountTab() {
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 required
               />
+              {String(profile.email || '').trim().toLowerCase() !== String(savedEmail || '').toLowerCase() && (
+                <Input
+                  label="Mevcut Şifreniz (e-posta değişikliği için)"
+                  type="password"
+                  autoComplete="current-password"
+                  value={emailPassword}
+                  onChange={(e) => setEmailPassword(e.target.value)}
+                  required
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

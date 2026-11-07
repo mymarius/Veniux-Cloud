@@ -81,10 +81,10 @@ function resolve(user,args){
  if(['NORMAL','PHARMACY'].includes(module)&&user.moduleType!=='BOTH'&&user.moduleType!==module)throw fail('Bu ürün modülüne erişiminiz yok.',403);
  return {op,params,body,query,url:path+(Object.keys(query).length?'?'+new URLSearchParams(query):'')};
 }
-function hasSecretField(value){if(Array.isArray(value))return value.some(hasSecretField);if(value&&typeof value==='object')return Object.entries(value).some(([k,v])=>/(password|secret|token|private.?key|api.?key|session_version)/i.test(k)||hasSecretField(v));return false;}
+function hasSecretField(value){if(Array.isArray(value))return value.some(hasSecretField);if(value&&typeof value==='object')return Object.entries(value).some(([k,v])=>/(password|secret|token|private.?key|api.?key|session_version|license.?key|credential|ticket|codes)/i.test(k)||hasSecretField(v));return false;}
 function sanitize(value){
  if(Array.isArray(value))return value.slice(0,100).map(sanitize);
- if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|secret|token|private.?key|api.?key|session_version)/i.test(k)).map(([k,v])=>[k,sanitize(v)]));
+ if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|secret|token|private.?key|api.?key|session_version|license.?key|credential|ticket|codes)/i.test(k)).map(([k,v])=>[k,sanitize(v)]));
  return typeof value==='string'?value.slice(0,4000):value;
 }
 async function invoke(user,resolved,context={},preflight=false,file){
@@ -239,7 +239,7 @@ async function exportFile(user,args,context){
  const r=resolve(user,args);if(!r.op.read||!['csv','json'].includes(args.format))throw fail('Dışa aktarma için bir bilgi sorgusu ve CSV veya JSON seçin.');
  await invoke(user,r,context,true);await guardTargets(user,r);
  const data=await restrictResult(user,r,(await invoke(user,r,context)).data);
- function withoutSecrets(value){if(Array.isArray(value))return value.map(withoutSecrets);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|secret|token|private.?key|api.?key|session_version)/i.test(k)).map(([k,v])=>[k,withoutSecrets(v)]));return value;}
+ function withoutSecrets(value){if(Array.isArray(value))return value.map(withoutSecrets);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|secret|token|private.?key|api.?key|session_version|license.?key|credential|ticket|codes)/i.test(k)).map(([k,v])=>[k,withoutSecrets(v)]));return value;}
  const clean=withoutSecrets(data);let content;
  if(args.format==='json')content=JSON.stringify(clean,null,2);
  else{

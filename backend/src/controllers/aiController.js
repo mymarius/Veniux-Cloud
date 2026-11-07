@@ -37,6 +37,8 @@ const chatWithAI=async(req,res,next)=>{try{
  let reply=parsed.reply,proposal=null;
  let result;
  if(parsed.action){try{
+  // Model metni ürün adı gibi güvenilmeyen kayıtlardan etkilenebilir: onaysız okuma platform verisine ulaşamaz.
+  if(['system_export','system_query'].includes(parsed.action.kind)&&/^(platform|admin\/medicines):/i.test(String(parsed.action.args?.operation||'')))throw Object.assign(Error('Platform kayıtları asistan üzerinden okunamaz.'),{status:403});
   if(parsed.action.kind==='system_export'){
    result=await system.exportFile(req.user,parsed.action.args,{headers:req.headers});reply=result.message;
   }else if(parsed.action.kind==='system_query'){

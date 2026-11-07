@@ -52,7 +52,8 @@ const resetPassword = async (token, password) => {
   if (typeof token !== 'string' || !/^[0-9a-f]{64}$/.test(token)) throw fail(invalid);
   const row = (await pool.query(`
     SELECT r.id, r.user_id, r.expires_at, r.used_at, u.tenant_id, u.email FROM password_reset_tokens r
-    JOIN users u ON u.id = r.user_id AND u.tenant_id = r.tenant_id WHERE r.token_hash = $1
+    JOIN users u ON u.id = r.user_id AND u.tenant_id = r.tenant_id JOIN tenants t ON t.id = u.tenant_id
+    WHERE r.token_hash = $1 AND u.status = 'active' AND t.is_active = 1
   `, [sha256(token)])).rows[0];
   if (!row || row.used_at || !(parseStamp(row.expires_at) > Date.now())) throw fail(invalid);
   if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72) throw fail('Şifre en az 8 karakter, en fazla 72 bayt olmalıdır.');

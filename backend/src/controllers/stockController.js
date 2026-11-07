@@ -413,26 +413,27 @@ const getStockAnalytics = async (req, res) => {
         COUNT(DISTINCT p.id) as total_products,
         COUNT(DISTINCT w.id) as total_warehouses
       FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id
+      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
       LEFT JOIN warehouses w ON sr.warehouse_id = w.id
-    `);
+      WHERE p.tenant_id = $1
+    `, [req.user.tenantId]);
 
     // 2. Critical / Low Stock counts
     const criticalCount = await pool.query(`
       SELECT COUNT(*) as count FROM (
         SELECT p.id, SUM(sr.quantity) as total_qty, p.min_stock_level
         FROM products p
-        JOIN stock_records sr ON p.id = sr.product_id
-        WHERE p.min_stock_level > 0
+        JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+        WHERE p.tenant_id = $1 AND p.min_stock_level > 0
         GROUP BY p.id, p.min_stock_level
         HAVING SUM(sr.quantity) <= p.min_stock_level
       )
-    `);
+    `, [req.user.tenantId]);
 
     const outOfStockCount = await pool.query(`
       SELECT COUNT(*) as count FROM products p
-      WHERE (SELECT COALESCE(SUM(quantity), 0) FROM stock_records WHERE product_id = p.id) = 0
-    `);
+      WHERE p.tenant_id = $1 AND (SELECT COALESCE(SUM(quantity), 0) FROM stock_records WHERE product_id = p.id) = 0
+    `, [req.user.tenantId]);
 
     // 3. Category Breakdown
     const categoryBreakdown = await pool.query(`
@@ -442,10 +443,11 @@ const getStockAnalytics = async (req, res) => {
         COALESCE(SUM(sr.quantity), 0) as total_quantity,
         COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_value
       FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id
+      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+      WHERE p.tenant_id = $1
       GROUP BY COALESCE(NULLIF(TRIM(p.category), ''), 'Genel')
       ORDER BY total_value DESC
-    `);
+    `, [req.user.tenantId]);
 
     // 4. Warehouse Distribution
     const warehouseDistribution = await pool.query(`
@@ -482,11 +484,12 @@ const getStockAnalytics = async (req, res) => {
         COALESCE(SUM(sr.quantity), 0) as total_quantity,
         COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_valuation
       FROM products p
-      JOIN stock_records sr ON p.id = sr.product_id
+      JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+      WHERE p.tenant_id = $1
       GROUP BY p.id, p.sku, p.name, p.category
       ORDER BY total_valuation DESC
       LIMIT 5
-    `);
+    `, [req.user.tenantId]);
 
     res.json({
       summary: {
@@ -515,31 +518,32 @@ const getDashboardMetrics = async (req, res) => {
         COALESCE(SUM(sr.quantity), 0) as total_stock_count,
         COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_valuation
       FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id
-    `);
+      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+      WHERE p.tenant_id = $1
+    `, [req.user.tenantId]);
 
     // 2. Low Stock Count
     const lowStock = await pool.query(`
       SELECT COUNT(*) as count FROM (
         SELECT p.id, COALESCE(SUM(sr.quantity), 0) as current_stock, p.min_stock_level
         FROM products p
-        LEFT JOIN stock_records sr ON p.id = sr.product_id
-        WHERE p.min_stock_level > 0
+        LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+        WHERE p.tenant_id = $1 AND p.min_stock_level > 0
         GROUP BY p.id, p.min_stock_level
         HAVING COALESCE(SUM(sr.quantity), 0) <= p.min_stock_level
       )
-    `);
+    `, [req.user.tenantId]);
 
     // 3. Out of stock count
     const outOfStock = await pool.query(`
       SELECT COUNT(*) as count FROM products p
-      WHERE (SELECT COALESCE(SUM(quantity), 0) FROM stock_records WHERE product_id = p.id) = 0
-    `);
+      WHERE p.tenant_id = $1 AND (SELECT COALESCE(SUM(quantity), 0) FROM stock_records WHERE product_id = p.id) = 0
+    `, [req.user.tenantId]);
 
     // 4. Active unread alerts count
     const activeAlerts = await pool.query(`
-      SELECT COUNT(*) as count FROM alerts WHERE status = 'unread'
-    `);
+      SELECT COUNT(*) as count FROM alerts WHERE tenant_id = $1 AND status = 'unread'
+    `, [req.user.tenantId]);
 
     // 5. Top critical products
     const topCritical = await pool.query(`
@@ -551,13 +555,13 @@ const getDashboardMetrics = async (req, res) => {
         p.unit,
         COALESCE(SUM(sr.quantity), 0) as current_stock
       FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id
-      WHERE p.min_stock_level > 0
+      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
+      WHERE p.tenant_id = $1 AND p.min_stock_level > 0
       GROUP BY p.id, p.sku, p.name, p.min_stock_level, p.unit
       HAVING COALESCE(SUM(sr.quantity), 0) <= p.min_stock_level
       ORDER BY current_stock ASC
       LIMIT 5
-    `);
+    `, [req.user.tenantId]);
 
     // 6. Recent Movements
     const recentMovements = await pool.query(`

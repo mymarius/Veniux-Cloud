@@ -47,7 +47,14 @@ const updateAccount = async (req, res) => {
     if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Geçerli bir e-posta adresi girin.' });
     
     // Check if new email is taken by someone else
-    if (email && email !== req.user.email) {
+    const emailChanges = Boolean(email) && email !== String(req.user.email || '').toLowerCase();
+    if (emailChanges) {
+      // E-posta şifre sıfırlamanın anahtarıdır: açık kalmış bir oturum hesabı ele geçirememeli.
+      const { currentPassword } = req.body;
+      const stored = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.userId]);
+      if (typeof currentPassword !== 'string' || Buffer.byteLength(currentPassword) > 72 || !stored.rows[0] || !(await bcrypt.compare(currentPassword, stored.rows[0].password_hash))) {
+        return res.status(400).json({ error: 'E-postayı değiştirmek için mevcut şifrenizi doğru girin.' });
+      }
       const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2', [email, req.user.userId]);
       if (existing.rows.length > 0) {
         return res.status(409).json({ error: 'Bu e-posta adresi başka bir kullanıcı tarafından kullanılmaktadır.' });
@@ -58,6 +65,7 @@ const updateAccount = async (req, res) => {
       'UPDATE users SET full_name = COALESCE($1, full_name), phone = COALESCE($2, phone), email = COALESCE($3, email) WHERE id = $4',
       [fullName, phone, email, req.user.userId]
     );
+    if (emailChanges) await pool.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [req.user.userId]);
 
     res.json({ message: 'Hesap profili başarıyla güncellendi.' });
   } catch (error) {
@@ -120,6 +128,7 @@ const updatePassword = async (req, res) => {
     if ((await policies.read(req.user.tenantId,'security')).strictPassword && !policies.strong(newPassword)) return res.status(400).json({error:'Şifre en az 8 karakter, büyük harf ve rakam içermelidir.'});
     const newHash = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password_hash = $1, session_version = session_version + 1 WHERE id = $2', [newHash, req.user.userId]);
+    await pool.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [req.user.userId]);
 
     res.json({ message: 'Şifreniz başarıyla güncellendi.' });
   } catch (error) {

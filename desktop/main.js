@@ -88,7 +88,7 @@ function createWindow() {
       sandbox: true,
       webSecurity: true,
       additionalArguments: ['--veniux-app-version='+encodeURIComponent(app.getVersion()),'--veniux-api-base='+encodeURIComponent(runtime.apiBase),...(setupPending?['--veniux-setup-required']:[]),...(app.isPackaged && !isBusinessCloud()?['--veniux-central-required']:[])],
-      devTools: process.env.NODE_ENV !== 'production'
+      devTools: !app.isPackaged
     }
   });
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders({urls:['http://127.0.0.1:17849/*']},(details,callback)=>callback({requestHeaders:{...details.requestHeaders,'x-veniux-desktop-origin':desktopOriginToken}}));
