@@ -67,13 +67,7 @@ function discountAllocation(lines,discount,total){
   for(const {i} of order){if(left<=0)break;if(cuts[i]<lines[i].gross_cents){cuts[i]++;left--;}}
   return lines.map((line,i)=>({...line,net_cents:line.gross_cents-cuts[i],returned_quantity:0,refunded_cents:0}));
 }
-async function sale(user,body,key){
-  if(!['admin','manager','cashier'].includes(user.role))fail('Kasada satış yetkiniz yok.',403);
-  const rights=await permissions(user),settings=await scanner.config(user.tenantId),date=businessDate();
-  if(!Array.isArray(body.items)||!body.items.length||body.items.length>200)fail('Geçerli satış sepeti gerekli.');
-  return db.transaction(async tx=>{await lock(tx,user.tenantId);return idempotent(tx,user.tenantId,key,'scan-sale',{...body,actor:user.userId},async()=>{
-    await warehouse(tx,user.tenantId,body.warehouse_id);
-    const shift=await require('./retailShiftService').requireOpen(tx,user,body.warehouse_id,body);
+async function price(tx,user,body,rights,settings,date){
     const lines=[],needed=new Map();let gross=0;
     for(const item of body.items){
       if(!Number.isSafeInteger(item.count)||item.count<1||item.count>100000)fail('Tekrar sayısı geçersiz.');
@@ -91,17 +85,41 @@ async function sale(user,body,key){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||null,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||null,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||['kg','litre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');
-    const discount=cents(body.discount_amount??0,'İndirim');if(discount>0)assertPermission(rights,'discount');if(discount>gross)fail('İndirim satış tutarını aşamaz.');
+    const manual=cents(body.discount_amount??0,'İndirim');if(manual>0)assertPermission(rights,'discount');
+    const promo=require('./retailPromoService'),canApprove=['admin','manager'].includes(user.role)||rights.discount===true;
+    const campaign=await promo.campaignDiscount(tx,user.tenantId,date,lines,canApprove);
+    if(manual+campaign.total>gross)fail('İndirim satış tutarını aşamaz.');
+    const redeem=await promo.redeemValue(tx,user.tenantId,body,gross-manual-campaign.total);
+    const discount=manual+campaign.total+redeem.cents;
+    return {lines,needed,gross,manual,campaign,redeem,discount};
+}
+// Kasa ekranı ödeme tutarını bu toplamdan alır: kampanya ve puan indirimi satıştan önce görünür. Hiçbir şey yazılmaz.
+async function quote(user,body){
+  if(!['admin','manager','cashier'].includes(user.role))fail('Kasada satış yetkiniz yok.',403);
+  const rights=await permissions(user),settings=await scanner.config(user.tenantId),date=businessDate();
+  if(!Array.isArray(body.items)||!body.items.length||body.items.length>200)fail('Geçerli satış sepeti gerekli.');
+  return db.transaction(async tx=>{await warehouse(tx,user.tenantId,body.warehouse_id);const r=await price(tx,user,body,rights,settings,date);
+    return {gross:r.gross/100,manual_discount:r.manual/100,campaign_discount:r.campaign.total/100,loyalty_discount:r.redeem.cents/100,total:(r.gross-r.discount)/100,campaigns:r.campaign.applied,campaigns_skipped:r.campaign.skipped};});
+}
+async function sale(user,body,key){
+  if(!['admin','manager','cashier'].includes(user.role))fail('Kasada satış yetkiniz yok.',403);
+  const rights=await permissions(user),settings=await scanner.config(user.tenantId),date=businessDate();
+  if(!Array.isArray(body.items)||!body.items.length||body.items.length>200)fail('Geçerli satış sepeti gerekli.');
+  return db.transaction(async tx=>{await lock(tx,user.tenantId);return idempotent(tx,user.tenantId,key,'scan-sale',{...body,actor:user.userId},async()=>{
+    await warehouse(tx,user.tenantId,body.warehouse_id);
+    const shift=await require('./retailShiftService').requireOpen(tx,user,body.warehouse_id,body);
+    const {lines,needed,gross,manual,campaign,redeem,discount}=await price(tx,user,body,rights,settings,date);
     const net=gross-discount,payments=paymentBreakdown(body,net);
     for(const [id,qty] of needed){const stocks=(await tx.query('SELECT quantity FROM stock_records WHERE tenant_id=$1 AND warehouse_id=$2 AND product_id=$3'+(db.getEngine()==='mysql'?' FOR UPDATE':''),[user.tenantId,body.warehouse_id,id])).rows;if(stocks.reduce((sum,s)=>sum+Number(s.quantity),0)+0.0000001<qty)fail('Satış için yeterli stok yok.',409);}
     const no='POS-'+crypto.randomUUID(),method=payments.on_account?(payments.cash||payments.credit_card?'split':'on_account'):payments.cash&&payments.credit_card?'split':payments.credit_card?'credit_card':'cash';
     if(payments.on_account&&!['admin','manager'].includes(user.role))fail('Veresiye satış için yönetici yetkisi gerekli.',403);
     if(!payments.on_account&&(body.account_id!==undefined||body.due_date!==undefined))fail('Cari hesap yalnız veresiye ödemede seçilebilir.');
     const pos=(await tx.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,discount_amount,net_amount,payment_method,status) VALUES ($1,$2,$3,$4,$5,$6,'completed') RETURNING *",[user.tenantId,no,gross/100,discount/100,net/100,method])).rows[0];
+    for(const line of lines){delete line.manual_price;delete line.weighted;}
     const items=discountAllocation(lines,discount,gross);
     for(const line of items){
       line.lot_allocations=await stockHealth.reserveSaleLots(user.tenantId,line.product_id,body.warehouse_id,line.quantity,line.selected_lot_id,tx);
@@ -116,9 +134,11 @@ async function sale(user,body,key){
     const snapshot={receipt_no:no,status:'completed',shift_id:shift.id,register_id:shift.register_id,items,gross_cents:gross,discount_cents:discount,net_cents:net,payments,refunded_cents:0,refund_payments:{cash:0,credit_card:0},cashier:user.email,created_at:new Date().toISOString()};
     if(payments.on_account){snapshot.account_id=await require('./retailCreditService').charge(tx,user,body,payments.on_account,pos.id,shift.id);snapshot.due_date=body.due_date;snapshot.refund_payments.on_account=0;}
     snapshot.vat_breakdown=require('./retailVatService').breakdown(items);
+    if(campaign.applied.length||manual||redeem.cents)snapshot.discounts={manual_cents:manual,campaign_cents:campaign.total,loyalty_cents:redeem.cents,campaigns:campaign.applied};
+    const loyalty=await require('./retailPromoService').settle(tx,user.tenantId,redeem,pos.id,net);if(loyalty)snapshot.loyalty=loyalty;
     await tx.query('INSERT INTO retail_sales (sale_id,tenant_id,warehouse_id,user_id,business_date,snapshot_json,shift_id,register_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',[pos.id,user.tenantId,body.warehouse_id,user.userId,date,JSON.stringify(snapshot),shift.id,shift.register_id]);
     await audit(tx,user,'scanner.sale',pos.id,{receipt:no,gross_cents:gross,discount_cents:discount,payments,price_overrides:body.items.filter(i=>i.price_override!==undefined).map(i=>({barcode:i.barcode,price:i.price_override}))});
-    return {receipt_no:no,total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments};
+    return {receipt_no:no,total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
   });});
 }
 async function restore(tx,user,row,line,quantity,disposition='saleable'){
@@ -170,6 +190,7 @@ async function reverse(user,id,kind,body,key){
     snapshot.status=kind==='cancel'?'cancelled':snapshot.items.every(i=>i.returned_quantity>=i.quantity-0.0000001)?'returned':'partially_returned';
     snapshot.refund_vat_breakdown=require('./retailVatService').breakdown(snapshot.items,'refund');
     snapshot.remaining_vat_breakdown=require('./retailVatService').breakdown(snapshot.items,'remaining');
+    await require('./retailPromoService').reverse(tx,user.tenantId,snapshot,id);
     await tx.query('UPDATE retail_sales SET snapshot_json=$1 WHERE sale_id=$2 AND tenant_id=$3',[JSON.stringify(snapshot),id,user.tenantId]);
     await tx.query('UPDATE pos_sales SET status=$1,net_amount=$2 WHERE id=$3 AND tenant_id=$4',[snapshot.status,(snapshot.net_cents-snapshot.refunded_cents)/100,id,user.tenantId]);
     const reversalId=crypto.randomUUID(),data={items:restored,reason:body.reason.trim(),user_id:user.userId,user_email:user.email,shift_id:shift.id,register_id:shift.register_id,source_shift_id:row.shift_id,cash_cents:cash,card_cents:card,...(credit?{credit_cents:credit}:{}),refund_status:'recorded',created_at:new Date().toISOString()};
@@ -178,4 +199,4 @@ async function reverse(user,id,kind,body,key){
     return {id:reversalId,sale_id:Number.isSafeInteger(Number(id))?Number(id):String(id),shift_id:shift.id,source_shift_id:row.shift_id,status:snapshot.status,refund:refund/100,cash_refund:cash/100,card_refund:card/100,...(credit?{credit_refund:credit/100}:{}),refund_status:'recorded'};
   });});
 }
-module.exports={sale,reverse,permissions,permissionKeys,businessDate,cents,lock,warehouse,openDay,idempotent,audit,assertPermission};
+module.exports={sale,quote,reverse,permissions,permissionKeys,businessDate,cents,lock,warehouse,openDay,idempotent,audit,assertPermission};

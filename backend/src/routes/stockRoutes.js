@@ -16,6 +16,7 @@ router.get('/dashboard-metrics', authMiddleware, getDashboardMetrics);
 router.get('/analytics', authMiddleware, getStockAnalytics);
 router.get('/records', authMiddleware, getStockRecords);
 router.get('/movements', authMiddleware, getStockMovements);
+router.get('/dead-stock', authMiddleware, requireRole('admin', 'manager'), async (req, res, next) => { try { res.json(await require('../services/retailInsightsService').deadStock(req.user, req.query || {})); } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); } });
 router.post('/movement', authMiddleware, requireRole('admin', 'manager'), createMovement);
 router.post('/transfer', authMiddleware, requireRole('admin', 'manager', 'warehouse_lead'), transferStock);
 router.post('/adjust', authMiddleware, requireRole('admin', 'manager'), adjustStock);
