@@ -145,6 +145,9 @@ async function applyRestore(bin,config,pipe){
     for(const trigger of manifest.triggers)await c.query(triggerDDL(trigger));
     if((await new MySQLMigrator(c).status()).status!=='current')throw Error('RESTORE_SCHEMA_INVALID');
     await c.query('DROP DATABASE `'+recovery+'`');
+    // Yalnız bu geri yüklemeden önceki veri saklanır; daha eski önceki-veri kopyaları diski doldurmasın diye silinir.
+    const [olds]=await c.query("SELECT SCHEMA_NAME AS n FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'veniux\_old\_%'");
+    for(const {n} of olds)if(n!==old&&/^veniux_old_\d+$/.test(n))await c.query('DROP DATABASE `'+n+'`');
     if(outcome.candidate_files&&fs.existsSync(outcome.candidate_files)){const target=path.join(require(path.join(backend,'src/config/runtimeConfig')).paths().storage,'medicine-images');fs.mkdirSync(target,{recursive:true});for(const name of fs.readdirSync(outcome.candidate_files))fs.copyFileSync(path.join(outcome.candidate_files,name),path.join(target,name));}
     save(result,{status:'done',at:new Date().toISOString(),previous_database:old,safety_backup:path.basename(safety)});
   }catch(error){
