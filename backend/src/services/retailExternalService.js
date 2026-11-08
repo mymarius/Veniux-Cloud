@@ -25,7 +25,7 @@ async function operation(user,body,key){
  });});
  // Only the first caller atomically claims execution; unknown never resubmits.
  const claim=await db.query("UPDATE retail_external_operations SET status='unknown' WHERE tenant_id=$1 AND id=$2 AND status='pending'",[user.tenantId,reserved.id]);
- if(claim.rowCount===1){let result;try{result=await Promise.race([adapter.execute({id:reserved.id,action:body.action,amount_cents:amount,source_operation_id:body.source_operation_id}),new Promise((_,reject)=>{const t=setTimeout(()=>reject(Error('timeout')),5000);t.unref?.();})]);}catch{result={status:'unknown'};}await update(user,reserved.id,result);}
+ if(claim.rowCount===1){let result;try{result=await Promise.race([adapter.execute({id:reserved.id,action:body.action,amount_cents:amount,source_operation_id:body.source_operation_id,items:Array.isArray(body.items)?body.items.slice(0,200):undefined}),new Promise((_,reject)=>{const t=setTimeout(()=>reject(Error('timeout')),5000);t.unref?.();})]);}catch{result={status:'unknown'};}await update(user,reserved.id,result);}
  return inspect(user,reserved.id,false);
 }
 async function update(user,id,result){const status=['success','failed','unknown'].includes(result?.status)?result.status:'unknown';await db.transaction(async tx=>{await tx.query("UPDATE retail_external_operations SET status=$1 WHERE tenant_id=$2 AND id=$3 AND status='unknown'",[status,user.tenantId,id]);await daily.audit(tx,user,'retail.okc_status',null,{operation_id:id,status});});}
@@ -45,4 +45,11 @@ async function reconciliation(user,date=daily.businessDate()){
  const rows=(await db.query('SELECT id,profile,action,amount_cents,status,source_operation_id FROM retail_external_operations WHERE tenant_id=$1 AND business_date=$2 ORDER BY created_at,id',[user.tenantId,date])).rows;
  return {date,source:'local_device_journal',bank_reconciled:false,success_cents:rows.filter(r=>r.status==='success').reduce((sum,r)=>sum+(r.action==='sale'?1:-1)*Number(r.amount_cents),0),unresolved:rows.filter(r=>['unknown','pending'].includes(r.status)),operations:rows,notice:'Yerel cihaz işlem defteridir; üretici/banka gün sonu kaydıyla gerçek karşılaştırma yapılmadı.'};
 }
-module.exports={capabilities,operation,inspect,invoiceDraft,register,reconciliation};
+// Cihaz üreticisinin bildirimi (webhook): yalnız sonucu bekleyen ('unknown') işlemi günceller; kimliği bilinmeyen işlem yok sayılır.
+async function applyCallback(id,result){
+ if(typeof id!=='string'||!/^[0-9a-f-]{36}$/i.test(id))return false;
+ const row=(await db.query('SELECT tenant_id,user_id FROM retail_external_operations WHERE id=$1',[id])).rows[0];
+ if(!row)return false;
+ await update({tenantId:row.tenant_id,userId:row.user_id,email:'cihaz-bildirimi',role:'system'},id,result);return true;
+}
+module.exports={capabilities,operation,inspect,invoiceDraft,register,reconciliation,applyCallback};

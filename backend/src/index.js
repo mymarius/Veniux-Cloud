@@ -69,6 +69,13 @@ app.use(['/api/pharmacy','/api/eczane-depo','/api/pharmacy-migration','/api/medi
 
 // Register all API routes
 app.get('/api/version',(req,res)=>{const {version,minClient}=require('./config/release.json');res.set('Cache-Control','no-store').json({version,minClient});});
+// Token cihaz bildirimi lisans kapısının dışındadır; paylaşılan gizli değerle doğrulanır.
+app.post('/integrations/tokenx/callback', express.json({ limit: '64kb' }), async (req, res) => {
+  const tokenx = require('./services/tokenxAdapter');
+  if (!tokenx.callbackAuthorized(req.get('authorization'))) return res.status(401).json({ error: 'Yetkisiz.' });
+  try { const ok = await require('./services/retailExternalService').applyCallback(req.body?.data?.basketID, tokenx.parseResult(req.body)); res.json({ received: true, matched: ok }); }
+  catch { res.status(500).json({ error: 'Bildirim işlenemedi.' }); }
+});
 app.use('/api', require('./services/centralLicense').gate);
 app.use('/api/updates', (req,res,next)=>{
  if(!require('./services/updateStorage').validName(req.path.slice(1)))return res.sendStatus(404);
@@ -101,6 +108,8 @@ app.use('/api/scanner', require('./routes/scannerRoutes'));
 app.use('/api/labels', require('./routes/labelRoutes'));
 app.use('/api/retail', require('./routes/retailRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
+// Token ÖKC adaptörü yalnız ayarları tamsa etkinleşir (Token geliştirici ekibinden gelen adres ve yollar).
+try { const tokenx = require('./services/tokenxAdapter'); if (tokenx.config()) require('./services/retailExternalService').register('tokenx', tokenx.adapter()); } catch (error) { console.error('[TokenX] Ayar geçersiz:', error.message); }
 app.use('/api/edocuments', require('./routes/edocumentRoutes'));
 app.use('/api/accounting-exports', require('./routes/accountingExportRoutes'));
 

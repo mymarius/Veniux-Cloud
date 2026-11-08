@@ -1,0 +1,93 @@
+// Token X Connect Cloud (kablosuz) ÖKC adaptörü.
+// Kaynak: developer.tokeninc.com "Token X Connect Cloud – Geliştirici Dokümanı" (TR/EN), Kasım 2026'da okundu.
+// Belgede OLMAYAN ve bu yüzden ayar olarak alınanlar: test/canlı sunucu adresleri, istek yolları. Token geliştirici ekibi verir.
+// Belgede bulutta iptal/iade isteği yok: bu adaptör iptal ve iadeyi cihaza göndermez, açıkça reddeder.
+const crypto = require('crypto');
+
+const KEYS = ['TOKENX_AUTH_URL', 'TOKENX_API_URL', 'TOKENX_CLIENT_ID', 'TOKENX_CLIENT_SECRET', 'TOKENX_TERMINAL_ID', 'TOKENX_PATH_ADD_INSTANT', 'TOKENX_PATH_GET_BASKET'];
+function config(env = process.env) {
+  if (KEYS.some(k => !env[k])) return null;
+  for (const k of ['TOKENX_AUTH_URL', 'TOKENX_API_URL']) if (!/^https:\/\//.test(env[k]) && !(env.TOKENX_ALLOW_LOCAL_HTTP === '1' && /^http:\/\/127\.0\.0\.1:/.test(env[k]))) throw Error(k + ' HTTPS olmalı.');
+  return { auth: env.TOKENX_AUTH_URL.replace(/\/$/, ''), api: env.TOKENX_API_URL.replace(/\/$/, ''), clientId: env.TOKENX_CLIENT_ID, secret: env.TOKENX_CLIENT_SECRET, terminal: env.TOKENX_TERMINAL_ID, addPath: env.TOKENX_PATH_ADD_INSTANT, getPath: env.TOKENX_PATH_GET_BASKET, callbackAuth: env.TOKENX_CALLBACK_AUTH || null };
+}
+
+// Belgedeki örnek: fiyat kuruş (tam sayı), miktar ×1000 (tam sayı), KDV taxPercent 1000/1800/2000 (oran ×100).
+function toBasket(id, items) {
+  if (!Array.isArray(items) || !items.length || items.length > 200) throw Error('Sepet kalemleri gerekli.');
+  return {
+    basketID: id,
+    items: items.map(item => {
+      const quantity = Math.round(Number(item.quantity) * 1000), price = Number(item.unit_price_cents), vat = Number(item.vat_rate);
+      if (typeof item.name !== 'string' || !item.name.trim() || !Number.isSafeInteger(quantity) || quantity <= 0 || !Number.isSafeInteger(price) || price < 0 || !Number.isInteger(vat) || vat < 0 || vat > 100) throw Error('Sepet kalemi geçersiz.');
+      return { name: item.name.trim().slice(0, 40), price, sectionNo: 1, taxPercent: vat * 100, quantity };
+    }),
+  };
+}
+
+// Belgedeki BASKET_COMPLETED bildirimi: data.status 0 başarılı, -1 ödemeden vazgeçildi, 99 fiş iptali.
+function parseResult(payload) {
+  const data = payload?.data || payload?.result || payload;
+  if (!data || typeof data !== 'object') return { status: 'unknown' };
+  const receipt = { receipt_no: data.receiptNo ?? null, z_no: data.zNo ?? null, payments: Array.isArray(data.paymentItems) ? data.paymentItems.map(p => ({ type: p.type, amount_cents: p.amount })) : [] };
+  if (payload?.operation === 'BASKET_COMPLETED' || data.receiptNo !== undefined) {
+    if (Number(data.status) === 0 && Number(data.receiptNo) > 0) return { status: 'success', ...receipt };
+    if ([-1, 99].includes(Number(data.status))) return { status: 'failed', reason: Number(data.status) === 99 ? 'Fiş iptal edildi' : 'Ödemeden vazgeçildi', ...receipt };
+  }
+  return { status: 'unknown' };
+}
+
+function client(cfg, fetchImpl = fetch) {
+  let cached = null;
+  async function token() {
+    if (cached && cached.until > Date.now() + 60000) return cached.value;
+    const basic = Buffer.from(`${cfg.clientId}:${cfg.secret}`).toString('base64');
+    const r = await fetchImpl(cfg.auth + '/v1/auth/token', { method: 'POST', headers: { Authorization: 'Basic ' + basic }, signal: AbortSignal.timeout(15000), redirect: 'error' });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok || !body.result?.accessToken) throw Error('Token oturumu açılamadı.');
+    cached = { value: body.result.accessToken, until: Date.now() + Number(body.result.expiresIn || 0) * 1000 };
+    return cached.value;
+  }
+  const path = (template, basketId) => template.replace('{basketID}', encodeURIComponent(basketId));
+  async function call(method, template, basketId, body) {
+    const headers = { Authorization: 'Bearer ' + await token(), 'terminal-id': cfg.terminal };
+    if (body) headers['Content-Type'] = 'application/json';
+    const r = await fetchImpl(cfg.api + path(template, basketId), { method, headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000), redirect: 'error' });
+    return { ok: r.ok, body: await r.json().catch(() => ({})) };
+  }
+  return {
+    addInstantBasket: (id, basket) => call('POST', cfg.addPath, id, basket),
+    getBasket: id => call('GET', cfg.getPath, id),
+  };
+}
+
+function adapter(cfg = config(), fetchImpl = fetch) {
+  const api = client(cfg, fetchImpl);
+  return {
+    async execute({ id, action, amount_cents, items }) {
+      if (action !== 'sale') return { status: 'failed', detail: 'Token bulut belgesinde iptal ve iade isteği yok. İptal ve iadeyi cihazdan yapın.' };
+      const basket = toBasket(id, items);
+      const total = basket.items.reduce((sum, i) => sum + Math.round(i.price * i.quantity / 1000), 0);
+      if (total !== amount_cents) return { status: 'failed', detail: 'Sepet toplamı tahsilat tutarıyla aynı değil.' };
+      const sent = await api.addInstantBasket(id, basket);
+      // 1007: aynı basketID zaten gönderilmiş (tekrar). Ödeme cihazda müşteriyle yapılır; sonuç bildirim veya sorguyla gelir.
+      if (sent.ok && Number(sent.body.status) === 0) return { status: 'unknown', detail: 'Sepet cihaza gönderildi, ödeme bekleniyor.' };
+      if (Number(sent.body.status) === 1007) return { status: 'unknown', detail: 'Sepet daha önce gönderilmiş.' };
+      if ([1104, 1106, 1100].includes(Number(sent.body.status))) return { status: 'failed', detail: { 1104: 'Cihaz anlık satış modunda değil.', 1106: 'Cihaz bulunamadı.', 1100: 'Cihazda açık bir sepet var.' }[Number(sent.body.status)] };
+      return { status: 'unknown', detail: 'Cihaz yanıtı doğrulanamadı.' };
+    },
+    async status({ id }) {
+      const r = await api.getBasket(id);
+      if (!r.ok) return { status: 'unknown' };
+      return parseResult(r.body);
+    },
+  };
+}
+
+// Bildirim (webhook) doğrulaması: belgede imza yok; Token ayarına bizim verdiğimiz paylaşılan gizli değer başlıkta beklenir.
+function callbackAuthorized(header, cfg = config()) {
+  if (!cfg?.callbackAuth || typeof header !== 'string') return false;
+  const a = Buffer.from(header), b = Buffer.from(cfg.callbackAuth);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+module.exports = { config, toBasket, parseResult, client, adapter, callbackAuthorized };
