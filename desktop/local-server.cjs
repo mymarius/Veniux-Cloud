@@ -37,7 +37,8 @@ async function start() {
     const ini=path.join(data,'mysql-local.ini');
     // Yönetici hesabı TCP'de kilitli; şema yükseltmesi gerekiyorsa yalnız o açılışta yerel named pipe açılır.
     const deployment=fresh?null:JSON.parse(fs.readFileSync(path.join(data,'deployment.json'),'utf8'));
-    const upgradePipe=!fresh&&deployment.mysql_schema_spec!==JSON.stringify(manifest)?'veniux-upgrade-'+crypto.randomBytes(12).toString('hex'):null;
+    const pendingRestore=path.join(data,'pending-restore.json');
+    const upgradePipe=!fresh&&(deployment.mysql_schema_spec!==JSON.stringify(manifest)||fs.existsSync(pendingRestore))?'veniux-upgrade-'+crypto.randomBytes(12).toString('hex'):null;
     fs.writeFileSync(ini,`[mysqld]\nbasedir="${path.dirname(bin).replaceAll('\\','/')}"\ndatadir="${dbDirectory.replaceAll('\\','/')}"\nport=${port}\nbind-address=127.0.0.1\nskip-name-resolve\nlocal-infile=0\ncharacter-set-server=utf8mb4\ncollation-server=utf8mb4_bin\n${upgradePipe?`named-pipe=ON\nsocket=${upgradePipe}\n`:''}`);
     databaseProcess=spawn(path.join(bin,'mysqld.exe'),[`--defaults-file=${ini}`],{windowsHide:true,stdio:'ignore'});
     databaseProcess.on('error',()=>{});
@@ -78,6 +79,8 @@ async function start() {
     if(fresh){const pair=crypto.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}});fs.writeFileSync(privateKey,pair.privateKey);fs.writeFileSync(publicKey,pair.publicKey);fs.writeFileSync(path.join(data,'jwt-secret'),crypto.randomBytes(48).toString('base64url'));}
     Object.assign(process.env,{NODE_ENV:'production',HOST:'127.0.0.1',PORT:String(apiPort),DB_ENGINE:'mysql',DB_HOST:'127.0.0.1',DB_PORT:String(port),DB_NAME:config.database,DB_USER:config.user,DB_PASSWORD:config.password,JWT_SECRET:fs.readFileSync(path.join(data,'jwt-secret'),'utf8'),VENIUX_DATA_DIR:data,LICENSE_PRIVATE_KEY_PATH:privateKey,LICENSE_PUBLIC_KEY_PATH:publicKey});
     require(path.join(backend,'src/config/runtimeConfig')).validate();
+    process.env.VENIUX_DESKTOP_RESTORE='1';
+    if(!fresh&&upgradePipe&&fs.existsSync(pendingRestore))await applyRestore(bin,config,upgradePipe);
     if(fresh){
       const fields=['NODE_ENV','HOST','PORT','DB_ENGINE','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','JWT_SECRET','VENIUX_DATA_DIR','LICENSE_PRIVATE_KEY_PATH','LICENSE_PUBLIC_KEY_PATH'];
       fs.writeFileSync(path.join(data,'install.env'),fields.map(k=>k+'='+JSON.stringify(process.env[k].replaceAll('\\','/'))).join('\n')+'\n');
@@ -104,13 +107,58 @@ async function start() {
   }finally{fs.unlinkSync(lock);}
 }
 // Önce tam yedek alınır; yedek yoksa şemaya dokunulmaz. Parola komut satırına değil ortam değişkenine verilir.
-async function upgradeSchema(bin,config,pipe){
+function dumpLocal(bin,config,pipe,label){
   const backups=path.join(data,'backups');fs.mkdirSync(backups,{recursive:true});
-  const file=path.join(backups,'before-schema-'+new Date().toISOString().replace(/[:.]/g,'-')+'.sql');
+  const file=path.join(backups,label+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.sql');
   execFileSync(path.join(bin,'mysqldump.exe'),['--protocol=PIPE','--socket='+pipe,'--user=root','--single-transaction','--routines','--triggers','--result-file='+file,'veniux_local'],{windowsHide:true,stdio:'ignore',env:{...process.env,MYSQL_PWD:config.rootPassword},timeout:600000});
   if(!fs.existsSync(file)||fs.statSync(file).size<1000)throw Error('SCHEMA_BACKUP_FAILED');
+  return file;
+}
+async function upgradeSchema(bin,config,pipe){
+  dumpLocal(bin,config,pipe,'before-schema');
   const c=await mysql.createConnection({socketPath:'\\\\.\\pipe\\'+pipe,user:'root',password:config.rootPassword,database:'veniux_local'});
   try{const state=await new MySQLMigrator(c).upgradeAdditive();if(state.status!=='current')throw Error('SCHEMA_NOT_CURRENT');}finally{await c.end().catch(()=>{});}
+}
+// Geri yükleme: tam yedek → ayrı boş veritabanına yükleme ve doğrulama → tabloların tek RENAME ile yer değiştirmesi.
+// Eski tablolar veniux_old_* veritabanında kalır. Herhangi bir adım başarısız olursa program bugünkü verilerle açılır.
+async function applyRestore(bin,config,pipe){
+  const stamp=Date.now(),recovery='veniux_recovery_'+stamp,old='veniux_old_'+stamp,result=path.join(data,'restore-result.json');
+  const pipeConfig={socketPath:'\\\\.\\pipe\\'+pipe,user:'root',password:config.rootPassword};
+  let c,swapped=false,safety;
+  try{
+    safety=dumpLocal(bin,config,pipe,'before-restore');
+    c=await mysql.createConnection({...pipeConfig,multipleStatements:false});
+    await c.query('CREATE DATABASE `'+recovery+'` CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');
+    const service=require(path.join(backend,'src/services/mysqlBackupService')).makeMySQLBackupService();
+    const outcome=await service.applyPending({...pipeConfig,database:recovery});
+    if(!outcome||outcome.restore_failed)throw Error('RESTORE_LOAD_FAILED');
+    const tables=async schema=>(await c.query('SELECT TABLE_NAME AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA=?',[schema]))[0].map(r=>r.n);
+    const current=await tables('veniux_local'),incoming=await tables(recovery);
+    if(!incoming.includes('users')||!incoming.includes('veniux_mysql_migrations'))throw Error('RESTORE_TARGET_INVALID');
+    const [triggers]=await c.query("SELECT TRIGGER_SCHEMA AS s,TRIGGER_NAME AS n FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA IN ('veniux_local',?)",[recovery]);
+    for(const tr of triggers)await c.query('DROP TRIGGER `'+tr.s+'`.`'+tr.n+'`');
+    await c.query('CREATE DATABASE `'+old+'` CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');
+    await c.query('RENAME TABLE '+[...current.map(n=>'`veniux_local`.`'+n+'` TO `'+old+'`.`'+n+'`'),...incoming.map(n=>'`'+recovery+'`.`'+n+'` TO `veniux_local`.`'+n+'`')].join(','));
+    swapped=true;
+    await c.query('USE `veniux_local`');
+    const {triggerDDL}=require(path.join(backend,'src/database/mysqlMigrator'));
+    for(const trigger of manifest.triggers)await c.query(triggerDDL(trigger));
+    if((await new MySQLMigrator(c).status()).status!=='current')throw Error('RESTORE_SCHEMA_INVALID');
+    await c.query('DROP DATABASE `'+recovery+'`');
+    if(outcome.candidate_files&&fs.existsSync(outcome.candidate_files)){const target=path.join(require(path.join(backend,'src/config/runtimeConfig')).paths().storage,'medicine-images');fs.mkdirSync(target,{recursive:true});for(const name of fs.readdirSync(outcome.candidate_files))fs.copyFileSync(path.join(outcome.candidate_files,name),path.join(target,name));}
+    save(result,{status:'done',at:new Date().toISOString(),previous_database:old,safety_backup:path.basename(safety)});
+  }catch(error){
+    // Yer değiştirme yapıldıysa geri çevrilir; yapılmadıysa çalışan veri hiç değişmemiştir.
+    if(swapped&&c)try{
+      const [back]=await c.query('SELECT TABLE_NAME AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA=?',[old]),[now]=await c.query("SELECT TABLE_NAME AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA='veniux_local'");
+      const [trs]=await c.query("SELECT TRIGGER_NAME AS n FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA='veniux_local'");for(const tr of trs)await c.query('DROP TRIGGER `veniux_local`.`'+tr.n+'`');
+      await c.query('RENAME TABLE '+[...now.map(r=>'`veniux_local`.`'+r.n+'` TO `'+recovery+'`.`'+r.n+'`'),...back.map(r=>'`'+old+'`.`'+r.n+'` TO `veniux_local`.`'+r.n+'`')].join(','));
+      await c.query('USE `veniux_local`');const {triggerDDL}=require(path.join(backend,'src/database/mysqlMigrator'));for(const trigger of manifest.triggers)await c.query(triggerDDL(trigger));
+    }catch{save(result,{status:'failed_needs_support',at:new Date().toISOString(),code:'RESTORE_ROLLBACK_FAILED',safety_backup:safety&&path.basename(safety)});throw Error('RESTORE_ROLLBACK_FAILED');}
+    if(c&&!swapped)await c.query('DROP DATABASE IF EXISTS `'+recovery+'`').catch(()=>{});
+    fs.rmSync(path.join(data,'pending-restore.json'),{force:true});
+    save(result,{status:'failed',at:new Date().toISOString(),code:/^[A-Z_]+$/.test(error.message)?error.message:'RESTORE_FAILED',safety_backup:safety&&path.basename(safety)});
+  }finally{await c?.end().catch(()=>{});}
 }
 function stop(){databaseProcess?.kill();}
 async function shutdown(){

@@ -41,6 +41,11 @@ function makeMySQLBackupService(options={}){
    if(!Buffer.isBuffer(buffer)||buffer.length<29||buffer.length>128*1024*1024)fail('Geçerli bir yedek kopyası seçin.');
    let payload;try{payload=unpack(decrypt(buffer,Buffer.from(hex,'hex')));}catch(e){if(e.status&&!/doğrulanamadı/.test(e.message))throw e;fail('Kurtarma kodu bu yedekle eşleşmiyor veya dosya bozuk.');}
    return prepare(user,null,null,payload);}
+  // Açılışta yerel sunucu çağırır: bekleyen geri yüklemeyi verilen boş hedefe uygular. Çalışan veritabanına dokunmaz.
+  async function applyPending(target){
+   const file=path.join(process.env.VENIUX_DATA_DIR||'','pending-restore.json');const pending=JSON.parse(fs.readFileSync(file,'utf8'));fs.rmSync(file,{force:true});
+   if(!/^[a-f0-9-]{36}$/.test(pending.token||'')||!fs.existsSync(path.join(root,pending.token+'.stage')))fail('Hazırlanan geri yükleme dosyası bulunamadı.',409);
+   return restoreInto(pending.user,pending.token,target);}
   function recoveryCode(user){assertAdmin(user);return {code:init().toString('hex').toUpperCase().match(/.{8}/g).join('-')};}
  async function audit(c,user,action,details){let tenant=user.tenantId;if(!tenant){const [rows]=user.userId?await c.query('SELECT tenant_id FROM users WHERE id=?',[user.userId]):await c.query('SELECT u.tenant_id FROM users u JOIN platform_admins p ON p.user_id=u.id ORDER BY u.id LIMIT 1');tenant=rows[0]?.tenant_id;}if(!tenant)fail('Sistem yedeği denetimi için platform yöneticisinin firması bulunamadı.',409);await c.query('INSERT INTO audit_logs(tenant_id,user_email,action,entity_type,details) VALUES(?,?,?,?,?)',[tenant,user.email||'system',action,'system_backup',JSON.stringify({user_id:user.userId||null,...details})]);}
  async function createRaw(c,user,kind){
@@ -54,10 +59,20 @@ function makeMySQLBackupService(options={}){
  async function prepare(user,buffer,id,decoded){assertAdmin(user);return operation(async()=>{const payload=decoded||(id?saved(id):unpack(buffer));if(!id&&!decoded&&payload.mode!=='portable')fail('Yalnız sırları çıkarılmış indirilebilir yedek yükleyin.');const token=crypto.randomUUID();fs.writeFileSync(path.join(root,token+'.stage'),encrypt(pack(payload)),{mode:0o600});prepared.set(token,{user:user.userId,expires:Date.now()+600000});return {token,manifest:{engine:'mysql',mode:payload.mode,created_at:payload.database.created_at,app_version:payload.app_version,schema_versions:[require('../database/mysqlMigrator').manifest.version]},file_count:payload.files.length,confirmation:'TÜM VERİLERİ GERİ YÜKLE',warning:'MySQL geri yükleme ayrı boş kurtarma veritabanında hazırlanır. Çalışan veritabanı değiştirilmez; devreye alma ayrıca doğrulanır.'};});}
  async function restore(user,body,req){
   assertAdmin(user);if(body.confirmation!=='TÜM VERİLERİ GERİ YÜKLE')fail('Açık geri yükleme onayı gerekli.');const entry=prepared.get(body.token);if(!entry||entry.user!==user.userId||entry.expires<Date.now())fail('Yedeği bu kullanıcıyla yeniden doğrulayın.',409);
+  if(process.env.VENIUX_DESKTOP_RESTORE==='1'&&process.env.VENIUX_DATA_DIR){
+   // Masaüstü: çalışan veritabanı API açıkken değiştirilmez. Program yeniden açılınca yerel sunucu yönetici bağlantısıyla uygular.
+   const pending=path.join(process.env.VENIUX_DATA_DIR,'pending-restore.json');
+   fs.writeFileSync(pending+'.tmp',JSON.stringify({token:body.token,user:{userId:user.userId,email:user.email,tenantId:user.tenantId,isPlatformAdmin:true},at:new Date().toISOString()}),{mode:0o600});fs.renameSync(pending+'.tmp',pending);
+   prepared.delete(body.token);
+   return {message:'Geri yükleme hazır. Programı kapatıp yeniden açın: açılışta önce bugünkü veriler yedeklenir, sonra seçtiğiniz yedek devreye alınır. Sorun olursa program bugünkü verilerle açılır.',requires_restart:true,requires_login:false};
+  }
   const target=options.recoveryConfig||{host:process.env.MYSQL_RECOVERY_HOST||process.env.DB_HOST,port:Number(process.env.MYSQL_RECOVERY_PORT||process.env.DB_PORT||3306),user:process.env.MYSQL_RECOVERY_USER,password:process.env.MYSQL_RECOVERY_PASSWORD,database:process.env.MYSQL_RECOVERY_DB,dateStrings:true,decimalNumbers:false};
   if(!target.user||!target.database||target.database===process.env.DB_NAME||!/^veniux_(recovery|test)_[A-Za-z0-9_]+$/.test(target.database))fail('Ayrı boş MYSQL_RECOVERY_DB ve sınırlı kurtarma hesabı gerekli.',409);
+  return restoreInto(user,body.token,target,req);
+ }
+ async function restoreInto(user,token,target,req){
   const outcome=await operation(()=>maintenance.withBarrier(req,()=>db.exclusiveMaintenance(async source=>{
-   const payload=unpack(decrypt(fs.readFileSync(path.join(root,body.token+'.stage')))),safety=await createRaw(source,user,'pre-restore');let c;
+   const payload=unpack(decrypt(fs.readFileSync(path.join(root,token+'.stage')))),safety=await createRaw(source,user,'pre-restore');let c;
    try{
     const [currentUsers]=await source.query('SELECT id,tenant_id,email,password_hash,session_version FROM users'),[currentLicenses]=await source.query('SELECT id,tenant_id,license_key FROM licenses');
     const users=payload.database.tables.find(t=>t.name==='users');for(const row of users.rows){const index=k=>users.columns.indexOf(k),old=currentUsers.find(v=>String(v.id)===String(row[index('id')])&&String(v.tenant_id)===String(row[index('tenant_id')])&&v.email===row[index('email')]);if(payload.mode==='portable'){if(old)row[index('password_hash')]=old.password_hash;else {row[index('password_hash')]='[DISABLED]';row[index('status')]='disabled';}}row[index('session_version')]=Math.max(Number(row[index('session_version')]),Number(old?.session_version||0))+1;}
@@ -66,16 +81,16 @@ function makeMySQLBackupService(options={}){
     c=await mysql.createConnection({...target,dateStrings:true,decimalNumbers:false,supportBigNumbers:true,bigNumberStrings:false,timezone:'Z'});await transfer.restoreEmptyTarget(c,payload.database,{beforeCommit:async connection=>{await options.beforeRestoreCommit?.(connection);fs.mkdirSync(candidate,{mode:0o700});for(const f of payload.files)fs.writeFileSync(path.join(candidate,path.basename(f.name)),Buffer.from(f.data,'base64'),{mode:0o600});}});
     // The live schema/files are never replaced with non-transactional DDL.
     // Failed candidates remain quarantined; the safety copy stays available.
-    await audit(source,user,'backup.restore',{status:'prepared',target_database:target.database,safety_backup_id:safety.id});prepared.delete(body.token);fs.rmSync(path.join(root,body.token+'.stage'),{force:true});return {message:'MySQL yedeği ayrı veritabanında doğrulandı. Mevcut veritabanı ve dosyalar korundu. Devreye almadan önce ayrı API kabul testini tamamlayın.',activated:false,target_database:target.database,candidate_files:candidate,safety_backup_id:safety.id,requires_login:false};
+    await audit(source,user,'backup.restore',{status:'prepared',target_database:target.database,safety_backup_id:safety.id});prepared.delete(token);fs.rmSync(path.join(root,token+'.stage'),{force:true});return {message:'MySQL yedeği ayrı veritabanında doğrulandı. Mevcut veritabanı ve dosyalar korundu. Devreye almadan önce ayrı API kabul testini tamamlayın.',activated:false,target_database:target.database,candidate_files:candidate,safety_backup_id:safety.id,requires_login:false};
    }catch(e){await audit(source,user,'backup.restore',{status:'failed',live_database_preserved:true,safety_backup_id:safety.id});return {restore_failed:true};}finally{await c?.end();}
   })));
   if(outcome.restore_failed)throw Object.assign(Error('MySQL geri yükleme tamamlanmadı. Çalışan veritabanı ve güvenlik yedeği korundu; hedefi kullanmayın.'),{status:409});return outcome;
  }
  async function configure(user,value){assertAdmin(user);const next=policy(value);write('settings.json',next);return next;}
- function summary(){return {config:config(),history:history(),storage_path:root,files:['medicine-images'],busy,engine:'mysql',portable_notice:'İndirilebilir yedekte şifreler, lisans ve servis sırları bulunmaz. MySQL geri yükleme ayrı boş hedefte hazırlanır.',automatic_runs_when:'API çalışırken.',warning:'Yedeği ayrı güvenli diskte saklayın.'};}
+ function summary(){let lastRestore=null;try{lastRestore=JSON.parse(fs.readFileSync(path.join(process.env.VENIUX_DATA_DIR||'','restore-result.json'),'utf8'));}catch{}return {last_restore:lastRestore,config:config(),history:history(),storage_path:root,files:['medicine-images'],busy,engine:'mysql',portable_notice:'İndirilebilir yedekte şifreler, lisans ve servis sırları bulunmaz. MySQL geri yükleme ayrı boş hedefte hazırlanır.',automatic_runs_when:'API çalışırken.',warning:'Yedeği ayrı güvenli diskte saklayın.'};}
  async function tick(now=Date.now()){if(busy||db.isMaintenance?.())return;const value=config();if(!value.enabled||Date.parse(value.last_attempt_at||0)+value.intervalHours*3600000>now)return;write('settings.json',{...value,last_attempt_at:new Date(now).toISOString()});await create({isPlatformAdmin:true,email:'system'},'automatic');}
  function startScheduler(){if(timer)return;init();const run=()=>tick().catch(error=>console.error('[Yedek] Otomatik yedek alınamadı:',error.message));run();timer=setInterval(run,60000);timer.unref();}
  async function recoverInterruptedRestore(){await db.ready;init();for(const name of fs.readdirSync(root))if(/^[a-f0-9-]{36}\.stage(?:-meta)?$/.test(name))fs.rmSync(path.join(root,name),{force:true});}
- return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy};
+ return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending};
 }
 module.exports={makeMySQLBackupService};
