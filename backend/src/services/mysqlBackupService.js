@@ -1,7 +1,17 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),zlib=require('zlib'),mysql=require('mysql2/promise');
 const transfer=require('../database/dataTransfer'),privacy=require('./backupPrivacy'),maintenance=require('../middlewares/backupMaintenance');
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
-const defaults={enabled:true,intervalHours:24,retentionDays:30,maxCount:10,copyDir:''},STALE_HOURS=48,MAGIC=Buffer.from('VNXMYSQL1\n');
+const defaults={enabled:true,intervalHours:24,retentionDays:30,maxCount:10,copyDir:'',tiered:true},TIERS={daily:7,weekly:4,monthly:12},STALE_HOURS=48,MAGIC=Buffer.from('VNXMYSQL1\n');
+// Katmanlı saklama: en yeni yedek + son 7 günün her günü, son 4 haftanın her haftası, son 12 ayın her ayı için en yeni yedek.
+// Takvim yerel saate göre değil UTC'ye göre hesaplanır; sınır günlerinde bir yedek fazla kalabilir, eksik kalmaz.
+function tieredKeep(good,now=Date.now()){
+ const keep=new Set(),sorted=[...good].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at));if(sorted[0])keep.add(sorted[0].id);
+ const pick=(span,days,bucket)=>{const seen=new Set();for(const row of sorted){const at=Date.parse(row.created_at);if(now-at>span*days*86400000)continue;const key=bucket(new Date(at));if(seen.has(key))continue;seen.add(key);keep.add(row.id);}};
+ pick(TIERS.daily,1,d=>d.toISOString().slice(0,10));
+ pick(TIERS.weekly,7,d=>Math.floor((d.getTime()/86400000+3)/7));
+ pick(TIERS.monthly,31,d=>d.toISOString().slice(0,7));
+ return keep;
+}
 function makeMySQLBackupService(options={}){
  const db=options.pool||require('../config/database'),root=path.resolve(options.root||path.join(require('../config/runtimeConfig').paths().storage,'backups','mysql'));
  const filesRoot=path.resolve(options.filesRoot||path.join(process.env.MEDICINE_STORAGE_DIR||require('../config/runtimeConfig').paths().storage,'medicine-images'));
@@ -11,7 +21,7 @@ function makeMySQLBackupService(options={}){
  const read=(name,fallback)=>{try{return JSON.parse(fs.readFileSync(path.join(root,name),'utf8'));}catch(e){if(e.code==='ENOENT')return fallback;throw e;}};
  function write(name,value){init();const target=path.join(root,name);fs.writeFileSync(target+'.tmp',JSON.stringify(value),{mode:0o600});fs.renameSync(target+'.tmp',target);}
  const config=()=>({...defaults,...read('settings.json',{})}),history=()=>read('history.json',[]);
- function policy(value){if(!value||typeof value.enabled!=='boolean'||!Number.isInteger(value.intervalHours)||value.intervalHours<1||value.intervalHours>168||!Number.isInteger(value.retentionDays)||value.retentionDays<1||value.retentionDays>3650||!Number.isInteger(value.maxCount)||value.maxCount<2||value.maxCount>100)fail('Yedekleme aralığı ve saklama sınırları geçersiz.');const copyDir=value.copyDir===undefined?'':value.copyDir;if(typeof copyDir!=='string'||copyDir.length>500||(copyDir&&!path.isAbsolute(copyDir)))fail('İkinci yedek konumu tam bir klasör yolu olmalı.');if(copyDir&&(path.resolve(copyDir)+path.sep).toLowerCase().startsWith((root+path.sep).toLowerCase()))fail('İkinci konum ana yedek klasörünün içinde olamaz.');return {...Object.fromEntries(Object.keys(defaults).map(k=>[k,value[k]])),copyDir};}
+ function policy(value){if(!value||typeof value.enabled!=='boolean'||!Number.isInteger(value.intervalHours)||value.intervalHours<1||value.intervalHours>168||!Number.isInteger(value.retentionDays)||value.retentionDays<1||value.retentionDays>3650||!Number.isInteger(value.maxCount)||value.maxCount<2||value.maxCount>100)fail('Yedekleme aralığı ve saklama sınırları geçersiz.');const copyDir=value.copyDir===undefined?'':value.copyDir;if(typeof copyDir!=='string'||copyDir.length>500||(copyDir&&!path.isAbsolute(copyDir)))fail('İkinci yedek konumu tam bir klasör yolu olmalı.');if(copyDir&&(path.resolve(copyDir)+path.sep).toLowerCase().startsWith((root+path.sep).toLowerCase()))fail('İkinci konum ana yedek klasörünün içinde olamaz.');if(value.tiered!==undefined&&typeof value.tiered!=='boolean')fail('Saklama türü geçersiz.');return {...Object.fromEntries(Object.keys(defaults).map(k=>[k,value[k]])),copyDir,tiered:value.tiered!==false};}
  const pack=payload=>Buffer.concat([MAGIC,zlib.gzipSync(Buffer.from(JSON.stringify(payload)))]);
  function unpack(buffer){if(!Buffer.isBuffer(buffer)||buffer.length>128*1024*1024||!buffer.subarray(0,MAGIC.length).equals(MAGIC))fail('Geçerli MySQL yedeği seçin.');let payload;try{payload=JSON.parse(zlib.gunzipSync(buffer.subarray(MAGIC.length),{maxOutputLength:512*1024*1024}));}catch{fail('MySQL yedeği bozuk veya çok büyük.');}validate(payload);return payload;}
  function encrypt(buffer){const iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',init(),iv);return Buffer.concat([iv,cipher.update(buffer),cipher.final(),cipher.getAuthTag()]);}
@@ -26,7 +36,7 @@ function makeMySQLBackupService(options={}){
    try{if(!fs.statSync(dir).isDirectory())throw Error();const target=path.join(dir,copyName(id));fs.writeFileSync(target+'.tmp',buffer);fs.renameSync(target+'.tmp',target);
     if(!crypto.timingSafeEqual(crypto.createHash('sha256').update(fs.readFileSync(target)).digest(),crypto.createHash('sha256').update(buffer).digest()))throw Error();return {copy:{status:'ok',at:new Date().toISOString()}};}
    catch{return {copy:{status:'failed',error:'İkinci konuma yazılamadı. Disk takılı mı ve klasöre yazılabiliyor mu kontrol edin.'}};}}
-  function prune(){const setting=config(),rows=history(),good=rows.filter(r=>r.status==='healthy');for(const [i,row]of good.entries())if(i>0&&(i>=setting.maxCount||Date.parse(row.created_at)<Date.now()-setting.retentionDays*86400000)){fs.rmSync(path.join(root,row.id+'.vnxsecure'),{force:true});if(setting.copyDir)try{fs.rmSync(path.join(setting.copyDir,copyName(row.id)),{force:true});}catch{}row.status='pruned';}write('history.json',rows);}
+  function prune(){const setting=config(),rows=history(),good=rows.filter(r=>r.status==='healthy'),keep=setting.tiered===false?null:tieredKeep(good);for(const [i,row]of good.entries())if(i>0&&(keep?!keep.has(row.id):(i>=setting.maxCount||Date.parse(row.created_at)<Date.now()-setting.retentionDays*86400000))){fs.rmSync(path.join(root,row.id+'.vnxsecure'),{force:true});if(setting.copyDir)try{fs.rmSync(path.join(setting.copyDir,copyName(row.id)),{force:true});}catch{}row.status='pruned';}write('history.json',rows);}
   // Yöneticiye gösterilecek durum. Ayrıntılı yol veya dosya bilgisi içermez.
   function health(now=Date.now()){const setting=config(),rows=history(),last=rows[0],good=rows.find(r=>r.status==='healthy'),messages=[];let level='ok';const raise=(to,text)=>{messages.push(text);if(to==='error'||level==='ok')level=to;};
    if(!setting.enabled)raise('error','Otomatik yedekleme kapalı.');
@@ -99,4 +109,4 @@ function makeMySQLBackupService(options={}){
  async function recoverInterruptedRestore(){await db.ready;init();for(const name of fs.readdirSync(root))if(/^[a-f0-9-]{36}\.stage(?:-meta)?$/.test(name))fs.rmSync(path.join(root,name),{force:true});}
  return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending,latestPayload};
 }
-module.exports={makeMySQLBackupService};
+module.exports={makeMySQLBackupService,tieredKeep,TIERS};
