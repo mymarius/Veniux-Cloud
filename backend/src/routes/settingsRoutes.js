@@ -109,7 +109,9 @@ router.post('/users/:id/mfa-reset',requireRole('admin'),(...a)=>companyAdmin(...
  if(!req.user.isPlatformAdmin&&(await db.query('SELECT user_id FROM platform_admins WHERE user_id=$1',[target.id])).rows.length)return res.status(403).json({error:'Platform yöneticisi hesabı değiştirilemez.'});
  res.json({reset:await require('../services/mfaService').reset({...target,actor_email:req.user.email})});
 }catch(e){next(e);}});
-router.put('/users/:id', requireRole('admin'), companyAdmin, settingsController.updateUser);
+// Pasif hesabı yeniden açmak yeni bir koltuk kullanır: paket kullanıcı sınırı burada da denetlenir.
+const reactivationSeat=async(req,res,next)=>{try{if(req.body?.status!=='active')return next();const row=(await require('../config/database').query('SELECT status FROM users WHERE id=$1 AND tenant_id=$2',[req.params.id,req.user.tenantId])).rows[0];if(!row||(row.status||'active')==='active')return next();return require('../middlewares/licenseMiddleware')('users')(req,res,next);}catch(e){next(e);}};
+router.put('/users/:id', requireRole('admin'), companyAdmin, reactivationSeat, settingsController.updateUser);
 router.delete('/users/:id', requireRole('admin'), companyAdmin, settingsController.deleteUser);
 
 // 4. Roles

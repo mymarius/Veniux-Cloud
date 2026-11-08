@@ -21,7 +21,7 @@ async function movement(user,id,body,key){manager(user);if(!['collection','adjus
  if(signed>0&&b+signed>Number(a.limit_cents))fail('Borç limiti aşılıyor.',409);
  const entry=await append(tx,user,{account_id:a.id,kind:body.kind,amount_cents:signed,shift_id:shift?.id||null,reason:body.reason.trim()});return {entry_id:entry,balance_cents:b+signed};
  });});}
-function overdueAmount(entries,date){
+function openDebts(entries){
  const debts=entries.filter(e=>e.amount_cents>0).map(e=>({...e,remaining:Number(e.amount_cents)}));let credit=0;
  for(const e of entries.filter(e=>e.amount_cents<0)){
   if(e.kind==='refund'&&e.sale_id){let left=-e.amount_cents;for(const d of debts.filter(d=>d.sale_id===e.sale_id)){const used=Math.min(left,d.remaining);d.remaining-=used;left-=used;}credit+=left;}
@@ -31,6 +31,19 @@ function overdueAmount(entries,date){
  // not merely the presence of an old sale in the historical statement.
  debts.sort((a,b)=>String(a.due_date||'9999').localeCompare(String(b.due_date||'9999')));
  for(const d of debts){const used=Math.min(credit,d.remaining);d.remaining-=used;credit-=used;}
- return debts.filter(d=>d.due_date&&d.due_date<date).reduce((sum,d)=>sum+d.remaining,0);
+ return debts.filter(d=>d.remaining>0);
 }
-module.exports={list,create,statement,movement,charge,append,overdueAmount};
+function overdueAmount(entries,date){return openDebts(entries).filter(d=>d.due_date&&d.due_date<date).reduce((sum,d)=>sum+d.remaining,0);}
+// Vade hatırlatması: vadesi geçmiş ve önümüzdeki günlerde dolacak ödenmemiş borçlar, hesap başına.
+const addDays=(date,n)=>new Date(Date.parse(date+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+async function reminders(user,query={}){manager(user);const days=Math.min(30,Math.max(0,Number.isInteger(Number(query.days))?Number(query.days):3));const date=daily.businessDate(),until=addDays(date,days);
+ const entries=(await db.query('SELECT e.account_id,e.sale_id,e.kind,e.amount_cents,e.due_date FROM retail_credit_entries e WHERE e.tenant_id=$1 ORDER BY e.account_id,e.sequence',[user.tenantId])).rows;
+ const byAccount=new Map();for(const e of entries){if(!byAccount.has(e.account_id))byAccount.set(e.account_id,[]);byAccount.get(e.account_id).push({...e,amount_cents:Number(e.amount_cents)});}
+ const names=new Map((await db.query('SELECT id,name FROM retail_credit_accounts WHERE tenant_id=$1',[user.tenantId])).rows.map(a=>[Number(a.id),a.name]));
+ const accounts=[];
+ for(const[id,list]of byAccount){const open=openDebts(list).filter(d=>d.due_date&&d.due_date<=until);if(!open.length)continue;
+  const overdue=open.filter(d=>d.due_date<date),soon=open.filter(d=>d.due_date>=date);
+  accounts.push({account_id:Number(id),name:names.get(Number(id))||null,overdue_cents:overdue.reduce((t,d)=>t+d.remaining,0),due_soon_cents:soon.reduce((t,d)=>t+d.remaining,0),oldest_due_date:open.map(d=>d.due_date).sort()[0]});}
+ accounts.sort((a,b)=>a.oldest_due_date.localeCompare(b.oldest_due_date));
+ return{date,until,accounts,total_overdue_cents:accounts.reduce((t,a)=>t+a.overdue_cents,0),total_due_soon_cents:accounts.reduce((t,a)=>t+a.due_soon_cents,0)};}
+module.exports={list,create,statement,movement,charge,append,overdueAmount,reminders};

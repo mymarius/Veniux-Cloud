@@ -17,9 +17,9 @@ router.get('/devices', terminalController.getRegisteredDevices);
 router.post('/scan', terminalController.resolveScan);
 
 // 3. Terminal Warehouse Operations
-router.post('/operations/inbound', requireRole('admin', 'manager'), terminalController.fastInbound);
-router.post('/operations/outbound', requireRole('admin', 'manager'), terminalController.fastOutbound);
-router.post('/operations/relocate', requireRole('admin', 'manager'), terminalController.relocateStock);
-router.post('/operations/count', requireRole('admin', 'manager'), terminalController.cycleCount);
+router.post('/operations/inbound', requireRole('admin', 'manager', 'warehouse_lead'), terminalController.fastInbound);
+router.post('/operations/outbound', requireRole('admin', 'manager', 'warehouse_lead'), terminalController.fastOutbound);
+router.post('/operations/relocate', requireRole('admin', 'manager', 'warehouse_lead'), terminalController.relocateStock);
+router.post('/operations/count', requireRole('admin', 'manager', 'warehouse_lead'), terminalController.cycleCount);
 
 module.exports = router;

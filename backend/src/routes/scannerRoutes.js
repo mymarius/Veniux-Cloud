@@ -12,6 +12,7 @@ router.get('/pro/products/:id/image',requireRole('admin','manager','cashier'),as
 router.put('/pro/products/:id/media',requireRole('admin','manager'),action(req=>pro.media(req.user,req.params.id,req.body)));
 router.get('/pro/accounts',requireRole('admin','manager'),action(req=>credit.list(req.user)));
 router.post('/pro/accounts',requireRole('admin','manager'),action(req=>credit.create(req.user,req.body,req.get('Idempotency-Key'))));
+router.get('/pro/accounts/reminders',requireRole('admin','manager'),action(req=>credit.reminders(req.user,req.query||{})));
 router.get('/pro/accounts/:id',requireRole('admin','manager'),action(req=>credit.statement(req.user,req.params.id)));
 router.post('/pro/accounts/:id/movements',requireRole('admin','manager'),action(req=>credit.movement(req.user,req.params.id,req.body,req.get('Idempotency-Key'))));
 router.get('/pro/hardware',requireRole('admin','manager','cashier'),action(()=>external.capabilities()));

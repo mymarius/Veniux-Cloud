@@ -20,7 +20,7 @@ router.get('/inventory/transfer-options',async(req,res,next)=>{try{res.json(awai
 router.get('/locations', warehouseLocationController.getLocations);
 router.get('/locations/:id', warehouseLocationController.getLocationById);
 router.post('/locations/generate-grid', requireRole('admin', 'manager'), warehouseLocationController.generateAisleGrid);
-router.post('/locations/relocate', requireRole('admin', 'manager'), warehouseLocationController.relocateStock);
+router.post('/locations/relocate', requireRole('admin', 'manager', 'warehouse_lead'), warehouseLocationController.relocateStock);
 router.put('/locations/:id/lock', requireRole('admin', 'manager'), warehouseLocationController.toggleLock);
 
 // --- 2. Inventory Ledger & Unified Barcode Resolver ---
@@ -37,21 +37,21 @@ router.delete('/reservations/:id', requireRole('admin', 'manager'), inventoryRes
 // --- 4. Inbound & Putaway ---
 router.get('/inbound/receipts', wmsInboundController.getReceipts);
 router.get('/inbound/receipts/:id', wmsInboundController.getReceiptById);
-router.post('/inbound/receipts', requireRole('admin', 'manager'), wmsInboundController.createReceipt);
-router.post('/inbound/putaway', requireRole('admin', 'manager'), wmsInboundController.completePutaway);
+router.post('/inbound/receipts', requireRole('admin', 'manager', 'warehouse_lead'), wmsInboundController.createReceipt);
+router.post('/inbound/putaway', requireRole('admin', 'manager', 'warehouse_lead'), wmsInboundController.completePutaway);
 
 // --- 5. Wave & Batch Picking ---
 router.get('/picking/waves', wmsPickingController.getWaves);
 router.get('/picking/waves/:id', wmsPickingController.getWaveById);
-router.post('/picking/waves', requireRole('admin', 'manager'), wmsPickingController.createWave);
-router.post('/picking/confirm-item', requireRole('admin', 'manager'), wmsPickingController.confirmPickItem);
+router.post('/picking/waves', requireRole('admin', 'manager', 'warehouse_lead'), wmsPickingController.createWave);
+router.post('/picking/confirm-item', requireRole('admin', 'manager', 'warehouse_lead'), wmsPickingController.confirmPickItem);
 
 // --- 6. Packing, Handling Units & Dock Appointments ---
 router.get('/packing/handling-units', wmsPackingController.getHandlingUnits);
-router.post('/packing/handling-units', requireRole('admin', 'manager'), wmsPackingController.createHandlingUnit);
-router.post('/packing/dispatch', requireRole('admin', 'manager'), wmsPackingController.dispatchShipment);
+router.post('/packing/handling-units', requireRole('admin', 'manager', 'warehouse_lead'), wmsPackingController.createHandlingUnit);
+router.post('/packing/dispatch', requireRole('admin', 'manager', 'warehouse_lead'), wmsPackingController.dispatchShipment);
 router.get('/packing/dock-appointments', wmsPackingController.getDockAppointments);
-router.post('/packing/dock-appointments', requireRole('admin', 'manager'), wmsPackingController.createDockAppointment);
+router.post('/packing/dock-appointments', requireRole('admin', 'manager', 'warehouse_lead'), wmsPackingController.createDockAppointment);
 
 // --- 7. ABC Slotting & Replenishment Analytics ---
 router.get('/slotting/abc', wmsSlottingController.getABCAnalysis);

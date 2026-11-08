@@ -250,7 +250,7 @@ const createUser = async (req, res) => {
     await ensureSettingsSchema();
     const tenantId = req.user.tenantId;
     const { email, password, role = 'viewer', fullName, phone } = req.body;
-    if (!['admin','manager','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
+    if (!['admin','manager','warehouse_lead','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
 
     if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length>254 || typeof password!=='string' || password.length<8 || Buffer.byteLength(password)>72) {
       return res.status(400).json({ error: 'Geçerli e-posta ve en az 8 karakter, en fazla 72 bayt şifre gereklidir.' });
@@ -284,7 +284,7 @@ const updateUser = async (req, res) => {
     const { id } = req.params;
     const { role, status, fullName, phone, newPassword } = req.body;
     const tenantId = req.user.tenantId;
-    if (role !== undefined && !['admin','manager','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
+    if (role !== undefined && !['admin','manager','warehouse_lead','viewer','cashier','operator','pharmacist'].includes(role)) return res.status(400).json({error:'Geçersiz kullanıcı rolü.'});
     if (status !== undefined && !['active','inactive','suspended'].includes(status)) return res.status(400).json({error:'Geçersiz hesap durumu.'});
     if (Number(id) === req.user.userId && ((role && role !== 'admin') || (status && status !== 'active'))) return res.status(400).json({error:'Kendi yönetici erişiminizi kapatamazsınız.'});
 

@@ -16,6 +16,9 @@ const checkEntitlement = require('../middlewares/licenseMiddleware');
 // GET /api/warehouses - Get all warehouses
 router.get('/', getAllWarehouses);
 
+// GET /api/warehouses/branch-report - Şubeler arası stok ve satış (yalnız yönetici ve müdür)
+router.get('/branch-report', requireRole('admin', 'manager'), async (req, res, next) => { try { res.json(await require('../services/branchReportService').report(req.user, req.query || {})); } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); } });
+
 // GET /api/warehouses/:id - Get warehouse by ID
 router.get('/:id', getWarehouseById);
 

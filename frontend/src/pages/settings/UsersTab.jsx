@@ -156,6 +156,7 @@ export default function UsersTab({embedded=false}) {
             <option value="ALL">Tümü ({users.length})</option>
             <option value="admin">Yöneticiler (Admin)</option>
             <option value="manager">Müdürler (Manager)</option>
+            <option value="warehouse_lead">Depo sorumluları</option>
             <option value="cashier">Kasiyer (Kasa)</option>
                   <option value="operator">Operatörler</option>
             <option value="pharmacist">Kayıt görevlileri</option>
@@ -313,7 +314,8 @@ export default function UsersTab({embedded=false}) {
                   className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
                 >
                   <option value="admin">Sistem Yöneticisi (Admin)</option>
-                  <option value="manager">Depo & Operasyon Müdürü (Manager)</option>
+                  <option value="manager">Müdür / Şube müdürü (Manager)</option>
+                  <option value="warehouse_lead">Depo sorumlusu</option>
                   <option value="cashier">Kasiyer (Kasa)</option>
                   <option value="operator">Depo operatörü (yalnızca görüntüleme)</option>
                   <option value="pharmacist">Kayıt görevlisi</option>
@@ -367,7 +369,8 @@ export default function UsersTab({embedded=false}) {
                   className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
                 >
                   <option value="admin">Sistem Yöneticisi (Admin)</option>
-                  <option value="manager">Depo & Operasyon Müdürü (Manager)</option>
+                  <option value="manager">Müdür / Şube müdürü (Manager)</option>
+                  <option value="warehouse_lead">Depo sorumlusu</option>
                   <option value="cashier">Kasiyer (Kasa)</option>
                   <option value="operator">Depo operatörü (yalnızca görüntüleme)</option>
                   <option value="pharmacist">Kayıt görevlisi</option>
