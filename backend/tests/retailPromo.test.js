@@ -101,3 +101,26 @@ test('raporlar: en çok satan, kasiyer, saat yoğunluğu ve ölü stok', async (
   expect((await as(cashier, request(app).get('/api/scanner/pro/insights'))).status).toBe(403);
   expect((await as(cashier, request(app).get('/api/stock/dead-stock'))).status).toBe(403);
 });
+
+test('paket: gelişmiş raporlar ve sadakat Start paketinde kapalı, eski Pro sözleşmesinde açık', async () => {
+  const packages = require('../src/services/productPackages');
+  const plan = code => packages.seed.plans.find(p => p.code === code);
+  const setContract = c => db.query('UPDATE licenses SET enabled_features_json=$1,plan_id=$2 WHERE tenant_id=$3', [JSON.stringify({ module_type: 'NORMAL', product_package: c }), c.code, owner.tenantId]);
+  await setContract(packages.contract(plan('RETAIL_START'), 0));
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/insights'))).status).toBe(403);
+  expect((await as(owner.token, request(app).get('/api/scanner/gross-profit'))).status).toBe(403);
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/loyalty/cards/K-1001'))).status).toBe(403);
+  expect((await sell([{ barcode: '000-TEA', count: 1 }], { loyalty_card: 'K-1001' })).status).toBe(403);
+  expect((await sell([{ barcode: '000-TEA', count: 1 }])).status).toBe(201);
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/campaigns'))).status).toBe(200);
+  expect((await as(owner.token, request(app).get('/api/stock/dead-stock'))).status).toBe(200);
+  // Modül eklenmeden önce satılmış Pro sözleşmesi: listede reports_pro yok ama hak korunur.
+  const legacy = packages.contract(plan('RETAIL_PRO'), 0);
+  legacy.modules = legacy.modules.filter(m => m !== 'reports_pro');
+  await setContract(legacy);
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/insights'))).status).toBe(200);
+  await setContract(packages.contract(plan('RETAIL_PRO'), 0));
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/insights'))).status).toBe(200);
+  expect(() => packages.validatePlan({ ...plan('WAREHOUSE_START'), modules: ['stock', 'wms', 'reports_pro'] })).toThrow();
+  await db.query("UPDATE licenses SET enabled_features_json='{}',plan_id='ENTERPRISE_ANNUAL' WHERE tenant_id=$1", [owner.tenantId]);
+});

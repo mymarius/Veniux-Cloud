@@ -91,6 +91,8 @@ async function redeemValue(tx, tenant, body, room) {
     if (body.loyalty_redeem) fail('Puan harcamak için kart okutun.');
     return { card: null, points: 0, cents: 0 };
   }
+  const contract = await require('./productPackages').rights(tenant, tx);
+  if (contract && !contract.blocked && !require('./productPackages').hasModule(contract, 'reports_pro')) fail('Sadakat kartı Pro ve üstü paketlerde bulunur.', 403);
   const c = await card(tx, tenant, body.loyalty_card);
   const points = body.loyalty_redeem === undefined ? 0 : Number(body.loyalty_redeem);
   if (!Number.isSafeInteger(points) || points < 0) fail('Harcanacak puan geçersiz.');

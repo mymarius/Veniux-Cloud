@@ -27,7 +27,8 @@
       "modules": [
         "stock",
         "pos",
-        "credit"
+        "credit",
+        "reports_pro"
       ],
       "limits": {
         "users": 15,
@@ -47,7 +48,8 @@
       "modules": [
         "stock",
         "pos",
-        "credit"
+        "credit",
+        "reports_pro"
       ],
       "limits": {
         "users": 50,
@@ -125,7 +127,8 @@
         "stock",
         "pos",
         "wms",
-        "credit"
+        "credit",
+        "reports_pro"
       ],
       "limits": {
         "users": 250,

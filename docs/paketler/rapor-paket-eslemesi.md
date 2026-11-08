@@ -1,17 +1,19 @@
 # Hangi rapor ve özellik hangi pakette
 
-## Şu an kodda uygulanan
-Paket kontrolü **modül** bazında yapılır (`stock`, `pos`, `wms`, `credit`).
+## Kodda uygulanan
+Paket kontrolü **modül** bazında yapılır: `stock`, `pos`, `wms`, `credit`, `reports_pro`.
 
-| Özellik | Modül | Açık olduğu paketler |
+| Özellik | Modül | Paketler |
 |---|---|---|
-| Gün sonu raporu, brüt kâr/zarar | pos | Retail Start, Pro, Business, Unified |
-| En çok satanlar, kasiyer bazlı satış, saat yoğunluğu | pos | Retail Start, Pro, Business, Unified |
-| Kampanyalar (X al Y öde, yüzde, tarih aralığı) | pos | Retail Start, Pro, Business, Unified |
-| Sadakat kartı ve puan | pos | Retail Start, Pro, Business, Unified |
+| Gün sonu raporu, kampanyalar, en çok satanlar | pos | Retail Start, Pro, Business, Unified |
+| Brüt kâr/zarar, kasiyer bazlı satış, saat yoğunluğu | reports_pro | Retail Pro, Business, Unified |
+| Sadakat kartı ve puan (kasada kart okutma dahil) | reports_pro | Retail Pro, Business, Unified |
 | Cari / veresiye, vade hatırlatması | credit | Retail Pro, Business, Unified |
-| Ölü stok | stock | Tüm paketler (depo paketleri dahil) |
-| Şube karşılaştırması (stok + satış) | stock | Tüm paketler; depo paketlerinde satış sütunu boş kalır |
+| Ölü stok, şube karşılaştırması | stock | Tüm paketler |
+
+**Uyarı:** En çok satanlar, kasiyer ve saat raporu şu an aynı ekranda ve aynı istekte geliyor. Bu yüzden en çok satanlar da `reports_pro` kapsamında; Start paketinde görünmüyor. Start'ta da açılmasını isterseniz ayrı bir isteğe bölünmesi gerekir.
+
+`reports_pro` modülü sonradan eklendi. Daha önce satılmış Retail Pro, Business ve Unified sözleşmelerinin modül listesinde bu ad yazmıyor, ama haklarını koruyorlar; kod adından tanınıyorlar. Platform yöneticisi paket kataloğunda bu modülü "Gelişmiş raporlar ve sadakat" kutusuyla açıp kapatabilir. Modül yalnız `pos` olan paketlere eklenebilir.
 
 ## Önerim (karar sizin)
 | Paket | Önerilen raporlar |
@@ -21,4 +23,4 @@ Paket kontrolü **modül** bazında yapılır (`stock`, `pos`, `wms`, `credit`).
 | Retail Business / Unified | Pro'nun tamamı (çok şubede şube karşılaştırması asıl değer) |
 | Warehouse paketleri | Ölü stok, şube (depo) stok karşılaştırması |
 
-Öneriyi uygulamak için katalogda yeni bir modül gerekir: örneğin `reports_pro`. Bunun için paket doğrulaması (`productPackages.js`) ve paket kataloğu değişmeli. Henüz yapılmadı; onay verirseniz eklenir. Önerinin gerekçesi: Start paketindeki küçük market en çok satanları ve ölü stoğu görür. Kâr, kasiyer ve saat analizi ise birden çok kasiyeri olan işletmelere değer katar ve üst pakete geçme sebebi olur.
+Bu öneri, en çok satanlar dışında yukarıdaki tabloyla uygulandı.
