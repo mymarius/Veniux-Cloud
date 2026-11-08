@@ -37,6 +37,7 @@ export default function NormalProducts() {
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [scaleCode, setScaleCode] = useState('');
   const [karekodModalOpen, setKarekodModalOpen] = useState(false);
   const [selectedBarcodeProduct, setSelectedBarcodeProduct] = useState(null);
 
@@ -92,6 +93,7 @@ export default function NormalProducts() {
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
+    setScaleCode('');
     setFormData({
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       name: '',
@@ -110,6 +112,8 @@ export default function NormalProducts() {
   const handleOpenEdit = (p, e) => {
     e.stopPropagation();
     setEditingProduct(p);
+    setScaleCode('');
+    apiClient.get(`/products/${p.id}/scale-code`).then(r => setScaleCode(r.data?.plu || '')).catch(() => {});
     setFormData({
       sku: p.sku || '',
       name: p.name || '',
@@ -130,9 +134,11 @@ export default function NormalProducts() {
     try {
       if (editingProduct) {
         await apiClient.put(`/products/${editingProduct.id}`, formData);
+        if (['kg', 'g', 'litre'].includes(formData.unit) || scaleCode) await apiClient.put(`/products/${editingProduct.id}/scale-code`, { plu: ['kg', 'g', 'litre'].includes(formData.unit) ? scaleCode : '' });
         showToast('Ürün güncellendi.', 'success');
       } else {
-        await apiClient.post('/products', formData);
+        const created = await apiClient.post('/products', formData);
+        if (scaleCode && ['kg', 'g', 'litre'].includes(formData.unit) && created.data?.id) await apiClient.put(`/products/${created.data.id}/scale-code`, { plu: scaleCode });
         showToast('Ürün oluşturuldu.', 'success');
       }
       setShowModal(false);
@@ -345,6 +351,8 @@ export default function NormalProducts() {
           <div className="grid grid-cols-2 gap-4">
             <Input label="Ürün kodu / SKU" required value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} />
             <Input label="Barkod / EAN" placeholder="Üretici barkodunu girin; yoksa boş bırakın" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} />
+            <label className="text-sm">Birim<select className="block w-full" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}>{[...new Set(['adet', 'kg', 'g', 'litre', 'paket', 'koli', formData.unit].filter(Boolean))].map(u => <option key={u} value={u}>{u}</option>)}</select></label>
+            {['kg', 'g', 'litre'].includes(formData.unit) && <Input label="Terazi kodu (PLU)" placeholder="Teraziye girilen ürün kodu, örn. 123" inputMode="numeric" value={scaleCode} onChange={(e) => setScaleCode(e.target.value)} />}
           </div>
           
           <Input label="Ürün adı" required placeholder="Örn. Termal etiket 100 × 150 mm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />

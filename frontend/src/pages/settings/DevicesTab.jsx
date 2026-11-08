@@ -1,4 +1,5 @@
 import DialogShell from '../../components/ui/DialogShell';
+import WeightedLabelSettings from '../../components/WeightedLabelSettings';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -215,6 +216,7 @@ export default function DevicesTab() {
             </form>
         </DialogShell>
       )}
+      <WeightedLabelSettings />
     </div>
   );
 }
