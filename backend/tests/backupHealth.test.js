@@ -57,3 +57,10 @@ test('kurtarma kodu yalnız platform yöneticisine ve anahtarı geri verir', () 
   expect(code).toMatch(/^([0-9A-F]{8}-){7}[0-9A-F]{8}$/);
   expect(Buffer.from(code.replaceAll('-', ''), 'hex')).toEqual(fs.readFileSync(path.join(root, 'local-key.bin')));
 });
+
+test('kopya yanlış kurtarma koduyla açılmaz', async () => {
+  const blob = Buffer.concat([require('crypto').randomBytes(12), Buffer.alloc(40), require('crypto').randomBytes(16)]);
+  await expect(service.prepareCopy(admin, blob, 'ABC')).rejects.toMatchObject({ status: 400 });
+  await expect(service.prepareCopy(admin, blob, 'A'.repeat(64))).rejects.toThrow('eşleşmiyor');
+  await expect(service.prepareCopy({ role: 'admin' }, blob, 'A'.repeat(64))).rejects.toMatchObject({ status: 403 });
+});
