@@ -29,6 +29,33 @@ class MySQLMigrator{
   if(!pending.length)await verifyStructure(c);
   return {status:pending.length?'pending':'current',version:rows.map(r=>r.version).sort().at(-1),applied:rows.length,expected:catalog.length,pending};
  }
+ // Kurulu masaüstü veritabanı için: yalnız yeni tablo ekleyen adımlar uygulanır, mevcut tablo ve tetikleyicilere dokunulmaz.
+ // Bekleyen adım mevcut bir tabloyu değiştiriyorsa hiçbir şey yapılmadan durur.
+ async upgradeAdditive(){
+  const c=this.connection;const [lock]=await c.query("SELECT GET_LOCK(CONCAT(DATABASE(),':veniux-migrate'),0) AS acquired");if(lock[0].acquired!==1)throw error('Başka bir migration sürüyor.');
+  try{
+   const state=await this.status();if(state.status==='current')return state;
+   if(!state.applied)throw error('Boş veritabanı ek yükseltmeyle kurulamaz.');
+   const steps=catalog.filter(v=>state.pending.includes(v.version));
+   for(const step of steps){const before=catalog[catalog.indexOf(step)-1];
+    if(!before||JSON.stringify(step.triggers)!==JSON.stringify(before.triggers)||before.tables.some(t=>JSON.stringify(step.tables.find(n=>n.name===t.name))!==JSON.stringify(t)))throw error('SCHEMA_UPGRADE_UNSUPPORTED');}
+   const [present]=await c.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
+   for(const step of steps){const before=catalog[catalog.indexOf(step)-1];
+    const added=step.tables.filter(t=>!before.tables.some(b=>b.name===t.name));
+    if(added.some(t=>present.some(p=>p.TABLE_NAME===t.name)))throw error('SCHEMA_UPGRADE_CONFLICT');
+    for(const t of added){
+     const definitions=t.columns.map(v=>v.definition);if(t.primary.length)definitions.push('PRIMARY KEY('+cols(t.primary)+')');
+     for(const ix of t.unique)definitions.push('UNIQUE KEY '+q(ix.name)+'('+cols(ix.columns)+')');
+     for(const ix of t.indexes)definitions.push('KEY '+q(ix.name)+'('+cols(ix.columns)+')');
+     for(const [i,check] of t.checks.entries())definitions.push('CONSTRAINT '+q('ck_'+t.name+'_'+i)+' CHECK('+check+')');
+     for(const fk of t.foreign)definitions.push('CONSTRAINT '+q(fk.name)+' FOREIGN KEY('+cols(fk.columns)+') REFERENCES '+q(fk.table)+'('+cols(fk.references)+') ON DELETE '+fk.onDelete+' ON UPDATE '+fk.onUpdate);
+     await c.query('CREATE TABLE '+q(t.name)+'('+definitions.join(',')+') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin');
+    }
+    await c.query("INSERT INTO veniux_mysql_migrations(version,state,applied_at,schema_spec) VALUES(?,'complete',CURRENT_TIMESTAMP,?)",[step.version,JSON.stringify(step)]);
+   }
+   return this.status();
+  }finally{await c.query("SELECT RELEASE_LOCK(CONCAT(DATABASE(),':veniux-migrate'))").catch(()=>{});}
+ }
  async migrate(options={}){
   const c=this.connection;const [lock]=await c.query("SELECT GET_LOCK(CONCAT(DATABASE(),':veniux-migrate'),0) AS acquired");if(lock[0].acquired!==1)throw error('Başka bir migration sürüyor.');
   try{

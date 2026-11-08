@@ -109,9 +109,9 @@ def backend_changed():
     return [name for name in changed if not name.endswith('config/release.json')]
 
 
-# Kurulu masaüstü programları MySQL şeması değişince açılmaz (SCHEMA_NOT_CURRENT). Yükseltme yolu gerçek kurulumda
-# denenmeden bu değer değiştirilmemeli.
-SHIPPABLE_MYSQL_SCHEMA = '005-marketplace'
+# Masaüstü yalnız yeni tablo ekleyen şema adımlarını kendisi uygular (local-server upgradeSchema). Yeni şema,
+# eski bir kurulumu yeni sürümle açarak denenmeden buraya yazılmamalı.
+SHIPPABLE_MYSQL_SCHEMA = '007-accounting-exports'
 
 
 def schema_guard():

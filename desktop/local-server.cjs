@@ -35,7 +35,10 @@ async function start() {
       save(configFile,{...config,status:'preparing'});
     }else if(config.status!=='ready')throw Error('INCOMPLETE_SETUP');
     const ini=path.join(data,'mysql-local.ini');
-    fs.writeFileSync(ini,`[mysqld]\nbasedir="${path.dirname(bin).replaceAll('\\','/')}"\ndatadir="${dbDirectory.replaceAll('\\','/')}"\nport=${port}\nbind-address=127.0.0.1\nskip-name-resolve\nlocal-infile=0\ncharacter-set-server=utf8mb4\ncollation-server=utf8mb4_bin\n`);
+    // Yönetici hesabı TCP'de kilitli; şema yükseltmesi gerekiyorsa yalnız o açılışta yerel named pipe açılır.
+    const deployment=fresh?null:JSON.parse(fs.readFileSync(path.join(data,'deployment.json'),'utf8'));
+    const upgradePipe=!fresh&&deployment.mysql_schema_spec!==JSON.stringify(manifest)?'veniux-upgrade-'+crypto.randomBytes(12).toString('hex'):null;
+    fs.writeFileSync(ini,`[mysqld]\nbasedir="${path.dirname(bin).replaceAll('\\','/')}"\ndatadir="${dbDirectory.replaceAll('\\','/')}"\nport=${port}\nbind-address=127.0.0.1\nskip-name-resolve\nlocal-infile=0\ncharacter-set-server=utf8mb4\ncollation-server=utf8mb4_bin\n${upgradePipe?`named-pipe=ON\nsocket=${upgradePipe}\n`:''}`);
     databaseProcess=spawn(path.join(bin,'mysqld.exe'),[`--defaults-file=${ini}`],{windowsHide:true,stdio:'ignore'});
     databaseProcess.on('error',()=>{});
     databaseProcess.on('exit',()=>{if(!stopping){process.send?.({ready:false,error:'Yerel veritabanı durdu. İşlemler kapatıldı; uygulamayı yeniden açın.'});process.exit(1);}});
@@ -63,6 +66,11 @@ async function start() {
         // Keep the trigger definer identity alive; prevent it from signing in.
         if(bootstrapHost!=='localhost')await c.query('ALTER USER ?@? ACCOUNT LOCK',[bootstrapUser,bootstrapHost]);
       }else {await c.query('USE `veniux_local`');}
+      if(!fresh&&(await new MySQLMigrator(c).status()).status!=='current'){
+        if(!upgradePipe)throw Error('SCHEMA_NOT_CURRENT');
+        await upgradeSchema(bin,config,upgradePipe);
+        save(path.join(data,'deployment.json'),{...deployment,mysql_schema_spec:JSON.stringify(manifest),schema_upgraded_at:new Date().toISOString()});
+      }
       if((await new MySQLMigrator(c).status()).status!=='current')throw Error('SCHEMA_NOT_CURRENT');
     }finally{await c.end();}
     const keys=path.join(data,'keys');fs.mkdirSync(keys,{recursive:true});
@@ -94,6 +102,15 @@ async function start() {
     }}catch{}await pause(300);}
     throw Error('API_START_FAILED');
   }finally{fs.unlinkSync(lock);}
+}
+// Önce tam yedek alınır; yedek yoksa şemaya dokunulmaz. Parola komut satırına değil ortam değişkenine verilir.
+async function upgradeSchema(bin,config,pipe){
+  const backups=path.join(data,'backups');fs.mkdirSync(backups,{recursive:true});
+  const file=path.join(backups,'before-schema-'+new Date().toISOString().replace(/[:.]/g,'-')+'.sql');
+  execFileSync(path.join(bin,'mysqldump.exe'),['--protocol=PIPE','--socket='+pipe,'--user=root','--single-transaction','--routines','--triggers','--result-file='+file,'veniux_local'],{windowsHide:true,stdio:'ignore',env:{...process.env,MYSQL_PWD:config.rootPassword},timeout:600000});
+  if(!fs.existsSync(file)||fs.statSync(file).size<1000)throw Error('SCHEMA_BACKUP_FAILED');
+  const c=await mysql.createConnection({socketPath:'\\\\.\\pipe\\'+pipe,user:'root',password:config.rootPassword,database:'veniux_local'});
+  try{const state=await new MySQLMigrator(c).upgradeAdditive();if(state.status!=='current')throw Error('SCHEMA_NOT_CURRENT');}finally{await c.end().catch(()=>{});}
 }
 function stop(){databaseProcess?.kill();}
 async function shutdown(){
