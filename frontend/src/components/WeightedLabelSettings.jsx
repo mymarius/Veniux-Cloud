@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react';
 import api from '../api/client';
 
 // Terazi etiketi barkod şemaları. Şablonlar örnektir; terazinizin etiket ayarıyla karşılaştırıp düzenleyin.
+// Kaynak: CAS ve Digi kılavuzlarındaki yaygın düzen: 2 haneli bayrak + 5 haneli ürün kodu + 5 haneli değer + kontrol hanesi.
+// Digi "tip 20": değerden önce fiyat kontrol hanesi (PCD) vardır; bu hane okunur ama hesaplama yöntemi doğrulanmadığı için denetlenmez.
+// Bayrak (önek) terazide ayarlanır; aşağıdaki değerler örnektir.
 const TEMPLATES = {
-  weight: { label: 'Ağırlıklı etiket (gram)', rule: { prefix: '27', length: 13, productStart: 2, productLength: 5, valueStart: 7, valueLength: 5, divisor: 1000, kind: 'weight', checkDigit: true } },
-  price: { label: 'Fiyatlı etiket (kuruş)', rule: { prefix: '28', length: 13, productStart: 2, productLength: 5, valueStart: 7, valueLength: 5, divisor: 100, kind: 'price', checkDigit: true } },
+  weight: { label: 'Ağırlıklı: bayrak + 5 hane kod + 5 hane gram', rule: { prefix: '27', length: 13, productStart: 2, productLength: 5, valueStart: 7, valueLength: 5, divisor: 1000, kind: 'weight', checkDigit: true } },
+  price: { label: 'Fiyatlı: bayrak + 5 hane kod + 5 hane kuruş', rule: { prefix: '28', length: 13, productStart: 2, productLength: 5, valueStart: 7, valueLength: 5, divisor: 100, kind: 'price', checkDigit: true } },
+  pricePcd: { label: 'Fiyatlı, fiyat kontrol haneli (Digi tip 20): bayrak + 5 hane kod + 1 + 4 hane kuruş', rule: { prefix: '28', length: 13, productStart: 2, productLength: 5, valueStart: 8, valueLength: 4, divisor: 100, kind: 'price', checkDigit: true } },
 };
 const FIELDS = [['prefix', 'Önek'], ['length', 'Barkod uzunluğu'], ['productStart', 'Ürün kodu başlangıcı (0’dan)'], ['productLength', 'Ürün kodu uzunluğu'], ['valueStart', 'Değer başlangıcı'], ['valueLength', 'Değer uzunluğu']];
 const errorOf = (e, fallback) => e.response?.data?.error || fallback;
@@ -29,7 +33,7 @@ export default function WeightedLabelSettings() {
   if (!config) return note ? <p role="alert" className="text-sm text-red-700">{note.text}</p> : null;
   return <section className="veniux-card p-5 space-y-4" aria-label="Terazi etiketi">
     <div><h2 className="font-semibold">Terazi etiketi (manav, kasap, şarküteri)</h2>
-      <p className="text-sm text-slate-500">Terazinin bastığı barkodun hangi kısmının ürün kodu, hangi kısmının ağırlık veya fiyat olduğunu tanımlayın. Şablonlar örnektir; terazinizin etiket ayarıyla karşılaştırın ve aşağıda bir etiket okutarak deneyin.</p></div>
+      <p className="text-sm text-slate-500">Bayrak (önek) terazinizin barkod ayarında yazar; çoğu terazide 2 hanedir. Terazinin bastığı barkodun hangi kısmının ürün kodu, hangi kısmının ağırlık veya fiyat olduğunu tanımlayın. Şablonlar örnektir; terazinizin etiket ayarıyla karşılaştırın ve aşağıda bir etiket okutarak deneyin.</p></div>
     {rules.map((r, i) => <fieldset key={i} className="rounded-xl border p-3 grid sm:grid-cols-3 gap-3" disabled={busy}>
       <legend className="text-sm font-semibold px-1">Şema {i + 1}</legend>
       {FIELDS.map(([key, label]) => <label key={key} className="text-sm">{label}<input className="block w-full" value={r[key] ?? ''} inputMode="numeric" onChange={e => change(i, key, key === 'prefix' ? e.target.value : number(e.target.value))} /></label>)}

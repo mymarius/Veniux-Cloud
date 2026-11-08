@@ -58,3 +58,13 @@ test('deneme kaydedilmemiş şemayla çalışır ve ayarı değiştirmez; yetkis
   try { expect((await preview(owner, ean('270045601250'))).status).toBe(403); }
   finally { await db.query("UPDATE users SET role='admin' WHERE id=$1", [owner.userId]); }
 });
+
+test('Digi tip 20 düzeni: fiyat kontrol hanesi atlanır, 4 haneli fiyat okunur', async () => {
+  const peynir = await product(owner, 'kg', 300, 'Peynir');
+  await request(app).put(`/api/products/${peynir.id}/scale-code`).set(auth(owner)).send({ plu: '789' });
+  const rule = { prefix: '28', length: 13, productStart: 2, productLength: 5, valueStart: 8, valueLength: 4, divisor: 100, kind: 'price' };
+  const r = await preview(owner, ean('280078971234'), [rule]);
+  expect(r.status).toBe(200);
+  expect(r.body.product.id).toBe(peynir.id);
+  expect(r.body.line_total).toBe(12.34);
+});
