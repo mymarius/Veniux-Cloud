@@ -6,7 +6,7 @@ const pool = require('../src/config/database');
 const { createTenant } = require('./factories/index');
 const service = require('../src/services/marketplaceService');
 
-const fake = { packages: [], stockBodies: [], headers: [], unauthorized: false, batch: null, orderQueries: [], claims: [], limited: false };
+const fake = { packages: [], stockBodies: [], headers: [], unauthorized: false, batch: null, orderQueries: [], claims: [], limited: false, settlements: [], settlementQueries: [] };
 let server, A, B;
 const auth = (t, r) => r.set('Authorization', 'Bearer ' + t.token);
 beforeAll(async () => {
@@ -18,6 +18,7 @@ beforeAll(async () => {
       const send = (code, body) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
       if (fake.unauthorized) return send(401, {});
       if (fake.limited) { res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '120' }); return res.end('{}'); }
+      if (req.url.includes('/finance/che/')) { const q = new URL(req.url, 'http://x').searchParams; fake.settlementQueries.push(q); return send(200, { totalPages: 1, content: fake.settlements.filter(r => r.type === q.get('transactionType')).map(r => r.row) }); }
       if (req.url.includes('/claims')) return send(200, { totalPages: 1, content: fake.claims });
       if (req.url.includes('/v2/orders')) { fake.orderQueries.push(req.url); return send(200, { totalPages: 1, content: fake.packages }); }
       if (req.url.includes('/price-and-inventory')) { fake.stockBodies.push(JSON.parse(raw)); return send(200, { batchRequestId: 'b-1' }); }
@@ -196,4 +197,30 @@ test('429 alınca Retry-After süresi boyunca istek gönderilmez', async () => {
   expect(fake.headers.length).toBe(before);
   service._backoff.delete(E.t.tenantId);
   expect((await E.sync()).status).toBe(200);
+});
+
+test('ekstre 15 günlük aralıklarla çekilir; komisyon, hakediş ve tahmini kâr hesaplanır', async () => {
+  const F = B;
+  await F.connect();
+  await F.product('321', 0);
+  const now = Date.now();
+  const row = (id, type, tr, money, commission, revenue, barcode = '321') => ({ type, row: { id, transactionDate: now - 86400000, barcode, transactionType: tr, debt: type === 'Sale' ? 0 : money, credit: type === 'Sale' ? money : 0, commissionAmount: commission, sellerRevenue: revenue, orderNumber: 'S' + id } });
+  fake.settlements = [row('s1', 'Sale', 'Satış', 100, 15, 85), row('s2', 'Sale', 'Satış', 100, 15, 85), row('r1', 'Return', 'İade', 100, 15, 85), row('s3', 'Sale', 'Satış', 50, 5, 45, 'bilinmeyen')];
+  fake.settlementQueries = [];
+  const synced = await auth(F.t, request(app).post('/api/marketplace/trendyol/settlements/sync'));
+  expect(synced.status).toBe(200);
+  for (const q of fake.settlementQueries) expect(Number(q.get('endDate')) - Number(q.get('startDate'))).toBeLessThanOrEqual(15 * 86400000);
+  expect(new Set(fake.settlementQueries.map(q => q.get('transactionType')))).toEqual(new Set(['Sale', 'Return', 'Discount', 'DiscountCancel']));
+  await auth(F.t, request(app).post('/api/marketplace/trendyol/settlements/sync'));
+  const r = (await auth(F.t, request(app).get('/api/marketplace/trendyol/report'))).body;
+  const known = r.products.find(p => p.barcode === '321');
+  // 2 satış - 1 iade = 1 adet; hakediş 85+85-85 = 85 TL; maliyet 1 TL; kâr 84 TL.
+  expect(known).toMatchObject({ units: 1, sales_cents: 10000, commission_cents: 1500, revenue_cents: 8500, cost_cents: 100, profit_cents: 8400 });
+  expect(r.products.find(p => p.barcode === 'bilinmeyen')).toMatchObject({ cost_cents: null, profit_cents: null });
+  expect(r.unknown_products).toBe(1);
+  expect(r.totals.profit_cents).toBe(null);
+  expect(r.estimated).toBe(true);
+  expect((await auth(A.t, request(app).get('/api/marketplace/trendyol/report'))).body.products.some(p => p.barcode === '321')).toBe(false);
+  expect((await auth(F.t, request(app).get('/api/marketplace/trendyol/report?from=2026-02-01&to=2025-01-01'))).status).toBe(400);
+  fake.settlements = [];
 });

@@ -11,4 +11,6 @@ router.get('/trendyol', handle(req => service.status(req.user)));
 router.put('/trendyol', handle(req => service.save(req.user, req.body || {})));
 router.post('/trendyol/test', handle(req => service.test(req.user)));
 router.post('/trendyol/sync', handle(req => service.sync(req.user)));
+router.get('/trendyol/report', handle(req => service.report(req.user, req.query || {})));
+router.post('/trendyol/settlements/sync', handle(req => service.syncSettlements(req.user)));
 module.exports = router;

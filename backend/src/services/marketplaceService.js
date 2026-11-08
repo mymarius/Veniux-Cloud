@@ -237,6 +237,74 @@ async function pullClaims(connection, now) {
   return counts;
 }
 
+// Cari hesap ekstresi (developers.trendyol.com "Cari Hesap Ekstresi Entegrasyonu"): tarih aralığı en çok 15 gün, size 500/1000.
+// Satıcıya göre işaret: Satış ve İndirim İptali hakediş +, İade ve İndirim hakediş -. Komisyon aynı işaretle gider sayılır
+// (iadede ve indirimde komisyon satıcıya geri döner). Kayıtlar kimliğiyle tekildir; Trendyol sonradan düzeltirse yeniden yazılır.
+const SETTLEMENT_SIGN = { Sale: 1, Return: -1, Discount: -1, DiscountCancel: 1 };
+const SETTLEMENT_TYPE_TR = { 'Satış': 'Sale', 'İade': 'Return', 'İndirim': 'Discount', 'İndirim İptal': 'DiscountCancel' };
+const SETTLEMENT_WINDOW = 15 * 86400000 - 1000, SETTLEMENT_LOOKBACK = 30 * 86400000, SETTLEMENT_EVERY = 3600000;
+const settlementPulled = new Map();
+const cents = value => Math.round(Math.abs(Number(value) || 0) * 100);
+async function pullSettlements(connection, now, force = false) {
+  const last = settlementPulled.get(connection.tenant_id);
+  if (!force && last && now.getTime() - last < SETTLEMENT_EVERY) return null;
+  // Ekstre stoğu değiştirmez: bağlantı anından önceki son 30 gün de rapora alınır.
+  const counts = { saved: 0 };
+  for (let start = now.getTime() - SETTLEMENT_LOOKBACK; start < now.getTime(); start += SETTLEMENT_WINDOW + 1000) {
+    const end = Math.min(now.getTime(), start + SETTLEMENT_WINDOW);
+    for (const type of Object.keys(SETTLEMENT_SIGN)) for (let page = 0; page < MAX_PAGES; page++) {
+      const data = await call(connection, 'GET', `/finance/che/sellers/${connection.seller_id}/settlements?transactionType=${type}&startDate=${start}&endDate=${end}&page=${page}&size=500`);
+      for (const row of data.content || []) {
+        const kind = SETTLEMENT_SIGN[row.transactionType] ? row.transactionType : SETTLEMENT_TYPE_TR[row.transactionType] || type;
+        const sign = SETTLEMENT_SIGN[kind];
+        if (!row.id || !sign || !Number.isFinite(Number(row.transactionDate))) continue;
+        const values = [kind, row.orderNumber ? String(row.orderNumber) : null, row.barcode ? String(row.barcode) : null, stamp(new Date(Number(row.transactionDate))), sign * cents(row.credit || row.debt), sign * cents(row.commissionAmount), sign * cents(row.sellerRevenue), row.paymentDate ? stamp(new Date(Number(row.paymentDate))) : null];
+        await db.transaction(async tx => {
+          const seen = (await tx.query('SELECT id FROM marketplace_settlements WHERE tenant_id=$1 AND provider=$2 AND entry_id=$3', [connection.tenant_id, PROVIDER, String(row.id)])).rows[0];
+          if (seen) await tx.query('UPDATE marketplace_settlements SET transaction_type=$1,order_number=$2,barcode=$3,transaction_at=$4,amount_cents=$5,commission_cents=$6,revenue_cents=$7,payment_at=$8 WHERE id=$9 AND tenant_id=$10', [...values, seen.id, connection.tenant_id]);
+          else await tx.query('INSERT INTO marketplace_settlements (tenant_id,provider,entry_id,transaction_type,order_number,barcode,transaction_at,amount_cents,commission_cents,revenue_cents,payment_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)', [connection.tenant_id, PROVIDER, String(row.id), ...values]);
+        });
+        counts.saved++;
+      }
+      if (page + 1 >= Number(data.totalPages || 0)) break;
+    }
+  }
+  settlementPulled.set(connection.tenant_id, now.getTime());
+  return counts;
+}
+
+// Kâr raporu: satış tutarı, komisyon ve hakediş Trendyol ekstresinden; maliyet ürün kartındaki alış fiyatından (tahmini).
+// Ekstreye henüz yansımamış paketler ayrıca sayılır; onların tutarı rapora katılmaz.
+async function report(user, query = {}) {
+  const day = /^\d{4}-\d{2}-\d{2}$/;
+  const to = day.test(query.to || '') ? query.to : new Date().toISOString().slice(0, 10);
+  const from = day.test(query.from || '') ? query.from : new Date(Date.parse(to) - 29 * 86400000).toISOString().slice(0, 10);
+  if (from > to || Date.parse(to) - Date.parse(from) > 366 * 86400000) fail('Tarih aralığı geçersiz (en çok bir yıl).');
+  const range = [user.tenantId, PROVIDER, from + ' 00:00:00', to + ' 23:59:59'];
+  const rows = (await db.query(`SELECT s.barcode, MAX(p.name) AS name, MAX(p.purchase_price) AS purchase_price, COUNT(p.id) AS known,
+      SUM(CASE WHEN s.transaction_type='Sale' THEN 1 WHEN s.transaction_type='Return' THEN -1 ELSE 0 END) AS units,
+      SUM(s.amount_cents) AS amount, SUM(s.commission_cents) AS commission, SUM(s.revenue_cents) AS revenue
+    FROM marketplace_settlements s LEFT JOIN products p ON p.tenant_id=s.tenant_id AND p.barcode=s.barcode
+    WHERE s.tenant_id=$1 AND s.provider=$2 AND s.transaction_at>=$3 AND s.transaction_at<=$4
+    GROUP BY s.barcode ORDER BY SUM(s.revenue_cents) DESC`, range)).rows;
+  const products = rows.map(r => {
+    const units = Number(r.units || 0), revenue = Number(r.revenue || 0);
+    const cost = Number(r.known) ? Math.round(Number(r.purchase_price || 0) * 100) * units : null;
+    return { barcode: r.barcode, name: r.name || null, units, sales_cents: Number(r.amount || 0), commission_cents: Number(r.commission || 0), revenue_cents: revenue, cost_cents: cost, profit_cents: cost === null ? null : revenue - cost };
+  });
+  const sum = k => products.reduce((t, p) => t + (p[k] || 0), 0);
+  const unsettled = Number((await db.query(`SELECT COUNT(*) AS n FROM marketplace_orders o WHERE o.tenant_id=$1 AND o.provider=$2 AND o.stock_state='deducted' AND o.created_at>=$3 AND o.created_at<=$4
+    AND NOT EXISTS (SELECT 1 FROM marketplace_settlements s WHERE s.tenant_id=o.tenant_id AND s.provider=o.provider AND s.order_number=o.order_number)`, range)).rows[0].n);
+  const unknown = products.filter(p => p.cost_cents === null).length;
+  return { from, to, estimated: true, note: 'Maliyet ürün kartındaki alış fiyatıyla hesaplanır; kargo ve diğer kesintiler dahil değildir.', totals: { sales_cents: sum('sales_cents'), commission_cents: sum('commission_cents'), revenue_cents: sum('revenue_cents'), cost_cents: sum('cost_cents'), profit_cents: unknown ? null : sum('profit_cents') }, unknown_products: unknown, unsettled_packages: unsettled, products };
+}
+
+async function syncSettlements(user) {
+  const connection = await read(user.tenantId);
+  if (!connection) fail('Önce bağlantı bilgilerini kaydedin.');
+  return pullSettlements(connection, new Date(), true);
+}
+
 async function syncConnection(connection, now = new Date()) {
   const wait = backoff.get(connection.tenant_id);
   if (wait && wait.until > Date.now()) return { skipped: true, retry_after_seconds: Math.ceil((wait.until - Date.now()) / 1000) };
@@ -245,9 +313,10 @@ async function syncConnection(connection, now = new Date()) {
     const orders = await pullOrders(connection, now);
     const claims = await pullClaims(connection, now);
     const stock = await pushStock(connection);
+    const settlements = await pullSettlements(connection, now).catch(error => { console.error('[Trendyol] Ekstre alınamadı:', connection.tenant_id, error.message); return null; });
     backoff.delete(connection.tenant_id);
     await db.query('UPDATE marketplace_connections SET last_sync_at=$1,last_error=$2 WHERE id=$3 AND tenant_id=$4', [stamp(now), batchProblem, connection.id, connection.tenant_id]);
-    return { orders, claims, stock_sent: stock, warning: batchProblem };
+    return { orders, claims, stock_sent: stock, settlements, warning: batchProblem };
   } catch (error) {
     await db.query('UPDATE marketplace_connections SET last_error=$1 WHERE id=$2 AND tenant_id=$3', [String(error.message).slice(0, 500), connection.id, connection.tenant_id]);
     throw error;
@@ -284,4 +353,4 @@ function startScheduler(intervalMs = 5 * 60000, stockMs = 60000) {
   stockTimer.unref();
 }
 
-module.exports = { status, save, test, sync, syncAll, pushAllStock, startScheduler, _backoff: backoff };
+module.exports = { status, save, test, sync, syncAll, pushAllStock, startScheduler, report, syncSettlements, _backoff: backoff, _settlementPulled: settlementPulled };
