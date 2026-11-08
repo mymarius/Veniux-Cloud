@@ -12,6 +12,8 @@ const uploadDirectory=require('path').join(require('../config/runtimeConfig').pa
 const scopeNames={products:'Ürünler',warehouses:'Depolar',suppliers:'Tedarikçiler',stock:'Stok','purchase-orders':'Satın alma','stock-counts':'Sayım',alerts:'Uyarılar',wms:'Depo operasyonları','normal-depo':'Normal depo',terminal:'Terminal',settings:'Ayarlar',workspaces:'CRM / Personel',retail:'Mağaza',platform:'API yönetimi','audit-logs':'İşlem geçmişi',notifications:'Bildirimler'};
 const words={company:'Şirket profili',account:'Hesap',password:'Şifre',users:'Kullanıcılar',security:'Güvenlik',notifications:'Bildirimler',automation:'Asistan otomasyonu',run:'Çalıştır',whatsapp:'WhatsApp',connect:'Bağlan',disconnect:'Bağlantıyı kaldır',test:'Test mesajı',vacuum:'Veritabanını düzenle',backup:'Yedekle','system-engine':'Sistem bakımı',receive:'Mal kabul',finalize:'Tamamla',movement:'Hareket',transfer:'Transfer',adjust:'Stok düzeltme',import:'İçe aktar',locations:'Lokasyonlar',reservations:'Rezervasyonlar',inbound:'Mal kabul',receipts:'Kabul fişleri',picking:'Toplama',waves:'Toplama dalgaları',packing:'Paketleme',dispatch:'Sevkiyat',staff:'Personel','duty-schedule':'Nöbet çizelgesi',returns:'İadeler',devices:'Cihazlar','cold-chain':'Soğuk zincir',invoices:'Faturalar',formulas:'Formüller',pos:'Satış',sales:'Satışlar',settings:'Ayarlar',tenants:'İşletmeler',license:'Lisans',licenses:'Lisanslar',updates:'Güncellemeler',images:'Görseller',image:'Görsel',sync:'Eşitle',status:'Durum'};
 const fieldNames={id:'Kayıt kimliği',name:'Ad',fullName:'Ad soyad',title:'Başlık',type:'Tür',role:'Yetki',status:'Durum',email:'E-posta',phone:'Telefon',ownerPhone:'Firma sahibi telefonu',address:'Adres',quantity:'Miktar',amount:'Tutar',price:'Fiyat',sale_price:'Satış fiyatı',purchase_price:'Alış fiyatı',warehouse_id:'Depo',product_id:'Ürün',supplier_id:'Tedarikçi',unit:'Birim',note:'Açıklama',items:'Kalemler',data:'Kayıtlar',filename:'Dosya adı',days:'Gün',plan_id:'Paket',revision:'Kayıt sürümü',enabled:'Etkin',intervalMinutes:'Kontrol aralığı (dakika)',sku:'Ürün kodu',barcode:'Barkod',device_name:'Cihaz adı',warehouseId:'Depo',device_type:'Cihaz türü',min_temp:'En düşük sıcaklık',max_temp:'En yüksek sıcaklık',location:'Konum',dueDate:'Bitiş tarihi',priority:'Öncelik'};
+// Onay kartında gösterilen ile çalıştırılan aynı olmalı: kartın kısalttığı veya gizlediği bir değer varsa işlem hazırlanmaz.
+function fullyShown(value,depth=0){if(depth>3)return false;if(Array.isArray(value))return value.length<=100&&value.every(v=>fullyShown(v,depth+1));if(value&&typeof value==='object')return Object.values(value).every(v=>fullyShown(v,depth+1));return typeof value!=='string'||value.length<=4000;}
 function display(value,depth=0){
  if(depth>3)return 'Ayrıntılı kayıt';
  if(Array.isArray(value))return value.map((v,i)=>`${i+1}. ${display(v,depth+1)}`).join('\n');
@@ -163,7 +165,8 @@ async function prepare(user,args,context,kind='system_operation'){
  if((r.op.raw||r.op.fileMode&&!r.body.content)&&!file)return {kind:'system_operation',params:args,title:'Dosya seçimi gerekli',impact:'Bu işlem için önce dosyanızı seçin.',requires_file:true,operation:r.op.id};
  if(file){const size=file.size||file.buffer.length;const limit=r.op.scope==='admin/medicines'?(r.op.path.endsWith('/image')?2:40):r.op.fileMode?6:500;if(size>limit*1024*1024)throw fail(`Bu işlem için dosya en fazla ${limit} MB olabilir.`);}
  // The approval card hides secret fields, so an action carrying one could not be knowingly approved.
- if(hasSecretField(r.body))throw fail('Parola veya gizli anahtar içeren işlemler asistanla yapılamaz. Bunu Ayarlar ekranından yapın.');
+  if(hasSecretField(r.body))throw fail('Parola veya gizli anahtar içeren işlemler asistanla yapılamaz. Bunu Ayarlar ekranından yapın.');
+  if(!workspace&&!fullyShown(r.body))throw fail('Bu işlem onay kartında eksiksiz gösterilemeyecek kadar büyük. Daha küçük parçalara bölün veya ilgili ekrandan yapın.');
  const version=await revision();
  const deletion=r.op.deletion||workspace?.deletion;
  const cascade=deletion&&['products','warehouses'].includes(r.op.scope)?'\nBu kayıtla birlikte ilişkili stok, hareket ve işlem kayıtları da silinebilir.':'';
@@ -256,4 +259,4 @@ async function exportFile(user,args,context){
  return {download:{url:'/ai/actions/result-files/'+id,filename},message:'Rapor hazır. Dosyayı aşağıdaki düğmeden indirebilirsiniz; bağlantı 5 dakika geçerlidir.'};
 }
 function download(user,id){const file=downloads.get(id);if(!file||file.userId!==user.userId||file.tenantId!==user.tenantId)throw fail('Rapor bulunamadı veya süresi doldu.',404);return file;}
-module.exports={list,prepare,execute,read,sanitize,resolve,upload,exportFile,download};
+module.exports={fullyShown,list,prepare,execute,read,sanitize,resolve,upload,exportFile,download};

@@ -8,7 +8,8 @@ router.use(authMiddleware);
 router.use(require('../middlewares/warehouseBoundary'));
 
 // 1. Device Registration & Telemetry
-router.post('/register', terminalController.registerDevice);
+// Cihaz kaydı ve depo ataması yönetici işidir; görüntüleme yetkili kullanıcılar cihazları değiştiremez.
+router.post('/register', requireRole('admin', 'manager'), terminalController.registerDevice);
 router.post('/heartbeat', terminalController.sendHeartbeat);
 router.get('/devices', terminalController.getRegisteredDevices);
 

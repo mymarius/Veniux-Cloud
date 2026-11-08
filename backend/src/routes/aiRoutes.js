@@ -15,7 +15,9 @@ router.use(authMiddleware,requireRole('admin','manager'));
 router.get('/status',(req,res)=>res.json({configured:Boolean(process.env.NVIDIA_API_KEY),service:'assistant',code:process.env.NVIDIA_API_KEY?'CONFIGURED':'AI_NOT_CONFIGURED'}));
 const monitor=require('../services/assistantMonitor');
 router.get('/capabilities',(req,res)=>res.json({operations:require('../services/assistantSystemOperations').list(req.user)}));
-router.post('/actions/files',rateLimit({windowMs:60000,max:5}),require('express').raw({type:'application/octet-stream',limit:'500mb'}),async(req,res,next)=>{try{res.status(201).json(await require('../services/assistantSystemOperations').upload(req.user,req.body,decodeURIComponent(req.get('x-file-name')||''),req.get('x-upload-type')));}catch(e){next(e);}});
+// Gövde belleğe alınmadan önce boyut kontrol edilir: büyük sistem dosyaları yalnız platform yöneticisine açıktır.
+const uploadSize=(req,res,next)=>{const max=(req.user.isPlatformAdmin?500:40)*1024*1024,length=Number(req.get('content-length'));if(!Number.isSafeInteger(length)||length<1||length>max)return res.status(413).json({error:`Dosya en fazla ${max/1024/1024} MB olabilir.`});next();};
+router.post('/actions/files',rateLimit({windowMs:60000,max:5}),uploadSize,require('express').raw({type:'application/octet-stream',limit:'500mb'}),async(req,res,next)=>{try{res.status(201).json(await require('../services/assistantSystemOperations').upload(req.user,req.body,decodeURIComponent(req.get('x-file-name')||''),req.get('x-upload-type')));}catch(e){next(e);}});
 // The authenticated registry supplies an exact server-generated path. A configured
 // data directory may contain a hidden parent (e.g. .local); no user path is accepted.
 router.get('/actions/result-files/:id',(req,res,next)=>{try{const file=require('../services/assistantSystemOperations').download(req.user,req.params.id);res.download(file.path,file.filename,{dotfiles:'allow'});}catch(e){next(e);}});
