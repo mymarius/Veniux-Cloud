@@ -16,7 +16,15 @@ router.use(async (req,res,next)=>{
       if(!/^VNX-[A-F0-9]{48}$/.test(key))return res.status(400).json({error:key.startsWith('HW-')?'HW- ile başlayan kod cihaz kimliğidir. Lisans merkezinden verilen VNX- ile başlayan lisans anahtarını girin.':'Lisans merkezinden verilen VNX- ile başlayan lisans anahtarını eksiksiz girin.'});
       credential=(await central.request('/activate',{...req.body,license_key:key})).device_token;
     }
-    const payload=await central.verify(credential,req.body.device_fingerprint);
+    let payload;
+    try{payload=await central.verify(credential,req.body.device_fingerprint);}
+    catch(error){
+      // Açılıştaki doğrulama da çevrimdışı izni kullanır; etkinleştirme ve açık red izne düşmez.
+      if(req.path==='/activate'||[400,403,429].includes(error.status)){if([400,403].includes(error.status))central.dropLease(credential);throw error;}
+      payload=central.offlineLease(credential,req.body.device_fingerprint);
+      if(!payload)throw error;
+      res.set('X-Veniux-Offline-Until',String(payload.offline_until));
+    }
     if(!payload.valid) return res.json({valid:false,success:false,status:payload.status});
     const plan=require('../services/licenseService').getPlans().find(p=>p.id===payload.plan_id);
     if(!plan)return res.status(403).json({error:'Lisans paketi bu sürümde tanımlı değil.'});

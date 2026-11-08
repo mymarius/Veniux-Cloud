@@ -100,3 +100,9 @@ html:root[data-theme='dark'] .vx-stock-cell[data-state='out'] small{background:#
 html:root[data-theme='dark'] .vx-stock-cell[data-state='out'] b{color:#ff9d94}
 html:root[data-theme='dark'] .enterprise-content .vx-chip{background:#203e60;border-color:#345575;color:#dcecff}
 html:root[data-theme='dark'] .enterprise-content .mobile-stock-details>summary{color:#b7dcff}
+
+/* Çevrimdışı lisans izniyle çalışırken sabit uyarı şeridi. */
+.veniux-connection{position:fixed;left:50%;bottom:16px;z-index:60;transform:translateX(-50%);max-width:calc(100vw - 32px);padding:10px 16px;border:2px solid #92400e;border-radius:10px;background:#fffbeb;color:#78350f;font-size:14px;font-weight:600;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.veniux-connection-blocked{border-color:#991b1b;background:#fef2f2;color:#7f1d1d}
+html.dark .veniux-connection,[data-theme=dark] .veniux-connection{background:#3a2a0a;color:#fde68a;border-color:#d97706}
+html.dark .veniux-connection-blocked,[data-theme=dark] .veniux-connection-blocked{background:#3b0d0d;color:#fecaca;border-color:#ef4444}

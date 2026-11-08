@@ -51,6 +51,8 @@ apiClient.interceptors.request.use(
 // Response interceptor: data synchronization & error handling
 apiClient.interceptors.response.use(
   (response) => {
+    const offline = Number(response.headers?.['x-veniux-offline-until']) || null;
+    window.dispatchEvent(new CustomEvent('veniux-connection', { detail: { offlineUntil: offline, blocked: false } }));
     response.data = normalizeResponse(response.data);
     const method = response.config?.method?.toLowerCase();
     // Whenever a data mutating request succeeds, notify all subscriber pages
@@ -70,6 +72,7 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response?.data?.code === 'LICENSE_UNAVAILABLE') window.dispatchEvent(new CustomEvent('veniux-connection', { detail: { offlineUntil: null, blocked: true } }));
     // Lisans yüklenmeden giden istekte cihaz başlığı yoktur; bu lisansın kapalı olduğunu göstermez, oturum silinmez.
     const sentDevice=Boolean(error.config?.headers?.['x-veniux-device-token']);
     if(error.response?.status===423&&(sentDevice||error.response.data?.code!=='LICENSE_REQUIRED')&&!error.response.data?.billing&&!isTerminalReauth(error.config)&&!/^\/license\//.test(error.config?.url||'')){
