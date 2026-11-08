@@ -33,7 +33,11 @@ function makeMySQLBackupService(options={}){
    if(last?.status==='failed')raise('error','Son yedek alınamadı.');
    if(!good)raise('error','Henüz sağlam bir yedek yok.');else if(now-Date.parse(good.created_at)>STALE_HOURS*3600000)raise('error',`${STALE_HOURS} saattir başarılı yedek alınmadı.`);
    if(!setting.copyDir)raise('warning','Yedeğin ikinci bir kopyası yok. Harici disk veya başka bir klasör seçin.');else if(good&&good.copy?.status!=='ok')raise('warning','Son yedek ikinci konuma kopyalanamadı. Disk takılı mı kontrol edin.');
-   return {level,messages,last_success_at:good?.created_at||null};}
+   let verified=null;try{verified=JSON.parse(fs.readFileSync(path.join(process.env.VENIUX_DATA_DIR||'','backup-verify.json'),'utf8'));}catch{}
+   if(good&&process.env.VENIUX_DESKTOP_RESTORE==='1'){
+    if(verified?.status==='failed')raise('error','Son yedek deneme amaçlı açılamadı. Yeni bir yedek alın ve destek isteyin.');
+    else if(!verified||verified.status!=='ok'||now-Date.parse(verified.at)>14*86400000)raise('warning','Yedeklerin açılabildiği son 14 günde denenmedi. Programı kapatıp açınca otomatik denenir.');}
+   return {level,messages,last_success_at:good?.created_at||null,last_verified_at:verified?.status==='ok'?verified.at:null};}
   // Kurtarma kodu: yedek anahtarının kendisidir. Yalnız platform yöneticisi görür; bilgisayar kaybolursa ikinci konumdaki yedek bu kodla açılır.
   // Bilgisayar kaybolunca: ikinci konumdaki şifreli kopya, kurtarma koduyla açılır ve normal geri yükleme onayına hazırlanır.
   async function prepareCopy(user,buffer,code){assertAdmin(user);
@@ -46,6 +50,8 @@ function makeMySQLBackupService(options={}){
    const file=path.join(process.env.VENIUX_DATA_DIR||'','pending-restore.json');const pending=JSON.parse(fs.readFileSync(file,'utf8'));fs.rmSync(file,{force:true});
    if(!/^[a-f0-9-]{36}$/.test(pending.token||'')||!fs.existsSync(path.join(root,pending.token+'.stage')))fail('Hazırlanan geri yükleme dosyası bulunamadı.',409);
    return restoreInto(pending.user,pending.token,target);}
+  // Haftalık doğrulama için en son sağlam yedeğin içeriği (yalnız yerel sunucu çağırır).
+  function latestPayload(){const row=history().find(r=>r.status==='healthy');return row?{id:row.id,created_at:row.created_at,payload:saved(row.id)}:null;}
   function recoveryCode(user){assertAdmin(user);return {code:init().toString('hex').toUpperCase().match(/.{8}/g).join('-')};}
  async function audit(c,user,action,details){let tenant=user.tenantId;if(!tenant){const [rows]=user.userId?await c.query('SELECT tenant_id FROM users WHERE id=?',[user.userId]):await c.query('SELECT u.tenant_id FROM users u JOIN platform_admins p ON p.user_id=u.id ORDER BY u.id LIMIT 1');tenant=rows[0]?.tenant_id;}if(!tenant)fail('Sistem yedeği denetimi için platform yöneticisinin firması bulunamadı.',409);await c.query('INSERT INTO audit_logs(tenant_id,user_email,action,entity_type,details) VALUES(?,?,?,?,?)',[tenant,user.email||'system',action,'system_backup',JSON.stringify({user_id:user.userId||null,...details})]);}
  async function createRaw(c,user,kind){
@@ -91,6 +97,6 @@ function makeMySQLBackupService(options={}){
  async function tick(now=Date.now()){if(busy||db.isMaintenance?.())return;const value=config();if(!value.enabled||Date.parse(value.last_attempt_at||0)+value.intervalHours*3600000>now)return;write('settings.json',{...value,last_attempt_at:new Date(now).toISOString()});await create({isPlatformAdmin:true,email:'system'},'automatic');}
  function startScheduler(){if(timer)return;init();const run=()=>tick().catch(error=>console.error('[Yedek] Otomatik yedek alınamadı:',error.message));run();timer=setInterval(run,60000);timer.unref();}
  async function recoverInterruptedRestore(){await db.ready;init();for(const name of fs.readdirSync(root))if(/^[a-f0-9-]{36}\.stage(?:-meta)?$/.test(name))fs.rmSync(path.join(root,name),{force:true});}
- return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending};
+ return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending,latestPayload};
 }
 module.exports={makeMySQLBackupService};

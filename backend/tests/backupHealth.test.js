@@ -64,3 +64,19 @@ test('kopya yanlış kurtarma koduyla açılmaz', async () => {
   await expect(service.prepareCopy(admin, blob, 'A'.repeat(64))).rejects.toThrow('eşleşmiyor');
   await expect(service.prepareCopy({ role: 'admin' }, blob, 'A'.repeat(64))).rejects.toMatchObject({ status: 403 });
 });
+
+test('haftalık doğrulama sonucu sağlığa yansır', () => {
+  const saved = { ...process.env };
+  Object.assign(process.env, { VENIUX_DESKTOP_RESTORE: '1', VENIUX_DATA_DIR: root });
+  try {
+    write('settings.json', { copyDir: copy });
+    write('history.json', [{ id: 'a', status: 'healthy', created_at: hours(1), copy: { status: 'ok' } }]);
+    expect(service.health().messages.join()).toContain('14 günde denenmedi');
+    write('backup-verify.json', { status: 'ok', at: hours(24) });
+    expect(service.health()).toMatchObject({ level: 'ok' });
+    write('backup-verify.json', { status: 'ok', at: hours(15 * 24) });
+    expect(service.health().level).toBe('warning');
+    write('backup-verify.json', { status: 'failed', at: hours(1) });
+    expect(service.health().level).toBe('error');
+  } finally { process.env = saved; }
+});

@@ -38,7 +38,9 @@ async function start() {
     // Yönetici hesabı TCP'de kilitli; şema yükseltmesi gerekiyorsa yalnız o açılışta yerel named pipe açılır.
     const deployment=fresh?null:JSON.parse(fs.readFileSync(path.join(data,'deployment.json'),'utf8'));
     const pendingRestore=path.join(data,'pending-restore.json');
-    const upgradePipe=!fresh&&(deployment.mysql_schema_spec!==JSON.stringify(manifest)||fs.existsSync(pendingRestore))?'veniux-upgrade-'+crypto.randomBytes(12).toString('hex'):null;
+    const verifyFile=path.join(data,'backup-verify.json');let lastVerify=null;try{lastVerify=JSON.parse(fs.readFileSync(verifyFile,'utf8'));}catch{}
+    const verifyDue=!fresh&&(!lastVerify||lastVerify.status==='skipped'||Date.now()-Date.parse(lastVerify.at)>VERIFY_DAYS*86400000);
+    const upgradePipe=!fresh&&(deployment.mysql_schema_spec!==JSON.stringify(manifest)||fs.existsSync(pendingRestore)||verifyDue)?'veniux-upgrade-'+crypto.randomBytes(12).toString('hex'):null;
     fs.writeFileSync(ini,`[mysqld]\nbasedir="${path.dirname(bin).replaceAll('\\','/')}"\ndatadir="${dbDirectory.replaceAll('\\','/')}"\nport=${port}\nbind-address=127.0.0.1\nskip-name-resolve\nlocal-infile=0\ncharacter-set-server=utf8mb4\ncollation-server=utf8mb4_bin\n${upgradePipe?`named-pipe=ON\nsocket=${upgradePipe}\n`:''}`);
     databaseProcess=spawn(path.join(bin,'mysqld.exe'),[`--defaults-file=${ini}`],{windowsHide:true,stdio:'ignore'});
     databaseProcess.on('error',()=>{});
@@ -81,6 +83,7 @@ async function start() {
     require(path.join(backend,'src/config/runtimeConfig')).validate();
     process.env.VENIUX_DESKTOP_RESTORE='1';
     if(!fresh&&upgradePipe&&fs.existsSync(pendingRestore))await applyRestore(bin,config,upgradePipe);
+    if(verifyDue&&upgradePipe)await verifyBackup(config,upgradePipe,verifyFile);
     if(fresh){
       const fields=['NODE_ENV','HOST','PORT','DB_ENGINE','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','JWT_SECRET','VENIUX_DATA_DIR','LICENSE_PRIVATE_KEY_PATH','LICENSE_PUBLIC_KEY_PATH'];
       fs.writeFileSync(path.join(data,'install.env'),fields.map(k=>k+'='+JSON.stringify(process.env[k].replaceAll('\\','/'))).join('\n')+'\n');
@@ -162,6 +165,23 @@ async function applyRestore(bin,config,pipe){
     fs.rmSync(path.join(data,'pending-restore.json'),{force:true});
     save(result,{status:'failed',at:new Date().toISOString(),code:/^[A-Z_]+$/.test(error.message)?error.message:'RESTORE_FAILED',safety_backup:safety&&path.basename(safety)});
   }finally{await c?.end().catch(()=>{});}
+}
+// Haftalık: en son sağlam yedek geçici boş veritabanına yüklenir, tablo kayıt sayıları yedekle karşılaştırılır, sonra silinir.
+// Sonuç yedek sağlığında görünür. Doğrulama hatası programın açılmasını engellemez.
+const VERIFY_DAYS=7;
+async function verifyBackup(config,pipe,file){
+  const name='veniux_verify_'+Date.now();let c;
+  try{
+    const service=require(path.join(backend,'src/services/mysqlBackupService')).makeMySQLBackupService();
+    const latest=service.latestPayload();
+    if(!latest){save(file,{status:'skipped',at:new Date().toISOString(),reason:'no_backup'});return;}
+    c=await mysql.createConnection({socketPath:'\\\\.\\pipe\\'+pipe,user:'root',password:config.rootPassword,dateStrings:true,decimalNumbers:false,supportBigNumbers:true,bigNumberStrings:false,timezone:'Z'});
+    await c.query('CREATE DATABASE `'+name+'` CHARACTER SET utf8mb4 COLLATE utf8mb4_bin');await c.query('USE `'+name+'`');
+    await require(path.join(backend,'src/database/dataTransfer')).restoreEmptyTarget(c,latest.payload.database);
+    for(const table of latest.payload.database.tables){const [[row]]=await c.query('SELECT COUNT(*) AS n FROM `'+table.name.replaceAll('`','')+'`');if(Number(row.n)!==table.rows.length)throw Error('VERIFY_COUNT_MISMATCH');}
+    save(file,{status:'ok',at:new Date().toISOString(),backup_id:latest.id,backup_created_at:latest.created_at,tables:latest.payload.database.tables.length});
+  }catch(error){save(file,{status:'failed',at:new Date().toISOString(),code:/^[A-Z_]+$/.test(error.message)?error.message:'VERIFY_FAILED'});}
+  finally{if(c){await c.query('DROP DATABASE IF EXISTS `'+name+'`').catch(()=>{});await c.end().catch(()=>{});}}
 }
 function stop(){databaseProcess?.kill();}
 async function shutdown(){
