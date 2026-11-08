@@ -106,3 +106,10 @@ html:root[data-theme='dark'] .enterprise-content .mobile-stock-details>summary{c
 .veniux-connection-blocked{border-color:#991b1b;background:#fef2f2;color:#7f1d1d}
 html.dark .veniux-connection,[data-theme=dark] .veniux-connection{background:#3a2a0a;color:#fde68a;border-color:#d97706}
 html.dark .veniux-connection-blocked,[data-theme=dark] .veniux-connection-blocked{background:#3b0d0d;color:#fecaca;border-color:#ef4444}
+
+/* Yöneticiye yedek uyarısı. */
+.veniux-backup-health{position:fixed;left:50%;top:12px;z-index:60;transform:translateX(-50%);display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:calc(100vw - 32px);padding:10px 16px;border:2px solid #92400e;border-radius:10px;background:#fffbeb;color:#78350f;font-size:14px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.veniux-backup-health button{margin-left:auto;padding:4px 10px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;font-weight:600;cursor:pointer}
+.veniux-backup-health-error{border-color:#991b1b;background:#fef2f2;color:#7f1d1d}
+html.dark .veniux-backup-health,[data-theme=dark] .veniux-backup-health{background:#3a2a0a;color:#fde68a;border-color:#d97706}
+html.dark .veniux-backup-health-error,[data-theme=dark] .veniux-backup-health-error{background:#3b0d0d;color:#fecaca;border-color:#ef4444}

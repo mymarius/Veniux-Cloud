@@ -11,6 +11,7 @@ import DesktopTitleBar from './components/desktop/DesktopTitleBar';
 import SystemHealthModal from './components/desktop/SystemHealthModal';
 import AssistantLauncher from './components/AssistantLauncher';
 import ConnectionStatus from './components/ConnectionStatus';
+import BackupHealth from './components/BackupHealth';
 import PrintStationWorker from './components/PrintStationWorker';
 import PrintStationLink from './components/PrintStationLink';
 const LabelCenter=lazy(()=>import('./pages/LabelCenter'));
@@ -192,6 +193,7 @@ function AppContent() {
       </main>
       {!terminal&&<AssistantLauncher />}
       <ConnectionStatus />
+      {!terminal&&<BackupHealth />}
     </div>
   );
 }
