@@ -7,6 +7,8 @@ const PROVIDER = 'trendyol', HOSTS = { live: 'https://apigw.trendyol.com', test:
 const STOCK_BATCH = 1000, MAX_UNITS = 20000, PAGE_SIZE = 200, MAX_PAGES = 50, WINDOW_MS = 14 * 86400000, OVERLAP_MS = 3600000;
 const CANCELLED = new Set(['Cancelled', 'UnSupplied']);
 const fail = (message, status = 400) => { throw Object.assign(Error(message), { status }); };
+const backoff = new Map();
+const CLAIM_RESTOCK = new Set(['Accepted']);
 const stamp = date => date.toISOString().slice(0, 19).replace('T', ' ');
 const millis = value => Date.parse(String(value).includes('T') ? value : String(value).replace(' ', 'T') + 'Z');
 
@@ -42,12 +44,20 @@ async function call(connection, method, path, body) {
   } catch { fail('Trendyol sunucusuna ulaşılamadı.', 502); }
   if (response.status === 401) fail('Trendyol API bilgileri reddedildi. Satıcı ID, API anahtarı ve parolayı kontrol edin.', 502);
   if (response.status === 503 && connection.environment === 'test') fail('Trendyol test ortamı isteği reddetti. Sunucu IP adresinin Trendyol tarafından tanımlanması gerekir.', 502);
-  if (response.status === 429) fail('Trendyol istek sınırı aşıldı; bir sonraki eşitlemede yeniden denenecek.', 502);
+  if (response.status === 429) {
+    const wait = Math.min(15 * 60, Math.max(60, Number(response.headers?.get?.('retry-after')) || 0, (backoff.get(connection.tenant_id)?.seconds || 30) * 2));
+    backoff.set(connection.tenant_id, { until: Date.now() + wait * 1000, seconds: wait });
+    fail(`Trendyol istek sınırı aşıldı; ${Math.ceil(wait / 60)} dakika sonra yeniden denenecek.`, 502);
+  }
   if (!response.ok) fail(`Trendyol isteği başarısız oldu (${response.status}).`, 502);
   return response.json();
 }
 
 const read = async tenant => (await db.query('SELECT * FROM marketplace_connections WHERE tenant_id=$1 AND provider=$2', [tenant, PROVIDER])).rows[0];
+async function settings(tenant) {
+  const row = (await db.query('SELECT stock_buffer,price_sync FROM marketplace_settings WHERE tenant_id=$1 AND provider=$2', [tenant, PROVIDER])).rows[0];
+  return { stock_buffer: Number(row?.stock_buffer || 0), price_sync: Boolean(Number(row?.price_sync || 0)) };
+}
 function view(row) {
   if (!row) return { connected: false };
   return { connected: true, seller_id: row.seller_id, environment: row.environment, warehouse_id: row.warehouse_id, enabled: Boolean(Number(row.enabled)), last_sync_at: row.last_sync_at, last_error: row.last_error, orders_since: row.orders_since };
@@ -55,7 +65,8 @@ function view(row) {
 
 async function status(user) {
   const orders = (await db.query('SELECT status,stock_state,package_id,order_number,detail,created_at FROM marketplace_orders WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, PROVIDER])).rows;
-  return { ...view(await read(user.tenantId)), orders };
+  const claims = (await db.query('SELECT status,stock_state,order_number,barcode,created_at FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, PROVIDER])).rows;
+  return { ...view(await read(user.tenantId)), ...(await settings(user.tenantId)), orders, claims };
 }
 
 async function save(user, body) {
@@ -72,7 +83,14 @@ async function save(user, body) {
   if (current) await db.query('UPDATE marketplace_connections SET seller_id=$1,credentials_enc=$2,environment=$3,warehouse_id=$4,enabled=$5,last_error=NULL WHERE id=$6 AND tenant_id=$7', [sellerId, sealed, body.environment, warehouse.id, enabled, current.id, user.tenantId]);
   // Bağlantıdan önceki siparişler stoğa zaten yansımış kabul edilir; yalnız bundan sonrakiler işlenir.
   else await db.query('INSERT INTO marketplace_connections (tenant_id,provider,seller_id,credentials_enc,environment,warehouse_id,enabled,orders_since) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [user.tenantId, PROVIDER, sellerId, sealed, body.environment, warehouse.id, enabled, stamp(new Date())]);
-  return view(await read(user.tenantId));
+  const buffer = body.stock_buffer === undefined ? null : Number(body.stock_buffer);
+  if (buffer !== null && (!Number.isInteger(buffer) || buffer < 0 || buffer > 1000)) fail('Güvenlik payı 0-1000 arasında tam sayı olmalıdır.');
+  if (buffer !== null || body.price_sync !== undefined) {
+    const current = await settings(user.tenantId), next = { stock_buffer: buffer ?? current.stock_buffer, price_sync: body.price_sync === undefined ? current.price_sync : body.price_sync === true };
+    const updated = await db.query('UPDATE marketplace_settings SET stock_buffer=$1,price_sync=$2 WHERE tenant_id=$3 AND provider=$4', [next.stock_buffer, next.price_sync ? 1 : 0, user.tenantId, PROVIDER]);
+    if (!updated.rowCount) await db.query('INSERT INTO marketplace_settings (tenant_id,provider,stock_buffer,price_sync) VALUES ($1,$2,$3,$4)', [user.tenantId, PROVIDER, next.stock_buffer, next.price_sync ? 1 : 0]);
+  }
+  return { ...view(await read(user.tenantId)), ...(await settings(user.tenantId)) };
 }
 
 async function test(user) {
@@ -93,19 +111,28 @@ async function checkLastBatch(connection) {
 }
 
 async function pushStock(connection) {
-  const rows = (await db.query(`SELECT p.id,p.barcode,COALESCE(s.quantity,0) AS quantity,m.quantity AS sent FROM products p
+  // Aşırı satışa karşı pazaryerine "stok − güvenlik payı" gönderilir. Fiyat gönderimi açıksa satış fiyatı da gider.
+  const { stock_buffer: buffer, price_sync: withPrice } = await settings(connection.tenant_id);
+  const rows = (await db.query(`SELECT p.id,p.barcode,p.sale_price,COALESCE(s.quantity,0) AS quantity,m.quantity AS sent,ps.price_cents AS sent_price FROM products p
     LEFT JOIN stock_records s ON s.product_id=p.id AND s.tenant_id=p.tenant_id AND s.warehouse_id=$2
     LEFT JOIN marketplace_stock_sent m ON m.product_id=p.id AND m.tenant_id=p.tenant_id AND m.provider=$3
+    LEFT JOIN marketplace_price_sent ps ON ps.product_id=p.id AND ps.tenant_id=p.tenant_id AND ps.provider=$3
     WHERE p.tenant_id=$1 AND p.barcode IS NOT NULL AND p.barcode<>''`, [connection.tenant_id, connection.warehouse_id, PROVIDER])).rows;
-  const changed = rows.map(row => ({ ...row, units: Math.min(MAX_UNITS, Math.max(0, Math.floor(Number(row.quantity)))) })).filter(row => row.sent === null || row.sent === undefined || Number(row.sent) !== row.units);
+  const changed = rows.map(row => ({ ...row, units: Math.min(MAX_UNITS, Math.max(0, Math.floor(Number(row.quantity)) - buffer)), cents: Math.round(Number(row.sale_price) * 100) }))
+    .map(row => ({ ...row, sendPrice: withPrice && row.cents > 0 && (row.sent_price === null || row.sent_price === undefined || Number(row.sent_price) !== row.cents) }))
+    .filter(row => row.sendPrice || row.sent === null || row.sent === undefined || Number(row.sent) !== row.units);
   let batchId = null;
   for (let i = 0; i < changed.length; i += STOCK_BATCH) {
     const part = changed.slice(i, i + STOCK_BATCH);
-    const result = await call(connection, 'POST', `/inventory/sellers/${connection.seller_id}/products/price-and-inventory`, { items: part.map(row => ({ barcode: row.barcode, quantity: row.units })) });
+    const result = await call(connection, 'POST', `/inventory/sellers/${connection.seller_id}/products/price-and-inventory`, { items: part.map(row => ({ barcode: row.barcode, quantity: row.units, ...(row.sendPrice ? { salePrice: row.cents / 100, listPrice: row.cents / 100 } : {}) })) });
     batchId = result.batchRequestId || batchId;
     for (const row of part) {
       const updated = await db.query('UPDATE marketplace_stock_sent SET quantity=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.units, connection.tenant_id, PROVIDER, row.id]);
       if (!updated.rowCount) await db.query('INSERT INTO marketplace_stock_sent (tenant_id,provider,product_id,quantity) VALUES ($1,$2,$3,$4)', [connection.tenant_id, PROVIDER, row.id, row.units]);
+      if (row.sendPrice) {
+        const priced = await db.query('UPDATE marketplace_price_sent SET price_cents=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.cents, connection.tenant_id, PROVIDER, row.id]);
+        if (!priced.rowCount) await db.query('INSERT INTO marketplace_price_sent (tenant_id,provider,product_id,price_cents) VALUES ($1,$2,$3,$4)', [connection.tenant_id, PROVIDER, row.id, row.cents]);
+      }
     }
   }
   if (batchId) await db.query('UPDATE marketplace_connections SET last_batch_id=$1 WHERE id=$2 AND tenant_id=$3', [batchId, connection.id, connection.tenant_id]);
@@ -185,13 +212,42 @@ async function pullOrders(connection, now) {
   return counts;
 }
 
+// İade: yalnız "Accepted" (ürün satıcıya ulaşıp iade onaylandı) kalemler stoğa geri eklenir; her iade kalemi bir kez işlenir.
+async function pullClaims(connection, now) {
+  const floor = millis(connection.orders_since), last = connection.last_sync_at ? millis(connection.last_sync_at) - OVERLAP_MS : floor;
+  const start = Math.max(floor, last, now.getTime() - WINDOW_MS);
+  const counts = {};
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const data = await call(connection, 'GET', `/order/sellers/${connection.seller_id}/claims?startDate=${start}&endDate=${now.getTime()}&page=${page}&size=${PAGE_SIZE}`);
+    for (const claim of data.content || []) for (const item of claim.items || []) for (const line of item.claimItems || []) {
+      const status = line.claimItemStatus?.name;
+      if (!CLAIM_RESTOCK.has(status) || !line.id) continue;
+      const result = await db.transaction(async tx => {
+        if ((await tx.query('SELECT id FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 AND claim_item_id=$3', [connection.tenant_id, PROVIDER, String(line.id)])).rows.length) return 'seen';
+        const barcode = item.orderLine?.barcode || null;
+        const product = barcode ? (await tx.query('SELECT id,name FROM products WHERE tenant_id=$1 AND barcode=$2', [connection.tenant_id, barcode])).rows[0] : null;
+        if (product) await moveStock(tx, connection, product, 1, claim.orderNumber || claim.id, 'Trendyol iadesi kabul edildi');
+        await tx.query('INSERT INTO marketplace_claims (tenant_id,provider,claim_item_id,order_number,barcode,status,stock_state) VALUES ($1,$2,$3,$4,$5,$6,$7)', [connection.tenant_id, PROVIDER, String(line.id), claim.orderNumber || null, barcode, status, product ? 'restored' : 'needs_review']);
+        return product ? 'restored' : 'needs_review';
+      });
+      counts[result] = (counts[result] || 0) + 1;
+    }
+    if (page + 1 >= Number(data.totalPages || 0)) break;
+  }
+  return counts;
+}
+
 async function syncConnection(connection, now = new Date()) {
+  const wait = backoff.get(connection.tenant_id);
+  if (wait && wait.until > Date.now()) return { skipped: true, retry_after_seconds: Math.ceil((wait.until - Date.now()) / 1000) };
   try {
     const batchProblem = await checkLastBatch(connection);
     const orders = await pullOrders(connection, now);
+    const claims = await pullClaims(connection, now);
     const stock = await pushStock(connection);
+    backoff.delete(connection.tenant_id);
     await db.query('UPDATE marketplace_connections SET last_sync_at=$1,last_error=$2 WHERE id=$3 AND tenant_id=$4', [stamp(now), batchProblem, connection.id, connection.tenant_id]);
-    return { orders, stock_sent: stock, warning: batchProblem };
+    return { orders, claims, stock_sent: stock, warning: batchProblem };
   } catch (error) {
     await db.query('UPDATE marketplace_connections SET last_error=$1 WHERE id=$2 AND tenant_id=$3', [String(error.message).slice(0, 500), connection.id, connection.tenant_id]);
     throw error;
@@ -209,12 +265,23 @@ async function syncAll() {
   for (const connection of rows) await syncConnection(connection).catch(error => console.error('[Trendyol] Eşitleme başarısız:', connection.tenant_id, error.message));
 }
 
-let timer;
-function startScheduler(intervalMs = 5 * 60000) {
+let timer, stockTimer;
+async function pushAllStock() {
+  const rows = (await db.transaction(tx => tx.query('SELECT * FROM marketplace_connections WHERE enabled=1'))).rows;
+  for (const connection of rows) {
+    const wait = backoff.get(connection.tenant_id);
+    if (wait && wait.until > Date.now()) continue;
+    await pushStock(connection).catch(error => console.error('[Trendyol] Stok gönderilemedi:', connection.tenant_id, error.message));
+  }
+}
+function startScheduler(intervalMs = 5 * 60000, stockMs = 60000) {
   if (timer) return;
   const tick = () => syncAll().catch(error => console.error('[Trendyol] Eşitleme çalışmadı:', error.message));
   timer = setInterval(tick, intervalMs);
   timer.unref();
+  // Kasada satılan ürün en geç bir dakika içinde pazaryerinde düşer (yalnız değişen satırlar gönderilir).
+  stockTimer = setInterval(() => pushAllStock().catch(() => {}), stockMs);
+  stockTimer.unref();
 }
 
-module.exports = { status, save, test, sync, syncAll, startScheduler };
+module.exports = { status, save, test, sync, syncAll, pushAllStock, startScheduler, _backoff: backoff };

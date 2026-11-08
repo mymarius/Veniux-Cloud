@@ -6,7 +6,7 @@ const pool = require('../src/config/database');
 const { createTenant } = require('./factories/index');
 const service = require('../src/services/marketplaceService');
 
-const fake = { packages: [], stockBodies: [], headers: [], unauthorized: false, batch: null, orderQueries: [] };
+const fake = { packages: [], stockBodies: [], headers: [], unauthorized: false, batch: null, orderQueries: [], claims: [], limited: false };
 let server, A, B;
 const auth = (t, r) => r.set('Authorization', 'Bearer ' + t.token);
 beforeAll(async () => {
@@ -17,6 +17,8 @@ beforeAll(async () => {
       fake.headers.push(req.headers);
       const send = (code, body) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
       if (fake.unauthorized) return send(401, {});
+      if (fake.limited) { res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '120' }); return res.end('{}'); }
+      if (req.url.includes('/claims')) return send(200, { totalPages: 1, content: fake.claims });
       if (req.url.includes('/v2/orders')) { fake.orderQueries.push(req.url); return send(200, { totalPages: 1, content: fake.packages }); }
       if (req.url.includes('/price-and-inventory')) { fake.stockBodies.push(JSON.parse(raw)); return send(200, { batchRequestId: 'b-1' }); }
       if (req.url.includes('/batch-requests/')) return send(200, fake.batch || { status: 'COMPLETED', failedItemCount: 0, items: [] });
@@ -139,4 +141,59 @@ test('yalnız yönetici erişir, zamanlanmış eşitleme kapalı bağlantıyı a
   await service.syncAll();
   expect(await B.stock(id)).toBe(2);
   fake.packages = [];
+});
+
+
+const claim = (itemId, barcode, status) => ({ id: 'c' + itemId, orderNumber: 'R' + itemId, items: [{ orderLine: { barcode }, claimItems: [{ id: itemId, claimItemStatus: { name: status } }] }] });
+
+test('güvenlik payı düşülerek gönderilir; fiyat gönderimi açılınca satış fiyatı bir kez gider', async () => {
+  const C = await setup('c');
+  await C.connect();
+  const id = await C.product('555', 10);
+  expect((await auth(C.t, request(app).put('/api/marketplace/trendyol')).send({ seller_id: '4321', environment: 'test', warehouse_id: C.warehouseId, stock_buffer: 2 })).body.stock_buffer).toBe(2);
+  fake.stockBodies = []; fake.packages = []; fake.claims = [];
+  await C.sync();
+  expect(fake.stockBodies.flatMap(b => b.items).find(i => i.barcode === '555')).toEqual({ barcode: '555', quantity: 8 });
+  await auth(C.t, request(app).put('/api/marketplace/trendyol')).send({ seller_id: '4321', environment: 'test', warehouse_id: C.warehouseId, price_sync: true });
+  fake.stockBodies = [];
+  await C.sync();
+  expect(fake.stockBodies.flatMap(b => b.items).find(i => i.barcode === '555')).toEqual({ barcode: '555', quantity: 8, salePrice: 2, listPrice: 2 });
+  fake.stockBodies = [];
+  await C.sync();
+  expect(fake.stockBodies.flatMap(b => b.items).find(i => i.barcode === '555')).toBeUndefined();
+  expect((await auth(C.t, request(app).put('/api/marketplace/trendyol')).send({ seller_id: '4321', environment: 'test', warehouse_id: C.warehouseId, stock_buffer: -1 })).status).toBe(400);
+  expect(await C.stock(id)).toBe(10);
+});
+
+test('kabul edilen iade stoğa bir kez eklenir; diğer iade durumları stoğu değiştirmez', async () => {
+  const D = await setup('d');
+  await D.connect();
+  const id = await D.product('777', 5);
+  fake.packages = [];
+  fake.claims = [claim(901, '777', 'Created'), claim(902, '777', 'WaitingInAction')];
+  await D.sync();
+  expect(await D.stock(id)).toBe(5);
+  fake.claims = [claim(901, '777', 'Accepted'), claim(903, '999', 'Accepted')];
+  await D.sync();
+  await D.sync();
+  expect(await D.stock(id)).toBe(6);
+  const rows = (await pool.query('SELECT claim_item_id,stock_state FROM marketplace_claims WHERE tenant_id=$1 ORDER BY claim_item_id', [D.t.tenantId])).rows;
+  expect(rows).toEqual([{ claim_item_id: '901', stock_state: 'restored' }, { claim_item_id: '903', stock_state: 'needs_review' }]);
+  fake.claims = [];
+});
+
+test('429 alınca Retry-After süresi boyunca istek gönderilmez', async () => {
+  const E = await setup('e');
+  await E.connect();
+  fake.limited = true;
+  const first = await E.sync();
+  expect(first.status).toBe(502);
+  expect(first.body.error).toContain('2 dakika');
+  fake.limited = false;
+  const before = fake.headers.length;
+  const second = await E.sync();
+  expect(second.body.skipped).toBe(true);
+  expect(fake.headers.length).toBe(before);
+  service._backoff.delete(E.t.tenantId);
+  expect((await E.sync()).status).toBe(200);
 });

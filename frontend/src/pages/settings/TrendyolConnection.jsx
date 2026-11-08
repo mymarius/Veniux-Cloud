@@ -6,13 +6,13 @@ const errorOf = (e, fallback) => e.response?.data?.error || fallback;
 
 export default function TrendyolConnection() {
   const [status, setStatus] = useState(null), [warehouses, setWarehouses] = useState([]);
-  const [form, setForm] = useState({ seller_id: '', api_key: '', api_secret: '', environment: 'test', warehouse_id: '' });
+  const [form, setForm] = useState({ seller_id: '', api_key: '', api_secret: '', environment: 'test', warehouse_id: '', stock_buffer: 0, price_sync: false });
   const [busy, setBusy] = useState(false), [note, setNote] = useState(null);
   const load = async () => {
     const [connection, depots] = await Promise.all([api.get('/marketplace/trendyol'), api.get('/warehouses')]);
     setStatus(connection.data);
     setWarehouses(depots.data || []);
-    setForm(old => ({ ...old, seller_id: connection.data.seller_id || old.seller_id, environment: connection.data.environment || old.environment, warehouse_id: connection.data.warehouse_id || old.warehouse_id || depots.data?.[0]?.id || '' }));
+    setForm(old => ({ ...old, stock_buffer: connection.data.stock_buffer ?? old.stock_buffer, price_sync: connection.data.price_sync ?? old.price_sync, seller_id: connection.data.seller_id || old.seller_id, environment: connection.data.environment || old.environment, warehouse_id: connection.data.warehouse_id || old.warehouse_id || depots.data?.[0]?.id || '' }));
   };
   useEffect(() => { load().catch(() => setNote({ error: true, text: 'Trendyol bağlantısını yalnız yönetici görüntüleyebilir.' })); }, []);
   const set = name => e => setForm({ ...form, [name]: e.target.value });
@@ -29,6 +29,8 @@ export default function TrendyolConnection() {
       <label className="text-sm">API anahtarı<input className="block w-full" value={form.api_key} onChange={set('api_key')} autoComplete="off" placeholder={status?.connected ? 'Değiştirmek için yazın' : ''} /></label>
       <label className="text-sm">API parolası<input className="block w-full" type="password" value={form.api_secret} onChange={set('api_secret')} autoComplete="new-password" placeholder={status?.connected ? 'Değiştirmek için yazın' : ''} /></label>
       <label className="text-sm sm:col-span-2">Stok deposu<select className="block w-full" value={form.warehouse_id} onChange={set('warehouse_id')} required>{warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+      <label className="text-sm">Güvenlik payı (adet)<input className="block w-full" type="number" min="0" max="1000" step="1" value={form.stock_buffer} onChange={e => setForm({ ...form, stock_buffer: Number(e.target.value) })} /><span className="block text-xs text-slate-500">Pazaryerine stoktan bu kadar az gösterilir; kasada satılan son ürünün internetten de satılmasını önler.</span></label>
+      <label className="text-sm flex items-center gap-2 mt-5"><input type="checkbox" checked={form.price_sync} onChange={e => setForm({ ...form, price_sync: e.target.checked })} />Satış fiyatını da gönder<span className="text-xs text-slate-500">(kapalıyken fiyatı Trendyol panelinden yönetirsiniz)</span></label>
       <div className="sm:col-span-2 flex flex-wrap gap-2">
         <button className="btn-primary" disabled={busy}>Kaydet</button>
         <button type="button" className="btn-soft" disabled={busy || !status?.connected} onClick={() => run(() => api.post('/marketplace/trendyol/test'), d => `Bağlantı çalışıyor. Onaylı ürün: ${d.approved_products}.`)}>Bağlantıyı dene</button>
