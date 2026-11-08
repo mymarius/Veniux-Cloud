@@ -29,6 +29,22 @@ router.get('/settings',async(req,res,next)=>{try{res.json(await service.config(r
 router.put('/settings',requireRole('admin','manager'),async(req,res,next)=>{try{let c;try{c=(await service.core()).validateConfig(req.body);}catch(e){throw Object.assign(e,{status:400});}await db.transaction(async tx=>{await tx.query('DELETE FROM scanner_settings WHERE tenant_id=$1',[req.user.tenantId]);await tx.query('INSERT INTO scanner_settings (tenant_id,config_json) VALUES ($1,$2)',[req.user.tenantId,JSON.stringify(c)]);});res.json(c);}catch(e){next(e);}});
 // Kaydedilmemiş tartı şemasıyla deneme: satış ve stok değişmez.
 router.post('/weighted-preview',requireRole('admin','manager'),async(req,res,next)=>{try{const core=await service.core();let settings;try{settings=core.validateConfig({...(await service.config(req.user.tenantId)),weighted:req.body.weighted});}catch(e){throw Object.assign(e,{status:400});}if(typeof req.body.barcode!=='string'||!req.body.barcode.trim())throw Object.assign(Error('Barkod gerekli.'),{status:400});res.json(await service.lookup(req.user.tenantId,req.body.barcode.trim(),null,undefined,settings));}catch(e){if(!e.status&&/kontrol hanesi|geçersiz|uyumlu/i.test(e.message))e.status=400;next(e);}});
+// Okutulan terazi etiketine CAS/Digi kılavuzlarındaki yaygın düzenler uygulanır; ürünle eşleşenler önerilir. Hiçbir şey kaydedilmez.
+router.post('/weighted-detect',requireRole('admin','manager'),async(req,res,next)=>{try{
+ const code=typeof req.body.barcode==='string'?req.body.barcode.trim():'';const core=await service.core();
+ if(!/^2\d{12}$/.test(code))throw Object.assign(Error('Terazi etiketi 2 ile başlayan 13 haneli bir barkod olmalı.'),{status:400});
+ if(!core.validCheckDigit(code))throw Object.assign(Error('Barkod kontrol hanesi hatalı. Etiketi tekrar okutun.'),{status:400});
+ const prefix=code.slice(0,2),base={prefix,length:13,productStart:2,productLength:5,checkDigit:true};
+ const layouts=[
+  {label:'Ağırlıklı: 5 hane kod + 5 hane gram',rule:{...base,valueStart:7,valueLength:5,divisor:1000,kind:'weight'}},
+  {label:'Fiyatlı: 5 hane kod + 5 hane kuruş',rule:{...base,valueStart:7,valueLength:5,divisor:100,kind:'price'}},
+  {label:'Fiyatlı, fiyat kontrol haneli: 5 hane kod + 1 + 4 hane kuruş',rule:{...base,valueStart:8,valueLength:4,divisor:100,kind:'price',priceCheckAt:7}},
+ ];
+ const current=await service.config(req.user.tenantId),candidates=[];
+ for(const layout of layouts){try{const settings=core.validateConfig({...current,weighted:[layout.rule]});const r=await service.lookup(req.user.tenantId,code,null,undefined,settings);
+  candidates.push({label:layout.label,rule:layout.rule,product:r.product?{id:r.product.id,name:r.product.name,unit:r.product.unit}:null,product_code:r.product?undefined:r.product_code,quantity:r.quantity??null,line_total:r.line_total??null});}catch{}}
+ res.json({barcode:code,prefix,candidates});
+}catch(e){next(e);}});
 router.post('/lookup',async(req,res,next)=>{try{res.json(await service.lookup(req.user.tenantId,req.body.barcode,req.body.warehouse_id));}catch(e){next(e);}});
 router.get('/sale-status',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{
  const key=req.query.operation_key;if(typeof key!=='string'||!key||key.length>120)service.fail('Geçerli işlem anahtarı gerekli.');

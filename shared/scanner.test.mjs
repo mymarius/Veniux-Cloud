@@ -1,4 +1,4 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {clean,defaults,Framer,ScanQueue,decodeWeighted,validateConfig,validCheckDigit} from './scanner.mjs';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {clean,defaults,Framer,ScanQueue,decodeWeighted,validateConfig,validCheckDigit,priceCheckDigit} from './scanner.mjs';
 test('metin, baştaki sıfırlar ve GS1 ayırıcıları korunur',()=>{assert.equal(clean('00012Ab-C'), '00012Ab-C');assert.equal(clean(']C1010001234567890121ABC\x1d10LOT'),']C1010001234567890121ABC\x1d10LOT');assert.equal(clean('PRE0001END',{...defaults,prefix:'PRE',suffix:'END'}),'0001');});
 test('parçalı veri CRLF, Tab ve özel sonlandırıcıyla sırayla ayrılır',()=>{const out=[];const f=new Framer({...defaults,terminators:['Enter','Tab','|']},c=>out.push(c));f.feed('000');f.feed('1\r\n0001\tABC|');assert.deepEqual(out,['0001','0001','ABC']);f.reset();});
 test('eksik ve taşan veri hata verir',async()=>{const errors=[];const f=new Framer({...defaults,timeoutMs:10,maxLength:5},()=>assert.fail(),e=>errors.push(e));f.feed('123456');f.feed('abc');await new Promise(r=>setTimeout(r,20));assert.equal(errors.length,2);});
@@ -6,3 +6,10 @@ test('sıra, hata sonrası devam ve gerçek tekrar korunur; yalnızca olay kimli
 test('tartı şeması kapalıdır; farklı ürün ve değer konumları yapılandırılır',()=>{const code='2200123012500';const r={prefix:'22',length:13,productStart:2,productLength:5,valueStart:7,valueLength:5,divisor:1000,kind:'weight'};assert.equal(decodeWeighted(code).productCode,code);assert.deepEqual(decodeWeighted(code,[r]),{productCode:'00123',value:1.25,kind:'weight'});assert.throws(()=>validateConfig({...defaults,weighted:[{...r,valueLength:20}]}));});
 
 test('kontrol hanesi hatalı terazi etiketi reddedilir; bilerek kapatılabilir',()=>{const r={prefix:'22',length:13,productStart:2,productLength:5,valueStart:7,valueLength:5,divisor:1000,kind:'weight'};assert.equal(validCheckDigit('2200123012500'),true);assert.equal(validCheckDigit('4006381333931'),true);assert.equal(validCheckDigit('2200123012508'),false);assert.throws(()=>decodeWeighted('2200123012508',[r]),/kontrol hanesi/);assert.equal(decodeWeighted('2200123012508',[{...r,checkDigit:false}]).value,1.25);assert.throws(()=>validateConfig({...defaults,weighted:[{...r,checkDigit:'evet'}]}));});
+
+test('fiyat kontrol hanesi GS1 şartnamesindeki örneklerle aynı',()=>{assert.equal(priceCheckDigit('2875'),9);assert.equal(priceCheckDigit('14685'),6);assert.throws(()=>priceCheckDigit('123'));
+ const body='28007897'+'1234';const pcd=priceCheckDigit('1234');const raw='2800789'+pcd+'1234';let s=0;for(let i=raw.length-1,w=3;i>=0;i--,w=4-w)s+=Number(raw[i])*w;const code=raw+((10-s%10)%10);
+ const r={prefix:'28',length:13,productStart:2,productLength:5,valueStart:8,valueLength:4,divisor:100,kind:'price',priceCheckAt:7};
+ assert.equal(decodeWeighted(code,[r]).value,12.34);
+ const wrong='2800789'+((pcd+1)%10)+'1234';let s2=0;for(let i=wrong.length-1,w=3;i>=0;i--,w=4-w)s2+=Number(wrong[i])*w;assert.throws(()=>decodeWeighted(wrong+((10-s2%10)%10),[r]),/fiyat kontrol/);
+ assert.throws(()=>validateConfig({...defaults,weighted:[{...r,priceCheckAt:9}]}));});

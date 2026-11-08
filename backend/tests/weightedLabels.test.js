@@ -68,3 +68,21 @@ test('Digi tip 20 düzeni: fiyat kontrol hanesi atlanır, 4 haneli fiyat okunur'
   expect(r.body.product.id).toBe(peynir.id);
   expect(r.body.line_total).toBe(12.34);
 });
+
+test('otomatik bulma: ürünle eşleşen düzenleri önerir, hiçbir şeyi kaydetmez', async () => {
+  const sucuk = await product(owner, 'kg', 600, 'Sucuk');
+  await request(app).put(`/api/products/${sucuk.id}/scale-code`).set(auth(owner)).send({ plu: '321' });
+  const before = (await request(app).get('/api/scanner/settings').set(auth(owner))).body.weighted;
+  const r = await request(app).post('/api/scanner/weighted-detect').set(auth(owner)).send({ barcode: ean('290032100750') });
+  expect(r.status).toBe(200);
+  const weight = r.body.candidates.find(c => c.rule.kind === 'weight' && c.product);
+  expect(weight.product.id).toBe(sucuk.id);
+  expect(weight.quantity).toBe(0.75);
+  expect(Math.round(weight.line_total * 100)).toBe(45000);
+  expect(weight.rule.prefix).toBe('29');
+  expect((await request(app).get('/api/scanner/settings').set(auth(owner))).body.weighted).toEqual(before);
+  const unknown = await request(app).post('/api/scanner/weighted-detect').set(auth(owner)).send({ barcode: ean('290099900750') });
+  expect(unknown.body.candidates.every(c => !c.product)).toBe(true);
+  expect(unknown.body.candidates.map(c => c.product_code)).toContain('00999');
+  expect((await request(app).post('/api/scanner/weighted-detect').set(auth(owner)).send({ barcode: '4006381333931' })).status).toBe(400);
+});
