@@ -213,7 +213,7 @@ export default function SystemEngineTab() {
       </div>
 
       <HostingSponsor/>
-      {readSessionUser().is_platform_admin && <BackupPanel />}
+      {(readSessionUser().is_platform_admin || readSessionUser().role === 'admin') && <BackupPanel />}
 
       <DatabaseMigrationModal
         isOpen={showDatabaseMigration}

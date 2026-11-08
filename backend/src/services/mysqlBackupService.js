@@ -6,7 +6,7 @@ function makeMySQLBackupService(options={}){
  const db=options.pool||require('../config/database'),root=path.resolve(options.root||path.join(require('../config/runtimeConfig').paths().storage,'backups','mysql'));
  const filesRoot=path.resolve(options.filesRoot||path.join(process.env.MEDICINE_STORAGE_DIR||require('../config/runtimeConfig').paths().storage,'medicine-images'));
  const prepared=new Map();let busy=false,timer;
- const assertAdmin=user=>{if(!user?.isPlatformAdmin)fail('Sistem yedeği yalnız platform yöneticisine açıktır.',403);};
+ const assertAdmin=user=>{if(!user?.isPlatformAdmin&&!user?.backupManager)fail('Sistem yedeği yalnız yetkili yöneticiye açıktır.',403);};
  function init(){fs.mkdirSync(root,{recursive:true,mode:0o700});const key=path.join(root,'local-key.bin');if(!fs.existsSync(key)){if(fs.readdirSync(root).some(n=>n.endsWith('.vnxsecure')))fail('Yerel yedek anahtarı eksik.',409);fs.writeFileSync(key,crypto.randomBytes(32),{flag:'wx',mode:0o600});}return fs.readFileSync(key);}
  const read=(name,fallback)=>{try{return JSON.parse(fs.readFileSync(path.join(root,name),'utf8'));}catch(e){if(e.code==='ENOENT')return fallback;throw e;}};
  function write(name,value){init();const target=path.join(root,name);fs.writeFileSync(target+'.tmp',JSON.stringify(value),{mode:0o600});fs.renameSync(target+'.tmp',target);}
