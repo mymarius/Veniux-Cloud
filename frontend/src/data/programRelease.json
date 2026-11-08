@@ -1,8 +1,18 @@
 {
-  "version": "2.4.50",
+  "version": "2.4.51",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.51",
+      "date": "8 Kasım 2026",
+      "title": "Muhasebe aktarımı",
+      "items": [
+        "Muhasebe programlarına CSV aktarımı: satış, tahsilat, iade, alış, stok ve cari",
+        "Hesap kodu eşleştirme ve aynı kaydın iki kez aktarılmasını önleme",
+        "e-Fatura hesabı bağlama ve mükellef sorgulama altyapısı"
+      ]
+    },
     {
       "version": "2.4.50",
       "date": "7 Kasım 2026",
