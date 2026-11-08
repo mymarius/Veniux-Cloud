@@ -29,6 +29,22 @@ def test_key(values):
     except Exception: return {'status': 'failed'}
 
 
+def clipboard():
+    out = subprocess.run(['powershell', '-NoProfile', '-Command', 'Get-Clipboard -Raw'], capture_output=True, text=True, encoding='utf-8', timeout=30)
+    return (out.stdout or '').strip()
+
+
+# Değer panodan alınır; ekrana yalnız ilk 4 karakteri ve uzunluğu yazılır. Elle yapıştırılan değer de kabul edilir.
+def from_clipboard(label):
+    while True:
+        typed = input(f"Backblaze'de {label} değerini kopyalayın (kopyala simgesi veya seçip Ctrl+C), sonra burada Enter'a basın: ").strip()
+        value = typed or clipboard()
+        if value:
+            print(f'  alındı: {value[:4]}… ({len(value)} karakter)')
+            return value
+        print("  Pano boş görünüyor. Değeri kopyalayıp yeniden Enter'a basın.")
+
+
 def merge(text, values):
     lines = [line for line in text.replace('\r\n', '\n').split('\n') if not re.match(r'^\s*OFFSITE_S3_[A-Z_]+=', line)]
     while lines and not lines[-1].strip(): lines.pop()
@@ -37,9 +53,9 @@ def merge(text, values):
 
 def main():
     if hasattr(sys.stdout, 'reconfigure'): sys.stdout.reconfigure(encoding='utf-8')
-    print('Backblaze uygulama anahtarını girin. Yazdıklarınız ekranda görünmez.\n')
-    key_id = getpass.getpass('keyID: ').strip()
-    secret = getpass.getpass('applicationKey: ').strip()
+    print('Backblaze anahtar penceresini açık tutun. Hiçbir şey yazmanız gerekmez.\n')
+    key_id = from_clipboard('keyID')
+    secret = from_clipboard('applicationKey')
     if not re.fullmatch(r'[A-Za-z0-9]{10,40}', key_id) or not re.fullmatch(r'[A-Za-z0-9/+]{20,60}', secret):
         raise SystemExit('Anahtar biçimi beklenen gibi değil. keyID ve applicationKey değerlerini kontrol edip yeniden deneyin.')
     values = {**FIXED, 'OFFSITE_S3_KEY_ID': key_id, 'OFFSITE_S3_SECRET': secret}
