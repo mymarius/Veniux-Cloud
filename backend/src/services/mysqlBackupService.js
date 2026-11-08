@@ -104,9 +104,25 @@ function makeMySQLBackupService(options={}){
  }
  async function configure(user,value){assertAdmin(user);const next=policy(value);write('settings.json',next);return next;}
  function summary(){let lastRestore=null;try{lastRestore=JSON.parse(fs.readFileSync(path.join(process.env.VENIUX_DATA_DIR||'','restore-result.json'),'utf8'));}catch{}return {last_restore:lastRestore,config:config(),history:history(),storage_path:root,files:['medicine-images'],busy,engine:'mysql',portable_notice:'İndirilebilir yedekte şifreler, lisans ve servis sırları bulunmaz. MySQL geri yükleme ayrı boş hedefte hazırlanır.',automatic_runs_when:'API çalışırken.',warning:'Yedeği ayrı güvenli diskte saklayın.'};}
- async function tick(now=Date.now()){if(busy||db.isMaintenance?.())return;const value=config();if(!value.enabled||Date.parse(value.last_attempt_at||0)+value.intervalHours*3600000>now)return;write('settings.json',{...value,last_attempt_at:new Date(now).toISOString()});await create({isPlatformAdmin:true,email:'system'},'automatic');}
+  // Yedek sağlığı kırmızıysa yöneticilere e-posta: aynı sorun için 24 saatte bir, sorun değişince hemen.
+  // Masaüstünde kurulumun yöneticilerine, sunucuda yalnız ALERT_EMAIL adresine gider. SMTP yoksa yalnız ekrandaki uyarı kalır.
+  async function alertIfNeeded(now=Date.now()){
+   const state=read('alert.json',{}),current=health(now);
+   if(current.level!=='error'){if(state.signature)write('alert.json',{cleared_at:new Date(now).toISOString()});return {sent:0,reason:'healthy'};}
+   const signature=current.messages.join('|');
+   if(state.signature===signature&&now-Date.parse(state.sent_at||0)<24*3600000)return {sent:0,reason:'throttled'};
+   const mail=options.mailer||require('./notificationService');
+   if(!mail.isEmailConfigured()){write('alert.json',{signature,sent_at:new Date(now).toISOString(),skipped:'no_smtp'});return {sent:0,reason:'no_smtp'};}
+   const desktop=process.env.VENIUX_DESKTOP_RESTORE==='1';
+   const recipients=desktop?(await db.query("SELECT DISTINCT email FROM users WHERE role='admin' AND COALESCE(status,'active')='active' AND email LIKE '%@%'")).rows.map(r=>r.email):[process.env.ALERT_EMAIL].filter(Boolean);
+   const text=['Veniux yedeklemesinde sorun var:','',...current.messages.map(m=>'- '+m),'',current.last_success_at?'Son sağlam yedek: '+new Date(current.last_success_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Henüz sağlam yedek yok.','','Programda Ayarlar > Sistem > Yedekleme bölümünden kontrol edin. Sorun sürerse destek isteyin.'].join('\n');
+   let sent=0;for(const to of recipients){try{if((await mail.sendEmail(to,'Veniux yedekleme uyarısı',text))?.success)sent++;}catch{}}
+   write('alert.json',{signature,sent_at:new Date(now).toISOString(),recipients:recipients.length,sent});
+   return {sent,reason:sent?'sent':'failed'};
+  }
+  async function tick(now=Date.now()){await alertIfNeeded(now).catch(()=>{});if(busy||db.isMaintenance?.())return;const value=config();if(!value.enabled||Date.parse(value.last_attempt_at||0)+value.intervalHours*3600000>now)return;write('settings.json',{...value,last_attempt_at:new Date(now).toISOString()});await create({isPlatformAdmin:true,email:'system'},'automatic');}
  function startScheduler(){if(timer)return;init();const run=()=>tick().catch(error=>console.error('[Yedek] Otomatik yedek alınamadı:',error.message));run();timer=setInterval(run,60000);timer.unref();}
  async function recoverInterruptedRestore(){await db.ready;init();for(const name of fs.readdirSync(root))if(/^[a-f0-9-]{36}\.stage(?:-meta)?$/.test(name))fs.rmSync(path.join(root,name),{force:true});}
- return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending,latestPayload};
+ return {create,configure,summary,exportBackup,prepare,restore,tick,startScheduler,recoverInterruptedRestore,root,pack,unpack,validate,health,recoveryCode,prepareCopy,applyPending,latestPayload,alertIfNeeded};
 }
 module.exports={makeMySQLBackupService,tieredKeep,TIERS};
