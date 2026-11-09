@@ -23,7 +23,7 @@ Adet başı fiyatları ben hesapladım. Fiyatlar değişebilir; satın almadan �
 **Örnek hesap:** Günde en çok 3 özet SMS gönderilirse ayda ~90 SMS gider. 500'lük paketle bu aylık ~36 TL eder.
 Netgsm ayrıca başlık (gönderici adı) onayı istiyor; SMS bu onay gelmeden gönderilemez. Bu belgeyi gerektiriyor olabilir, doğrulamadım.
 
-**API uyarısı:** Netgsm'in artık bir REST v2 API'si var (`https://api.netgsm.com.tr/sms/rest/v2`, HTTP Basic kimlik doğrulama). Bu bilgi üçüncü taraf istemci kütüphanelerinden; örneğin [go-netgsm](https://pkg.go.dev/github.com/YusufDrymz/go-netgsm). Veniux şu an eski XML adresini (`/sms/send/xml`) kullanıyor. XML adresinin hâlâ açık olup olmadığını doğrulayamadım. Ücretsiz deneme kredisi için resmî bir bilgi bulamadım. İlk gerçek SMS denemesi paket alındıktan sonra yapılabilir.
+**Netgsm bağlantısı (doğrulandı, 9 Kasım 2026):** Veniux'un SMS isteği, Netgsm'in kendi yayımladığı PHP paketiyle ([github.com/netgsm1/sms](https://github.com/netgsm1/sms), `src/SmsSend.php`) aynı biçimde. Adres `https://api.netgsm.com.tr/sms/send/xml`, `filter=0` (ticari olmayan) ve `encoding=TR` (Türkçe karakter). Bu adrese uydurma kullanıcı bilgisiyle bir istek gönderdim; Netgsm `30` (kullanıcı geçersiz) yanıtını verdi, yani adres açık ve isteği okuyor. Netgsm'in REST v2 adresi de var, ama resmî paket hâlâ XML kullandığı için geçiş gerekmiyor. Ücretsiz deneme kredisi için resmî bilgi bulamadım. Gerçek SMS, paket alınıp `NETGSM_USERCODE`, `NETGSM_PASSWORD` ve `NETGSM_MSGHEADER` (onaylı başlık) girilince gider.
 
 ## 3. WhatsApp seçenekleri
 **a) Resmî WhatsApp Business Platform (Cloud API):** Meta, gönderilen şablon mesaj başına ücret alıyor.
@@ -31,6 +31,8 @@ Netgsm ayrıca başlık (gönderici adı) onayı istiyor; SMS bu onay gelmeden g
 - Meta'nın [fiyat sayfası](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing), Türkiye utility ücretinin 1 Nisan 2026'da düşürüldüğünü yazıyor. **Meta'nın kendi fiyat tablosunu açıp rakamı doğrulayamadım.**
 - **Gerekenler:** Meta işletme hesabı ve doğrulaması, ayrı bir telefon numarası, onaylı mesaj şablonları. Bir çözüm ortağı (BSP) kullanılırsa ayrıca abonelik ücreti çıkar.
 - **Önerim:** Bildirim hacmi düşük olduğu için (günde birkaç özet) maliyet çok düşük kalır, ama kurulum işi yüksek. Firma kurulduktan sonra ikinci aşama olarak eklenebilir.
+
+**Veniux'ta resmî API desteği (eklendi):** `WHATSAPP_CLOUD_TOKEN`, `WHATSAPP_CLOUD_PHONE_ID` ve `WHATSAPP_CLOUD_TEMPLATE` ayarlanırsa uyarı özeti ve otomatik kontrol özeti resmî Cloud API ile gider. İsteğe bağlı `WHATSAPP_CLOUD_LANGUAGE` ayarı var; varsayılan `tr`. Mesaj, Meta'da onaylatılmış ve gövdesinde tek değişken (`{{1}}`) olan bir "utility" şablonuyla gönderilir; örnek şablon gövdesi: `Veniux bildirimi: {{1}}`. İstek biçimi Meta belgesindeki örnekle aynı. Gerçek adrese geçersiz anahtarla yaptığım denemede beklenen `401 / kod 190` döndü. Ayar yoksa eski yöntem (b) yedek olarak kullanılır.
 
 **b) Şu an koddaki yöntem (WhatsApp Web oturumu, `whatsapp-web.js`):** Ücretsiz, ama gayriresmî bir kütüphane. WhatsApp'ın kullanım koşulları gayriresmî ve otomatik istemcileri yasaklıyor; numara engellenebilir. Bu koşul metnini bu turda yeniden okumadım; genel bilgime dayanıyor. Yalnız işletmenin kendi patronuna, düşük hacimde kullanılması riski azaltır ama ortadan kaldırmaz.
 

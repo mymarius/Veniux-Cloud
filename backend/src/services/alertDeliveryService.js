@@ -51,7 +51,8 @@ async function senders() {
   return {
     email: async (to, text) => { const r = await require('./notificationService').sendEmail(to, 'Veniux uyarı özeti', text, undefined); return r.success ? 'sent' : r.error === 'Not configured' ? 'not_configured' : 'failed'; },
     sms: async (phone, text) => (await require('./ownerSmsService').send(phone, text)).status,
-    whatsapp: async (tenant, text) => (await require('./ownerWhatsAppService').send(tenant, text)).status,
+    // Resmî Cloud API ayarlıysa o kullanılır; değilse eski bağlı oturum (gayriresmî) yedek olarak kalır.
+    whatsapp: async (tenant, text, phone) => (require('./whatsappCloudService').configured() ? await require('./whatsappCloudService').send(phone, text) : await require('./ownerWhatsAppService').send(tenant, text)).status,
   };
 }
 
@@ -80,7 +81,7 @@ async function deliver(tenant, { now = new Date(), send } = {}) {
       const to = [company.email, ...s.extraEmails].filter(e => e && EMAIL.test(e));
       status = to.length ? await send.email(to.join(','), text) : 'no_recipient';
     } else if (channel === 'sms') status = company.owner_phone ? await send.sms(company.owner_phone, text) : 'no_recipient';
-    else status = await send.whatsapp(tenant, text);
+    else status = company.owner_phone ? await send.whatsapp(tenant, text, company.owner_phone) : 'no_recipient';
     // Sağlayıcı kabul ettiyse veya sonuç belirsizse işaretlenir (aynı özet iki kez gitmesin); ayarı eksik kanal sonra yeniden dener.
     if (['sent', 'accepted', 'unknown'].includes(status)) {
       const batch = crypto.randomUUID();

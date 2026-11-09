@@ -41,7 +41,9 @@ async function run(tenant,{scheduled=false,centralLicense}={}){
  let whatsapp={status:'not_requested'};
  if(settings.whatsappOnCompletion){
   await db.query("UPDATE assistant_runs SET whatsapp_status='sending' WHERE tenant_id=$1 AND id=$2",[tenant,id]);
-  whatsapp=await require('./ownerWhatsAppService').send(tenant,`Veniux: ${summary}`);
+  const cloud=require('./whatsappCloudService');
+  if(cloud.configured()){const company=(await db.query('SELECT owner_phone FROM tenants WHERE id=$1',[tenant])).rows[0];whatsapp=await cloud.send(company?.owner_phone,`Veniux: ${summary}`);}
+  else whatsapp=await require('./ownerWhatsAppService').send(tenant,`Veniux: ${summary}`);
   await db.query('UPDATE assistant_runs SET whatsapp_status=$1,whatsapp_message_id=$2 WHERE tenant_id=$3 AND id=$4',[whatsapp.status,whatsapp.message_id||null,tenant,id]);
  }
  await db.query('UPDATE assistant_runs SET status=$1,finished_at=$2 WHERE tenant_id=$3 AND id=$4',[status,new Date().toISOString(),tenant,id]);

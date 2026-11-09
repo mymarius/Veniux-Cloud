@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api/client';
 
 const TYPES = { low_stock: 'Kritik stok', expiry: 'Miadı yaklaşan ürün', count_variance: 'Sayım farkı' };
-const CHANNELS = { email: 'E-posta (firma e-postası ve ek alıcılar)', sms: 'SMS (patron telefonu, Netgsm)', whatsapp: 'WhatsApp (bağlı WhatsApp oturumu)' };
+const CHANNELS = { email: 'E-posta (firma e-postası ve ek alıcılar)', sms: 'SMS (patron telefonu, Netgsm)', whatsapp: 'WhatsApp (patron telefonu; resmî WhatsApp Business API ayarlıysa o kullanılır)' };
 
 const NAMES = { email: 'E-posta', sms: 'SMS', whatsapp: 'WhatsApp' };
 const STATUS = { sent: 'gönderildi', accepted: 'gönderildi', unknown: 'sonucu belirsiz', nothing: 'gönderilecek yeni uyarı yok', daily_limit: 'günlük sınır doldu', not_configured: 'kanal ayarlı değil', not_connected: 'WhatsApp bağlı değil', no_recipient: 'alıcı yok', invalid_phone: 'telefon numarası geçersiz', failed: 'gönderilemedi', rejected: 'sağlayıcı reddetti', not_registered: 'numara WhatsApp kullanmıyor' };
