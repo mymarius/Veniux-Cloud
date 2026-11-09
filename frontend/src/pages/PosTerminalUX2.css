@@ -132,3 +132,8 @@ html:root[data-theme='dark'] .pos-terminal .pos-status[data-success]{background:
 html:root[data-theme='dark'] .pos-payment-error{background:#451a1a;border-color:#7a2e2a;color:#ffc9c3}
 html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label{background:var(--color-surface-raised);border-color:var(--color-border);color:var(--color-text)}
 html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label[data-active='true']{background:#2379ca;border-color:#2379ca;color:#fff}
+
+/* Dar sepette ürün adı harf harf kırılmasın: sütunlara en az genişlik, gerekirse sepet yatay kayar. */
+.pos-terminal .retail-cart table{min-width:600px}
+.pos-terminal .retail-cart td:first-child,.pos-terminal .retail-cart th:first-child{min-width:150px}
+.pos-terminal .retail-cart .pos-line-name{word-break:normal;overflow-wrap:break-word}
