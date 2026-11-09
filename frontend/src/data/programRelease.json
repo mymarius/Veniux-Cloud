@@ -1,8 +1,23 @@
 {
-  "version": "2.4.51",
+  "version": "2.4.52",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.52",
+      "date": "9 Kasım 2026",
+      "title": "Kampanya, sadakat, şube raporları ve güvenlik",
+      "items": [
+        "Kasada kampanya (X al Y öde, yüzde indirim) ve sadakat puanı",
+        "Trendyol stok, fiyat, sipariş, iade ve komisyon raporu",
+        "Depo sorumlusu rolü, şube karşılaştırması ve vade hatırlatması",
+        "En çok satanlar, kasiyer bazlı, saatlik yoğunluk ve ölü stok raporları",
+        "Siparişi PDF, e-posta veya WhatsApp ile tedarikçiye gönderme",
+        "Kritik stok, miat ve sayım farkı uyarılarının e-posta/SMS/WhatsApp ile iletimi",
+        "Değiştirilemez işlem kaydı, yönetici iki aşamalı doğrulama zorunluluğu, yeni cihaz bildirimi",
+        "Tartılı ürün barkodu ve yedekleme iyileştirmeleri"
+      ]
+    },
     {
       "version": "2.4.51",
       "date": "8 Kasım 2026",
