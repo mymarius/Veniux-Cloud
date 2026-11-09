@@ -23,6 +23,8 @@ Adet başı fiyatları ben hesapladım. Fiyatlar değişebilir; satın almadan �
 **Örnek hesap:** Günde en çok 3 özet SMS gönderilirse ayda ~90 SMS gider. 500'lük paketle bu aylık ~36 TL eder.
 Netgsm ayrıca başlık (gönderici adı) onayı istiyor; SMS bu onay gelmeden gönderilemez. Bu belgeyi gerektiriyor olabilir, doğrulamadım.
 
+**API uyarısı:** Netgsm'in artık bir REST v2 API'si var (`https://api.netgsm.com.tr/sms/rest/v2`, HTTP Basic kimlik doğrulama). Bu bilgi üçüncü taraf istemci kütüphanelerinden; örneğin [go-netgsm](https://pkg.go.dev/github.com/YusufDrymz/go-netgsm). Veniux şu an eski XML adresini (`/sms/send/xml`) kullanıyor. XML adresinin hâlâ açık olup olmadığını doğrulayamadım. Ücretsiz deneme kredisi için resmî bir bilgi bulamadım. İlk gerçek SMS denemesi paket alındıktan sonra yapılabilir.
+
 ## 3. WhatsApp seçenekleri
 **a) Resmî WhatsApp Business Platform (Cloud API):** Meta, gönderilen şablon mesaj başına ücret alıyor.
 - Türkiye için "utility" (bilgilendirme) şablonu, üçüncü taraf kaynaklara göre 1 Ekim 2026'dan beri mesaj başı **~0,0009 USD**. Pazarlama şablonu ~0,0109 USD. ([Flowcall](https://www.flowcall.co/blog/whatsapp-business-api-pricing), [wsmartsender](https://wsmartsender.com/whatsapp-api-pricing/turkey), [SleekFlow](https://sleekflow.io/en-us/blog/whatsapp-business-price))

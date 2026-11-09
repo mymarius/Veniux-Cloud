@@ -4,6 +4,13 @@ import api from '../../api/client';
 const TYPES = { low_stock: 'Kritik stok', expiry: 'Miadı yaklaşan ürün', count_variance: 'Sayım farkı' };
 const CHANNELS = { email: 'E-posta (firma e-postası ve ek alıcılar)', sms: 'SMS (patron telefonu, Netgsm)', whatsapp: 'WhatsApp (bağlı WhatsApp oturumu)' };
 
+const NAMES = { email: 'E-posta', sms: 'SMS', whatsapp: 'WhatsApp' };
+const STATUS = { sent: 'gönderildi', accepted: 'gönderildi', unknown: 'sonucu belirsiz', nothing: 'gönderilecek yeni uyarı yok', daily_limit: 'günlük sınır doldu', not_configured: 'kanal ayarlı değil', not_connected: 'WhatsApp bağlı değil', no_recipient: 'alıcı yok', invalid_phone: 'telefon numarası geçersiz', failed: 'gönderilemedi', rejected: 'sağlayıcı reddetti', not_registered: 'numara WhatsApp kullanmıyor' };
+function describe(r) {
+  if (r.skipped === 'disabled') return 'Hiç kanal veya uyarı türü seçili değil.';
+  if (r.skipped === 'quiet_hours') return 'Şu an sessiz saatlerdesiniz; uyarılar sessiz saat bitince gönderilecek.';
+  return Object.entries(r).map(([k, v]) => `${NAMES[k] || k}: ${typeof v === 'string' ? STATUS[v] || v : `${STATUS[v.status] || v.status}${v.alerts ? ` (${v.alerts} uyarı)` : ''}`}`).join(' · ');
+}
 // Uyarıların hangi kanaldan, hangi saatlerde iletileceği. Yalnız firma yöneticisi değiştirir.
 export default function AlertDeliverySettings() {
   const [s, setS] = useState(null), [extra, setExtra] = useState(''), [consent, setConsent] = useState(false), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
@@ -17,7 +24,7 @@ export default function AlertDeliverySettings() {
       setS(r.data); setConsent(false); setMessage('İletim tercihleri kaydedildi.');
     } catch (err) { setMessage(err.response?.data?.error || 'Kaydedilemedi.'); } finally { setBusy(false); }
   };
-  const test = async () => { setBusy(true); try { const r = await api.post('/settings/alert-delivery/run'); setMessage('Gönderim sonucu: ' + JSON.stringify(r.data)); } catch (err) { setMessage(err.response?.data?.error || 'Gönderilemedi.'); } finally { setBusy(false); } };
+  const test = async () => { setBusy(true); try { const r = await api.post('/settings/alert-delivery/run'); setMessage(describe(r.data)); } catch (err) { setMessage(err.response?.data?.error || 'Gönderilemedi.'); } finally { setBusy(false); } };
   return <form onSubmit={save} className="veniux-card p-5 space-y-4">
     <h2 className="font-semibold">Uyarıları telefona ve e-postaya ilet</h2>
     <p className="text-sm">Yeni uyarılar 10 dakikada bir tek bir özet mesajla gönderilir. Her uyarı her kanaldan bir kez gider. Sessiz saatlerde bekletilir.</p>
