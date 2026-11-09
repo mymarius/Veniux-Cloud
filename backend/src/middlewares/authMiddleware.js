@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const supportAccess=new Map();
 const pool = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
@@ -56,6 +57,8 @@ const authMiddleware = async (req, res, next) => {
       const target=(await pool.query('SELECT id,is_active FROM tenants WHERE id=$1',[Number(targetTenant)])).rows[0];
       if (!target || Number(target.is_active)!==1) return res.status(403).json({error:'İşletme bulunamadı veya erişime kapalı.'});
       req.user.tenantId=target.id;
+      // Destek erişimi firmanın kendi işlem kaydına yazılır (aynı kişi ve firma için saatte bir).
+      if(target.id!==dbUser.tenant_id){const k=dbUser.id+':'+target.id,last=supportAccess.get(k)||0;if(Date.now()-last>3600000){supportAccess.set(k,Date.now());await pool.query("INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,'support.access','tenant',$1,$3)",[target.id,dbUser.email,JSON.stringify({path:req.originalUrl.split('?')[0].slice(0,120),method:req.method})]);}}
       if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(target.id)==='NONE')return res.status(423).json({error:'Hedef işletmenin aktif lisansı bulunmuyor.',code:'LICENSE_REQUIRED'});
       await require('../services/cloudLicenseBinding').requireBinding(target.id,req.centralLicense);
     }
@@ -71,6 +74,11 @@ const authMiddleware = async (req, res, next) => {
       return res.status(403).json({ error: 'Bu modül lisans paketinizde bulunmuyor.', code: 'MODULE_ACCESS_DENIED' });
     }
 
+    // Firma ayarı açıksa yönetici iki aşamalı doğrulamayı kurmadan yalnız kurulum ve hesap ekranlarına girebilir.
+    if(!req.user.isPlatformAdmin&&dbUser.role==='admin'&&!/^\/api\/(auth\/(me|mfa)|settings\/(security|profile))(\/|$)/.test(path)){
+      const security=await require('../services/settingsPolicyService').read(dbUser.tenant_id,'security');
+      if(security.requireAdminMfa&&!(await require('../services/mfaService').status({id:dbUser.id,tenant_id:dbUser.tenant_id})).enabled)return res.status(403).json({error:'Bu firmada yöneticiler için iki aşamalı doğrulama zorunludur. Güvenlik ayarlarından kurun.',code:'MFA_SETUP_REQUIRED'});
+    }
     await require('../services/productPackages').authorize(req.user,path,req.centralLicense);
     const portalMember=(await pool.query('SELECT portal_role,active FROM business_members WHERE tenant_id=$1 AND user_id=$2',[req.user.tenantId,req.user.id])).rows[0];
     if(portalMember&&!req.user.isPlatformAdmin&&!['admin','manager'].includes(req.user.role)&&!/^\/api\/(business|auth\/(me|mfa))(\/|$)/.test(path))return res.status(403).json({error:'Bu hesap yalnız saha/bayi ekranlarına erişebilir.'});

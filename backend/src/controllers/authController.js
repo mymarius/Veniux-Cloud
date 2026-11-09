@@ -135,6 +135,7 @@ const login = async (req, res) => {
       await client.query("UPDATE user_access_scopes SET mode='company',updated_by=$1 WHERE user_id=$1 AND tenant_id=$2",[user.id,user.tenant_id]);
       await client.query('INSERT INTO audit_logs(tenant_id,user_email,action,entity_type,entity_id,details) VALUES($1,$2,$3,$4,$5,$6)',[user.tenant_id,email,'owner.identity.linked','user',user.id,JSON.stringify({source:'license-authority',company_owner:true})]);
     });
+    await require('../services/loginDeviceService').record(user,req).catch(error=>console.error('[Cihaz kaydı]',error.message));
     const isPlatformAdmin = Boolean((await pool.query('SELECT user_id FROM platform_admins WHERE user_id=$1',[user.id])).rows.length);
     const module_type = isPlatformAdmin ? 'BOTH' : await require('../services/moduleAccess').getModuleType(user.tenant_id,req.centralLicense);
 

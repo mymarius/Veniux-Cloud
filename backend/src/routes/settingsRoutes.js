@@ -72,7 +72,14 @@ for (const name of ['security','notifications']) {
       let data;
       if(name==='security') {
         if(!['15m','1h','8h','24h','7d'].includes(req.body.sessionTimeout) || typeof req.body.strictPassword!=='boolean') return res.status(400).json({error:'Geçersiz güvenlik ayarı.'});
-        data={sessionTimeout:req.body.sessionTimeout,strictPassword:req.body.strictPassword};
+        const previous=await policies.read(req.user.tenantId,'security');
+        const requireAdminMfa=req.body.requireAdminMfa===undefined?previous.requireAdminMfa:req.body.requireAdminMfa;
+        const auditRetentionYears=req.body.auditRetentionYears===undefined?previous.auditRetentionYears:req.body.auditRetentionYears;
+        const newDeviceAlert=req.body.newDeviceAlert===undefined?previous.newDeviceAlert:req.body.newDeviceAlert;
+        if(typeof requireAdminMfa!=='boolean'||typeof newDeviceAlert!=='boolean'||!Number.isInteger(auditRetentionYears)||auditRetentionYears<1||auditRetentionYears>10) return res.status(400).json({error:'Geçersiz güvenlik ayarı.'});
+        // Zorunluluğu açan yönetici kendi hesabında iki aşamalı doğrulamayı önceden açmış olmalı; yoksa kendini kilitler.
+        if(requireAdminMfa&&!previous.requireAdminMfa&&!(await require('../services/mfaService').status({id:req.user.userId,tenant_id:req.user.tenantId})).enabled) return res.status(400).json({error:'Önce kendi hesabınızda iki aşamalı doğrulamayı açın.'});
+        data={sessionTimeout:req.body.sessionTimeout,strictPassword:req.body.strictPassword,requireAdminMfa,auditRetentionYears,newDeviceAlert};
       } else {
         if(typeof req.body.minStockAlert!=='boolean' || typeof req.body.expiryRadarAlert!=='boolean' || !Number.isInteger(req.body.expiryDays) || req.body.expiryDays<1 || req.body.expiryDays>365) return res.status(400).json({error:'Geçersiz bildirim ayarı.'});
         data={minStockAlert:req.body.minStockAlert,expiryRadarAlert:req.body.expiryRadarAlert,expiryDays:req.body.expiryDays};

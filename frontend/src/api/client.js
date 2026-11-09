@@ -72,6 +72,11 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Firma yöneticiler için 2FA'yı zorunlu kıldıysa güvenlik ayarlarına yönlendir (bir kez).
+    if (error.response?.data?.code === 'MFA_SETUP_REQUIRED' && !/[?&]tab=security/.test(window.location.search + window.location.hash)) {
+      if (window.location.protocol === 'file:') window.location.hash = '/settings?tab=security';
+      else window.location.href = '/settings?tab=security';
+    }
     if (error.response?.data?.code === 'LICENSE_UNAVAILABLE') window.dispatchEvent(new CustomEvent('veniux-connection', { detail: { offlineUntil: null, blocked: true } }));
     // Lisans yüklenmeden giden istekte cihaz başlığı yoktur; bu lisansın kapalı olduğunu göstermez, oturum silinmez.
     const sentDevice=Boolean(error.config?.headers?.['x-veniux-device-token']);

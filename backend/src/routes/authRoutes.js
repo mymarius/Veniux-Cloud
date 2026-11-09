@@ -52,6 +52,8 @@ router.post('/terminal-verify',authMiddleware,requireRole('admin','manager','cas
 });
 router.use('/mfa',require('./mfaRoutes'));
 router.get('/me', authMiddleware, getMe);
+router.get('/devices', authMiddleware, async (req, res, next) => { try { res.json(await require('../services/loginDeviceService').list(req.user)); } catch (error) { next(error); } });
+router.delete('/devices/:id', authMiddleware, async (req, res, next) => { try { res.json(await require('../services/loginDeviceService').revoke(req.user, req.params.id)); } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); } });
 router.get('/users', authMiddleware, requireRole('admin'), getAllUsers);
 
 module.exports = router;
