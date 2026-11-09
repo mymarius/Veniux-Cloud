@@ -39,3 +39,6 @@ ftp-parola*
 *.p12
 *.jks
 *.keystore
+
+# Geliştirme ortamında oluşan güvenlik kopyaları: veritabanı, .env ve lisans özel anahtarı içerir.
+backend/recovery/

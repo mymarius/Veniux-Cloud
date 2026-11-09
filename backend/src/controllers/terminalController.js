@@ -61,6 +61,13 @@ const registerDevice = async (req, res) => {
       `, [device_name, device_type, manufacturer, targetWarehouseId, battery_level, ip, device_uid, tenantId]);
       device = updateRes.rows[0];
     } else {
+      // Paket cihaz sınırı: yeni el terminali, lisanstaki cihaz (PDA) sayısını aşamaz.
+      const license = (await pool.query("SELECT max_devices, max_pdas FROM licenses WHERE tenant_id=$1 AND status IN ('ACTIVE','PAST_DUE') ORDER BY id DESC LIMIT 1", [tenantId])).rows[0];
+      const limit = license ? Number(license.max_pdas ?? license.max_devices ?? 0) : 0;
+      if (limit > 0 && !req.user.isPlatformAdmin) {
+        const used = Number((await pool.query("SELECT COUNT(*) AS n FROM warehouse_devices WHERE tenant_id=$1 AND COALESCE(status,'active')<>'revoked'", [tenantId])).rows[0].n);
+        if (used >= limit) return res.status(403).json({ error: `Paketinizin el terminali sınırına (${limit}) ulaşıldı. Kullanılmayan cihazı kaldırın veya paketi yükseltin.` });
+      }
       const insertRes = await pool.query(`
         INSERT INTO warehouse_devices 
           (tenant_id, device_uid, device_name, device_type, manufacturer, warehouse_id, battery_level, last_ip_address, status, last_heartbeat)

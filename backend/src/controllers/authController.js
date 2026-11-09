@@ -102,7 +102,13 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const user = result.rows[0];
+    // Eski kayıtlarda harf farkıyla çift e-posta kalmış olabilir (Ali@ / ali@): parolası tutan hesap seçilir,
+    // biri diğerini girişten kilitleyemez. Yeni kayıtlar zaten harfe duyarsız tekil denetleniyor.
+    let user = result.rows[0];
+    if (result.rows.length > 1) {
+      console.warn('[Auth] Harf farkıyla çift e-posta kaydı var; yönetici temizlemeli.', result.rows.map(r => r.id).join(','));
+      for (const row of [...result.rows].sort((a, b) => a.id - b.id)) if (typeof password === 'string' && await bcrypt.compare(password, row.password_hash || '')) { user = row; break; }
+    }
 
     // Verify password
     const ownerIdentity=require('../services/ownerIdentity');
