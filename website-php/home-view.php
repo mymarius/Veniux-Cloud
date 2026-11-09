@@ -13,7 +13,7 @@ $steps=[
     <div>
       <h1>Raf boşalmadan haberin&nbsp;olsun.</h1>
       <p class="hx-lead">Veniux, market ve depolar için stok programı. Kasadan çıkanı stoktan düşer, biteni bitmeden söyler, sayımda eksik çıkanı önüne getirir.</p>
-      <p class="hx-cta"><a class="hx-btn" href="/?request_type=demo#iletisim">Demo isteyin</a><a class="hx-textlink" href="#yolculuk">Nasıl çalışır?</a></p>
+      <p class="hx-cta"><a class="hx-btn" href="/?request_type=demo#iletisim">Demo isteyin</a><a class="hx-btn hx-btn-ghost" href="/program-indir">Programı indirin</a><a class="hx-textlink" href="#yolculuk">Nasıl çalışır?</a></p>
     </div>
     <div class="hx-shelf" role="img" aria-label="Raf etiketi çizimi: filtre kahve, 46 lira, üzerinde 3 günde bitiyor uyarısı">
       <div class="hx-label">
@@ -124,6 +124,43 @@ $steps=[
         <li><b>iPhone mu kullanıyorsunuz?</b> Şimdilik Windows ve Android var.</li>
       </ul>
     </div>
+  </div>
+</section>
+
+<section class="hx-plain hx-trust" id="guven">
+  <div class="hx-wrap hx-plain-grid">
+    <div>
+      <h2>Verileriniz nerede?</h2>
+      <ul class="hx-list">
+        <li><b>Bilgisayara kurulan Veniux:</b> Ürün, stok ve satış kayıtlarınız o bilgisayarda tutulur; internet kesilse de satış sürer. Günlük yedek kendiliğinden alınır, dilerseniz ikinci bir konuma ve şifreli dış yedeğe de kopyalanır.</li>
+        <li><b>Bulut sürümü:</b> Kayıtlarınız Veniux sunucusunda, firmanıza ayrılmış alanda tutulur; başka firma göremez.</li>
+        <li><b>Kim görebilir?</b> Çalışanlarınız yalnız rolünün izin verdiği ekranları görür. Kim neyi ne zaman değiştirdi, işlem kaydında durur. Ayrıntısı <a href="/kvkk-aydinlatma">KVKK metninde</a>.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Destek</h2>
+      <ul class="hx-list">
+        <li><b>Nereden?</b> Aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</li>
+        <li><b>Ne zaman?</b> Hafta içi 09:00–18:00, cumartesi 10:00–14:00.</li>
+        <li><b>Ne kadar sürede?</b> Kasa satış yapamıyorsa 2 saat içinde, diğer sorularda 1 iş günü içinde ilk yanıtı veririz.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="hx-plain hx-roadmap" id="yol-haritasi">
+  <div class="hx-wrap">
+    <h2>Yol haritası</h2>
+    <p>Aşağıdakiler henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak.</p>
+    <ul class="hx-list">
+      <li><b>Yapım aşamasında:</b> Mağaza ile bulutun kendiliğinden eşitlenmesi; internet kesilince bulut kasasının sürmesi.</li>
+      <li><b>Planlanıyor:</b> Yazarkasa (yeni nesil ÖKC) entegrasyonu.</li>
+      <li><b>Planlanıyor:</b> e-Fatura, e-Arşiv ve e-İrsaliye.</li>
+      <li><b>Planlanıyor:</b> Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</li>
+      <li><b>Planlanıyor:</b> Teraziye kablolu bağlantı (terazi etiketindeki barkod bugün okunuyor).</li>
+      <li><b>Denenmedi:</b> Trendyol entegrasyonu gerçek mağazada denenmedi; Hepsiburada ve N11 planlanıyor.</li>
+      <li><b>Yok:</b> iPhone uygulaması.</li>
+    </ul>
   </div>
 </section>
 

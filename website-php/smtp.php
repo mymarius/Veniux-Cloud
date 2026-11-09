@@ -18,7 +18,7 @@ function siteSendNotification(array $settings,array $record,string $recipient): 
     try {
         $mail=siteMailer($settings); $mail->addAddress($recipient); $mail->addReplyTo($record['email'],$record['name']);
         $mail->Subject='Veniux — Yeni görüşme talebi';
-        $mail->Body="Yeni görüşme talebi\n\nAd: {$record['name']}\nE-posta: {$record['email']}\nİşletme: {$record['company']}\nÇözüm: {$record['interest']}\nTalep: {$record['id']}\n";
+        $mail->Body="Yeni görüşme talebi\n\nAd: {$record['name']}\nE-posta: {$record['email']}\nİşletme: {$record['company']}\nÇözüm: {$record['interest']}\nTalep: {$record['id']}\n".(function_exists('siteDemoDetails')?siteDemoDetails($record):'');
         if (isset($record['plan'])) { $plan=$record['plan']; $mail->Body.="Paket: {$plan['name']} / {$plan['period']} / {$plan['amount_try']} TRY + KDV\n"; }
         return $mail->send();
     } catch (Throwable $error) { return false; } // Never expose SMTP errors or credentials.

@@ -14,6 +14,9 @@ $related=array_filter(['/stok-yonetimi'=>['Stok','Ürün kartı, hareket geçmi�
 <?php if($data['band']):?>
 <section class="hx-till hx-band"><div class="hx-wrap"><h2><?=e($data['band'][0])?></h2><p><?=e($data['band'][1])?></p></div></section>
 <?php endif;?>
+<?php if(!empty($data['sections'])):?>
+<section class="hx-sol-sections"><div class="hx-wrap hx-sol-grid"><?php foreach($data['sections'] as [$title,$text,$kind]):?><article class="hx-sol-card<?=$kind?' hx-sol-'.$kind:''?>"><h2><?=e($title)?></h2><p><?=e($text)?></p></article><?php endforeach;?></div></section>
+<?php endif;?>
 <?php if($data['shot'])echo pageFrame($data['shot'][0],$data['shot'][1],str_starts_with($data['shot'][0],'product-')?1914:1500,str_starts_with($data['shot'][0],'product-')?860:900);?>
 <?php if($faqs):?>
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa"><?php foreach($faqs as [$question,$answer]):?><div><h3><?=e($question)?></h3><p><?=e($answer)?></p></div><?php endforeach;?></div></div></section>

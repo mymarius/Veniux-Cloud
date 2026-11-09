@@ -1,12 +1,19 @@
 <?php
-// Sektöre özel tanıtım sayfaları: TASLAK. index.php'ye bağlı değildir; yayında görünmez.
+// Sektöre özel tanıtım sayfaları. 'published' olanlar index.php'de kayıtlıdır ve site haritasına girer; 'draft' olanlar yayında görünmez.
 // Yayına almak için: her sayfaya gerçek arayüz görseli (sentetik örnek işletmeyle) ekleyin, metni ürünle
 // karşılaştırın, sonra index.php'de growth-pages gibi kaydedin. SEO-ALTYAPISI.md kurallarına uyun:
 // yalnız gerçek özellik, uydurma yorum/puan/müşteri yok, aynı metni sayfalar arasında çoğaltmayın.
 // 'status'=>'draft' olan sayfa yayınlanmamalıdır. Eczane sayfası ayrıca karar ister (ECZANE-MODULU-KALDIRILDI.md).
 return [
  '/market-stok-ve-kasa-programi'=>[
-  'status'=>'draft',
+  'status'=>'published',
+  'faq'=>[
+   ['İnternet kesilince kasa durur mu?','Bilgisayara kurulan Veniux’ta durmaz; satış ve stok o bilgisayarda devam eder. Bulut sürümünde satış için internet gerekir.'],
+   ['Yazarkasa (ÖKC) ile çalışır mı?','Henüz hayır; entegrasyon planlanıyor. Yasal fiş yazarkasanızdan ayrıca kesilir. Yükümlülüğünüzü mali müşavirinizle netleştirin.'],
+   ['Tartılı ürünler nasıl satılır?','Terazinin bastığı barkodlu etiket kasada okutulur; ağırlık veya fiyat etiketten okunur. Teraziye kablolu bağlantı planlanıyor.'],
+  ],
+  'related'=>['/market-pos'=>'Kasa ve satış','/lot-miat-takibi'=>'Lot ve miat','/stok-yonetimi'=>'Stok yönetimi','/fiyatlandirma'=>'Fiyatlar'],
+  'solution'=>'kasa',
   'image'=>'sector-market-v1.jpg','alt'=>'Veniux kasa ekranında kampanyalı market sepeti: çay, yağ ve sıvı sabun; kampanya indirimi toplamın altında',
   'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Market Stok ve Kasa Programı | Veniux',
@@ -23,7 +30,14 @@ return [
   'keywords'=>['market programı','market stok takip programı','bakkal kasa programı','barkodlu satış programı','market otomasyonu','market veresiye defteri programı','tartılı ürün barkod okuma'],
  ],
  '/kirtasiye-stok-programi'=>[
-  'status'=>'draft',
+  'status'=>'published',
+  'faq'=>[
+   ['Binlerce küçük ürünü nasıl tanımlarım?','Excel veya CSV listenizi bir seferde aktarabilirsiniz; barkodu olmayan ürünler görselli hızlı satış ekranından satılır.'],
+   ['Okullara veresiye satabilir miyim?','Evet, İşletme ve Kurumsal paketlerde cari hesap, limit, vade ve tahsilat kaydı var.'],
+   ['Sezon kampanyasını nasıl kurarım?','Kampanya başlangıç ve bitiş tarihiyle kurulur; bitiş günü geçince kasada kendiliğinden uygulanmaz.'],
+  ],
+  'related'=>['/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/fiyatlandirma'=>'Fiyatlar'],
+  'solution'=>'kasa',
   'image'=>'sector-kirtasiye-v1.jpg','alt'=>'Veniux ürün kataloğunda kırtasiye ürünleri: barkod, stok, maliyet ve satış fiyatı',
   'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Kırtasiye Stok ve Satış Programı | Veniux',
@@ -40,7 +54,14 @@ return [
   'keywords'=>['kırtasiye programı','kırtasiye stok takibi','kırtasiye kasa programı','okul sezonu stok','kırtasiye barkod programı','kırtasiye veresiye takibi'],
  ],
  '/hirdavat-stok-programi'=>[
-  'status'=>'draft',
+  'status'=>'published',
+  'faq'=>[
+   ['Koli ile adet karışmaz mı?','Koli veya paket barkodu tanımlıysa okutulunca içindeki adet kadar işlenir; stok adet olarak tutulur.'],
+   ['Birden çok şubem var, stok nasıl görünür?','Her şubenin stoğu ayrı tutulur; şubeler arası transfer kayıtla yapılır. Şube karşılaştırması İşletme ve Kurumsal paketlerde.'],
+   ['Ustalara veresiye satabilir miyim?','Evet, İşletme ve Kurumsal paketlerde cari hesap, limit, vade ve ekstre var.'],
+  ],
+  'related'=>['/depo-yonetimi'=>'Depo yönetimi','/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/fiyatlandirma'=>'Fiyatlar'],
+  'solution'=>'stok',
   'image'=>'sector-hirdavat-v1.jpg','alt'=>'Veniux depolar sayfasında üç şubenin stok adedi, stok değeri ve net satış karşılaştırması',
   'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Hırdavat ve Nalbur Stok Programı | Veniux',
@@ -57,7 +78,14 @@ return [
   'keywords'=>['hırdavat programı','nalbur stok programı','hırdavat stok takibi','nalbur kasa programı','hırdavat barkod sistemi','yapı market stok programı'],
  ],
  '/kafe-hizli-satis-programi'=>[
-  'status'=>'draft',
+  'status'=>'published',
+  'faq'=>[
+   ['Masa ve adisyon takibi var mı?','Hayır. Veniux tezgâhtan satış yapan işletmeler içindir; masaya servis için uygun değildir.'],
+   ['Reçeteye göre malzeme stoktan düşer mi?','Hayır, şimdilik yok. Paketli ürünlerin (içecek, atıştırmalık) stoğu barkodla izlenir.'],
+   ['Sadakat kartı nasıl çalışır?','Her 10 TL alışverişe 1 puan; 1 puan 10 kuruş indirim olarak kullanılır. İşletme ve Kurumsal paketlerde.'],
+  ],
+  'related'=>['/market-pos'=>'Kasa ve satış','/yapay-zeka'=>'Asistan','/fiyatlandirma'=>'Fiyatlar'],
+  'solution'=>'kasa',
   'image'=>'sector-kafe-v1.jpg','alt'=>'Veniux kasa ekranında görselli hızlı satış: kahve, kurabiye ve limonata sepette',
   'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Kafe ve Büfe İçin Hızlı Satış Programı | Veniux',

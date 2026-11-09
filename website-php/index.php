@@ -27,6 +27,10 @@ $pages = [
  '/demo' => ['title'=>'Demo Talep Edin | Veniux','description'=>'Veniux ekosistemini birebir canlı demo görüşmesi ile işletmenizin süreçlerinde keşfedin.','label'=>'DEMO TALEP ET','headline'=>'Programı kendi işinizle görün.','intro'=>'Depo sayınızı ve ne aradığınızı yazın, Veniux’u sizin işinize göre gösterelim.']
 ];
 
+$sectorPages = array_filter(require __DIR__.'/sector-pages.php', fn($p) => ($p['status'] ?? '') === 'published');
+foreach($sectorPages as $route=>$sector){
+    $pages[$route]=['title'=>$sector['title'],'description'=>$sector['description'],'label'=>$sector['headline'],'headline'=>$sector['headline'],'intro'=>$sector['subtitle'],'image'=>$sector['image'],'alt'=>$sector['alt'],'image_width'=>1366,'image_height'=>800];
+}
 $growthPages = require __DIR__.'/growth-pages.php';
 foreach($growthPages as $route=>$guide){
     $pages[$route]=$guide;
@@ -151,7 +155,7 @@ header('X-Robots-Tag: '.($indexable?'index, follow':'noindex, nofollow'));
 $solutions=[
     ['01','Veniux CRM','Müşteri & Cari Takibi','Müşteri ilişkileri, potansiyel fırsatlar ve cari hesap yönetimi.','/stok-yonetimi'],
     ['02','Stok & Depo','Kusursuz Envanter','Ürün, barkod, lot/miat ve dinamik raf yönetimi.','/depo-yonetimi'],
-    ['03','Market / POS','Hızlı & Güvenli Satış','Dokunmatik satış, barkodlu okuma, fiş/fatura yazdırma ve kasa devri.','/market-pos']
+    ['03','Market / POS','Hızlı & Güvenli Satış','Dokunmatik satış, barkodlu okuma, bilgi fişi yazdırma ve vardiya devri.','/market-pos']
 ];
 
 $topics = [
@@ -202,6 +206,8 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <?php require __DIR__."/release-notes-view.php"; ?>
 <?php elseif($path==="/sunucu-kurulumu"): ?>
     <?php require __DIR__."/hosting-guide.php"; ?>
+<?php elseif(isset($sectorPages[$path])): ?>
+    <?php require __DIR__."/sector-view.php"; ?>
 <?php elseif(isset($growthPages[$path])): ?>
     <?php require __DIR__."/growth-view.php"; ?>
 <?php elseif($path==="/program-indir"): ?>
@@ -285,11 +291,29 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                                 <label class="dp-label">İlgilendiğiniz Çözüm *</label>
                                 <select class="dp-select" name="interest" required>
                                     <option value="">Bir çözüm seçin</option>
-                                    <?php foreach(['stok'=>'Stok ve Mağaza Yönetimi','depo'=>'Depo Operasyonları (WMS)','lot'=>'Lot ve Miat Takibi'] as $value=>$label):?>
+                                    <?php foreach(['stok'=>'Stok ve Mağaza Yönetimi','kasa'=>'Kasa ve Satış','depo'=>'Depo Operasyonları (WMS)','lot'=>'Lot ve Miat Takibi'] as $value=>$label):?>
                                         <option value="<?=$value?>" <?=($preserve?($_POST['interest']??''):$initialSolution)===$value?'selected':''?>><?=$label?></option>
                                     <?php endforeach;?>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="dp-form-row dp-demo-row">
+                            <div class="dp-form-group">
+                                <label class="dp-label" for="dp-sector">Sektör (isteğe bağlı)</label>
+                                <select class="dp-select" id="dp-sector" name="sector">
+                                    <option value="">Seçin</option>
+                                    <?php foreach(['market'=>'Market / bakkal','kirtasiye'=>'Kırtasiye','hirdavat'=>'Hırdavat / nalbur','kafe'=>'Kafe / büfe','depo'=>'Depo / toptan','diger'=>'Diğer'] as $value=>$label):?>
+                                        <option value="<?=$value?>" <?=$preserve&&($_POST['sector']??'')===$value?'selected':''?>><?=$label?></option>
+                                    <?php endforeach;?>
+                                </select>
+                            </div>
+                            <?php foreach(['warehouses'=>'Depo/şube sayısı','registers'=>'Kasa sayısı','users'=>'Kullanıcı sayısı'] as $name=>$label):?>
+                            <div class="dp-form-group">
+                                <label class="dp-label" for="dp-<?=$name?>"><?=$label?> (isteğe bağlı)</label>
+                                <input class="dp-input" id="dp-<?=$name?>" name="<?=$name?>" type="number" min="0" max="5000" step="1" inputmode="numeric" value="<?=$preserve?formValue($name):''?>">
+                            </div>
+                            <?php endforeach;?>
                         </div>
 
                         <div class="dp-form-group" data-partner-field>

@@ -5,7 +5,7 @@ $complete=!in_array(null,$need,true);
 $match=$complete?sitePlanFor($need['depo'],$need['kullanici'],$need['cihaz']):null;
 $compare=[
  ['Barkodlu kasa (nakit, kart, parçalı)',1,1,1],['Kampanyalar',1,1,1],['Ürün ve barkod kataloğu, stok ve mal kabul',1,1,1],['Lot ve miat (son kullanma)',1,1,1],
- ['Sipariş önerisi ve tedarikçiye sipariş belgesi',1,1,1],['Kritik stok, miat, sayım farkı ve kayıp şüphesi uyarıları',1,1,1],['Uyarıların e-posta/SMS ile iletimi',1,1,1],
+ ['Sipariş önerisi ve tedarikçiye sipariş belgesi',1,1,1],['Kritik stok, miat, sayım farkı ve kayıp şüphesi uyarıları',1,1,1],['Uyarıların e-posta/SMS ile iletimi (SMS için kendi Netgsm hesabınız gerekir)',1,1,1],
  ['Firma ve kullanıcı yetkileri, iki aşamalı doğrulama',1,1,1],['Veresiye ve vade hatırlatması',0,1,1],['Sadakat kartı',0,1,1],
  ['Kâr/zarar, kasiyer ve saatlik raporlar',0,1,1],['İşletme asistanı',0,1,1],['Şube karşılaştırması ve şube bazında erişim',0,1,1],
  ['Öncelikli destek',0,1,1],['Kurulum ve veri aktarımı desteği',0,0,1],
@@ -40,6 +40,16 @@ $compare=[
   </div>
   <p class="hx-wrap pr-terms"><?=$annual?'Tasarruf, aynı paketin dört adet 3 aylık dönem toplamına göre hesaplanır. ':''?>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Bedel sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve 30 gün önce bildirilir.</p>
 </section>
+
+<section class="pr-guide" aria-label="Kısa yönlendirme"><div class="hx-wrap">
+  <h2>Hangi paket bana uygun?</h2>
+  <ul>
+    <li><b>Başlangıç:</b> Tek kasa, tek depo; barkodlu satış, stok, lot ve miat, kayıp uyarıları yeter.</li>
+    <li><b>İşletme:</b> İki-üç şube, veresiye defteri, sadakat kartı veya kâr ve kasiyer raporu istiyorsanız.</li>
+    <li><b>Kurumsal:</b> Çok şube, çok kullanıcı; kurulum ve veri aktarımında destek istiyorsanız.</li>
+  </ul>
+  <p class="pr-note">Mevcut müşterilerimiz ilk yenilemede eski fiyattan devam eder.</p>
+</div></section>
 
 <section class="pr-finder" id="uygun-paket">
   <div class="hx-wrap pr-finder-grid">
@@ -99,6 +109,9 @@ $compare=[
 </section>
 
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa">
+  <div><h3>Deneme sürümü var mı?</h3><p>Kendiliğinden açılan bir deneme lisansı yok. Bunun yerine programı sizin ürünlerinizle ve iş akışınızla görüşmede birlikte deniyoruz; demo talebinizi aşağıdaki formdan bırakabilirsiniz.</p></div>
+  <div><h3>Yazarkasa (ÖKC) ile çalışır mı?</h3><p>Henüz hayır. Veniux kasası yasal fişin yerine geçmez; yasal fiş yazarkasanızdan ayrıca kesilir. Yazarkasa entegrasyonu planlanıyor; yükümlülüğünüzü mali müşavirinizle netleştirin.</p></div>
+  <div><h3>Fiyatlar neden KDV dahil yazılı?</h3><p>Ödeyeceğiniz toplam tutarı ilk bakışta görün diye. KDV hariç tutar teklifte ayrıca yazılır.</p></div>
   <div><h3>Hangi paket bana uygun?</h3><p>Tek kasa ve tek depoysanız Başlangıç. Şubeniz, veresiyeniz veya sadakat kartınız varsa İşletme. Çok şubeli ve büyük depolar için Kurumsal.</p></div>
   <div><h3>3 aylık ile yıllık arasında ne fark var?</h3><p>Özellikler ve sınırlar aynıdır. Yıllık ödeme yaklaşık %20 daha avantajlıdır. Kurumsal paket yalnız yıllık sunulur.</p></div>
   <div><h3>Fiyat yenilemede artar mı?</h3><p>Sözleşme süresince sabittir. Yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p></div>

@@ -14,8 +14,13 @@ function contactRateAllowed(array $config): bool {
         return $count<=5;
     }finally{flock($handle,LOCK_UN);fclose($handle);}
 }
+function siteDemoDetails(array $record): string {
+    $out='';
+    foreach(['sector'=>'Sektör','warehouses'=>'Depo/şube','registers'=>'Kasa','users'=>'Kullanıcı'] as $key=>$label) if(isset($record[$key])) $out.="{$label}: {$record[$key]}\n";
+    return $out;
+}
 function contactSubmit(array $config): array {
-    foreach(['plan','token','website','name','email','company','interest','consent','form_type','partner_type'] as $field){
+    foreach(['plan','token','website','name','email','company','interest','consent','form_type','partner_type','sector','warehouses','registers','users'] as $field){
         if(isset($_POST[$field])&&!is_string($_POST[$field])){
             http_response_code(422);return [false,'Form alanlarının biçimini kontrol edin.'];
         }
@@ -31,13 +36,25 @@ function contactSubmit(array $config): array {
     if (time() - (int)($_SESSION['last_contact_at'] ?? 0) < 60) { http_response_code(429); return [false,'Yeni bir talep için bir dakika bekleyin.']; }
     if (!contactRateAllowed($config)) { http_response_code(429); return [false,'Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin.']; }
     $name=trim((string)($_POST['name']??'')); $email=trim((string)($_POST['email']??'')); $company=trim((string)($_POST['company']??'')); $interest=(string)($_POST['interest']??'');
-    if (!mb_check_encoding($name.$company,'UTF-8') || preg_match('/[\x00-\x1F\x7F]/',$name.$company) || strlen($name)<2 || strlen($name)>100 || strlen($company)>160 || strlen($email)>254 || !filter_var($email,FILTER_VALIDATE_EMAIL) || !in_array($interest,['stok','depo','lot'],true) || ($_POST['consent']??'')!=='1') { http_response_code(422); return [false,'Ad, geçerli e-posta, çözüm seçimi ve iletişim iznini kontrol edin.']; }
+    if (!mb_check_encoding($name.$company,'UTF-8') || preg_match('/[\x00-\x1F\x7F]/',$name.$company) || strlen($name)<2 || strlen($name)>100 || strlen($company)>160 || strlen($email)>254 || !filter_var($email,FILTER_VALIDATE_EMAIL) || !in_array($interest,['stok','kasa','depo','lot'],true) || ($_POST['consent']??'')!=='1') { http_response_code(422); return [false,'Ad, geçerli e-posta, çözüm seçimi ve iletişim iznini kontrol edin.']; }
+    // İsteğe bağlı demo bilgileri: sektör ve sayılar. Boş bırakılabilir; doluysa doğrulanır.
+    $sector=(string)($_POST['sector']??'');
+    if ($sector!=='' && !in_array($sector,['market','kirtasiye','hirdavat','kafe','depo','diger'],true)) { http_response_code(422); return [false,'Sektör seçimini kontrol edin.']; }
+    $counts=[];
+    foreach(['warehouses'=>'Depo veya şube','registers'=>'Kasa','users'=>'Kullanıcı'] as $key=>$label){
+        $raw=trim((string)($_POST[$key]??''));
+        if ($raw==='') continue;
+        if (!preg_match('/^\d{1,4}$/',$raw) || (int)$raw>5000) { http_response_code(422); return [false,$label.' sayısını 0 ile 5000 arasında bir tam sayı olarak yazın.']; }
+        $counts[$key]=(int)$raw;
+    }
     $directory=$config['request_dir'];
     if (!is_dir($directory) && !@mkdir($directory,0700,true)) { http_response_code(503); return [false,'Talep şu anda kaydedilemiyor. Daha sonra tekrar deneyin.']; }
     $root=realpath(__DIR__); $resolved=realpath($directory);
     if (!$resolved || str_starts_with(strtolower($resolved.DIRECTORY_SEPARATOR),strtolower($root.DIRECTORY_SEPARATOR))) { http_response_code(503); return [false,'Talep şu anda kaydedilemiyor.']; }
     $record=['id'=>bin2hex(random_bytes(16)),'created_at'=>gmdate('c'),'name'=>$name,'email'=>$email,'company'=>$company,'interest'=>$interest,'form_type'=>$formType,'consent_version'=>'2026-10-11','privacy_notice_version'=>'2026-10-13','status'=>'pending'];
     if($formType==='partnership')$record['partner_type']=$partnerType;
+    if($sector!=='')$record['sector']=$sector;
+    foreach($counts as $key=>$value)$record[$key]=$value;
     if ($selectedPlan) $record['plan']=$selectedPlan;
     $file=$resolved.DIRECTORY_SEPARATOR.$record['id'].'.json'; $handle=@fopen($file,'x');
     if (!$handle) { http_response_code(503); return [false,'Talep kaydedilemedi. Daha sonra tekrar deneyin.']; }
@@ -56,7 +73,7 @@ function contactSubmit(array $config): array {
     }
     if ($config['mail_enabled'] && filter_var($config['contact_email'],FILTER_VALIDATE_EMAIL) && filter_var($config['mail_from'],FILTER_VALIDATE_EMAIL) && !preg_match('/[\r\n]/',$config['contact_email'].$config['mail_from'].$email)) {
         $subject='=?UTF-8?B?'.base64_encode('Veniux — Yeni görüşme talebi').'?=';
-        $body="Yeni görüşme talebi\n\nAd: {$name}\nE-posta: {$email}\nİşletme: {$company}\nÇözüm: {$interest}\nTalep: {$record['id']}\n";
+        $body="Yeni görüşme talebi\n\nAd: {$name}\nE-posta: {$email}\nİşletme: {$company}\nÇözüm: {$interest}\nTalep: {$record['id']}\n".siteDemoDetails($record);
         if ($selectedPlan) $body.="Paket: {$selectedPlan['name']} / {$selectedPlan['period']} / {$selectedPlan['amount_try']} TRY + KDV\n";
         $accepted=@mail($config['contact_email'],$subject,$body,['From'=>$config['mail_from'],'Reply-To'=>$email,'MIME-Version'=>'1.0','Content-Type'=>'text/plain; charset=UTF-8']);
         $record['notification_status']=$accepted?'transport_accepted':'failed';
