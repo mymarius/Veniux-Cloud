@@ -35,6 +35,12 @@ apiClient.interceptors.request.use(
       config.url = config.url.replace(/^\/api/, '');
     }
 
+    // Kasa cihaz kimliği: tarayıcıda/uygulamada kalıcı, rastgele; kişisel veri içermez. Yalnız kasa isteklerine eklenir.
+    if (/^\/scanner\//.test(config.url || '')) {
+      let uid = null;
+      try { uid = localStorage.getItem('veniux-pos-device'); if (!uid) { uid = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2)); localStorage.setItem('veniux-pos-device', uid); } } catch { uid = null; }
+      if (uid) { config.headers['x-veniux-device-uid'] = uid; config.headers['x-veniux-device-platform'] = window.veniuxMobile ? 'android' : window.veniuxDesktop?.isDesktop ? 'windows' : 'web'; }
+    }
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

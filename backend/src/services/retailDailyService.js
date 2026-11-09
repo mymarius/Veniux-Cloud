@@ -105,7 +105,7 @@ async function quote(user,body){
   return db.transaction(async tx=>{await warehouse(tx,user.tenantId,body.warehouse_id);const r=await price(tx,user,body,rights,settings,date);
     return {gross:r.gross/100,manual_discount:r.manual/100,campaign_discount:r.campaign.total/100,loyalty_discount:r.redeem.cents/100,total:(r.gross-r.discount)/100,campaigns:r.campaign.applied,campaigns_skipped:r.campaign.skipped};});
 }
-async function sale(user,body,key){
+async function sale(user,body,key,device){
   if(!['admin','manager','cashier'].includes(user.role))fail('Kasada satış yetkiniz yok.',403);
   const rights=await permissions(user),settings=await scanner.config(user.tenantId),date=businessDate();
   if(!Array.isArray(body.items)||!body.items.length||body.items.length>200)fail('Geçerli satış sepeti gerekli.');
@@ -118,6 +118,7 @@ async function sale(user,body,key){
     const no='POS-'+crypto.randomUUID(),method=payments.on_account?(payments.cash||payments.credit_card?'split':'on_account'):payments.cash&&payments.credit_card?'split':payments.credit_card?'credit_card':'cash';
     if(payments.on_account&&!['admin','manager'].includes(user.role))fail('Veresiye satış için yönetici yetkisi gerekli.',403);
     if(!payments.on_account&&(body.account_id!==undefined||body.due_date!==undefined))fail('Cari hesap yalnız veresiye ödemede seçilebilir.');
+    const devices=require('./posDeviceService'),posDevice=await devices.resolve(tx,user,device,shift.register_id),localNo=await devices.nextReceiptNo(tx,user.tenantId,body.warehouse_id,shift.register_id,date);
     const pos=(await tx.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,discount_amount,net_amount,payment_method,status) VALUES ($1,$2,$3,$4,$5,$6,'completed') RETURNING *",[user.tenantId,no,gross/100,discount/100,net/100,method])).rows[0];
     for(const line of lines){delete line.manual_price;delete line.weighted;}
     const items=discountAllocation(lines,discount,gross);
@@ -132,13 +133,15 @@ async function sale(user,body,key){
       await syncCashStock(tx,user.tenantId,line.product_id,body.warehouse_id);
     }
     const snapshot={receipt_no:no,status:'completed',shift_id:shift.id,register_id:shift.register_id,items,gross_cents:gross,discount_cents:discount,net_cents:net,payments,refunded_cents:0,refund_payments:{cash:0,credit_card:0},cashier:user.email,created_at:new Date().toISOString()};
+    snapshot.local_receipt_no=localNo;if(posDevice)snapshot.device_id=Number(posDevice.id);
     if(payments.on_account){snapshot.account_id=await require('./retailCreditService').charge(tx,user,body,payments.on_account,pos.id,shift.id);snapshot.due_date=body.due_date;snapshot.refund_payments.on_account=0;}
     snapshot.vat_breakdown=require('./retailVatService').breakdown(items);
     if(campaign.applied.length||manual||redeem.cents)snapshot.discounts={manual_cents:manual,campaign_cents:campaign.total,loyalty_cents:redeem.cents,campaigns:campaign.applied};
     const loyalty=await require('./retailPromoService').settle(tx,user.tenantId,redeem,pos.id,net);if(loyalty)snapshot.loyalty=loyalty;
     await tx.query('INSERT INTO retail_sales (sale_id,tenant_id,warehouse_id,user_id,business_date,snapshot_json,shift_id,register_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',[pos.id,user.tenantId,body.warehouse_id,user.userId,date,JSON.stringify(snapshot),shift.id,shift.register_id]);
     await audit(tx,user,'scanner.sale',pos.id,{receipt:no,gross_cents:gross,discount_cents:discount,payments,price_overrides:body.items.filter(i=>i.price_override!==undefined).map(i=>({barcode:i.barcode,price:i.price_override}))});
-    return {receipt_no:no,total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
+    await devices.record(tx,user,{saleId:pos.id,clientUuid:key,device:posDevice,receiptNo:localNo});
+    return {receipt_no:no,local_receipt_no:localNo,total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
   });});
 }
 async function restore(tx,user,row,line,quantity,disposition='saleable'){

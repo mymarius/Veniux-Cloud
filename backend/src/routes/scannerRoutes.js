@@ -30,6 +30,8 @@ router.get('/pro/okc/:id',requireRole('admin','manager'),action(req=>external.in
 router.get('/pro/sales/:id/invoice-draft',requireRole('admin','manager'),action(req=>external.invoiceDraft(req.user,req.params.id)));
 router.get('/shifts/context',async(req,res,next)=>{try{res.json(await require('../services/retailShiftService').context(req.user,req.query.warehouse_id,req.query.register_id));}catch(e){next(e);}});
 router.post('/shifts/open',async(req,res,next)=>{try{res.status(201).json(await require('../services/retailShiftService').open(req.user,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
+router.get('/devices',requireRole('admin','manager'),async(req,res,next)=>{try{res.json(await require('../services/posDeviceService').list(req.user));}catch(e){next(e);}});
+router.put('/devices/:id',requireRole('admin'),async(req,res,next)=>{try{res.json(await require('../services/posDeviceService').update(req.user,req.params.id,req.body||{}));}catch(e){next(e);}});
 router.get('/shifts/history',async(req,res,next)=>{try{res.json(await require('../services/retailShiftService').history(req.user,req.query||{}));}catch(e){next(e);}});
 router.get('/pos-policy',requireRole('admin','manager'),async(req,res,next)=>{try{res.json(await require('../services/retailShiftService').policy(req.user.tenantId));}catch(e){next(e);}});
 router.put('/pos-policy',requireRole('admin'),async(req,res,next)=>{try{res.json(await require('../services/retailShiftService').savePolicy(req.user,req.body||{}));}catch(e){next(e);}});
@@ -69,7 +71,7 @@ router.get('/sale-status',requireRole('admin','manager','cashier'),async(req,res
  });res.set('Cache-Control','no-store').json(result);
 }catch(e){next(e);}});
 router.post('/sale-quote',requireRole('admin','manager','cashier'),action(req=>require('../services/retailDailyService').quote(req.user,req.body||{})));
-router.post('/sale',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{res.status(201).json(await require('../services/retailDailyService').sale(req.user,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
+router.post('/sale',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{res.status(201).json(await require('../services/retailDailyService').sale(req.user,req.body,req.get('Idempotency-Key'),{uid:req.get('x-veniux-device-uid'),platform:req.get('x-veniux-device-platform')}));}catch(e){next(e);}});
 router.post('/sales/:id/:action',async(req,res,next)=>{try{res.json(await require('../services/retailDailyService').reverse(req.user,req.params.id,req.params.action,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
 router.get('/permissions',async(req,res,next)=>{try{res.json({role:req.user.role,permissions:await require('../services/retailDailyService').permissions(req.user)});}catch(e){next(e);}});
 router.get('/cashiers',requireRole('admin','manager'),async(req,res,next)=>{try{res.json((await db.query("SELECT u.id,u.email,u.full_name,p.permissions_json FROM users u LEFT JOIN retail_cashier_permissions p ON p.user_id=u.id AND p.tenant_id=u.tenant_id WHERE u.tenant_id=$1 AND u.role='cashier' AND u.status='active' ORDER BY u.id",[req.user.tenantId])).rows);}catch(e){next(e);}});

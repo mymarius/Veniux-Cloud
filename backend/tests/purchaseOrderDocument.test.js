@@ -6,6 +6,8 @@ const notifications = require('../src/services/notificationService');
 const docs = require('../src/services/purchaseOrderDocumentService');
 const { createTenant } = require('./factories');
 
+// PDF gerçek tarayıcıyla üretilir; tam test takımının yükü altında varsayılan 5 sn yetmeyebilir.
+jest.setTimeout(30000);
 let owner, other, order;
 const as = (u, r) => r.set('Authorization', 'Bearer ' + u.token);
 beforeAll(async () => {

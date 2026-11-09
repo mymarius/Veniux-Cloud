@@ -26,7 +26,7 @@ app.use((req,res,next)=>{
 app.use(cors({
   origin: (origin,callback)=>callback(null,!origin||allowedOrigins.has(origin)),
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-veniux-device-token', 'idempotency-key', 'x-tenant-id', 'x-file-name','x-upload-type','x-veniux-recovery-code'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-veniux-device-token', 'idempotency-key', 'x-tenant-id', 'x-file-name','x-upload-type','x-veniux-recovery-code','x-veniux-device-uid','x-veniux-device-platform'],
   exposedHeaders: ['X-Request-Id', 'Content-Disposition', 'X-Report-Fingerprint', 'X-Veniux-Offline-Until']
 }));
 
