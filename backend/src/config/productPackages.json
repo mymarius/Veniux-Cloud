@@ -140,6 +140,70 @@
       "annual_cents": null,
       "discount_percent": 0,
       "available": true
+    },
+    {
+      "code": "UNIFIED_START",
+      "family": "unified",
+      "name": "Veniux Başlangıç",
+      "modules": [
+        "stock",
+        "pos",
+        "wms"
+      ],
+      "limits": {
+        "users": 5,
+        "warehouses": 1,
+        "registers": 1,
+        "devices": 3
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "UNIFIED_BUSINESS",
+      "family": "unified",
+      "name": "Veniux İşletme",
+      "modules": [
+        "stock",
+        "pos",
+        "wms",
+        "credit",
+        "reports_pro"
+      ],
+      "limits": {
+        "users": 15,
+        "warehouses": 3,
+        "registers": 3,
+        "devices": 10
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "UNIFIED_ENTERPRISE",
+      "family": "unified",
+      "name": "Veniux Kurumsal",
+      "modules": [
+        "stock",
+        "pos",
+        "wms",
+        "credit",
+        "reports_pro"
+      ],
+      "limits": {
+        "users": 250,
+        "warehouses": 50,
+        "registers": 50,
+        "devices": 100
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
     }
   ]
 }

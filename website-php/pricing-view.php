@@ -11,7 +11,7 @@ $compare=[
 <section class="pr-hero">
   <div class="hx-wrap">
     <h1>Fiyat etiketleri ortada.</h1>
-    <p class="hx-lead">Depo, kullanıcı ve cihaz sayınıza göre seçin. Gizli kalem yok; neyin dahil olmadığını da aşağıda yazdık.</p>
+    <p class="hx-lead">Kasa ve depo her pakette. Paketler depo, kullanıcı ve cihaz sınırıyla ve İşletme’den itibaren gelen veresiye, sadakat, gelişmiş raporlar ve asistanla ayrışır. Gizli kalem yok; neyin dahil olmadığını da aşağıda yazdık.</p>
     <nav class="pr-switch" aria-label="Plan süresi">
       <a href="/fiyatlandirma?donem=uc-aylik#planlar" <?=$annual?'':'aria-current="true"'?>>3 aylık</a>
       <a href="/fiyatlandirma?donem=yillik#planlar" <?=$annual?'aria-current="true"':''?>>Yıllık</a>

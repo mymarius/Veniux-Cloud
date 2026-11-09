@@ -125,3 +125,20 @@ test('paket: gelişmiş raporlar ve sadakat Start paketinde kapalı, eski Pro s�
   expect(() => packages.validatePlan({ ...plan('WAREHOUSE_START'), modules: ['stock', 'wms', 'reports_pro'] })).toThrow();
   await db.query("UPDATE licenses SET enabled_features_json='{}',plan_id='ENTERPRISE_ANNUAL' WHERE tenant_id=$1", [owner.tenantId]);
 });
+
+test('site paketleri: Başlangıç kasa ve depoyu açar, gelişmiş rapor ve asistanı kapatır; eski paketler asistanı korur', async () => {
+  const packages = require('../src/services/productPackages');
+  const plan = code => packages.seed.plans.find(p => p.code === code);
+  const setContract = c => db.query('UPDATE licenses SET enabled_features_json=$1,plan_id=$2 WHERE tenant_id=$3', [JSON.stringify({ module_type: 'NORMAL', product_package: c }), c.code, owner.tenantId]);
+  await setContract(packages.contract(plan('UNIFIED_START'), 0));
+  expect((await sell([{ barcode: '000-TEA', count: 1 }])).status).toBe(201);
+  expect((await as(owner.token, request(app).get('/api/wms/inbound/receipts'))).status).not.toBe(403);
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/insights'))).status).toBe(403);
+  expect((await as(owner.token, request(app).get('/api/ai/capabilities'))).status).toBe(403);
+  await setContract(packages.contract(plan('UNIFIED_BUSINESS'), 0));
+  expect((await as(owner.token, request(app).get('/api/ai/capabilities'))).status).toBe(200);
+  expect((await as(owner.token, request(app).get('/api/scanner/pro/insights'))).status).toBe(200);
+  await setContract(packages.contract(plan('RETAIL_START'), 0));
+  expect((await as(owner.token, request(app).get('/api/ai/capabilities'))).status).toBe(200);
+  await db.query("UPDATE licenses SET enabled_features_json='{}',plan_id='ENTERPRISE_ANNUAL' WHERE tenant_id=$1", [owner.tenantId]);
+});
