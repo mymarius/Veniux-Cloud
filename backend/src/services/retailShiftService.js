@@ -10,6 +10,21 @@ const reason = value => {
   if (typeof value !== 'string' || value.trim().length < 5 || value.length > 500) fail('En az 5, en fazla 500 karakter gerekçe gerekli.');
   return value.trim();
 };
+// Vardiya farkı sınırı: |fark| bu tutarı aşarsa kasiyer kapatamaz; müdür veya yönetici kapatır ve onaylayan kayda geçer.
+async function policy(tenant, tx = db) {
+  const p = await require('./settingsPolicyService').read(tenant, 'pos', tx);
+  const limit = Number(p.shiftDifferenceLimitCents);
+  return { shiftDifferenceLimitCents: Number.isSafeInteger(limit) && limit >= 0 ? limit : 5000 };
+}
+async function savePolicy(user, body = {}) {
+  if (user.role !== 'admin') fail('Kasa kurallarını yalnız firma yöneticisi değiştirebilir.', 403);
+  const limit = daily.cents(body.shift_difference_limit, 'Vardiya farkı sınırı');
+  if (limit > 10000000) fail('Vardiya farkı sınırı çok yüksek.');
+  const data = { shiftDifferenceLimitCents: limit };
+  await require('./settingsPolicyService').save(user.tenantId, 'pos', data);
+  await db.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'retail.pos_policy_changed', 'settings', user.tenantId, JSON.stringify(data)]);
+  return data;
+}
 function retail(user) {
   if (!['admin', 'manager', 'cashier'].includes(user.role) || user.moduleType === 'PHARMACY') fail('Kasa vardiyası erişim yetkiniz yok.', 403);
 }
@@ -129,13 +144,36 @@ async function close(user,id,body,key) {
       const r=await calculate(tx,user,s),difference=counted-r.expected_cash_cents;
       if(body.expected_cash_cents!==undefined && (!Number.isSafeInteger(body.expected_cash_cents)||body.expected_cash_cents!==r.expected_cash_cents))fail('Vardiya nakdi değişti. Özeti yenileyip nakdi tekrar kontrol edin.',409);
       const note=difference ? reason(body.reason) : body.reason ? reason(body.reason) : '';
-      const result={...r,status:'closed',counted_cash_cents:counted,difference_cents:difference,difference_reason:note,closed_by:user.email,closed_by_id:user.userId,closed_at:new Date().toISOString()};
+      const {shiftDifferenceLimitCents:limit}=await policy(user.tenantId,tx);
+      const overLimit=Math.abs(difference)>limit;
+      if(overLimit&&!['admin','manager'].includes(user.role))fail(`Kasa farkı (${(Math.abs(difference)/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} TL) izin verilen ${(limit/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} TL sınırını aşıyor. Vardiyayı müdür veya yönetici kapatmalı.`,409);
+      const result={...r,status:'closed',counted_cash_cents:counted,difference_cents:difference,difference_reason:note,difference_limit_cents:limit,...(overLimit?{approved_by:user.email,approved_by_id:user.userId}:{}),closed_by:user.email,closed_by_id:user.userId,closed_at:new Date().toISOString()};
       const changed=await tx.query("UPDATE retail_shifts SET status='closed',closed_at=$1,closed_by=$2,closing_json=$3 WHERE tenant_id=$4 AND id=$5 AND status='open'",[result.closed_at,user.userId,JSON.stringify(result),user.tenantId,s.id]);
       if(changed.rowCount!==1)fail('Vardiya durumu değişti. Kasayı yenileyin.',409);
-      await daily.audit(tx,user,'retail.shift_close',null,{shift_id:s.id,register_id:s.register_id,difference_cents:difference,reason:note,user_id:user.userId});
+      await daily.audit(tx,user,'retail.shift_close',null,{shift_id:s.id,register_id:s.register_id,difference_cents:difference,reason:note,user_id:user.userId,over_limit:overLimit});
       return result;
     });
   });
+}
+// Geçmiş vardiyalar: kapanış özeti, fark ve onay bilgisiyle. Yalnız gün sonu yetkisi olanlar görür.
+async function history(user, query = {}) {
+  retail(user); daily.assertPermission(await daily.permissions(user), 'day_close');
+  const day = /^\d{4}-\d{2}-\d{2}$/;
+  const to = day.test(query.to || '') ? query.to : new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
+  const from = day.test(query.from || '') ? query.from : new Date(Date.parse(to) - 29 * 86400000).toISOString().slice(0, 10);
+  if (from > to) fail('Tarih aralığı geçersiz.');
+  const params = [user.tenantId, from + 'T00:00:00', to + 'T23:59:59.999Z'];
+  let sql = "SELECT s.id,s.register_id,r.name AS register_name,s.warehouse_id,w.name AS warehouse_name,s.opened_by_email,s.opened_at,s.closed_at,s.status,s.opening_cash_cents,s.closing_json FROM retail_shifts s JOIN retail_registers r ON r.id=s.register_id AND r.tenant_id=s.tenant_id LEFT JOIN warehouses w ON w.id=s.warehouse_id AND w.tenant_id=s.tenant_id WHERE s.tenant_id=$1 AND s.opened_at>=$2 AND s.opened_at<=$3";
+  if (query.register_id !== undefined && query.register_id !== '') { params.push(validId(query.register_id)); sql += ' AND s.register_id=$' + params.length; }
+  const allowed = user.accessScope && user.accessScope.mode !== 'company' ? new Set((user.accessScope.warehouse_ids || []).map(Number)) : null;
+  const rows = (await db.query(sql + ' ORDER BY s.id DESC LIMIT 500', params)).rows.filter(s => !allowed || allowed.has(Number(s.warehouse_id)));
+  const shifts = rows.map(s => {
+    const c = s.closing_json ? JSON.parse(s.closing_json) : null;
+    return { id: Number(s.id), register_id: Number(s.register_id), register_name: s.register_name, warehouse_name: s.warehouse_name, opened_by: s.opened_by_email, opened_at: s.opened_at, closed_at: s.closed_at, status: s.status,
+      opening_cash_cents: Number(s.opening_cash_cents), expected_cash_cents: c?.expected_cash_cents ?? null, counted_cash_cents: c?.counted_cash_cents ?? null, difference_cents: c?.difference_cents ?? null, difference_reason: c?.difference_reason || null, closed_by: c?.closed_by || null, approved_by: c?.approved_by || null };
+  });
+  const closed = shifts.filter(s => s.status === 'closed');
+  return { from, to, shifts, totals: { shifts: shifts.length, closed: closed.length, total_difference_cents: closed.reduce((t, s) => t + (s.difference_cents || 0), 0), shortage_cents: closed.reduce((t, s) => t + Math.min(0, s.difference_cents || 0), 0), over_limit: closed.filter(s => s.approved_by).length } };
 }
 async function detail(user,id) {
   retail(user);
@@ -155,4 +193,4 @@ async function receipt(user,id,width) {
   const lines=[['Başlangıç nakdi',r.opening_cash_cents],['Nakit tahsilat (para üstü sonrası)',r.cash_cents],['Alınan nakit',r.received_cash_cents],['Verilen para üstü',r.change_cents],['Nakit iade / iptal',r.cash_refund_cents],['Nakit giriş',r.cash_in_cents],['Nakit çıkış',r.cash_out_cents],['Beklenen nakit',r.expected_cash_cents],['Sayılan nakit',r.counted_cash_cents],['Kasa farkı',r.difference_cents],['Kart kaydı',r.card_cents],['Kart iade kaydı',r.card_refund_cents],['Veresiye kaydı',r.credit_cents||0],['Veresiye iade',r.credit_refund_cents||0],['Net satış KDV dahil',r.net_cents]];
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Vardiya kapanış özeti</title><style>@page{size:${Number(width)}mm ${Math.max(180,180+r.movements.length*15)}mm;margin:2mm}body{width:${Number(width)-4}mm;margin:auto;font:11px monospace;overflow-wrap:anywhere}h1{font-size:14px}table{width:100%}td:last-child{text-align:right}p{margin:5px 0}</style></head><body><h1>Vardiya kapanış özeti</h1><p>${esc(r.warehouse_name)} · ${esc(r.register_name)} · #${r.shift_id}</p><p>Açan: ${esc(r.opened_by)} · ${esc(r.opened_at)}</p><p>Kapatan: ${esc(r.closed_by)} · ${esc(r.closed_at)}</p><table>${lines.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join('')}</table><p>Fark gerekçesi: ${esc(r.difference_reason||'Fark yok')}</p><p>Nakit hareketleri satış geliri değildir.</p>${r.movements.map(m=>`<p>${m.direction==='in'?'Giriş':'Çıkış'} ${money(m.amount_cents)} · ${esc(m.reason)} · ${esc(m.user_email)}</p>`).join('')}<p>Kart tahsilat/iadesi banka cihazında ayrıca tamamlanır. Bu çıktı mali fiş değildir.</p></body></html>`;
 }
-module.exports={context,open,requireOpen,cashMovement,close,detail,receipt,assertRefundCash};
+module.exports={context,open,requireOpen,cashMovement,close,detail,receipt,assertRefundCash,history,policy,savePolicy};

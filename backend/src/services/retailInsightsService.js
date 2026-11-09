@@ -16,7 +16,7 @@ const allowedSet = user => user.accessScope && user.accessScope.mode !== 'compan
 
 async function sales(user, from, to) {
   const allowed = allowedSet(user);
-  const rows = (await db.query('SELECT r.sale_id,r.warehouse_id,r.user_id,r.snapshot_json,u.email,u.full_name FROM retail_sales r LEFT JOIN users u ON u.id=r.user_id AND u.tenant_id=r.tenant_id WHERE r.tenant_id=$1 AND r.business_date>=$2 AND r.business_date<=$3 ORDER BY r.sale_id', [user.tenantId, from, to])).rows;
+  const rows = (await db.query('SELECT r.sale_id,r.warehouse_id,r.user_id,r.register_id,g.name AS register_name,r.snapshot_json,u.email,u.full_name FROM retail_sales r LEFT JOIN users u ON u.id=r.user_id AND u.tenant_id=r.tenant_id LEFT JOIN retail_registers g ON g.id=r.register_id AND g.tenant_id=r.tenant_id WHERE r.tenant_id=$1 AND r.business_date>=$2 AND r.business_date<=$3 ORDER BY r.sale_id', [user.tenantId, from, to])).rows;
   return rows.filter(r => !allowed || allowed.has(Number(r.warehouse_id))).map(r => ({ ...r, snapshot: JSON.parse(r.snapshot_json) }));
 }
 
@@ -24,7 +24,7 @@ async function insights(user, query = {}) {
   if (!['admin', 'manager'].includes(user.role)) fail('Raporlar için yönetici yetkisi gerekli.', 403);
   const { from, to } = range(query);
   const list = await sales(user, from, to);
-  const products = new Map(), cashiers = new Map(), hours = Array.from({ length: 24 }, (_, hour) => ({ hour, receipts: 0, net_cents: 0 }));
+  const registers = new Map(), products = new Map(), cashiers = new Map(), hours = Array.from({ length: 24 }, (_, hour) => ({ hour, receipts: 0, net_cents: 0 }));
   for (const sale of list) {
     const s = sale.snapshot, net = Number(s.net_cents || 0) - Number(s.refunded_cents || 0);
     if (s.status === 'cancelled') continue;
@@ -35,6 +35,8 @@ async function insights(user, query = {}) {
       products.set(key, p);
     }
     const c = cashiers.get(Number(sale.user_id)) || { user_id: Number(sale.user_id), name: sale.full_name || null, email: sale.email || s.cashier || null, receipts: 0, net_cents: 0, discount_cents: 0, refunded_cents: 0 };
+    const rk = Number(sale.register_id || 0), rg = registers.get(rk) || { register_id: rk || null, name: sale.register_name || 'Kasa tanımsız', receipts: 0, net_cents: 0, refunded_cents: 0 };
+    rg.receipts++; rg.net_cents += net; rg.refunded_cents += Number(s.refunded_cents || 0); registers.set(rk, rg);
     c.receipts++; c.net_cents += net; c.discount_cents += Number(s.discount_cents || 0); c.refunded_cents += Number(s.refunded_cents || 0);
     cashiers.set(Number(sale.user_id), c);
     const at = Date.parse(s.created_at);
@@ -48,6 +50,7 @@ async function insights(user, query = {}) {
     top_by_quantity: [...all].sort((a, b) => b.quantity - a.quantity).slice(0, limit),
     cashiers: [...cashiers.values()].sort((a, b) => b.net_cents - a.net_cents).map(c => ({ ...c, average_cents: c.receipts ? Math.round(c.net_cents / c.receipts) : 0 })),
     hours,
+    registers: [...registers.values()].sort((a, b) => b.net_cents - a.net_cents),
     busiest_hour: hours.reduce((best, h) => h.receipts > best.receipts ? h : best, hours[0]).receipts ? hours.reduce((best, h) => h.receipts > best.receipts ? h : best, hours[0]).hour : null,
   };
 }

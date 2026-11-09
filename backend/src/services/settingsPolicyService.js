@@ -1,5 +1,5 @@
 const pool=require('../config/database');
-const defaults={ security:{sessionTimeout:'24h',strictPassword:false,requireAdminMfa:false,auditRetentionYears:2,newDeviceAlert:true}, notifications:{minStockAlert:true,expiryRadarAlert:true,expiryDays:90} };
+const defaults={ security:{sessionTimeout:'24h',strictPassword:false,requireAdminMfa:false,auditRetentionYears:2,newDeviceAlert:true}, pos:{shiftDifferenceLimitCents:5000}, notifications:{minStockAlert:true,expiryRadarAlert:true,expiryDays:90} };
 const read=async (tenant,name,client=pool)=>{
  const row=(await client.query("SELECT payload FROM workspace_collections WHERE tenant_id=$1 AND scope='settings' AND name=$2",[tenant,name])).rows[0];
  return {...defaults[name],...(row?JSON.parse(row.payload):{})};

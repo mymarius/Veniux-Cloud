@@ -1,5 +1,6 @@
 import CashierPermissions from './settings/CashierPermissions';
 import PromoSettings from './settings/PromoSettings';
+import PosPolicySettings from './settings/PosPolicySettings';
 import ScannerPanel from '../components/ScannerPanel';
 import React, { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -100,7 +101,7 @@ export default function SettingsPage() {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'roles' && <RolesTab onNavigate={setActiveTab} />}
         {activeTab === 'warehouse' && <WarehouseTab />}
-        {activeTab === 'scanner' && <><div className="mb-5"><h1>Barkod okuyucular ve kasa</h1><p className="text-sm mt-2">Okuyucunuzu deneyin, bağlantı ayarlarını yapın ve kasiyer yetkilerini belirleyin.</p></div><ScannerPanel settingsMode onCode={async()=>{}} /><CashierPermissions /><PromoSettings /></>}
+        {activeTab === 'scanner' && <><div className="mb-5"><h1>Barkod okuyucular ve kasa</h1><p className="text-sm mt-2">Okuyucunuzu deneyin, bağlantı ayarlarını yapın ve kasiyer yetkilerini belirleyin.</p></div><ScannerPanel settingsMode onCode={async()=>{}} /><CashierPermissions /><PosPolicySettings /><PromoSettings /></>}
         {activeTab === 'devices' && <DevicesTab />}
         {activeTab === 'integrations' && <IntegrationsTab />}
         {activeTab === 'notifications' && <NotificationsTab />}
