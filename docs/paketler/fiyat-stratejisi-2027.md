@@ -192,4 +192,4 @@ Başlangıç'ta ek kullanıcı ve depo satmamak bilinçli bir tercih: Başlangı
 | Ek kasa | 990 ₺ | 1.188 ₺ | — | — | — |
 
 Tüm rakamlar **[hesap]**: senin taslağından ve mevcut fiyatlardan türettiğim öneriler, pazar araştırması değil. KDV %20. 3 aylık = yıllık/4 × 1,25, 10'a yuvarlandı; KDV dahil 3 aylık rakamlar bu yuvarlanmış tutarın ×1,2'sidir.
-**Bu fiyatlar sitede uygulanmadı.** Onaylarsan `website-php/pricing.php` ve sayfa metnini bu tabloya göre güncellerim.
+**9 Kasım 2026'da sitede uygulandı:** fiyat sayfası, ana sayfa tablosu ve ziyaretçi asistanı. Henüz yayında değil. Ek kullanım fiyatları sayfada yazılı, ama uygulamada otomatik değil; lisans sınırı teklifte elle yükseltilir.

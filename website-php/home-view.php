@@ -112,7 +112,7 @@ $steps=[
       <h2>Fiyat etiketi</h2>
       <div class="hx-table-scroll"><table class="hx-table">
         <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th></tr></thead>
-        <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=number_format($plan['annual'],0,',','.')?> ₺</td><td><?=number_format($plan['quarter'],0,',','.')?> ₺</td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
+        <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=e(sitePrice($plan,true))?></td><td><?=e(sitePrice($plan,false))?></td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
       </table></div>
       <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları</a></p>
     </div>

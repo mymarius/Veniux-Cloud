@@ -277,6 +277,10 @@ main .vs-legacy h1,main h1{max-width:13em}
 .pr-tag .hx-btn{display:block;text-align:center;font-size:17px}
 .pr-tag .hx-barcode{width:100%;height:24px;margin-top:16px}
 .pr-terms{margin-top:36px!important;color:var(--ink-soft);font-size:15.5px}
+.pr-value{padding:56px 0;background:var(--white)}
+.pr-value h2{margin:0 0 12px}
+.pr-value p{max-width:860px;font-size:18px;line-height:1.6;margin:0}
+.pr-excluded b+ul{margin-top:10px}
 .pr-ledger{padding:80px 0;background:var(--kraft)}
 .pr-ledger-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.8fr);align-items:center;gap:48px}
 .pr-table{background:var(--white)}
