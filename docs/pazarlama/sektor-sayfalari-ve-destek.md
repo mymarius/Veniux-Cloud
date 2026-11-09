@@ -192,4 +192,4 @@ Okul sezonu (Ağustos–Eylül) bu 90 günün dışında kalıyor. Kırtasiye ka
 ## 8. Doğrulanmayanlar
 - Anahtar kelimelerin arama hacmi ve rekabeti.
 - Hosting paketinizin e-posta kutusu sunup sunmadığı.
-- Sektör sayfaları için gerçek ekran görüntüleri henüz alınmadı; sayfalar görselsiz yayınlanmamalı.
+- Sektör görselleri alındı (`website-php/assets/sector-*.jpg`, 9 Kasım 2026): gerçek arayüz, sentetik deneme işletmeleri (Örnek Market, Kırtasiye, Hırdavat, Kafe). Görüntülerde kişisel veri yok; ekranda yalnız "Örnek Yönetici" adı ve uydurma ürünler var. Eczane sayfasına görsel eklenmedi (karar bekliyor).

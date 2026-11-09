@@ -9,7 +9,7 @@ RewriteRule ^assets/[a-zA-Z0-9._-]+$ - [L]
 RewriteRule ^ index.php [L]
 
 <IfModule mod_headers.c>
-<FilesMatch "^(?:[a-z]+\.[a-f0-9]{12}\.(?:css|js)|logo-(?:[0-9]+|hero(?:-[0-9]+)?)-v[0-9]+\.webp|product-(?:barcode|warehouse|lot|expiry|terminal)-v[0-9]+\.jpg|manrope-v1\.woff2|hostimux-sponsor-v1\.png)$">
+<FilesMatch "^(?:[a-z]+\.[a-f0-9]{12}\.(?:css|js)|logo-(?:[0-9]+|hero(?:-[0-9]+)?)-v[0-9]+\.webp|product-(?:barcode|warehouse|lot|expiry|terminal)-v[0-9]+\.jpg|sector-(?:market|kirtasiye|hirdavat|kafe)-v[0-9]+\.jpg|manrope-v1\.woff2|hostimux-sponsor-v1\.png)$">
 Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
 </IfModule>

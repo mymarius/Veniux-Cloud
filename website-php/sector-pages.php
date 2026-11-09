@@ -7,6 +7,8 @@
 return [
  '/market-stok-ve-kasa-programi'=>[
   'status'=>'draft',
+  'image'=>'sector-market-v1.jpg','alt'=>'Veniux kasa ekranında kampanyalı market sepeti: çay, yağ ve sıvı sabun; kampanya indirimi toplamın altında',
+  'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Market Stok ve Kasa Programı | Veniux',
   'description'=>'Market ve bakkal için barkodlu kasa, stok, kampanya, veresiye ve çok şube takibi. Windows ve Android’de, internet kesilse de çalışır.',
   'headline'=>'Market için kasa ve stok, tek ekranda.',
@@ -22,6 +24,8 @@ return [
  ],
  '/kirtasiye-stok-programi'=>[
   'status'=>'draft',
+  'image'=>'sector-kirtasiye-v1.jpg','alt'=>'Veniux ürün kataloğunda kırtasiye ürünleri: barkod, stok, maliyet ve satış fiyatı',
+  'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Kırtasiye Stok ve Satış Programı | Veniux',
   'description'=>'Binlerce küçük ürünü barkodla takip edin; okul sezonu kampanyaları, kurum veresiyesi ve tedarikçi siparişleri tek yerde.',
   'headline'=>'Kırtasiyede binlerce ürün, karışmadan.',
@@ -37,6 +41,8 @@ return [
  ],
  '/hirdavat-stok-programi'=>[
   'status'=>'draft',
+  'image'=>'sector-hirdavat-v1.jpg','alt'=>'Veniux depolar sayfasında üç şubenin stok adedi, stok değeri ve net satış karşılaştırması',
+  'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Hırdavat ve Nalbur Stok Programı | Veniux',
   'description'=>'Koli/adet birimleri, tartılı ürünler, çok depo ve tedarikçi siparişleriyle hırdavat ve nalbur stoğunu düzenli tutun.',
   'headline'=>'Hırdavatta “var mı?” sorusuna anında cevap.',
@@ -52,6 +58,8 @@ return [
  ],
  '/kafe-hizli-satis-programi'=>[
   'status'=>'draft',
+  'image'=>'sector-kafe-v1.jpg','alt'=>'Veniux kasa ekranında görselli hızlı satış: kahve, kurabiye ve limonata sepette',
+  'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 9 Kasım 2026.',
   'title'=>'Kafe ve Büfe İçin Hızlı Satış Programı | Veniux',
   'description'=>'Görselli hızlı satış ekranı, kampanya ve sadakat puanı ile tezgâhtan satış yapan kafe ve büfeler için kasa ve stok.',
   'headline'=>'Tezgâhta hızlı satış, akşam net rapor.',
