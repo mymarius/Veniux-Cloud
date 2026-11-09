@@ -4,7 +4,8 @@ import {useEffect,useState} from 'react';
 import api from '../../api/client';
 const auditObjects={stock:'Stok',product:'Ürün',user:'Kullanıcı',medicine:'İlaç',warehouse:'Depo',supplier:'Tedarikçi',settings:'Ayar',backup:'Yedek',auth:'Oturum',license:'Lisans',device:'Cihaz',sale:'Satış',order:'Sipariş'};
 const auditVerbs={create:'eklendi',created:'eklendi',update:'güncellendi',updated:'güncellendi',delete:'silindi',deleted:'silindi',deactivate:'pasifleştirildi',movement:'hareketi',login:'açıldı',logout:'kapatıldı'};
-const auditLabel=action=>{const [object,verb]=String(action||'').split('.');return auditObjects[object]&&auditVerbs[verb]?`${auditObjects[object]} ${auditVerbs[verb]}`:action;};
+const auditNames={'support.access':'Destek ekibi erişimi','auth.new_device':'Yeni cihazdan giriş','auth.device_revoked':'Cihaz kaldırıldı','audit.retention_purge':'Eski işlem kayıtları silindi (saklama süresi)','alert_delivery.changed':'Bildirim iletim ayarı değişti','purchase_order.emailed':'Sipariş e-postayla gönderildi','product.cost_basis_updated':'Ürün maliyeti güncellendi','purchase.create':'Satın alma siparişi oluşturuldu','user.mfa_reset':'İki aşamalı doğrulama sıfırlandı','access.scope_changed':'Erişim kapsamı değişti'};
+const auditLabel=action=>{if(auditNames[action])return auditNames[action];const [object,verb]=String(action||'').split('.');return auditObjects[object]&&auditVerbs[verb]?`${auditObjects[object]} ${auditVerbs[verb]}`:action;};
 const auditDate=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?value:date.toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'});};
 export default function SecurityTab(){
  const [config,setConfig]=useState({sessionTimeout:'24h',strictPassword:false});const [logs,setLogs]=useState([]);const [auditReady,setAuditReady]=useState(false);const [message,setMessage]=useState('');const [saving,setSaving]=useState(false);const [ready,setReady]=useState(false);
