@@ -40,7 +40,14 @@ async function list(user) {
 }
 async function create(user, body) {
   manager(user);
-  const c = validate(body || {});
+  body = { ...(body || {}) };
+  // Kullanıcı ürünü barkodla seçer; iç ürün numarası gerekmez.
+  if (typeof body.barcode === 'string' && body.barcode.trim()) {
+    const p = (await db.query('SELECT id FROM products WHERE tenant_id=$1 AND barcode=$2', [user.tenantId, body.barcode.trim()])).rows[0];
+    if (!p) fail('Bu barkodla ürün bulunamadı.', 404);
+    body.product_id = p.id;
+  }
+  const c = validate(body);
   if (c.product_id !== null && !(await db.query('SELECT id FROM products WHERE id=$1 AND tenant_id=$2', [c.product_id, user.tenantId])).rows.length) fail('Ürün bulunamadı.', 404);
   return (await db.query('INSERT INTO retail_campaigns (tenant_id,name,kind,product_id,buy_qty,pay_qty,percent,starts_on,ends_on,requires_approval,active,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1,$11) RETURNING *',
     [user.tenantId, c.name, c.kind, c.product_id, c.buy_qty, c.pay_qty, c.percent, c.starts_on, c.ends_on, c.requires_approval, user.userId])).rows[0];

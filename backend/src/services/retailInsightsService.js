@@ -60,12 +60,12 @@ async function deadStock(user, query = {}) {
   const allowed = allowedSet(user);
   const stock = (await db.query('SELECT s.product_id,s.warehouse_id,SUM(s.quantity) AS qty FROM stock_records s WHERE s.tenant_id=$1 GROUP BY s.product_id,s.warehouse_id HAVING SUM(s.quantity)>0', [user.tenantId])).rows.filter(r => !allowed || allowed.has(Number(r.warehouse_id)));
   const moved = new Set((await db.query("SELECT DISTINCT product_id,warehouse_id FROM stock_movements WHERE tenant_id=$1 AND change_amount<0 AND movement_type='outbound' AND created_at>=$2", [user.tenantId, since])).rows.map(r => r.product_id + ':' + r.warehouse_id));
-  const last = new Map((await db.query("SELECT product_id,MAX(created_at) AS at FROM stock_movements WHERE tenant_id=$1 AND change_amount<0 AND movement_type='outbound' GROUP BY product_id", [user.tenantId])).rows.map(r => [Number(r.product_id), r.at]));
+  const last = new Map((await db.query("SELECT product_id,warehouse_id,MAX(created_at) AS at FROM stock_movements WHERE tenant_id=$1 AND change_amount<0 AND movement_type='outbound' GROUP BY product_id,warehouse_id", [user.tenantId])).rows.map(r => [r.product_id + ':' + r.warehouse_id, r.at]));
   const products = new Map((await db.query('SELECT id,name,sku,barcode,purchase_price FROM products WHERE tenant_id=$1', [user.tenantId])).rows.map(p => [Number(p.id), p]));
   const warehouses = new Map((await db.query('SELECT id,name FROM warehouses WHERE tenant_id=$1', [user.tenantId])).rows.map(w => [Number(w.id), w.name]));
   const items = stock.filter(r => !moved.has(r.product_id + ':' + r.warehouse_id)).map(r => {
     const p = products.get(Number(r.product_id)) || {}, qty = Number(r.qty);
-    return { product_id: Number(r.product_id), name: p.name || null, sku: p.sku || null, barcode: p.barcode || null, warehouse_id: Number(r.warehouse_id), warehouse: warehouses.get(Number(r.warehouse_id)) || null, quantity: qty, value_cents: Math.round(qty * Number(p.purchase_price || 0) * 100), last_outbound_at: last.get(Number(r.product_id)) || null };
+    return { product_id: Number(r.product_id), name: p.name || null, sku: p.sku || null, barcode: p.barcode || null, warehouse_id: Number(r.warehouse_id), warehouse: warehouses.get(Number(r.warehouse_id)) || null, quantity: qty, value_cents: Math.round(qty * Number(p.purchase_price || 0) * 100), last_outbound_at: last.get(r.product_id + ':' + r.warehouse_id) || null };
   }).sort((a, b) => b.value_cents - a.value_cents);
   return { days, items: items.slice(0, 500), total_value_cents: items.reduce((t, i) => t + i.value_cents, 0), count: items.length };
 }

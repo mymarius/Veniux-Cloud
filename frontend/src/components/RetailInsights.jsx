@@ -16,7 +16,8 @@ export default function RetailInsights() {
     } catch (e) { setError(e.response?.data?.error || 'Rapor alınamadı.'); } finally { setBusy(false); }
   };
   const peak = data ? Math.max(1, ...data.hours.map(h => h.receipts)) : 1;
-  return <section className="space-y-4 mt-6">
+  return <section className="space-y-4 mt-6 vx-insights">
+    <style>{'.vx-insights th,.vx-insights td{padding:4px 8px}'}</style>
     <h2 className="font-semibold">Satış raporları</h2>
     <div className="flex flex-wrap gap-2 items-end">
       <label className="text-sm">Başlangıç<input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>

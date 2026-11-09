@@ -30,7 +30,8 @@ test('kampanya doğrulanır; 3 al 2 öde ve yüzde indirim kasada uygulanır, ka
   const three = await post(owner.token, 'pro/campaigns', { name: 'Çay 3 al 2 öde', kind: 'buy_x_pay_y', product_id: tea.id, buy_qty: 3, pay_qty: 2, starts_on: today(), ends_on: shiftDay(7) });
   expect(three.status).toBe(200);
   await post(owner.token, 'pro/campaigns', { name: 'Çay %10', kind: 'percent', product_id: tea.id, percent: 10, starts_on: today(), ends_on: today() });
-  await post(owner.token, 'pro/campaigns', { name: 'Sabun %25', kind: 'percent', product_id: soap.id, percent: 25, starts_on: today(), ends_on: today() });
+  expect((await post(owner.token, 'pro/campaigns', { name: 'Yok', kind: 'percent', barcode: '000-YOK', percent: 25, starts_on: today(), ends_on: today() })).status).toBe(404);
+  await post(owner.token, 'pro/campaigns', { name: 'Sabun %25', kind: 'percent', barcode: '000-SOAP', percent: 25, starts_on: today(), ends_on: today() });
   await post(owner.token, 'pro/campaigns', { name: 'Gelecek hafta', kind: 'percent', percent: 50, starts_on: shiftDay(5), ends_on: shiftDay(9) });
   const q = await post(owner.token, 'sale-quote', { warehouse_id: warehouse.id, items: [{ barcode: '000-TEA', count: 7 }, { barcode: '000-SOAP', count: 1 }] });
   expect(q.body).toMatchObject({ gross: 90, campaign_discount: 25, total: 65 });
