@@ -1,8 +1,19 @@
 {
-  "version": "2.4.52",
+  "version": "2.4.53",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.53",
+      "date": "10 Kasım 2026",
+      "title": "Online kasa: vardiya ve kasa cihazları",
+      "items": [
+        "Vardiya kapanışında kasa farkı sınırı ve müdür onayı",
+        "Geçmiş vardiyalar ve kasa bazında satış raporu",
+        "Kasa cihazı kaydı ve cihaz sınırı",
+        "Her kasa için günlük sıralı fiş numarası"
+      ]
+    },
     {
       "version": "2.4.52",
       "date": "9 Kasım 2026",
