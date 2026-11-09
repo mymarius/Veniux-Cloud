@@ -29,7 +29,7 @@ const getEmailTransporter = () => {
 /**
  * Send email notification
  */
-const sendEmail = async (to, subject, text, html) => {
+const sendEmail = async (to, subject, text, html, extra = {}) => {
   try {
     const transporter = getEmailTransporter();
     
@@ -43,7 +43,9 @@ const sendEmail = async (to, subject, text, html) => {
       to,
       subject,
       text,
-      html
+      html,
+      ...(extra.replyTo ? { replyTo: extra.replyTo } : {}),
+      ...(Array.isArray(extra.attachments) ? { attachments: extra.attachments } : {})
     };
 
     const info = await transporter.sendMail(mailOptions);

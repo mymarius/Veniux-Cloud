@@ -9,7 +9,7 @@ module.exports=async(req,res,next)=>{
   if(operational.test(path)&&!['sqlite','mysql'].includes(db.getEngine()))throw Object.assign(Error('Depo kapsamı bu veritabanı için doğrulanmadı. Operasyon erişimi kapalı.'),{status:503});
   const user=req.user,scope=user.isPlatformAdmin&&user.homeTenantId!==user.tenantId?{mode:'company',warehouse_ids:[]}:await access.read(user.userId,user.tenantId);
   user.accessScope=scope;
-  if(scope.mode!=='company'&&(/^\/api\/settings\/(automation|whatsapp|company|system-engine|security|notifications)(\/|$)/.test(path)||(!['GET','HEAD'].includes(req.method)&&/^\/api\/settings\/onboarding(\/|$)/.test(path))||/^\/api\/marketplace(\/|$)/.test(path)))throw denied('Firma genelindeki ayar ve otomasyonlar firma genelinde erişim gerektirir.');
+  if(scope.mode!=='company'&&(/^\/api\/settings\/(automation|whatsapp|company|system-engine|security|notifications|alert-delivery)(\/|$)/.test(path)||(!['GET','HEAD'].includes(req.method)&&/^\/api\/settings\/onboarding(\/|$)/.test(path))||/^\/api\/marketplace(\/|$)/.test(path)))throw denied('Firma genelindeki ayar ve otomasyonlar firma genelinde erişim gerektirir.');
   if(scope.mode!=='company'&&/^\/api\/(audit-logs|notifications)(\/|$)/.test(path))throw denied('Firma genelindeki işlem geçmişi için firma genelinde erişim gerekir.');
   if(!operational.test(path))return next();
   if(scope.mode!=='company'&&!scope.warehouse_ids.length)throw denied('Depo erişiminiz atanmamış. Firma yöneticinizden erişim isteyin.');

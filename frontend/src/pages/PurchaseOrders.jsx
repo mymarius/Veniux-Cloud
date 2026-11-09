@@ -1,3 +1,4 @@
+import PurchaseOrderSend from '../components/PurchaseOrderSend';
 import { money } from '../lib/stockAnalytics';
 import { Dropdown } from '../components/ui';
 import { useLocation } from 'react-router-dom';
@@ -375,6 +376,7 @@ export default function PurchaseOrders() {
                 </div>
               </div>
               {selectedOrder.cancel_reason&&<section className="border rounded-xl p-4 text-sm space-y-1"><h3 className="font-semibold">İptal geçmişi</h3><p>İptal gerekçesi: {selectedOrder.cancel_reason}</p><p className="text-xs text-gray-500">{selectedOrder.cancelled_at&&new Date(selectedOrder.cancelled_at).toLocaleString('tr-TR')} · İşlemi yapan kullanıcı: {selectedOrder.cancelled_by}</p><p className="text-xs text-gray-500">Alınan stok korunarak yalnızca kalan miktar kapatıldı.</p></section>}
+              {canManage&&<PurchaseOrderSend key={'send-'+selectedOrder.id} order={selectedOrder}/>}
               {canManage&&['approved','partially_received'].includes(selectedOrder.status)&&<PurchaseReceiptPanel order={selectedOrder} onDone={async()=>{await handleOpenDetail(selectedOrder);await fetchOrders();showToast('Teslimat kabul edildi.','success');}}/>}
               {!!selectedOrder.deliveries?.length&&<section className="border rounded-xl p-4 space-y-2"><h3 className="font-semibold text-sm">Teslimat geçmişi</h3>{selectedOrder.deliveries.map(i=><div key={i.id} className="border-b pb-2 text-sm"><b>{i.product_name}</b><p className="text-xs text-gray-500">{i.waybill_no} · {i.received_qty} {i.unit} · İade {i.returned_qty} · Lot {i.lot_number||'Yok'} · {i.expiry_date||'Tarih yok'} · {i.location_code} · {money(i.unit_purchase_price)}</p></div>)}</section>}
               {canManage&&<SupplierReturnPanel key={selectedOrder.id} deliveries={selectedOrder.deliveries||[]} endpoint={'/purchase-orders/'+selectedOrder.id+'/returns'} onDone={async()=>{await handleOpenDetail(selectedOrder);await fetchOrders();showToast('Tedarikçiye iade kaydedildi.','success');}}/>}

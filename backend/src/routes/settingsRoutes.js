@@ -60,6 +60,9 @@ router.get('/integrations', requireRole('admin'), (req,res) => res.json({
   ai: Boolean(process.env.NVIDIA_API_KEY),
   payment: false
 }));
+router.get('/alert-delivery', requireRole('admin','manager'), async (req,res,next) => { try { res.json(await require('../services/alertDeliveryService').read(req.user.tenantId)); } catch(error) { next(error); } });
+router.put('/alert-delivery', requireRole('admin'), async (req,res,next) => { try { res.json(await require('../services/alertDeliveryService').save(req.user, req.body || {})); } catch(error) { if(error.status) return res.status(error.status).json({error:error.message}); next(error); } });
+router.post('/alert-delivery/run', requireRole('admin'), async (req,res,next) => { try { res.json(await require('../services/alertDeliveryService').deliver(req.user.tenantId)); } catch(error) { next(error); } });
 for (const name of ['security','notifications']) {
   router.get('/'+name, requireRole('admin','manager'), async (req,res,next) => {
     try { res.json(await policies.read(req.user.tenantId,name)); } catch(error) {next(error);}
