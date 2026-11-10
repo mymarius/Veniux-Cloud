@@ -91,7 +91,15 @@ function applyMySQL(sql,scope){
  for(const r of replacements.sort((a,b)=>b.start-a.start))sql=sql.slice(0,r.start)+r.text+sql.slice(r.end);
  return sql;
 }
+// Reddedilen yazının hangi tabloda/işlemde olduğunu hata metnine ekler (teşhis için; yalnız tablo adı ve işlem türü).
 async function validateMySQLWrite(sql,params,connection,translate){
+ try{await validateMySQLWriteInner(sql,params,connection,translate);}
+ catch(error){
+  if(error&&error.status===403&&/kapsamınız dışında/.test(error.message)){const list=tokens(sql),first=list[0]?.word,table=list[first==='update'?1:list[1]?.word==='into'?2:3]?.word;error.message+=' ['+first+' '+table+']';}
+  throw error;
+ }
+}
+async function validateMySQLWriteInner(sql,params,connection,translate){
  const scope=storage.getStore();if(!scope)return;
  const list=tokens(sql),first=list[0]?.word;if(!['insert','update'].includes(first))return;
  const table=list[first==='update'?1:list[1]?.word==='into'?2:3]?.word,entry=schema.find(t=>t.name===table);
