@@ -30,7 +30,10 @@ async function resolve(tx, user, device, registerId) {
     row = (await tx.query('SELECT * FROM pos_devices WHERE tenant_id=$1 AND device_uid=$2', [user.tenantId, device.uid])).rows[0];
     await tx.query("INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,'pos.device_registered','device',$3,$4)", [user.tenantId, user.email, row.id, JSON.stringify({ platform, register_id: registerId || null })]);
   } else {
-    await tx.query('UPDATE pos_devices SET last_seen_at=CURRENT_TIMESTAMP,register_id=COALESCE($1,register_id) WHERE id=$2 AND tenant_id=$3', [registerId || null, row.id, user.tenantId]);
+    // MySQL kapsam denetimi, kasa/depo gibi başvuru sütunlarına yalnız düz parametre yazılmasına izin verir (COALESCE gibi ifade reddedilir):
+    // son görülme ve kasa ataması bu yüzden iki ayrı, basit güncellemedir. Anlamı aynıdır: kasa verildiyse atanır, verilmediyse eskisi kalır.
+    await tx.query('UPDATE pos_devices SET last_seen_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2', [row.id, user.tenantId]);
+    if (registerId) await tx.query('UPDATE pos_devices SET register_id=$1 WHERE id=$2 AND tenant_id=$3', [registerId, row.id, user.tenantId]);
   }
   return row;
 }
