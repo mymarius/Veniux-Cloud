@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createOfflineQueue, memoryStore, NetworkError } from './offlineQueue.mjs';
+import { createOfflineQueue, memoryStore, NetworkError, pendingWarning } from './offlineQueue.mjs';
 import { nextEmergencyReceipt, deviceKey, businessDay } from './emergencyReceipt.mjs';
 import { offlineTotals, offlineChange, supportedOffline, lineCents } from './offlineSale.mjs';
 import { downloadCatalog, buildIndex, findProduct } from './offlineCatalog.mjs';
@@ -14,7 +14,7 @@ test('kuyruk: aynı satış iki kez eklenmez; sıra eklenme zamanına göre koru
   await q.enqueue(sale('a', '2026-11-10T10:00:01Z'));
   await q.enqueue(sale('a', '2026-11-10T10:00:09Z'));
   assert.deepEqual((await q.list()).map(r => r.id), ['a', 'b']);
-  assert.deepEqual(await q.counts(), { total: 2, pending: 2, conflict: 0 });
+  assert.deepEqual(await q.counts(), { total: 2, pending: 2, conflict: 0, oldestPendingAt: '2026-11-10T10:00:01Z' });
 });
 
 test('kuyruk: geçersiz satış reddedilir', async () => {
@@ -157,4 +157,20 @@ test('gönderici: çevrimdışı bilgi başlıkta gider, gövde aynı kalır; ç
   assert.deepEqual(seen.body, { a: 1 });
   await send({ id: 'k-10', body: { a: 1 } });
   assert.equal('X-Veniux-Offline' in seen.headers, false);
+});
+
+test('bekleyen satış uyarısı: en eski bekleyen satışa göre seviye; reddedilen (uyuşmazlık) satır saymaz', async () => {
+  const now = Date.parse('2026-11-11T12:00:00Z'), hoursAgo = h => new Date(now - h * 3600000).toISOString();
+  assert.deepEqual(pendingWarning(null, now), { level: 'none', hours: 0 });
+  assert.equal(pendingWarning(hoursAgo(0.5), now).level, 'none');
+  assert.deepEqual(pendingWarning(hoursAgo(2), now), { level: 'notice', hours: 2 });
+  assert.equal(pendingWarning(hoursAgo(12), now).level, 'alert');
+  assert.equal(pendingWarning(hoursAgo(30), now).level, 'critical');
+  assert.equal(pendingWarning(new Date(now + 5000).toISOString(), now).level, 'none');
+  const q = createOfflineQueue(memoryStore());
+  await q.enqueue({ id: 'a', created_at: hoursAgo(20), body: { x: 1 } });
+  await q.enqueue({ id: 'b', created_at: hoursAgo(3), body: { x: 1 } });
+  assert.equal((await q.counts()).oldestPendingAt, hoursAgo(20));
+  await q.markFailed('a', 'Yetersiz stok', { conflict: true });
+  assert.equal((await q.counts()).oldestPendingAt, hoursAgo(3));
 });

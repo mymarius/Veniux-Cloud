@@ -19,7 +19,10 @@ export function createOfflineQueue(store) {
     async list() { return sorted(await store.getAll()); },
     async counts() {
       const all = await store.getAll();
-      return { total: all.length, pending: all.filter(r => r.status === 'pending').length, conflict: all.filter(r => r.status === 'conflict').length };
+      const pending = all.filter(r => r.status === 'pending');
+      // oldestPendingAt: gönderilmeyi bekleyen en eski satışın cihazda kaydedildiği zaman (uyarı için).
+      const times = pending.map(r => r.queued_at).filter(Boolean).sort();
+      return { total: all.length, pending: pending.length, conflict: all.filter(r => r.status === 'conflict').length, oldestPendingAt: times[0] || null };
     },
     async remove(id) { await store.delete(id); },
     async markFailed(id, message, { conflict = false } = {}) {
@@ -49,6 +52,14 @@ export function createOfflineQueue(store) {
       return summary;
     },
   };
+}
+
+// Gönderilmeyi bekleyen satış ne kadar süredir cihazda? 1 saat: bilgi, 12 saat: uyarı, 24 saat: kritik (satışlar kaybolabilir).
+export function pendingWarning(oldestPendingAt, now = Date.now()) {
+  const at = Date.parse(oldestPendingAt || '');
+  if (!Number.isFinite(at) || at > now) return { level: 'none', hours: 0 };
+  const hours = Math.floor((now - at) / 3600000);
+  return { level: hours >= 24 ? 'critical' : hours >= 12 ? 'alert' : hours >= 1 ? 'notice' : 'none', hours };
 }
 
 // Ağ yok / sunucu geçici ulaşılamaz (yanıt yok, 502-504) → satış kuyrukta bekler. Diğer sunucu yanıtları (400-422) kabul edilmeme demektir.
