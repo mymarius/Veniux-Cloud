@@ -13,9 +13,11 @@ import DesktopSetup from './components/DesktopSetup';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initAppearance } from './lib/appearance';
 import {mobilePairing} from './lib/mobilePairing';
+import { registerServiceWorker } from './lib/registerSw';
 
 if(window.veniuxMobile) document.documentElement.dataset.mobile = 'true';
 initAppearance();
+registerServiceWorker();
 
 function renderApp(){createRoot(document.getElementById('root')).render(
   <StrictMode>
