@@ -61,6 +61,17 @@ async function assetFresh(request) {
 }
 const handlers = { navigate, 'asset-immutable': assetImmutable, 'asset-fresh': assetFresh };
 
+// Sayfa kabuğu önbellekte yoksa (yeni kurulum veya sürüm yükseltmesi sonrası) bir uygulama adresini kendisi indirip saklar;
+// böylece kullanıcı çevrimiçi bir yenileme yapmadan ağı kaybetse de ilk çevrimdışı açılış çalışır. Hata olursa sessizce geçer.
+async function ensureShell() {
+  try {
+    const cache = await caches.open(SHELL);
+    if (await cache.match('/index.html', MATCH)) return;
+    const response = await fetch('/login');
+    if (response.ok && isHtml(response) && await hasBody(response)) await cache.put('/index.html', response);
+  } catch { /* ağ yoksa sonraki çevrimiçi gezintide dolar */ }
+}
+
 // Sayfa, ilk yüklemede SW devralmadan önce indirdiği dosyaların adresini gönderir; yalnız aynı kaynak ve izinli yollar alınır.
 async function cacheUrls(urls) {
   const cache = await caches.open(ASSETS);
@@ -74,7 +85,7 @@ async function cacheUrls(urls) {
   await trim(cache);
 }
 
-self.addEventListener('install', event => { event.waitUntil(self.skipWaiting()); });
+self.addEventListener('install', event => { event.waitUntil(Promise.all([self.skipWaiting(), ensureShell()])); });
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     for (const name of await caches.keys()) if (name.startsWith('veniux-') && name !== SHELL && name !== ASSETS) await caches.delete(name);
@@ -86,6 +97,6 @@ self.addEventListener('fetch', event => {
   if (strategy !== 'skip') event.respondWith(handlers[strategy](event.request));
 });
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'cache-urls') event.waitUntil(cacheUrls(event.data.urls));
+  if (event.data && event.data.type === 'cache-urls') event.waitUntil(ensureShell().then(() => cacheUrls(event.data.urls)));
 });
-self.__veniuxSw = { strategyFor, handlers, cacheUrls, SHELL, ASSETS };
+self.__veniuxSw = { strategyFor, handlers, cacheUrls, ensureShell, SHELL, ASSETS };

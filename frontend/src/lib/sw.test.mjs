@@ -143,3 +143,20 @@ test('eski v1 önbellekleri etkinleşmede silinir', async () => {
   await done;
   assert.deepEqual((await caches.keys()).sort(), [sw.SHELL].sort());
 });
+
+test('sayfa kabuğu boşsa service worker kendisi indirip saklar; varsa dokunmaz; ağ yoksa sessiz geçer', async () => {
+  let calls = 0, online = true;
+  const { sw, caches } = load({ fetchImpl: async url => { calls++; if (!online) throw new TypeError('ağ yok'); return makeResponse('<html>kabuk:' + url + '</html>'); } });
+  await sw.ensureShell();
+  assert.equal(calls, 1);
+  assert.equal((await (await caches.open(sw.SHELL)).match('/index.html')).body, '<html>kabuk:/login</html>');
+  await sw.ensureShell();
+  assert.equal(calls, 1);                                          // zaten var: yeniden indirilmez
+  const offline = load({ fetchImpl: async () => { throw new TypeError('ağ yok'); } });
+  await offline.sw.ensureShell();                                  // hata fırlatmaz
+  assert.equal(await (await offline.caches.open(offline.sw.SHELL)).match('/index.html'), undefined);
+  // çevrimdışı ilk açılış: kabuk kurulumda saklandığı için gezinti çalışır
+  online = true; const later = load({ fetchImpl: async () => { if (!online) throw new TypeError('ağ yok'); return makeResponse('<html>kabuk</html>'); } });
+  await later.sw.ensureShell(); online = false;
+  assert.equal((await later.sw.handlers.navigate(req('/magaza/kasa', { mode: 'navigate' }))).body, '<html>kabuk</html>');
+});
