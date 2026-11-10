@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../api/client';
 import BarcodeCamera from '../components/BarcodeCamera';
+import InvoicePhotoReceive from '../components/InvoicePhotoReceive';
 import './RetailQuickAdd.css';
 
 const initial = { name: '', unit: 'adet', purchase_price: '', sale_price: '', quantity: '1' };
@@ -201,5 +202,6 @@ export default function RetailQuickAdd() {
         <Link className="rq-link" to="/normal-depo/products">Tüm ürünleri görüntüle <ArrowRight size={14} /></Link>
       </aside>
     </div>
+    <InvoicePhotoReceive warehouse={warehouse} />
   </section>;
 }
