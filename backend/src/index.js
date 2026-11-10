@@ -107,6 +107,7 @@ app.use('/api/workspaces', require('./routes/workspaceRoutes'));
 app.use('/api/scanner', require('./routes/scannerRoutes'));
 app.use('/api/labels', require('./routes/labelRoutes'));
 app.use('/api/retail', require('./routes/retailRoutes'));
+app.use('/api/store-sync', require('./routes/storeSyncRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
 // Token ÖKC adaptörü yalnız ayarları tamsa etkinleşir (Token geliştirici ekibinden gelen adres ve yollar).
 try { const tokenx = require('./services/tokenxAdapter'); if (tokenx.config()) require('./services/retailExternalService').register('tokenx', tokenx.adapter()); } catch (error) { console.error('[TokenX] Ayar geçersiz:', error.message); }
@@ -148,6 +149,11 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`=========================================`);
 
     require('./services/backupService').startScheduler();
+    // Mağaza–bulut eşitleme: yalnız masaüstünde (bulut kendisi mağaza değildir); ayar yoksa hiçbir şey yapmaz.
+    if (process.env.VENIUX_CLOUD_SERVICE !== '1' && process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') {
+      const storeSync = require('./services/storeSyncService');
+      setInterval(() => storeSync.pushAll().catch(() => {}), 120000).unref();
+    }
     if (process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') { require('./services/stockLossMonitor').startScheduler(); require('./services/marketplaceService').startScheduler(); }
     // Optional: Start cron background tasks
     try {

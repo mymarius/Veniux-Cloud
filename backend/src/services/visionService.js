@@ -83,4 +83,4 @@ async function invoiceDraft(user, body = {}) {
   if (lines.some(l => !Number.isInteger(l.quantity))) warnings.push('Bazı miktarlar tam sayı değil; mal kabul tam sayı ister. Koli/adet farkını kontrol edin.');
   return { supplier: text(raw?.supplier, 150), invoice_no: text(raw?.invoice_no, 60), date: /^\d{4}-\d{2}-\d{2}$/.test(String(raw?.date || '')) ? raw.date : null, lines, warnings };
 }
-module.exports = { recognizeProduct, invoiceDraft, match, parseImage };
+module.exports = { recognizeProduct, invoiceDraft, match, parseImage, _resetThrottle: () => recent.clear() }; // _resetThrottle yalnız testler içindir

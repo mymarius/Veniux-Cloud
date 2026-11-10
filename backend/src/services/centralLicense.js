@@ -49,6 +49,8 @@ function offlineLease(device_token,device_fingerprint){
 async function gate(req,res,next) {
   if(req.method==='POST'&&req.path==='/mobile/claim'&&require('./mobileGateway').isCompanion(req))return next();
   if(!enabled()) return next();
+  // Mağaza satış yüklemesi kendi cihaz anahtarıyla (iptal edilebilir) doğrulanır; mağaza bilgisayarının lisans belirteci taşımaz.
+  if((req.method==='POST'&&req.path==='/store-sync/sales')||(req.method==='GET'&&req.path==='/store-sync/products'))return next();
   // Public sales assistance does not operate on a licensed tenant's data.
   if(process.env.VENIUX_CLOUD_SERVICE!=='1'&&((req.method==='GET'&&req.path==='/ai/visitor') || (req.method==='POST'&&['/ai/visitor/chat','/ai/speech'].includes(req.path))))return next();
   if(['/license/policy','/license/activate','/license/validate','/license/deactivate','/license/plans','/license/bank-details','/license/webhooks/payment','/auth/register'].includes(req.path)) return next();

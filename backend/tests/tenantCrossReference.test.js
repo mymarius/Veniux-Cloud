@@ -114,6 +114,7 @@ describe('another tenant\'s ids, one at a time, on top of a valid own request', 
   let keyCounter = 0;
   const rateLimited = [];
   const call = async (who, method, url, body) => {
+    require('../src/services/visionService')._resetThrottle(); // tarama dakikada 20 fotoğraf sınırına takılıp isteği değerlendirilmeden bırakmasın
     const req = request(app)[method](url).set('Authorization', `Bearer ${who.token}`);
     if (method !== 'get') req.set('Idempotency-Key', `sweep-key-${++keyCounter}`);
     const res = await (method === 'get' ? req : req.send(body));
