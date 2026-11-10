@@ -8,16 +8,16 @@ const source = fs.readFileSync(new URL('../../public/sw.js', import.meta.url), '
 const ORIGIN = 'https://app.veniux.com';
 
 function makeResponse(body, { status = 200, type = 'basic', contentType = 'text/html; charset=utf-8' } = {}) {
-  return { ok: status >= 200 && status < 300, status, type, body, headers: { get: n => (n.toLowerCase() === 'content-type' ? contentType : null) }, clone() { return makeResponse(body, { status, type, contentType }); } };
+  return { ok: status >= 200 && status < 300, status, type, body, async arrayBuffer() { return { byteLength: String(body).length }; }, headers: { get: n => (n.toLowerCase() === 'content-type' ? contentType : null) }, clone() { return makeResponse(body, { status, type, contentType }); } };
 }
 function makeCaches() {
-  const stores = new Map();
+  const stores = new Map(), matchOptions = [];
   const open = async name => {
     if (!stores.has(name)) stores.set(name, new Map());
     const store = stores.get(name), keyOf = r => (typeof r === 'string' ? r : r.url || r);
-    return { match: async r => store.get(keyOf(r)), put: async (r, v) => { store.set(keyOf(r), v); }, delete: async r => store.delete(keyOf(r)), keys: async () => [...store.keys()] };
+    return { match: async (r, o) => { matchOptions.push(o); return store.get(keyOf(r)); }, put: async (r, v) => { store.set(keyOf(r), v); }, delete: async r => store.delete(keyOf(r)), keys: async () => [...store.keys()] };
   };
-  return { stores, open, keys: async () => [...stores.keys()], delete: async name => stores.delete(name), match: async () => undefined };
+  return { stores, matchOptions, open, keys: async () => [...stores.keys()], delete: async name => stores.delete(name), match: async () => undefined };
 }
 function load({ fetchImpl }) {
   const listeners = {}, caches = makeCaches();
@@ -111,4 +111,35 @@ test('eski sürüm önbellekleri etkinleşmede silinir, başka uygulamaların ö
   let done; listeners.activate({ waitUntil: p => { done = p; } });
   await done;
   assert.deepEqual((await caches.keys()).sort(), [sw.SHELL, 'baska-uygulama'].sort());
+});
+
+test('önbellekte arama Vary başlığını yok sayar (çevrimdışı yenilemede beyaz sayfa hatası)', async () => {
+  let online = true;
+  const { sw, caches } = load({ fetchImpl: async () => { if (!online) throw new TypeError('ağ yok'); return makeResponse('<html>kabuk</html>'); } });
+  await sw.handlers.navigate(req('/', { mode: 'navigate' }));
+  await sw.handlers['asset-immutable'](req('/assets/a-1.js'));
+  await sw.handlers['asset-immutable'](req('/assets/a-1.js'));
+  online = false;
+  await sw.handlers.navigate(req('/magaza/kasa', { mode: 'navigate' }));
+  assert.ok(caches.matchOptions.length >= 4);
+  assert.ok(caches.matchOptions.every(o => o && o.ignoreVary === true));
+});
+
+test('boş gövdeli yanıt önbelleğe girmez; sayfa ve dosya için ayrı ayrı', async () => {
+  const { sw, caches } = load({ fetchImpl: async () => makeResponse('', { contentType: 'text/javascript' }) });
+  await sw.handlers['asset-immutable'](req('/assets/bos.js'));
+  await sw.handlers['asset-fresh'](req('/appearance-boot.js'));
+  assert.equal(await (await caches.open(sw.ASSETS)).match(ORIGIN + '/assets/bos.js'), undefined);
+  assert.equal(await (await caches.open(sw.ASSETS)).match(ORIGIN + '/appearance-boot.js'), undefined);
+  const html = load({ fetchImpl: async () => makeResponse('') });
+  await html.sw.handlers.navigate(req('/', { mode: 'navigate' }));
+  assert.equal(await (await html.caches.open(html.sw.SHELL)).match('/index.html'), undefined);
+});
+
+test('eski v1 önbellekleri etkinleşmede silinir', async () => {
+  const { sw, caches, listeners } = load({ fetchImpl: async () => makeResponse('x') });
+  await caches.open('veniux-shell-v1'); await caches.open('veniux-assets-v1'); await caches.open(sw.SHELL);
+  let done; listeners.activate({ waitUntil: p => { done = p; } });
+  await done;
+  assert.deepEqual((await caches.keys()).sort(), [sw.SHELL].sort());
 });

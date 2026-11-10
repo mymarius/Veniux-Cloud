@@ -19,7 +19,9 @@ export function LicenseProvider({ children }) {
   const [centralRequired, setCentralRequired] = useState(Boolean(window.veniuxDesktop?.centralLicenseRequired));
   const initialized = useRef(false);
   // Ağ kesintisinde lisansın korunması için son başarılı doğrulama zamanı ve durumu (lib/licenseGrace.mjs).
-  const lastGoodAt = useRef(0), licensedRef = useRef(false);
+  // Son başarılı doğrulama zamanı sayfa yenilense de kalsın (çevrimdışı yenilemede kasa etkinleştirme ekranına atılmasın).
+  const storedGood = (() => { try { return Number(localStorage.getItem('veniux:license-good-at') || 0) || 0; } catch { return 0; } })();
+  const lastGoodAt = useRef(storedGood), licensedRef = useRef(storedGood > 0);
   const holdOnOutage = error => holdLicenseDuringOutage({ error, licensedBefore: licensedRef.current, lastGoodAt: lastGoodAt.current });
 
   const isDesktop = typeof window !== 'undefined' && Boolean(window.veniuxDesktop?.isDesktop);
@@ -95,6 +97,7 @@ export function LicenseProvider({ children }) {
           setLicense(freshPayload);
           setIsLicensed(true);
           licensedRef.current = true; lastGoodAt.current = Date.now();
+          try { localStorage.setItem('veniux:license-good-at', String(lastGoodAt.current)); } catch { /* depo yoksa yalnız bellekte tutulur */ }
           setIsOfflineMode(false);
 
           // Update local cache
@@ -112,7 +115,7 @@ export function LicenseProvider({ children }) {
           setError('Lisans sunucu tarafından geçersiz kılındı.');
         }
       } catch (networkErr) {
-        if (holdOnOutage(networkErr)) { setIsOfflineMode(true); return; }
+        if (holdOnOutage(networkErr)) { setIsLicensed(true); setIsOfflineMode(true); if (payload) setLicense(payload); return; }
         if(policy.central_required || networkErr.response || !(await verifyOfflineLicense(cachedToken,hw.fingerprint))){
           setIsLicensed(false);
           setIsOfflineMode(false);
@@ -133,7 +136,7 @@ export function LicenseProvider({ children }) {
         setGraceDaysRemaining(remaining);
       }
     } catch (err) {
-      if (holdOnOutage(err)) { setIsOfflineMode(true); return; }
+      if (holdOnOutage(err)) { setIsLicensed(true); setIsOfflineMode(true); return; }
       console.error('License initialization error:', err);
       setIsLicensed(false);
       setError(err.message);
