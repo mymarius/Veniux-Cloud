@@ -1,8 +1,16 @@
 {
-  "version": "2.4.59",
+  "version": "2.4.60",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.60",
+      "date": "11 Kasım 2026",
+      "title": "Çevrimdışı kasa: bekleyen satış uyarısı",
+      "items": [
+        "Kasada gönderilmemiş en eski satış 1 saati geçince uyarı gösterilir; 12 saatte bağlantı denetimi, 24 saatte kayıp riski uyarısı çıkar."
+      ]
+    },
     {
       "version": "2.4.59",
       "date": "10 Kasım 2026",
