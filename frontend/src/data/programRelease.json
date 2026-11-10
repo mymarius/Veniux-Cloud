@@ -1,8 +1,19 @@
 {
-  "version": "2.4.56",
+  "version": "2.4.57",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.57",
+      "date": "10 Kasım 2026",
+      "title": "Çevrimdışı kasa satışı (Bulut) ve lisans koruması",
+      "items": [
+        "Ağ kesilince kasa satışı cihazda kuyruğa alınır, bağlantı gelince gönderilir",
+        "Tüm ürün listesi cihazda saklanır; çevrimdışı barıkod okutulabilir",
+        "Ağ kesintisinde lisans 24 saate kadar korunur; kasa etkinleştirme ekranına atılmaz",
+        "Çevrimdışı şeridi bekleyen satış sayısını gösterir"
+      ]
+    },
     {
       "version": "2.4.56",
       "date": "10 Kasım 2026",
