@@ -6,6 +6,8 @@ export const MAX_AGE_MS = 24 * 3600000;
 export const PREFIX = 'veniux:read-cache:';
 const PATHS = [/^\/auth\/me$/, /^\/license\/policy$/, /^\/normal-depo\/warehouses$/, /^\/scanner\/permissions$/, /^\/scanner\/shifts\/context$/, /^\/scanner\/settings$/, /^\/scanner\/pro\/(?:preferences|categories|hardware)$/];
 
+// Ağ yok (cevap gelmedi) ya da sunucu geçici ulaşılamaz (502-504: yeniden başlatma, proxy hatası) → önbellek kullanılabilir.
+export const isOutage = error => !error?.response || [502, 503, 504].includes(error.response.status);
 const pathOf = config => String(config?.url || '').split('?')[0].replace(/^\/api(?=\/)/, '');
 export function cacheable(config) {
   return String(config?.method || 'get').toLowerCase() === 'get' && PATHS.some(re => re.test(pathOf(config)));

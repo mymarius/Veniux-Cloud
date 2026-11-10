@@ -6,7 +6,9 @@ export const OUTAGE_GRACE_MS = 24 * 3600000;
 
 export function holdLicenseDuringOutage({ error, licensedBefore, lastGoodAt, now = Date.now(), graceMs = OUTAGE_GRACE_MS }) {
   if (!licensedBefore) return false;
-  if (!error || error.response) return false;                // sunucu cevap verdiyse ağ kesintisi değildir
+  if (!error) return false;
+  // Sunucu anlamlı cevap verdiyse (401, 403, 423…) ağ kesintisi değildir; 502-504 (yeniden başlatma, proxy) kesinti sayılır.
+  if (error.response && ![502, 503, 504].includes(error.response.status)) return false;
   if (!Number.isFinite(lastGoodAt) || lastGoodAt <= 0) return false;
   const age = now - lastGoodAt;
   return age >= 0 && age < graceMs;

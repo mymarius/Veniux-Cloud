@@ -82,7 +82,7 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     // Ağ hatasında (sunucudan hiçbir cevap yok) izinli okumalar için son başarılı cevap kullanılır (en çok 24 saat).
-    if (!error.response && readCache.cacheable(error.config)) {
+    if (readCache.isOutage(error) && readCache.cacheable(error.config)) {
       const hit = readCache.load(localStorage, error.config, readCache.tokenId(localStorage.getItem('token')));
       if (hit) return Promise.resolve({ data: hit.data, status: 200, statusText: 'OFFLINE_CACHE', headers: { 'x-veniux-offline-cache': '1' }, config: error.config, request: {} });
     }

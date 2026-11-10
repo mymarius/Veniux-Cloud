@@ -11,7 +11,7 @@ const queue = createOfflineQueue(salesStore);
 // Sunucu cevap veriyorsa (503 dahil) bağlantı vardır; satış hatalarını normal akış ele alır.
 async function reachable() {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
-  try { await fetch('/health', { cache: 'no-store', signal: AbortSignal.timeout(4000) }); return true; } catch { return false; }
+  try { const response = await fetch('/health', { cache: 'no-store', signal: AbortSignal.timeout(4000) }); return !(response.status >= 502 && response.status <= 504); } catch { return false; }
 }
 const networkFailure = isNetworkFailure;
 const sendSale = createSender((path, body, config) => api.post(path, body, config));

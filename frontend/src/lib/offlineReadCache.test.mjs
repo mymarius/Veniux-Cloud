@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cacheable, cacheKey, save, load, tokenId, MAX_AGE_MS, PREFIX } from './offlineReadCache.mjs';
+import { cacheable, cacheKey, save, load, tokenId, isOutage, MAX_AGE_MS, PREFIX } from './offlineReadCache.mjs';
 
 function memoryStorage() {
   const map = new Map();
@@ -49,4 +49,10 @@ test('bozuk veya eksik kayıt sessizce yok sayılır; dolu depo uygulamayı bozm
   assert.equal(load(storage, get('/auth/me'), id, now), null);
   const full = { get length() { return 0; }, key: () => null, getItem: () => null, setItem() { throw new Error('dolu'); }, removeItem() {} };
   assert.doesNotThrow(() => save(full, get('/auth/me'), { a: 1 }, id, now));
+});
+
+test('kesinti: cevap yok veya 502-504; anlamlı sunucu cevapları (401, 403, 423, 500) kesinti değildir', () => {
+  assert.equal(isOutage(new Error('Network Error')), true);
+  for (const status of [502, 503, 504]) assert.equal(isOutage({ response: { status } }), true);
+  for (const status of [400, 401, 403, 404, 423, 500]) assert.equal(isOutage({ response: { status } }), false);
 });

@@ -9,6 +9,11 @@ test('lisanslı oturumda ağ kesintisi 24 saat içinde lisansı korur', () => {
   assert.equal(holdLicenseDuringOutage({ error: networkError, licensedBefore: true, lastGoodAt: now - OUTAGE_GRACE_MS + 1, now }), true);
 });
 
+test('sunucu 502-504 verirse (yeniden başlatma, proxy) kesinti sayılır ve lisans korunur', () => {
+  for (const status of [502, 503, 504]) assert.equal(holdLicenseDuringOutage({ error: Object.assign(new Error('x'), { response: { status } }), licensedBefore: true, lastGoodAt: now - 1000, now }), true);
+  assert.equal(holdLicenseDuringOutage({ error: Object.assign(new Error('x'), { response: { status: 500 } }), licensedBefore: true, lastGoodAt: now - 1000, now }), false);
+});
+
 test('24 saat dolunca korunmaz', () => {
   assert.equal(holdLicenseDuringOutage({ error: networkError, licensedBefore: true, lastGoodAt: now - OUTAGE_GRACE_MS, now }), false);
 });
