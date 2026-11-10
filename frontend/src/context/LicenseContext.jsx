@@ -1,3 +1,4 @@
+import { holdLicenseDuringOutage } from '../lib/licenseGrace.mjs';
 import {browserDeviceInfo} from '../lib/browserDevice';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../api/client';
@@ -17,6 +18,9 @@ export function LicenseProvider({ children }) {
   const [error, setError] = useState(null);
   const [centralRequired, setCentralRequired] = useState(Boolean(window.veniuxDesktop?.centralLicenseRequired));
   const initialized = useRef(false);
+  // Ağ kesintisinde lisansın korunması için son başarılı doğrulama zamanı ve durumu (lib/licenseGrace.mjs).
+  const lastGoodAt = useRef(0), licensedRef = useRef(false);
+  const holdOnOutage = error => holdLicenseDuringOutage({ error, licensedBefore: licensedRef.current, lastGoodAt: lastGoodAt.current });
 
   const isDesktop = typeof window !== 'undefined' && Boolean(window.veniuxDesktop?.isDesktop);
 
@@ -90,6 +94,7 @@ export function LicenseProvider({ children }) {
           const freshPayload = valRes.data.token.payload;
           setLicense(freshPayload);
           setIsLicensed(true);
+          licensedRef.current = true; lastGoodAt.current = Date.now();
           setIsOfflineMode(false);
 
           // Update local cache
@@ -107,6 +112,7 @@ export function LicenseProvider({ children }) {
           setError('Lisans sunucu tarafından geçersiz kılındı.');
         }
       } catch (networkErr) {
+        if (holdOnOutage(networkErr)) { setIsOfflineMode(true); return; }
         if(policy.central_required || networkErr.response || !(await verifyOfflineLicense(cachedToken,hw.fingerprint))){
           setIsLicensed(false);
           setIsOfflineMode(false);
@@ -127,6 +133,7 @@ export function LicenseProvider({ children }) {
         setGraceDaysRemaining(remaining);
       }
     } catch (err) {
+      if (holdOnOutage(err)) { setIsOfflineMode(true); return; }
       console.error('License initialization error:', err);
       setIsLicensed(false);
       setError(err.message);
