@@ -1,8 +1,21 @@
 {
-  "version": "2.4.57",
+  "version": "2.4.58",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.58",
+      "date": "10 Kasım 2026",
+      "title": "Çevrimdışı satış stok açığı kabulü ve düzeltmeler",
+      "items": [
+        "Çevrimdışı satış stok yetersiz olsa da kaydedilir; stok eksiye düşmez, fark uyuşmazlık listesine yazılır",
+        "Ayarlar barışı: Çevrimdışı uyuşmazlıklar (müdür kontrolü ve çözüldü kaydı)",
+        "Geçici fiş numarası sunucu kaydında ve basılı fişte görünür",
+        "Kasa cihazı güncellemesi bulutta satışı reddedebiliyordu; düzeltildi",
+        "Bulutta stok çıkışının yanlışlıkla reddedilmesi düzeltildi",
+        "Çevrimdışı şeridi gönderim sonucunu gösterir"
+      ]
+    },
     {
       "version": "2.4.57",
       "date": "10 Kasım 2026",
