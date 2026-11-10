@@ -29,6 +29,25 @@ async function catalog(user,query){
  const rows=(await db.query('SELECT p.id,p.name,p.barcode,p.sku,p.category,p.unit,p.sale_price,p.kdv_orani,CASE WHEN m.image_path IS NOT NULL THEN 1 ELSE 0 END AS image_available,m.brand FROM products p LEFT JOIN retail_product_media m ON m.product_id=p.id AND m.tenant_id=p.tenant_id WHERE '+where+' ORDER BY p.id LIMIT '+(limit+1),params)).rows;
  return {items:rows.slice(0,limit),next:rows.length>limit?Number(rows[limit-1].id):null,source:'tenant_catalog',global_catalog_available:false};
 }
+// Çok satanlar: son N günde net adedi en yüksek ürünler. Kasiyerin "sık kullanılanlar" şeridi için; kısıtlı kullanıcı yalnız atanmış depoların satışını görür.
+async function topProducts(user,query={}){
+ const days=Math.min(90,Math.max(1,Number.parseInt(query.days,10)||30)),limit=Math.min(24,Math.max(1,Number.parseInt(query.limit,10)||12));
+ const from=new Date(Date.now()+3*3600000-(days-1)*86400000).toISOString().slice(0,10);
+ const allowed=user.accessScope&&user.accessScope.mode!=='company'?new Set((user.accessScope.warehouse_ids||[]).map(Number)):null;
+ const rows=(await db.query('SELECT warehouse_id,snapshot_json FROM retail_sales WHERE tenant_id=$1 AND business_date>=$2',[user.tenantId,from])).rows;
+ const counts=new Map();
+ for(const r of rows){
+  if(allowed&&!allowed.has(Number(r.warehouse_id)))continue;
+  const s=JSON.parse(r.snapshot_json);if(s.status==='cancelled')continue;
+  for(const line of s.items||[]){const id=Number(line.product_id),q=Number(line.quantity||0)-Number(line.returned_quantity||0);if(q>0)counts.set(id,(counts.get(id)||0)+q);}
+ }
+ const ids=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,limit).map(([id])=>id);
+ if(!ids.length)return {items:[],days};
+ const params=[user.tenantId],placeholders=ids.map(id=>{params.push(id);return '$'+params.length;});
+ const found=(await db.query("SELECT p.id,p.name,p.barcode,p.sku,p.category,p.unit,p.sale_price,p.kdv_orani FROM products p WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.id IN ("+placeholders.join(',')+')',params)).rows;
+ const order=new Map(ids.map((id,i)=>[id,i]));
+ return {items:found.sort((a,b)=>order.get(Number(a.id))-order.get(Number(b.id))),days};
+}
 async function media(user,id,body){
  if(!['admin','manager'].includes(user.role)||user.accessScope?.mode&&user.accessScope.mode!=='company')fail('Ürün görseli için firma genelinde yönetici yetkisi gerekli.',403);
  if(!body||Object.keys(body).some(k=>!['image_data','brand'].includes(k))||typeof body.brand!=='string'||body.brand.length>100)fail('Ürün görseli ve marka bilgisi geçersiz.');
@@ -49,4 +68,4 @@ async function image(user,id){
  if(!row?.image_path)fail('Ürün görseli yok.',404);return Buffer.from(row.image_path.split(',')[1],'base64');
 }
 async function categories(user){const rows=(await db.query("SELECT DISTINCT category FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND category IS NOT NULL AND category<>'' ORDER BY category LIMIT 201",[user.tenantId])).rows;return {items:rows.slice(0,200).map(r=>r.category),truncated:rows.length>200};}
-module.exports={preferences,save,catalog,categories,media,image,validate};
+module.exports={preferences,save,topProducts,catalog,categories,media,image,validate};

@@ -14,6 +14,7 @@ router.get('/pro/loyalty/cards/:no',requireRole('admin','manager','cashier'),act
 router.get('/pro/insights',requireRole('admin','manager'),action(req=>require('../services/retailInsightsService').insights(req.user,req.query||{})));
 router.get('/pro/categories',requireRole('admin','manager','cashier'),action(req=>pro.categories(req.user)));
 router.get('/pro/catalog',requireRole('admin','manager','cashier'),action(req=>pro.catalog(req.user,req.query)));
+router.get('/pro/top-products',requireRole('admin','manager','cashier'),action(req=>pro.topProducts(req.user,req.query||{})));
 router.get('/pro/preferences',requireRole('admin','manager','cashier'),action(req=>pro.preferences(req.user)));
 router.put('/pro/preferences',requireRole('admin','manager','cashier'),action(req=>pro.save(req.user,req.body)));
 router.get('/pro/products/:id/image',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{res.set('Cache-Control','private, no-store').type('png').send(await pro.image(req.user,req.params.id));}catch(e){next(e);}});

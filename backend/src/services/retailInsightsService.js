@@ -42,6 +42,30 @@ async function insights(user, query = {}) {
     const at = Date.parse(s.created_at);
     if (Number.isFinite(at)) { const h = hours[new Date(at + TR_OFFSET_MS).getUTCHours()]; h.receipts++; h.net_cents += net; }
   }
+  // Kasiyer performansı: kapattığı vardiyalardaki kasa farkı ve yaptığı iade/iptaller. Kapanış tarihi UTC günüyle eşlenir.
+  const allowed = allowedSet(user), saleIds = new Set(list.map(s => Number(s.sale_id)));
+  const nextDay = new Date(Date.parse(to) + 86400000).toISOString().slice(0, 10);
+  const closedShifts = (await db.query("SELECT id,warehouse_id,closing_json FROM retail_shifts WHERE tenant_id=$1 AND status='closed' AND closed_at>=$2 AND closed_at<$3", [user.tenantId, from, nextDay])).rows;
+  const reversals = (await db.query('SELECT sale_id,amount_cents,data_json FROM retail_reversals WHERE tenant_id=$1 AND business_date>=$2 AND business_date<=$3', [user.tenantId, from, to])).rows;
+  const person = (id, email) => { if (!cashiers.has(id)) cashiers.set(id, { user_id: id, name: null, email: email || null, receipts: 0, net_cents: 0, discount_cents: 0, refunded_cents: 0 }); return cashiers.get(id); };
+  for (const shift of closedShifts) {
+    if (allowed && !allowed.has(Number(shift.warehouse_id))) continue;
+    const closing = JSON.parse(shift.closing_json || '{}');
+    if (!closing.closed_by_id) continue;
+    const c = person(Number(closing.closed_by_id), closing.closed_by), diff = Number(closing.difference_cents || 0);
+    c.shifts_closed = (c.shifts_closed || 0) + 1;
+    c.difference_cents = (c.difference_cents || 0) + diff;
+    if (diff < 0) c.short_cents = (c.short_cents || 0) + Math.abs(diff);
+  }
+  for (const reversal of reversals) {
+    if (allowed && !saleIds.has(Number(reversal.sale_id))) continue;
+    const data = JSON.parse(reversal.data_json || '{}');
+    if (!data.user_id) continue;
+    const c = person(Number(data.user_id), data.user_email);
+    c.reversal_count = (c.reversal_count || 0) + 1;
+    c.reversal_cents = (c.reversal_cents || 0) + Number(reversal.amount_cents || 0);
+  }
+  for (const c of cashiers.values()) for (const key of ['shifts_closed', 'difference_cents', 'short_cents', 'reversal_count', 'reversal_cents']) c[key] = c[key] || 0;
   const limit = Math.min(100, Math.max(1, Number.parseInt(query.limit, 10) || 20));
   const all = [...products.values()].filter(p => p.quantity > 0 || p.net_cents > 0);
   return {

@@ -137,3 +137,14 @@ html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label[data-act
 .pos-terminal .retail-cart table{min-width:600px}
 .pos-terminal .retail-cart td:first-child,.pos-terminal .retail-cart th:first-child{min-width:150px}
 .pos-terminal .retail-cart .pos-line-name{word-break:normal;overflow-wrap:break-word}
+
+/* Çok satanlar şeridi ve büyük düğme modu (tek parmakla kullanım). */
+.retail-top{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin:8px 0}
+.retail-top>b{flex:0 0 100%;font-size:14px}
+.retail-top-btn{flex:1 1 150px;min-height:72px;padding:10px 12px;border:2px solid #17263a;border-radius:14px;background:#fff;font-weight:700;font-size:17px;text-align:left;cursor:pointer}
+.retail-top-btn small{display:block;font-weight:600;color:#0d7a57;font-size:15px}
+.retail-top-btn:disabled{opacity:.5;cursor:not-allowed}
+.retail-visual.retail-big .retail-top-btn{min-height:104px;font-size:22px}
+.retail-visual.retail-big .retail-top-btn small{font-size:19px}
+.retail-visual.retail-big .retail-product-tiles article{min-height:220px;font-size:18px}
+.retail-visual.retail-big button{min-height:56px;font-size:18px}
