@@ -1,8 +1,18 @@
 {
-  "version": "2.4.55",
+  "version": "2.4.56",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.56",
+      "date": "10 Kasım 2026",
+      "title": "Kameradan ürün tanıma ve fatura fotoğrafından mal kabul",
+      "items": [
+        "Ürünü fotoğraflayınca listenizden aday ürünler ve fiyatlar çıkar",
+        "Fatura fotoğrafı taslak olarak okunur; siz onaylamadan stoga işlenmez",
+        "Bu özellikler yapay zekâ anahtarı tanımlı sunucuda çalışır"
+      ]
+    },
     {
       "version": "2.4.55",
       "date": "10 Kasım 2026",
