@@ -40,13 +40,17 @@ async function assertReceiptFree(tx, user, offline) {
 }
 
 // Satış kaydedildikten sonra: geçici fiş izi, satışın çevrimdışı işareti ve stok açığı uyuşmazlıkları.
-async function record(tx, user, { saleId, warehouseId, offline, shortages }) {
-  await tx.query('INSERT INTO pos_offline_sales (tenant_id,sale_id,emergency_receipt_no,offline_at,conflict_count) VALUES ($1,$2,$3,$4,$5)', [user.tenantId, saleId, offline.receiptNo, offline.offlineAt, shortages.length]);
+async function record(tx, user, { saleId, warehouseId, offline, shortages, movedFromShift = null, productId = null }) {
+  await tx.query('INSERT INTO pos_offline_sales (tenant_id,sale_id,emergency_receipt_no,offline_at,conflict_count) VALUES ($1,$2,$3,$4,$5)', [user.tenantId, saleId, offline.receiptNo, offline.offlineAt, shortages.length + (movedFromShift ? 1 : 0)]);
   await tx.query("UPDATE pos_sale_meta SET mode='offline' WHERE tenant_id=$1 AND sale_id=$2", [user.tenantId, saleId]);
   for (const s of shortages) {
     await tx.query("INSERT INTO pos_offline_conflicts (id,tenant_id,sale_id,warehouse_id,product_id,kind,shortfall_quantity,status) VALUES ($1,$2,$3,$4,$5,'stock_shortfall',$6,'open')", [crypto.randomUUID(), user.tenantId, saleId, warehouseId, s.product_id, s.quantity]);
   }
-  await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'retail.offline_sale', 'pos_sale', saleId, JSON.stringify({ emergency_receipt_no: offline.receiptNo, offline_at: offline.offlineAt, shortages })]);
+  // Satış yapıldığı vardiya sunucuya gelmeden kapandıysa güncel açık vardiyaya alınır; yönetici nakit sayımında bunu bilsin diye uyuşmazlık yazılır.
+  if (movedFromShift && productId) {
+    await tx.query("INSERT INTO pos_offline_conflicts (id,tenant_id,sale_id,warehouse_id,product_id,kind,shortfall_quantity,status,note) VALUES ($1,$2,$3,$4,$5,'shift_moved',0,'open',$6)", [crypto.randomUUID(), user.tenantId, saleId, warehouseId, productId, 'Satış #' + movedFromShift + ' numaralı vardiyada yapıldı; vardiya kapandığı için açık vardiyaya alındı. Nakdi ilgili vardiya sayımında kontrol edin.']);
+  }
+  await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'retail.offline_sale', 'pos_sale', saleId, JSON.stringify({ emergency_receipt_no: offline.receiptNo, offline_at: offline.offlineAt, shortages, moved_from_shift: movedFromShift })]);
 }
 
 const allowedWarehouses = user => (user.accessScope && user.accessScope.mode !== 'company' ? new Set((user.accessScope.warehouse_ids || []).map(Number)) : null);

@@ -39,11 +39,16 @@ async function register(tx, user, warehouseId, registerId) {
   if (!r) fail('Seçilen kasa bu depoya ait değil.', 404);
   return r;
 }
-async function requireOpen(tx, user, warehouseId, body = {}) {
+// allowShiftChange (yalnız çevrimdışı satış): satış cihazda açık vardiyada yapıldı ama sunucuya gelene kadar o vardiya kapandıysa,
+// kapalı vardiyanın toplamları bozulmasın diye satış kasadaki GÜNCEL açık vardiyaya alınır; eski vardiya numarası movedFrom ile döner.
+async function requireOpen(tx, user, warehouseId, body = {}, { allowShiftChange = false } = {}) {
   const r = await register(tx, user, warehouseId, body.register_id);
   const s = (await tx.query("SELECT * FROM retail_shifts WHERE tenant_id=$1 AND register_id=$2 AND status='open'", [user.tenantId, r.id])).rows[0];
   if (!s) fail('Bu kasada açık vardiya yok. Başlangıç nakdiyle vardiya açın.', 409);
-  if (body.shift_id !== undefined && validId(body.shift_id) !== s.id) fail('Vardiya değişti. Kasayı yenileyip işlemi tekrar kontrol edin.', 409);
+  if (body.shift_id !== undefined && validId(body.shift_id) !== s.id) {
+    if (!allowShiftChange) fail('Vardiya değişti. Kasayı yenileyip işlemi tekrar kontrol edin.', 409);
+    return { ...s, movedFrom: validId(body.shift_id) };
+  }
   return s;
 }
 async function row(tx, user, id) {

@@ -111,3 +111,27 @@ test('stok açığı olan çevrimdışı satışın iadesi normal çalışır (s
   expect(back.status).toBe(200);
   expect(await stock()).toBe(3);
 });
+
+test('çevrimdışı satışın yapıldığı vardiya sunucuya gelmeden kapandıysa satış güncel açık vardiyaya alınır ve uyuşmazlık yazılır; çevrimiçi satış yine reddedilir', async () => {
+  await setStock(20);
+  const old = shift;
+  const expected = (await get(`shifts/${old.shift_id}`)).body.expected_cash_cents;
+  const closed = await request(app).post(`/api/scanner/shifts/${old.shift_id}/close`).set('Authorization', 'Bearer ' + owner.token).set('Idempotency-Key', crypto.randomUUID()).send({ counted_cash: expected / 100, reason: '' });
+  expect(closed.status).toBe(200);
+  const fresh = await openTestShift(owner, w.id, 0);
+  expect(fresh.shift_id).not.toBe(old.shift_id);
+
+  expect((await sale(1)).status).toBe(409);                    // çevrimiçi: "Vardiya değişti"
+  const r = await sale(2, { header: stamp(5) });               // çevrimdışı: eski vardiya numarasıyla gelir
+  expect(r.status).toBe(201);
+  expect(r.body.offline.moved_from_shift).toBe(old.shift_id);
+  expect(r.body.shift_id).toBe(fresh.shift_id);
+  const closedAgain = (await get(`shifts/${old.shift_id}`)).body;
+  expect(closedAgain.status).toBe('closed');
+  const conflicts = (await get('offline-conflicts')).body.items.filter(c => c.sale_id === r.body.sale_id);
+  expect(conflicts).toHaveLength(1);
+  expect(conflicts[0]).toMatchObject({ kind: 'shift_moved', shortfall_quantity: 0, status: 'open' });
+  expect(conflicts[0].note).toContain('#' + old.shift_id);
+  const trace = (await db.query('SELECT conflict_count FROM pos_offline_sales WHERE tenant_id=$1 AND sale_id=$2', [owner.tenantId, r.body.sale_id])).rows[0];
+  expect(trace.conflict_count).toBe(1);
+});
