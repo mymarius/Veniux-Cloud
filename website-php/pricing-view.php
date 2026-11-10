@@ -115,7 +115,7 @@ $compare=[
   <div><h3>Hangi paket bana uygun?</h3><p>Tek kasa ve tek depoysanız Başlangıç. Şubeniz, veresiyeniz veya sadakat kartınız varsa İşletme. Çok şubeli ve büyük depolar için Kurumsal.</p></div>
   <div><h3>3 aylık ile yıllık arasında ne fark var?</h3><p>Özellikler ve sınırlar aynıdır. Yıllık ödeme yaklaşık %20 daha avantajlıdır. Kurumsal paket yalnız yıllık sunulur.</p></div>
   <div><h3>Fiyat yenilemede artar mı?</h3><p>Sözleşme süresince sabittir. Yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p></div>
-  <div><h3>İnternet kesilince ne olur?</h3><p>Bilgisayara kurulan (yerel) sürümde satış devam eder. Bulut sürümde internet gerekir.</p></div>
+  <div><h3>İnternet kesilince ne olur?</h3><p>Bilgisayara kurulan (yerel) sürümde satış devam eder. Bulut sürümde kasa sayfası önceden internetle açılmışsa nakit ve kart satış devam eder, bağlantı gelince gönderilir; indirim, iade ve veresiye çevrimdışıyken kapalıdır. Bu özellik Chrome’da denendi.</p></div>
   <div><h3>e-Fatura ve iPhone uygulaması var mı?</h3><p>e-Fatura entegrasyonu hazırlık aşamasında; canlıya açıldığında duyuracağız. Şu an Windows ve Android var; iPhone sürümü yok.</p></div>
   <div><h3>Buradan ödeme yapabilir miyim?</h3><p>Hayır. Paket seçiminiz görüşme talebine eklenir, ödeme birlikte netleşir. Kendiliğinden abonelik başlamaz.</p></div>
   <div><h3>İhtiyacım değişirse ne olur?</h3><p>Uygun paketi yeniden belirleriz. Geçiş tarihi, süre ve ücret farkı yeni teklifte yazılır.</p></div>

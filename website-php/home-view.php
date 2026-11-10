@@ -153,7 +153,8 @@ $steps=[
     <h2>Yol haritası</h2>
     <p>Aşağıdakiler henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak.</p>
     <ul class="hx-list">
-      <li><b>Yapım aşamasında:</b> Mağaza ile bulutun kendiliğinden eşitlenmesi; internet kesilince bulut kasasının sürmesi.</li>
+      <li><b>Yapım aşamasında:</b> Mağaza ile bulutun kendiliğinden eşitlenmesi.</li>
+      <li><b>Bugün var, sınırlı:</b> Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</li>
       <li><b>Planlanıyor:</b> Yazarkasa (yeni nesil ÖKC) entegrasyonu.</li>
       <li><b>Planlanıyor:</b> e-Fatura, e-Arşiv ve e-İrsaliye.</li>
       <li><b>Planlanıyor:</b> Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</li>
@@ -170,7 +171,7 @@ $steps=[
     <div class="hx-qa">
       <div><h3>Ürünleri tek tek mi gireceğim?</h3><p>Hayır. Excel veya CSV dosyanızı yükler, sütunları eşleştirir, önizlemeden sonra aktarırsınız.</p></div>
       <div><h3>Verilerim nerede duruyor?</h3><p>Windows kurulumunda kendi bilgisayarınızda veya ayrı bir sunucuda tutabilirsiniz. <a href="/sunucu-kurulumu">Kurulum seçenekleri</a></p></div>
-      <div><h3>Tahmini yapay zekâ mı yapıyor?</h3><p>Hayır, satış hızı ve teslim süresinden yapılan düz bir hesap. Yapay zekâ yalnız asistanda kullanılır.</p></div>
+      <div><h3>Tahmini yapay zekâ mı yapıyor?</h3><p>Hayır, satış hızı ve teslim süresinden yapılan düz bir hesap. Yapay zekâ asistanda ve ürün ile fatura fotoğrafını okumada kullanılır; fotoğraftan okunan hiçbir şey siz onaylamadan stoğa işlenmez.</p></div>
       <div><h3>Hangi barkod okuyucu çalışır?</h3><p>Klavye gibi yazan okuyucular ve telefon kamerası kullanılabilir. Özel bir cihazınız varsa önce bize sorun.</p></div>
     </div>
   </div>

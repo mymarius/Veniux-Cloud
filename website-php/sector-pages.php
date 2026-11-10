@@ -8,7 +8,7 @@ return [
  '/market-stok-ve-kasa-programi'=>[
   'status'=>'published',
   'faq'=>[
-   ['İnternet kesilince kasa durur mu?','Bilgisayara kurulan Veniux’ta durmaz; satış ve stok o bilgisayarda devam eder. Bulut sürümünde satış için internet gerekir.'],
+   ['İnternet kesilince kasa durur mu?','Bilgisayara kurulan Veniux’ta durmaz; satış ve stok o bilgisayarda devam eder. Bulut sürümünde kasa sayfası önceden internetle açılmışsa nakit ve kart satış devam eder, bağlantı gelince gönderilir; indirim, iade ve veresiye çevrimdışıyken kapalıdır.'],
    ['Yazarkasa (ÖKC) ile çalışır mı?','Henüz hayır; entegrasyon planlanıyor. Yasal fiş yazarkasanızdan ayrıca kesilir. Yükümlülüğünüzü mali müşavirinizle netleştirin.'],
    ['Tartılı ürünler nasıl satılır?','Terazinin bastığı barkodlu etiket kasada okutulur; ağırlık veya fiyat etiketten okunur. Teraziye kablolu bağlantı planlanıyor.'],
   ],
