@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../api/client';
+import RetailForecast from './RetailForecast';
 
 const tl = c => (c / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
 const today = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
@@ -38,5 +39,6 @@ export default function RetailInsights() {
       <h3 className="font-semibold">Ölü stok (son {dead.days} günde çıkışı olmayan) · {dead.count} kalem · bağlı maliyet {tl(dead.total_value_cents)}</h3>
       <table className="w-full text-sm"><thead><tr><th className="text-left">Ürün</th><th className="text-left">Depo</th><th className="text-right">Miktar</th><th className="text-right">Maliyet</th><th className="text-left">Son çıkış</th></tr></thead><tbody>{dead.items.slice(0, 50).map(i => <tr key={i.product_id + '-' + i.warehouse_id}><td>{i.name}</td><td>{i.warehouse}</td><td className="text-right">{i.quantity}</td><td className="text-right">{tl(i.value_cents)}</td><td>{i.last_outbound_at ? String(i.last_outbound_at).slice(0, 10) : 'hiç'}</td></tr>)}</tbody></table>
     </>}
+    <RetailForecast />
   </section>;
 }

@@ -79,6 +79,61 @@ async function insights(user, query = {}) {
   };
 }
 
+// Satış hızına göre sipariş önerisi: son N günün net satışından günlük hız, mevcut stoktan kaç günlük stok kaldığı;
+// stoğu hedef gün sayısından az olan ürünler tedarikçi bazında gruplanır. Öneridir; sipariş otomatik verilmez.
+async function reorderForecast(user, query = {}) {
+  if (!['admin', 'manager'].includes(user.role)) fail('Sipariş önerisi için yönetici yetkisi gerekli.', 403);
+  const days = Math.min(90, Math.max(7, Number.parseInt(query.days, 10) || 30)), cover = Math.min(60, Math.max(3, Number.parseInt(query.cover_days, 10) || 14));
+  const to = new Date(Date.now() + TR_OFFSET_MS).toISOString().slice(0, 10), from = new Date(Date.parse(to) - (days - 1) * 86400000).toISOString().slice(0, 10);
+  const allowed = allowedSet(user), sold = new Map();
+  for (const sale of await sales(user, from, to)) {
+    if (sale.snapshot.status === 'cancelled') continue;
+    for (const line of sale.snapshot.items || []) {
+      const net = Number(line.quantity || 0) - Number(line.returned_quantity || 0);
+      if (net > 0) sold.set(Number(line.product_id), (sold.get(Number(line.product_id)) || 0) + net);
+    }
+  }
+  if (!sold.size) return { days, cover_days: cover, items: [], suppliers: [] };
+  const stock = new Map();
+  for (const r of (await db.query('SELECT product_id,warehouse_id,quantity FROM stock_records WHERE tenant_id=$1', [user.tenantId])).rows) {
+    if (allowed && !allowed.has(Number(r.warehouse_id))) continue;
+    stock.set(Number(r.product_id), (stock.get(Number(r.product_id)) || 0) + Number(r.quantity || 0));
+  }
+  const products = (await db.query("SELECT id,name,barcode,unit,supplier_id FROM products WHERE tenant_id=$1 AND module_type='NORMAL'", [user.tenantId])).rows;
+  const names = new Map((await db.query('SELECT id,name FROM suppliers WHERE tenant_id=$1', [user.tenantId])).rows.map(s => [Number(s.id), s.name]));
+  const items = [];
+  for (const p of products) {
+    const total = sold.get(Number(p.id));
+    if (!total) continue;
+    const rate = total / days, onHand = stock.get(Number(p.id)) || 0, left = onHand / rate;
+    if (left >= cover) continue;
+    items.push({ product_id: Number(p.id), name: p.name, barcode: p.barcode, unit: p.unit, supplier_id: p.supplier_id ? Number(p.supplier_id) : null, supplier_name: p.supplier_id ? names.get(Number(p.supplier_id)) || null : null,
+      sold: Number(total.toFixed(3)), daily_rate: Number(rate.toFixed(3)), on_hand: onHand, days_left: Number(Math.max(0, left).toFixed(1)), suggested_quantity: Math.max(1, Math.ceil(rate * cover - onHand)) });
+  }
+  items.sort((a, b) => a.days_left - b.days_left);
+  const groups = new Map();
+  for (const item of items) {
+    const key = item.supplier_id || 0;
+    if (!groups.has(key)) groups.set(key, { supplier_id: item.supplier_id, name: item.supplier_name || 'Tedarikçi tanımsız', items: [] });
+    groups.get(key).items.push(item);
+  }
+  return { days, cover_days: cover, items, suppliers: [...groups.values()] };
+}
+
+// Son kullanma tarihi yaklaşan lotlar için indirim önerisi: 3 gün ve altı %30, 7 gün ve altı %20, daha uzağı %10.
+// Öneridir; indirim kendiliğinden uygulanmaz, Ayarlar > Kampanyalar'dan açılır.
+async function expiryDiscounts(user, query = {}) {
+  if (!['admin', 'manager'].includes(user.role)) fail('İndirim önerisi için yönetici yetkisi gerekli.', 403);
+  const days = Math.min(60, Math.max(1, Number.parseInt(query.days, 10) || 14)), allowed = allowedSet(user);
+  const near = (await require('./stockHealthService').stockOverview(user.tenantId, days)).near.filter(l => Number(l.quantity) > 0 && (!allowed || allowed.has(Number(l.warehouse_id))));
+  const prices = new Map((await db.query("SELECT id,sale_price FROM products WHERE tenant_id=$1 AND module_type='NORMAL'", [user.tenantId])).rows.map(p => [Number(p.id), Number(p.sale_price || 0)]));
+  const items = near.map(l => {
+    const left = Number(l.days_remaining), percent = left <= 3 ? 30 : left <= 7 ? 20 : 10, price = prices.get(Number(l.product_id)) || 0;
+    return { lot_id: l.id, product_id: Number(l.product_id), name: l.name, lot_number: l.lot_number, warehouse_name: l.warehouse_name, expiry_date: l.expiry_date, days_remaining: left, quantity: Number(l.quantity), suggested_percent: percent, price, discounted_price: Math.round(price * (100 - percent)) / 100 };
+  }).sort((a, b) => a.days_remaining - b.days_remaining);
+  return { days, items };
+}
+
 // Ölü stok: stoğu olan ama son N günde hiç çıkışı (satış, sevk) olmayan ürünler; bağlı kalan maliyet ile.
 async function deadStock(user, query = {}) {
   if (!['admin', 'manager'].includes(user.role)) fail('Raporlar için yönetici yetkisi gerekli.', 403);
@@ -97,4 +152,4 @@ async function deadStock(user, query = {}) {
   return { days, items: items.slice(0, 500), total_value_cents: items.reduce((t, i) => t + i.value_cents, 0), count: items.length };
 }
 
-module.exports = { insights, deadStock };
+module.exports = { expiryDiscounts, reorderForecast, insights, deadStock };

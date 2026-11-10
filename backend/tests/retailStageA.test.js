@@ -61,3 +61,30 @@ test('çok satanlar: son günlerde en çok satılan ürün kasiyere sıralı dö
   expect(top.body.items[0]).toMatchObject({ name: 'Aşama A ürünü', barcode: '000-A1' });
   expect(top.body.items).toHaveLength(1);
 });
+
+test('sipariş önerisi: satış hızına göre kalan gün ve önerilen miktar; yalnız yönetici görür', async () => {
+  await db.query('UPDATE stock_records SET quantity=0 WHERE tenant_id=$1 AND warehouse_id=$2', [owner.tenantId, w.id]);
+  expect((await get('pro/reorder-forecast', cashier.token)).status).toBe(403);
+  const report = (await get('pro/reorder-forecast?days=30&cover_days=14')).body;
+  expect(report.items).toHaveLength(1);
+  const item = report.items[0];
+  expect(item).toMatchObject({ barcode: '000-A1', on_hand: 0, sold: 1, days_left: 0, suggested_quantity: 1 });
+  expect(item.daily_rate).toBeCloseTo(1 / 30, 3);
+  expect(report.suppliers[0].name).toBe('Tedarikçi tanımsız');
+});
+
+test('sipariş önerisi: stok yeterliyse listede yoktur', async () => {
+  await db.query('UPDATE stock_records SET quantity=500 WHERE tenant_id=$1 AND warehouse_id=$2', [owner.tenantId, w.id]);
+  expect((await get('pro/reorder-forecast')).body.items).toHaveLength(0);
+});
+
+test('son kullanma indirim önerisi: yaklaşan lot için yüzde ve indirimli fiyat döner; yalnız yönetici görür', async () => {
+  expect((await get('pro/expiry-discounts', cashier.token)).status).toBe(403);
+  const product = (await db.query("SELECT id FROM products WHERE tenant_id=$1 AND barcode='000-A1'", [owner.tenantId])).rows[0];
+  const soon = new Date(Date.now() + 3 * 86400000 + 3 * 3600000).toISOString().slice(0, 10);
+  const lot = (await db.query("INSERT INTO inventory_lots(tenant_id,product_id,lot_number,expiry_date) VALUES($1,$2,'L-YAKIN',$3) RETURNING id", [owner.tenantId, product.id, soon])).rows[0];
+  await db.query("INSERT INTO inventory_transactions(tenant_id,product_id,warehouse_id,lot_id,quantity,transaction_type) VALUES($1,$2,$3,$4,5,'receipt')", [owner.tenantId, product.id, w.id, lot.id]);
+  const report = (await get('pro/expiry-discounts')).body;
+  const row = report.items.find(i => i.lot_number === 'L-YAKIN');
+  expect(row).toMatchObject({ quantity: 5, price: 10, suggested_percent: 30, discounted_price: 7 });
+});
