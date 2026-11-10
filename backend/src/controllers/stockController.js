@@ -53,7 +53,8 @@ const createMovement = async (req, res) => {
       [product_id, warehouse_id, req.user.tenantId]
     );
 
-    const currentQty = stockRecordCheck.rows.length > 0 ? stockRecordCheck.rows[0].quantity : 0;
+    // MySQL ondalık sütunları metin döndürür ("49.000000"); toplama metin birleştirmesine dönüşüp stok çıkışını yanlışlıkla reddetmesin.
+    const currentQty = stockRecordCheck.rows.length > 0 ? Number(stockRecordCheck.rows[0].quantity) : 0;
     const newQuantity = currentQty + amount;
 
     // Prevent negative stock on outbound unless specifically allowed
