@@ -148,3 +148,6 @@ html:root[data-theme='dark'] .pos-payment-inputs .pos-pay-methods label[data-act
 .retail-visual.retail-big .retail-top-btn small{font-size:19px}
 .retail-visual.retail-big .retail-product-tiles article{min-height:220px;font-size:18px}
 .retail-visual.retail-big button{min-height:56px;font-size:18px}
+
+/* Çevrimdışı şeridi: kasa düzeninde sıkışıp kırpılmasın; alt çubuğun hemen üstünde sabit durur. */
+.pos-offline-banner{position:fixed;left:8px;right:8px;bottom:42px;z-index:40;max-height:40vh;overflow:auto;box-shadow:0 4px 16px rgba(0,0,0,.18)}
