@@ -1,8 +1,17 @@
 {
-  "version": "2.4.58",
+  "version": "2.4.59",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.59",
+      "date": "10 Kasım 2026",
+      "title": "Kapanan vardiya için çevrimdışı satış kabulü",
+      "items": [
+        "Çevrimdışı satışın yapıldığı vardiya kapanmışsa satış açık vardiyaya alınır",
+        "Uyuşmazlık listesinde nakit sayımı uyarısı görünür"
+      ]
+    },
     {
       "version": "2.4.58",
       "date": "10 Kasım 2026",
