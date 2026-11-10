@@ -2,6 +2,7 @@ import { normalizeResponse } from './normalizeResponse';
 import axios from 'axios';
 import { useEffect } from 'react';
 import {isTerminalReauth} from '../lib/terminalReauth.mjs';
+import * as readCache from '../lib/offlineReadCache.mjs';
 
 // Use relative /api to benefit from Vite proxy or direct URL fallback
 // Packaged web releases must not inherit a developer's .env loopback API.
@@ -60,6 +61,8 @@ apiClient.interceptors.response.use(
     const offline = Number(response.headers?.['x-veniux-offline-until']) || null;
     window.dispatchEvent(new CustomEvent('veniux-connection', { detail: { offlineUntil: offline, blocked: false } }));
     response.data = normalizeResponse(response.data);
+    // Kasanın açılışta okuduğu birkaç GET'in son cevabı saklanır; ağ yokken sayfa yenilenirse bundan açılır.
+    if (readCache.cacheable(response.config)) readCache.save(localStorage, response.config, response.data, readCache.tokenId(localStorage.getItem('token')));
     const method = response.config?.method?.toLowerCase();
     // Whenever a data mutating request succeeds, notify all subscriber pages
     if (method === 'post' || method === 'put' || method === 'patch' || method === 'delete') {
@@ -78,6 +81,11 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Ağ hatasında (sunucudan hiçbir cevap yok) izinli okumalar için son başarılı cevap kullanılır (en çok 24 saat).
+    if (!error.response && readCache.cacheable(error.config)) {
+      const hit = readCache.load(localStorage, error.config, readCache.tokenId(localStorage.getItem('token')));
+      if (hit) return Promise.resolve({ data: hit.data, status: 200, statusText: 'OFFLINE_CACHE', headers: { 'x-veniux-offline-cache': '1' }, config: error.config, request: {} });
+    }
     // Firma yöneticiler için 2FA'yı zorunlu kıldıysa güvenlik ayarlarına yönlendir (bir kez).
     if (error.response?.data?.code === 'MFA_SETUP_REQUIRED' && !/[?&]tab=security/.test(window.location.search + window.location.hash)) {
       if (window.location.protocol === 'file:') window.location.hash = '/settings?tab=security';
