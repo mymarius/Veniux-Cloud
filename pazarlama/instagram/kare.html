@@ -1,0 +1,34 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>
+@font-face{font-family:Archivo;src:url(archivo-latin-ext-wdth-normal.woff2) format('woff2');unicode-range:U+0100-024F}
+@font-face{font-family:Archivo;src:url(archivo-latin-wdth-normal.woff2) format('woff2');font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:Manrope;src:url(manrope-v1.woff2) format('woff2');font-weight:200 800}
+:root{--ink:#17263a;--orange:#e4570a;--paper:#f4eee2;--white:#fffdf8;--green:#0d7a57;--line:#d6c9b2}
+*{box-sizing:border-box;margin:0}
+body{width:1080px;height:1080px;background:var(--paper);font-family:Manrope,sans-serif;color:var(--ink);overflow:hidden;position:relative}
+.top{display:flex;align-items:center;gap:18px;padding:64px 72px 0}
+.top img{width:84px;height:84px}
+.top b{font:800 44px Archivo;letter-spacing:.5px}
+.top span{margin-left:auto;font-weight:700;font-size:24px;padding:10px 20px;border:2px solid var(--ink);border-radius:999px}
+h1{font:900 104px/0.98 Archivo;font-stretch:88%;letter-spacing:-1.5px;padding:48px 72px 0}
+h1 em{font-style:normal;color:var(--orange)}
+.sub{font-size:34px;line-height:1.35;padding:26px 72px 0;max-width:960px;color:#34445a}
+.shot{position:absolute;left:72px;right:-140px;border-radius:22px;overflow:hidden;border:4px solid var(--ink);box-shadow:18px 18px 0 var(--ink);background:#fff}
+.shot img{display:block;width:100%}
+ul{list-style:none;padding:0 72px;display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;position:absolute;left:0;right:0}
+li{font-size:29px;font-weight:700;display:flex;gap:14px;align-items:center}
+li:before{content:"";flex:0 0 18px;height:18px;background:var(--orange);border-radius:4px}
+.bar{position:absolute;left:0;right:0;bottom:0;background:var(--ink);color:var(--white);display:flex;align-items:center;padding:0 72px;height:150px}
+.bar .p{font-size:26px;opacity:.85}.bar .p b{display:block;font:800 46px Archivo;opacity:1;color:#fff}
+.bar .u{margin-left:auto;background:var(--orange);font:800 38px Archivo;padding:22px 34px;border-radius:14px}
+.tall ul{top:560px}.tall .shot{top:720px}
+.sq h1{font-size:92px;padding-top:36px}.sq .sub{font-size:30px;padding-top:20px}
+.sq .shot{top:490px;left:470px;right:-300px}.sq ul{top:500px;grid-template-columns:1fr;width:440px;gap:26px}.sq li{font-size:25px}
+.sq .top{padding-top:56px}
+</style></head><body class="sq">
+<div class="top"><img src="logo.png" alt=""><b>VENIUX</b><span>Windows · Android</span></div>
+<h1>Stok ve kasa<br><em>tek programda.</em></h1>
+<p class="sub">Barkodla satın, stok kendiliğinden düşsün. Son kullanma tarihi yaklaşan ürünü önceden görün.</p>
+<div class="shot"><img src="shot-pos.jpg" alt=""></div>
+<ul><li>Barkodlu hızlı satış</li><li>Lot ve son kullanma takibi</li><li>Bilgisayarda internetsiz satış</li><li>Vardiya ve gün sonu</li></ul>
+<div class="bar"><div class="p">Yıllık, KDV dahil<b>4.188 ₺’den başlayan</b></div><div class="u">veniux.com</div></div>
+</body></html>
