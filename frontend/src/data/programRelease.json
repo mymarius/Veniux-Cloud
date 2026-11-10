@@ -1,8 +1,21 @@
 {
-  "version": "2.4.54",
+  "version": "2.4.55",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.55",
+      "date": "10 Kasım 2026",
+      "title": "Kasa: hızlı gider, iade/değişim, sesle arama ve öneriler",
+      "items": [
+        "Hızlı gider girişi ve vardiyada gider toplamları",
+        "Para sayma yardımcısı ve tek tuşla gün sonu sayımı",
+        "Fiş numarasıyla hızlı iade ve değişim akışı",
+        "Çalışan performansı, çok satanlar ve büyük düğme modu",
+        "Sesle ürün arama (Chrome ve Edge)",
+        "Satış hızına göre sipariş önerisi ve son kullanma indirim önerisi"
+      ]
+    },
     {
       "version": "2.4.54",
       "date": "10 Kasım 2026",
