@@ -8,5 +8,6 @@ export default function OfflineBanner({ offline }) {
     {counts.conflict > 0 && <p role="alert"><b>{counts.conflict}</b> satış sunucu tarafından kabul edilmedi ve cihazda duruyor (müdüre bildirin).</p>}
     {online && counts.pending > 0 && <button type="button" className="btn-soft" disabled={flushing} onClick={offline.flush}>{flushing ? 'Gönderiliyor…' : 'Şimdi gönder'}</button>}
     {lastSummary && lastSummary.sent > 0 && <p>{lastSummary.sent} satış sunucuya işlendi.</p>}
+    {lastSummary && lastSummary.shortfalls > 0 && <p role="alert"><b>{lastSummary.shortfalls}</b> üründe stok açığı oluştu; satışlar kaydedildi, müdür Ayarlar &gt; Barkod okuyucular ve kasa &gt; Çevrimdışı uyuşmazlıklar bölümünden kontrol etmeli.</p>}
   </div>;
 }

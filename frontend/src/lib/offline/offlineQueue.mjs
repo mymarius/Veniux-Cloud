@@ -32,7 +32,7 @@ export function createOfflineQueue(store) {
     // send(kayıt) şunlardan birini döndürür: {status:'done'} | {status:'rejected', message}; ağ yoksa NetworkError fırlatır.
     // NetworkError gelince döngü durur (sıra korunur, kalanlar kuyrukta). 'rejected' satır işaretlenir, sıradakine geçilir.
     async flush(send) {
-      const summary = { sent: 0, rejected: 0, stopped: false, remaining: 0 };
+      const summary = { sent: 0, rejected: 0, shortfalls: 0, stopped: false, remaining: 0 };
       for (const record of sorted(await store.getAll())) {
         if (record.status === 'conflict') continue;
         let result;
@@ -42,7 +42,7 @@ export function createOfflineQueue(store) {
           await this.markFailed(record.id, error?.message || 'Gönderilemedi.');
           continue;
         }
-        if (result?.status === 'done') { await store.delete(record.id); summary.sent++; }
+        if (result?.status === 'done') { await store.delete(record.id); summary.sent++; summary.shortfalls += result.shortfalls || 0; }
         else { await this.markFailed(record.id, result?.message || 'Sunucu satışı kabul etmedi.', { conflict: true }); summary.rejected++; }
       }
       summary.remaining = (await store.getAll()).length;
@@ -59,7 +59,9 @@ export function isNetworkFailure(error) {
 // post: api.post benzeri. Satış kimliği Idempotency-Key olarak gider; yanıt kaybolursa aynı anahtarla tekrar gönderim güvenlidir.
 export function createSender(post) {
   return async record => {
-    try { await post('/scanner/sale', record.body, { headers: { 'Idempotency-Key': record.id } }); return { status: 'done' }; }
+    // Çevrimdışı bilgi başlıkta gider (gövdede değil): ilk çevrimiçi deneme ile kuyruktan tekrar aynı gövdeyle eşleşir.
+    const headers = { 'Idempotency-Key': record.id, ...(record.receipt_no && record.created_at ? { 'X-Veniux-Offline': record.receipt_no + '|' + record.created_at } : {}) };
+    try { const response = await post('/scanner/sale', record.body, { headers }); return { status: 'done', shortfalls: response?.data?.offline?.stock_shortfalls?.length || 0 }; }
     catch (error) {
       if (isNetworkFailure(error)) throw new NetworkError();
       return { status: 'rejected', message: error.response?.data?.error || 'Sunucu satışı kabul etmedi.' };

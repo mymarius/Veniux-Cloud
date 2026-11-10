@@ -105,7 +105,7 @@ async function quote(user,body){
   return db.transaction(async tx=>{await warehouse(tx,user.tenantId,body.warehouse_id);const r=await price(tx,user,body,rights,settings,date);
     return {gross:r.gross/100,manual_discount:r.manual/100,campaign_discount:r.campaign.total/100,loyalty_discount:r.redeem.cents/100,total:(r.gross-r.discount)/100,campaigns:r.campaign.applied,campaigns_skipped:r.campaign.skipped};});
 }
-async function sale(user,body,key,device){
+async function sale(user,body,key,device,offline=null){
   if(!['admin','manager','cashier'].includes(user.role))fail('Kasada satış yetkiniz yok.',403);
   const rights=await permissions(user),settings=await scanner.config(user.tenantId),date=businessDate();
   if(!Array.isArray(body.items)||!body.items.length||body.items.length>200)fail('Geçerli satış sepeti gerekli.');
@@ -114,6 +114,9 @@ async function sale(user,body,key,device){
     const shift=await require('./retailShiftService').requireOpen(tx,user,body.warehouse_id,body);
     const {lines,needed,gross,manual,campaign,redeem,discount}=await price(tx,user,body,rights,settings,date);
     const net=gross-discount,payments=paymentBreakdown(body,net);
+    // Çevrimdışı satış (karar A): stok açığı reddedilmez; fark stok düzeltmesiyle kapatılır ve uyuşmazlık olarak yazılır.
+    let shortages=[];
+    if(offline){await require('./offlineSaleService').assertReceiptFree(tx,user,offline);shortages=await require('./offlineSaleService').coverShortfalls(tx,user,body.warehouse_id,needed);}
     for(const [id,qty] of needed){const stocks=(await tx.query('SELECT quantity FROM stock_records WHERE tenant_id=$1 AND warehouse_id=$2 AND product_id=$3'+(db.getEngine()==='mysql'?' FOR UPDATE':''),[user.tenantId,body.warehouse_id,id])).rows;if(stocks.reduce((sum,s)=>sum+Number(s.quantity),0)+0.0000001<qty)fail('Satış için yeterli stok yok.',409);}
     const no='POS-'+crypto.randomUUID(),method=payments.on_account?(payments.cash||payments.credit_card?'split':'on_account'):payments.cash&&payments.credit_card?'split':payments.credit_card?'credit_card':'cash';
     if(payments.on_account&&!['admin','manager'].includes(user.role))fail('Veresiye satış için yönetici yetkisi gerekli.',403);
@@ -134,6 +137,7 @@ async function sale(user,body,key,device){
     }
     const snapshot={receipt_no:no,status:'completed',shift_id:shift.id,register_id:shift.register_id,items,gross_cents:gross,discount_cents:discount,net_cents:net,payments,refunded_cents:0,refund_payments:{cash:0,credit_card:0},cashier:user.email,created_at:new Date().toISOString()};
     snapshot.local_receipt_no=localNo;if(posDevice)snapshot.device_id=Number(posDevice.id);
+    if(offline){snapshot.offline_receipt_no=offline.receiptNo;snapshot.offline_at=offline.offlineAt;}
     if(payments.on_account){snapshot.account_id=await require('./retailCreditService').charge(tx,user,body,payments.on_account,pos.id,shift.id);snapshot.due_date=body.due_date;snapshot.refund_payments.on_account=0;}
     snapshot.vat_breakdown=require('./retailVatService').breakdown(items);
     if(campaign.applied.length||manual||redeem.cents)snapshot.discounts={manual_cents:manual,campaign_cents:campaign.total,loyalty_cents:redeem.cents,campaigns:campaign.applied};
@@ -141,7 +145,8 @@ async function sale(user,body,key,device){
     await tx.query('INSERT INTO retail_sales (sale_id,tenant_id,warehouse_id,user_id,business_date,snapshot_json,shift_id,register_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',[pos.id,user.tenantId,body.warehouse_id,user.userId,date,JSON.stringify(snapshot),shift.id,shift.register_id]);
     await audit(tx,user,'scanner.sale',pos.id,{receipt:no,gross_cents:gross,discount_cents:discount,payments,price_overrides:body.items.filter(i=>i.price_override!==undefined).map(i=>({barcode:i.barcode,price:i.price_override}))});
     await devices.record(tx,user,{saleId:pos.id,clientUuid:key,device:posDevice,receiptNo:localNo});
-    return {receipt_no:no,local_receipt_no:localNo,total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
+    if(offline)await require('./offlineSaleService').record(tx,user,{saleId:pos.id,warehouseId:body.warehouse_id,offline,shortages});
+    return {receipt_no:no,local_receipt_no:localNo,...(offline?{offline:{receipt_no:offline.receiptNo,stock_shortfalls:shortages}}:{}),total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
   });});
 }
 async function restore(tx,user,row,line,quantity,disposition='saleable'){

@@ -29,7 +29,7 @@ test('gönderim: işlenen satır silinir, ağ kopunca döngü durur ve kalanlar 
   const seen = [];
   const summary = await q.flush(async r => { seen.push(r.id); if (r.id === 's2') throw new NetworkError(); return { status: 'done' }; });
   assert.deepEqual(seen, ['s1', 's2']);
-  assert.deepEqual(summary, { sent: 1, rejected: 0, stopped: true, remaining: 2 });
+  assert.deepEqual(summary, { sent: 1, rejected: 0, shortfalls: 0, stopped: true, remaining: 2 });
   assert.deepEqual((await q.list()).map(r => r.id), ['s2', 's3']);
 });
 
@@ -37,7 +37,7 @@ test('gönderim: reddedilen satış silinmez, uyuşmazlık olarak işaretlenir v
   const q = createOfflineQueue(memoryStore());
   await q.enqueue(sale('s1', '1')); await q.enqueue(sale('s2', '2'));
   const summary = await q.flush(async r => (r.id === 's1' ? { status: 'rejected', message: 'Yetersiz stok' } : { status: 'done' }));
-  assert.deepEqual(summary, { sent: 1, rejected: 1, stopped: false, remaining: 1 });
+  assert.deepEqual(summary, { sent: 1, rejected: 1, shortfalls: 0, stopped: false, remaining: 1 });
   const [left] = await q.list();
   assert.equal(left.id, 's1'); assert.equal(left.status, 'conflict'); assert.equal(left.last_error, 'Yetersiz stok'); assert.equal(left.attempts, 1);
   // Uyuşmazlık satırı otomatik yeniden gönderilmez.
@@ -113,7 +113,7 @@ const httpError = (status, error) => Object.assign(new Error('http'), { response
 test('gönderici: sunucu satışı işlerse işlendi; kimlik Idempotency-Key olarak gider', async () => {
   let seen;
   const send = createSender(async (path, body, config) => { seen = { path, key: config.headers['Idempotency-Key'], body }; return { data: {} }; });
-  assert.deepEqual(await send({ id: 'k-1', body: { a: 1 } }), { status: 'done' });
+  assert.deepEqual(await send({ id: 'k-1', body: { a: 1 } }), { status: 'done', shortfalls: 0 });
   assert.deepEqual(seen, { path: '/scanner/sale', key: 'k-1', body: { a: 1 } });
 });
 
@@ -144,6 +144,17 @@ test('uçtan uca: ağ kesilip gelince kuyruk sırayla boşalır; yanıtı kaybol
   const first = await q.flush(send);                              // x1 işlendi ama yanıt kayboldu → ağ hatası sayılır, sıra durur
   assert.equal(first.stopped, true); assert.equal((await q.counts()).total, 3);
   const second = await q.flush(send);                              // aynı anahtarla tekrar
-  assert.deepEqual(second, { sent: 3, rejected: 0, stopped: false, remaining: 0 });
+  assert.deepEqual(second, { sent: 3, rejected: 0, shortfalls: 0, stopped: false, remaining: 0 });
   assert.deepEqual([...server].sort(), ['x1', 'x2', 'x3']);       // sunucuda her satış bir kez
+});
+
+test('gönderici: çevrimdışı bilgi başlıkta gider, gövde aynı kalır; çevrimiçi satışta başlık yoktur; stok açığı sayısı taşınır', async () => {
+  let seen;
+  const send = createSender(async (path, body, config) => { seen = { body, headers: config.headers }; return { data: { offline: { stock_shortfalls: [{ product_id: 1, quantity: 3 }] } } }; });
+  const result = await send({ id: 'k-9', receipt_no: 'E0DK-20261110-00007', created_at: '2026-11-10T10:00:00.000Z', body: { a: 1 } });
+  assert.deepEqual(result, { status: 'done', shortfalls: 1 });
+  assert.equal(seen.headers['X-Veniux-Offline'], 'E0DK-20261110-00007|2026-11-10T10:00:00.000Z');
+  assert.deepEqual(seen.body, { a: 1 });
+  await send({ id: 'k-10', body: { a: 1 } });
+  assert.equal('X-Veniux-Offline' in seen.headers, false);
 });

@@ -111,7 +111,7 @@ def backend_changed():
 
 # Masaüstü yalnız yeni tablo ekleyen şema adımlarını kendisi uygular (local-server upgradeSchema). Yeni şema,
 # eski bir kurulumu yeni sürümle açarak denenmeden buraya yazılmamalı.
-SHIPPABLE_MYSQL_SCHEMA = '014-pos-devices'
+SHIPPABLE_MYSQL_SCHEMA = '015-offline-sales'
 
 
 def schema_guard():
