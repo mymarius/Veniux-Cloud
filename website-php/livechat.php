@@ -183,13 +183,13 @@ function chatAdminPage(string $nonce): void {
 <meta name="robots" content="noindex,nofollow">
 <title>Canlı destek yönetimi | Veniux</title>
 <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
-<link rel="stylesheet" href="/assets/home.css?v=20261112g">
+<link rel="stylesheet" href="/assets/home.css?v=20261113a">
 </head>
 <body class="ch-admin-body">
 <main class="ch-admin" id="ch-admin" data-enabled="<?= $enabled ? '1' : '0' ?>" data-auth="<?= chatAdminAllowed() ? '1' : '0' ?>" data-name="<?= htmlspecialchars((string)($_SESSION['chat_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-role="<?= htmlspecialchars((string)($_SESSION['chat_role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars((string)($_SESSION['chat_csrf'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
   <noscript>Bu ekran için JavaScript gerekir.</noscript>
 </main>
-<script src="/assets/chat-admin.js?v=20261112g" defer></script>
+<script src="/assets/chat-admin.js?v=20261113a" defer></script>
 </body>
 </html><?php
     exit;
