@@ -113,6 +113,20 @@ async function recalc(tx, user, orderId) {
 
 // ---------- Sipariş ----------
 async function createOrder(user, body = {}) {
+  const result = await createOrderTx(user, body);
+  notifyOrder(user, body, result);
+  return result;
+}
+
+// Esnafın telefonuna "sipariş geldi" (en iyi çaba; hata siparişi bozmaz).
+async function notifyOrder(user, body, result) {
+  try {
+    const table = body.table_id ? (await db.query('SELECT name FROM restaurant_tables WHERE id=$1 AND tenant_id=$2', [Number(body.table_id), user.tenantId])).rows[0] : null;
+    await require('./pushNotifier').orderCreated(user, { ...result, type: body.order_type }, table && table.name);
+  } catch { /* bildirim gitmedi */ }
+}
+
+async function createOrderTx(user, body = {}) {
   const type = TYPES.includes(body.order_type) ? body.order_type : 'masa';
   const lines = Array.isArray(body.items) ? body.items : [];
   if (!lines.length || lines.length > 40) fail('Siparişte 1-40 kalem olmalı.');
@@ -192,16 +206,46 @@ async function setItemStatus(user, orderId, itemId, body = {}) {
   });
 }
 
+// Adisyon kapanışı: nakit ve kart ayrı yazılır. Nakit, ödemeyi alan kasiyerin (yoksa mağazadaki) AÇIK VARDİYASINA "para girişi"
+// olarak işlenir; böylece vardiya kapanışındaki beklenen nakit restoran tahsilatını da içerir. Açık vardiya yoksa adisyon yine kapanır,
+// ama nakit sayıma eklenmediği uyarı olarak döner. Stok zaten sipariş anında düşmüştür; perakende satışı oluşturulmaz (çifte düşüm olmaz).
 async function closeOrder(user, orderId, body = {}) {
-  const method = ['cash', 'card', 'other'].includes(body.payment_method) ? body.payment_method : 'cash';
   return db.transaction(async tx => {
-    const order = (await tx.query('SELECT id,status FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [Number(orderId), user.tenantId])).rows[0];
+    const order = (await tx.query('SELECT id,status,warehouse_id FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [Number(orderId), user.tenantId])).rows[0];
     if (!order) fail('Sipariş bulunamadı.', 404);
     if (order.status !== 'open') fail('Sipariş zaten kapatılmış.', 409);
-    const total = await recalc(tx, user, Number(orderId));
-    await tx.query("UPDATE restaurant_orders SET status='closed',payment_method=$1,closed_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3", [method, Number(orderId), user.tenantId]);
-    return { order_id: Number(orderId), total, payment_method: method };
+    const total = await recalc(tx, user, Number(orderId)), totalCents = Math.round(total * 100);
+    let cashCents, cardCents, method;
+    if (body.payments && typeof body.payments === 'object') {
+      cashCents = Math.round(Number(body.payments.cash || 0) * 100); cardCents = Math.round(Number(body.payments.card || 0) * 100);
+      if (!Number.isFinite(cashCents) || !Number.isFinite(cardCents) || cashCents < 0 || cardCents < 0) fail('Ödeme tutarı geçersiz.');
+      if (cashCents + cardCents !== totalCents) fail('Nakit ve kart toplamı adisyon tutarına (' + total.toFixed(2) + ') eşit olmalı.');
+      method = cashCents && cardCents ? 'split' : cardCents ? 'card' : 'cash';
+    } else {
+      method = ['cash', 'card', 'other'].includes(body.payment_method) ? body.payment_method : 'cash';
+      cashCents = method === 'cash' || method === 'other' ? totalCents : 0; cardCents = method === 'card' ? totalCents : 0;
+    }
+    const warehouse = Number(order.warehouse_id);
+    const shift = cashCents > 0 || cardCents > 0
+      ? ((await tx.query("SELECT id,register_id FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open' AND user_id=$3 ORDER BY id DESC LIMIT 1", [user.tenantId, warehouse, user.userId])).rows[0]
+        || (await tx.query("SELECT id,register_id FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open' ORDER BY id LIMIT 1", [user.tenantId, warehouse])).rows[0])
+      : null;
+    let warning = null;
+    if (cashCents > 0) {
+      if (shift) await tx.query("INSERT INTO retail_cash_movements (id,tenant_id,shift_id,user_id,user_email,direction,amount_cents,reason) VALUES ($1,$2,$3,$4,$5,'in',$6,$7)", [crypto.randomUUID(), user.tenantId, Number(shift.id), user.userId, user.email || 'restoran', cashCents, 'Restoran adisyon #' + Number(orderId) + ' (nakit)']);
+      else warning = 'Açık vardiya yok: nakit tahsilat vardiya sayımına eklenmedi.';
+    }
+    await tx.query("UPDATE restaurant_orders SET status='closed',payment_method=$1,cash_cents=$2,card_cents=$3,shift_id=$4,register_id=$5,closed_at=CURRENT_TIMESTAMP WHERE id=$6 AND tenant_id=$7", [method, cashCents, cardCents, shift ? Number(shift.id) : null, shift ? Number(shift.register_id) : null, Number(orderId), user.tenantId]);
+    return { order_id: Number(orderId), total, payment_method: method, cash: cashCents / 100, card: cardCents / 100, shift_id: shift ? Number(shift.id) : null, warning };
   });
+}
+
+// Gün raporuna eklenen restoran toplamı (perakende toplamlarına karışmaz).
+async function dayTotals(tx, tenantId, warehouse, date) {
+  try {
+    const r = (await tx.query("SELECT COUNT(*) AS n,COALESCE(SUM(total_amount),0) AS total,COALESCE(SUM(cash_cents),0) AS cash,COALESCE(SUM(card_cents),0) AS card FROM restaurant_orders WHERE tenant_id=$1 AND warehouse_id=$2 AND business_day=$3 AND status='closed'", [tenantId, warehouse, date])).rows[0];
+    return Number(r.n) ? { orders: Number(r.n), total_cents: Math.round(Number(r.total) * 100), cash_cents: Number(r.cash), card_cents: Number(r.card) } : null;
+  } catch { return null; }
 }
 
 // Esnafın telefonu: yeni siparişleri sorgular ("sipariş geldi"). after_id=0 ise yalnız son numarayı verir.
@@ -225,4 +269,4 @@ async function summary(user, query = {}) {
     products: products.map(p => ({ product_id: Number(p.product_id), name: p.product_name, quantity: round(p.qty, 3), revenue: round(p.revenue) })) };
 }
 
-module.exports = { tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };
+module.exports = { dayTotals, tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };

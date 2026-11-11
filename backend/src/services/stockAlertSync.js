@@ -1,6 +1,7 @@
 async function syncStockAlert(tx,item){
  const rows=(await tx.query("SELECT * FROM alerts WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3 AND alert_type='low_stock' ORDER BY id",[item.tenant_id,item.product_id,item.warehouse_id])).rows;
  const active=Number(item.quantity)<=0||Number(item.min_stock_level)>0&&Number(item.quantity)<=Number(item.min_stock_level);
+ if(active){try{require('./pushNotifier').lowStockChanged(item.tenant_id);}catch{}}
  if(!active){await tx.query("UPDATE alerts SET status='resolved' WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3 AND alert_type='low_stock' AND status<>'resolved'",[item.tenant_id,item.product_id,item.warehouse_id]);return 0;}
  const message=`${item.product_name}: ${item.warehouse_name} deposunda ${item.quantity} kaldı. Minimum: ${item.min_stock_level}.`,severity=Number(item.quantity)<=0?'critical':'warning';
  if(rows.length){const row=rows[0];await tx.query('UPDATE alerts SET message=$1,severity=$2,status=$3 WHERE id=$4',[message,severity,row.status==='resolved'||row.message!==message?'unread':row.status,row.id]);for(const extra of rows.slice(1))await tx.query("UPDATE alerts SET status='resolved' WHERE id=$1",[extra.id]);return 0;}

@@ -13,10 +13,11 @@ const storedWarehouse = () => { try { return Number(localStorage.getItem(STORE_K
 export function MobileWaiter() {
   const tables = useAsync(async () => (await api.get('/sector/restaurant/tables')).data.items, []);
   const menu = useAsync(async () => (await api.get('/sector/restaurant/menu')).data, []);
+  const [closing, setClosing] = useState(null), [split, setSplit] = useState({ cash: '', card: '' }), [closed, setClosed] = useState(null);
   const [target, setTarget] = useState(null), [cart, setCart] = useState(() => new Map()), [category, setCategory] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [sent, setSent] = useState(null);
   const categories = useMemo(() => [...new Set((menu.data?.items || []).map(i => i.category))], [menu.data]);
   const shown = (menu.data?.items || []).filter(i => !category || i.category === category);
-  const choose = t => { setTarget(t); setCart(new Map()); setSent(null); setMessage(''); setCategory(''); };
+  const choose = t => { setTarget(t); setCart(new Map()); setSent(null); setClosing(null); setClosed(null); setMessage(''); setCategory(''); };
   const submit = async () => {
     setBusy(true); setMessage('');
     try {
@@ -25,6 +26,12 @@ export function MobileWaiter() {
       const r = (await api.post('/sector/restaurant/orders', body)).data;
       setSent(r); setCart(new Map()); tables.reload();
     } catch (e) { setMessage(errorText(e, 'Sipariş gönderilemedi.')); } finally { setBusy(false); }
+  };
+  const openTable = target?.type === 'masa' ? tables.data?.find(t => t.id === target.id) : null;
+  const pay = async payments => {
+    setBusy(true); setMessage('');
+    try { const r = (await api.post(`/sector/restaurant/orders/${openTable.open_order_id}/close`, payments)).data; setClosed(r); setClosing(null); setSplit({ cash: '', card: '' }); tables.reload(); }
+    catch (e) { setMessage(errorText(e, 'Adisyon kapatılamadı.')); } finally { setBusy(false); }
   };
   const qtyOf = id => cart.get(id)?.quantity || 0;
   return <div className="vm" style={{ paddingBottom: target ? 150 : 104 }}>
@@ -42,6 +49,15 @@ export function MobileWaiter() {
         {sent && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Sipariş mutfağa gitti · {money(sent.total)}</b>
           {sent.shortages.length > 0 && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>Stok yetersiz: {sent.shortages.flatMap(s => s.missing.map(m => m.name)).join(', ')} (siparişe devam edilir, stok eksiye düşmez).</p>}
           <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setTarget(null)}>Masalara dön</button></section>}
+        {closed && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Adisyon kapandı · {money(closed.total)} ({closed.cash > 0 ? 'nakit ' + money(closed.cash) : ''}{closed.cash > 0 && closed.card > 0 ? ' + ' : ''}{closed.card > 0 ? 'kart ' + money(closed.card) : ''})</b>
+          {closed.warning && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>{closed.warning}</p>}<button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => { setClosed(null); setTarget(null); }}>Masalara dön</button></section>}
+        {openTable?.open_order_id && !closed && <section className="vm-card" aria-label="Adisyon"><div style={{ display: 'flex', justifyContent: 'space-between' }}><b>Açık adisyon</b><b>{money(openTable.open_total)}</b></div>
+          {!closing && <button type="button" className="vm-btn soft" style={{ marginTop: 8 }} onClick={() => setClosing('choose')}>Hesabı kapat</button>}
+          {closing === 'choose' && <div style={{ display: 'grid', gap: 8, marginTop: 8 }}><button type="button" className="vm-btn" disabled={busy} onClick={() => pay({ payment_method: 'cash' })}>Nakit · {money(openTable.open_total)}</button><button type="button" className="vm-btn" disabled={busy} onClick={() => pay({ payment_method: 'card' })}>Kart · {money(openTable.open_total)}</button>
+            <button type="button" className="vm-btn ghost" onClick={() => { setSplit({ cash: '', card: '' }); setClosing('split'); }}>Nakit + kart (karma)</button><button type="button" className="vm-btn ghost" onClick={() => setClosing(null)}>Vazgeç</button></div>}
+          {closing === 'split' && <div style={{ marginTop: 8 }}><div className="vm-price-in"><input inputMode="decimal" aria-label="Nakit tutar" placeholder="Nakit" value={split.cash} onChange={e => setSplit(v => ({ ...v, cash: e.target.value }))} /><input inputMode="decimal" aria-label="Kart tutar" placeholder="Kart" value={split.card} onChange={e => setSplit(v => ({ ...v, card: e.target.value }))} /></div>
+            <button type="button" className="vm-btn" disabled={busy} onClick={() => pay({ payments: { cash: Number(String(split.cash || 0).replace(',', '.')), card: Number(String(split.card || 0).replace(',', '.')) } })}>Kapat</button><button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setClosing('choose')}>Geri</button></div>}
+          {message && <p role="alert" className="vm-err">{message}</p>}</section>}
         {menu.data && !menu.data.configured && <p className="vm-note">Menü işaretlenmemiş: tüm satış ürünleri gösteriliyor. Restoran ayarlarından menüyü seçebilirsiniz.</p>}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
           <button type="button" className={'vm-btn ' + (!category ? '' : 'ghost')} style={{ width: 'auto', minHeight: 38, padding: '0 14px', flex: 'none' }} onClick={() => setCategory('')}>Tümü</button>

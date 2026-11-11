@@ -57,6 +57,7 @@ const MobileWaiter = lazy(() => import('./pages/mobile/sector/MobileRestaurant')
 const MobileKitchen = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileKitchen })));
 const MobileOwner = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileOwner })));
 const MobileRestaurantSetup = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileRestaurantSetup })));
+const MobileDeviceTest = lazy(() => import('./pages/mobile/sector/MobileDeviceTest'));
 const MobileLogin = lazy(() => import('./pages/mobile/MobileLogin'));
 const MobileHome = lazy(() => import('./pages/mobile/MobileHome'));
 const MobileModules = lazy(() => import('./pages/mobile/MobileModules'));
@@ -193,6 +194,7 @@ function AppContent() {
             <Route path="/m/garson" element={<ProtectedRoute><MobileWaiter /></ProtectedRoute>} />
             <Route path="/m/mutfak" element={<ProtectedRoute><MobileKitchen /></ProtectedRoute>} />
             <Route path="/m/esnaf" element={<ProtectedRoute><MobileOwner /></ProtectedRoute>} />
+            <Route path="/m/cihaz-testi" element={<ProtectedRoute><MobileDeviceTest /></ProtectedRoute>} />
             <Route path="/m/restoran-ayar" element={<ProtectedRoute><MobileRestaurantSetup /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />

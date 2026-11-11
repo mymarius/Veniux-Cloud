@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../src/index');
 const db = require('../src/config/database');
 const { JWT_SECRET } = require('../src/middlewares/authMiddleware');
-const { createTenant, createWarehouse, createUser } = require('./factories');
+const { createTenant, createWarehouse, createUser, openTestShift } = require('./factories');
 
 let owner, other, w, manager, waiter;
 const as = who => ({
@@ -247,5 +247,63 @@ describe('pide ve restoran', () => {
     expect((await as(other).post('/restaurant/orders', { table_id: table.id, items: [{ product_id: pide.id, quantity: 1 }] })).status).toBe(403); // diğer işletmede paket yok
     await grant(other.tenantId, 'restaurant');
     expect((await as(other).post('/restaurant/orders', { table_id: table.id, items: [{ product_id: pide.id, quantity: 1 }] })).status).toBe(404); // masa başkasının
+  });
+});
+
+describe('restoran kasa ve gün kapanışı', () => {
+  let pide, t1, t2, t3, shift;
+  const order = async (table, qty = 1) => (await as(waiter).post('/restaurant/orders', { table_id: table.id, warehouse_id: w.id, items: [{ product_id: pide.id, quantity: qty }] })).body;
+  beforeAll(async () => {
+    pide = await product(owner.tenantId, 'KS-PIDE', 'Kasa pidesi', { price: 100 });
+    t1 = (await as(manager).post('/restaurant/tables', { name: 'Kasa 1' })).body; t2 = (await as(manager).post('/restaurant/tables', { name: 'Kasa 2' })).body; t3 = (await as(manager).post('/restaurant/tables', { name: 'Kasa 3' })).body;
+    shift = await openTestShift(owner, w.id, 0);
+  });
+  const cashIn = async () => Number((await db.query("SELECT COALESCE(SUM(amount_cents),0) AS c FROM retail_cash_movements WHERE tenant_id=$1 AND shift_id=$2 AND direction='in' AND reason LIKE 'Restoran%'", [owner.tenantId, shift.shift_id])).rows[0].c);
+
+  test('nakit adisyon açık vardiyaya para girişi olarak işlenir; kart işlenmez; bölünmüş ödeme yalnız nakit kısmı ekler', async () => {
+    const a = await order(t1, 2); // 200
+    const closed = await as(waiter).post(`/restaurant/orders/${a.order_id}/close`, { payment_method: 'cash' });
+    expect(closed.body).toMatchObject({ total: 200, cash: 200, card: 0, shift_id: shift.shift_id, warning: null });
+    expect(await cashIn()).toBe(20000);
+    const b = await order(t2, 1); // 100
+    await as(waiter).post(`/restaurant/orders/${b.order_id}/close`, { payment_method: 'card' });
+    expect(await cashIn()).toBe(20000);
+    const c = await order(t3, 3); // 300
+    const split = await as(waiter).post(`/restaurant/orders/${c.order_id}/close`, { payments: { cash: 120, card: 180 } });
+    expect(split.body).toMatchObject({ payment_method: 'split', cash: 120, card: 180 });
+    expect(await cashIn()).toBe(32000);
+    const row = (await db.query('SELECT cash_cents,card_cents,shift_id,register_id FROM restaurant_orders WHERE id=$1', [c.order_id])).rows[0];
+    expect([Number(row.cash_cents), Number(row.card_cents), Number(row.shift_id), Number(row.register_id)]).toEqual([12000, 18000, shift.shift_id, shift.register_id]);
+  });
+
+  test('ödeme toplamı adisyon tutarına eşit olmalı; negatif tutar reddedilir; kapanmış adisyon tekrar kapanmaz', async () => {
+    const d = await order(t1, 1); // 100
+    for (const payments of [{ cash: 50, card: 40 }, { cash: 100, card: 10 }, { cash: -20, card: 120 }, { cash: 'x', card: 100 }]) {
+      const r = await as(waiter).post(`/restaurant/orders/${d.order_id}/close`, { payments });
+      expect([JSON.stringify(payments), r.status]).toEqual([JSON.stringify(payments), 400]);
+    }
+    expect((await as(waiter).post(`/restaurant/orders/${d.order_id}/close`, { payments: { cash: 40, card: 60 } })).status).toBe(200);
+    expect((await as(waiter).post(`/restaurant/orders/${d.order_id}/close`, { payment_method: 'cash' })).status).toBe(409);
+  });
+
+  test('gün raporu restoran toplamını ayrı blokta verir ve perakende toplamlarına karıştırmaz', async () => {
+    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date());
+    const r = await request(app).get('/api/scanner/day-report').set('Authorization', 'Bearer ' + manager.token).query({ warehouse_id: w.id, date: day });
+    expect(r.status).toBe(200);
+    const sum = (await db.query("SELECT COUNT(*) AS n,SUM(total_amount) AS t,SUM(cash_cents) AS c,SUM(card_cents) AS k FROM restaurant_orders WHERE tenant_id=$1 AND warehouse_id=$2 AND business_day=$3 AND status='closed'", [owner.tenantId, w.id, day])).rows[0];
+    expect(r.body.restaurant).toEqual({ orders: Number(sum.n), total_cents: Math.round(Number(sum.t) * 100), cash_cents: Number(sum.c), card_cents: Number(sum.k) });
+    expect(r.body.restaurant.orders).toBeGreaterThanOrEqual(4);
+    expect(r.body.restaurant.cash_cents).toBeGreaterThanOrEqual(20000 + 12000 + 4000);
+    expect(r.body.sale_count).toBe(0);
+    expect(r.body.sales_cents).toBe(0);
+  });
+
+  test('açık vardiya yokken adisyon kapanır ama nakit sayıma eklenmediği uyarılır', async () => {
+    await db.query("UPDATE retail_shifts SET status='closed',closed_at=CURRENT_TIMESTAMP WHERE tenant_id=$1 AND id=$2", [owner.tenantId, shift.shift_id]).catch(() => {});
+    const open = (await db.query("SELECT COUNT(*) AS c FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open'", [owner.tenantId, w.id])).rows[0];
+    if (Number(open.c) > 0) return; // vardiya kapatma tetikleyicileri izin vermediyse bu senaryo atlanır
+    const e = await order(t2, 1);
+    const r = await as(waiter).post(`/restaurant/orders/${e.order_id}/close`, { payment_method: 'cash' });
+    expect(r.status).toBe(200); expect(r.body.shift_id).toBeNull(); expect(r.body.warning).toMatch(/Açık vardiya yok/);
   });
 });

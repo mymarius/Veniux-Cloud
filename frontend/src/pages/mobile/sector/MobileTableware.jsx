@@ -3,6 +3,8 @@ import { AlertTriangle, Check, Plus, Printer, Search, Trash2 } from 'lucide-reac
 import api from '../../../api/client';
 import { readSessionUser } from '../../../lib/sessionUser';
 import { pickPrinter } from '../../../lib/sectorHub.mjs';
+import { bluetoothSupported, connectPrinter, printBytes } from '../../../lib/bluetoothPrinter';
+import { encodeLabel } from '../../../lib/escpos.mjs';
 import { parsePrice } from '../../../lib/mobileHub.mjs';
 import { EmptyState, MobileTop, money } from '../mobileKit';
 import { PackGate, errorText, useAsync } from './SectorKit';
@@ -82,6 +84,12 @@ export function MobileShelfTags() {
 // Hızlı fiyat etiketi: ürünü seç, yeni fiyatı yaz; fiyat güncellenir ve etiket dükkandaki yazıcıya gider.
 export function MobilePriceLabel() {
   const [product, setProduct] = useState(null), [price, setPrice] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [done, setDone] = useState(null);
+  const [btMessage, setBtMessage] = useState('');
+  const printBluetooth = async () => {
+    setBtMessage('');
+    try { const printer = await connectPrinter(); await printBytes(encodeLabel({ name: product.name, price: done.updated.price, barcode: product.barcode || product.sku, unit: product.unit })); setBtMessage(printer.name + ' yazıcısına gönderildi.'); }
+    catch (e) { setBtMessage(e.message || 'Bluetooth yazdırma başarısız.'); }
+  };
   const submit = async () => {
     const value = parsePrice(price);
     if (value === null) { setMessage('Geçerli bir fiyat yazın (örn. 149,90).'); return; }
@@ -107,7 +115,9 @@ export function MobilePriceLabel() {
           <button type="button" className="vm-btn ghost" style={{ minHeight: 38 }} onClick={() => { setProduct(null); setDone(null); setMessage(''); }}>Başka ürün</button></section>}
       {message && <p role="alert" className="vm-err">{message}</p>}
       {done && <section className="vm-card" role="status"><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> {done.updated.changed ? 'Fiyat güncellendi: ' + money(done.updated.previous_price) + ' → ' + money(done.updated.price) : 'Fiyat zaten ' + money(done.updated.price)}</b>
-        <p className="vm-note" style={{ marginTop: 6 }}>{done.printed ? 'Etiket yazıcıya gönderildi.' : done.note}</p></section>}
+        <p className="vm-note" style={{ marginTop: 6 }}>{done.printed ? 'Etiket yazıcıya gönderildi.' : done.note}</p>
+        {bluetoothSupported() && <button type="button" className="vm-btn soft" style={{ marginTop: 8 }} onClick={printBluetooth}><Printer size={16} /> Bluetooth yazıcıya bas</button>}
+        {btMessage && <p role="status" className="vm-note">{btMessage}</p>}</section>}
     </div></PackGate>
   </div>;
 }

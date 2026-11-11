@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import api from '../../../api/client';
 import { useSectorPacks } from '../../../lib/useSectorPacks';
+import { disablePush, enablePush, getPushState, sendTestPush } from '../../../lib/pushClient';
 import '../mobile-hub.css';
 import { SUPPORT_URL } from '../mobileKit';
 
@@ -47,11 +48,17 @@ export function notify(title, body) {
 }
 
 export function NotifyButton() {
-  const [state, setState] = useState(() => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission));
-  if (state === 'unsupported') return <p className="vm-note">Bu cihaz sistem bildirimini desteklemiyor; uyarılar uygulama içinde gösterilir.</p>;
-  if (state === 'granted') return <p className="vm-note">Bildirimler açık. Uygulama açıkken yeni uyarıda telefon titrer.</p>;
-  if (state === 'denied') return <p className="vm-note">Bildirim izni kapalı. Tarayıcı ayarlarından izin verebilirsiniz.</p>;
-  return <button type="button" className="vm-btn soft" onClick={async () => { try { setState(await Notification.requestPermission()); } catch { setState('denied'); } }}>Bildirimleri aç</button>;
+  const [state, setState] = useState(null), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const refresh = async () => setState(await getPushState());
+  useEffect(() => { refresh(); }, []);
+  const run = async (fn, ok) => { setBusy(true); setMessage(''); try { await fn(); setMessage(ok || ''); } catch (e) { setMessage(errorText(e, e.message || 'İşlem başarısız.')); } finally { setBusy(false); await refresh(); } };
+  if (!state) return null;
+  if (state.status === 'unsupported') return <p className="vm-note">{state.reason} Uygulama açıkken uyarılar ekranda ve titreşimle gelir.</p>;
+  if (state.status === 'blocked') return <p className="vm-note">Bildirim izni kapalı. Tarayıcı ayarlarından Veniux için bildirime izin verin.</p>;
+  if (state.status === 'on') return <div><p className="vm-note">Telefon bildirimleri açık: uygulama kapalıyken de uyarı gelir.</p>
+    <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" disabled={busy} onClick={() => run(async () => { await sendTestPush(); }, 'Deneme bildirimi gönderildi.')}>Deneme gönder</button>
+      <button type="button" className="vm-btn ghost" disabled={busy} onClick={() => run(disablePush, 'Bildirimler kapatıldı.')}>Kapat</button></div>{message && <p role="status" className="vm-note">{message}</p>}</div>;
+  return <div><button type="button" className="vm-btn soft" disabled={busy} onClick={() => run(enablePush, 'Bildirimler açıldı.')}>Telefon bildirimlerini aç</button>{message && <p role="alert" className="vm-err">{message}</p>}</div>;
 }
 
 // Belirli aralıkla yoklar; sekme gizliyken durur. fn her turda çağrılır, hata sessiz yutulur.

@@ -1,4 +1,4 @@
-import { Store, ScanLine, Tag, BarChart3, PackagePlus, ShoppingCart, Package, Printer, Bell, Settings, FileText, Search, AlertTriangle, Layers, Grid3x3, Utensils, ChefHat, ClipboardList } from 'lucide-react';
+import { Store, ScanLine, Tag, BarChart3, PackagePlus, ShoppingCart, Package, Printer, Bell, Settings, FileText, Search, AlertTriangle, Layers, Grid3x3, Utensils, ChefHat, ClipboardList, Smartphone } from 'lucide-react';
 
 // Mobil uygulamadaki tüm modüller. İlk beşi ana ekranda gösterilir; "Tüm modüller" sayfası hepsini listeler.
 export const MOBILE_MODULES = [
@@ -12,6 +12,7 @@ export const MOBILE_MODULES = [
   { key: 'print', title: 'Etiket Yazdır', to: '/magaza/etiketler', Icon: Printer, tone: 'teal' },
   { key: 'alerts', title: 'Uyarılar', to: '/alerts', Icon: Bell, tone: 'orange' },
   { key: 'docs', title: 'Kılavuzlar', to: '/m/dokumanlar', Icon: FileText, tone: 'violet' },
+  { key: 'device', title: 'Cihaz Testi', to: '/m/cihaz-testi', Icon: Smartphone, tone: 'teal' },
   { key: 'settings', title: 'Ayarlar', to: '/settings', Icon: Settings, tone: 'sky' }
 ];
 // Sektör paketleri: yalnız ilgili paket hesapta açıksa görünür (her paket ayrı satın alınır).

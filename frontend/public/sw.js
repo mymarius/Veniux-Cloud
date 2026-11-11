@@ -99,4 +99,32 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'cache-urls') event.waitUntil(ensureShell().then(() => cacheUrls(event.data.urls)));
 });
-self.__veniuxSw = { strategyFor, handlers, cacheUrls, ensureShell, SHELL, ASSETS };
+// ---- Telefon bildirimi (Web Push) ----
+// Sunucudan gelen bildirim uygulama kapalıyken bile gösterilir. Bildirime dokunulunca uygulamanın kendi sayfası açılır;
+// gelen adres yalnız aynı kaynağa (bu uygulamaya) ait olabilir, başka bir siteye yönlendirme yapılamaz.
+function safeTarget(value) {
+  try { const url = new URL(String(value || '/m'), self.location.origin); return url.origin === self.location.origin ? url.pathname + url.search : '/m'; } catch { return '/m'; }
+}
+function pushMessage(data) {
+  let body = {};
+  try { body = data && typeof data.json === 'function' ? data.json() : {}; } catch { body = {}; }
+  const text = (value, max) => (typeof value === 'string' ? value.slice(0, max) : '');
+  return { title: text(body.title, 80) || 'Veniux', body: text(body.body, 240), tag: text(body.tag, 60) || 'veniux', url: safeTarget(body.url) };
+}
+self.addEventListener('push', event => {
+  const message = pushMessage(event.data);
+  event.waitUntil(self.registration.showNotification(message.title, { body: message.body, tag: message.tag, icon: '/veniux-logo.png', badge: '/favicon.png', vibrate: [200, 100, 200], renotify: true, data: { url: message.url } }));
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = safeTarget(event.notification.data && event.notification.data.url);
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windows) {
+      let same = false; try { same = new URL(client.url).origin === self.location.origin; } catch { same = false; }
+      if (same) { try { await client.navigate(target); } catch { /* sekme yönlendirilemedi */ } return client.focus(); }
+    }
+    return self.clients.openWindow(target);
+  })());
+});
+self.__veniuxSw = { strategyFor, handlers, cacheUrls, ensureShell, SHELL, ASSETS, safeTarget, pushMessage };

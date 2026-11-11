@@ -61,6 +61,10 @@ module.exports = db => {
       note TEXT,
       total_amount REAL NOT NULL DEFAULT 0,
       payment_method TEXT,
+      shift_id INTEGER,
+      register_id INTEGER,
+      cash_cents INTEGER NOT NULL DEFAULT 0,
+      card_cents INTEGER NOT NULL DEFAULT 0,
       business_day TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       closed_at DATETIME

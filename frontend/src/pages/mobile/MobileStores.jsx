@@ -78,7 +78,8 @@ export function MobileStoreDetail() {
         : <section className="vm-card"><dl className="vm-kv">
           <dt>Fiş adedi</dt><dd>{today.sale_count}</dd><dt>Brüt satış</dt><dd>{money(today.gross_cents / 100)}</dd><dt>İndirim</dt><dd>{money(today.discount_cents / 100)}</dd>
           <dt>Net satış</dt><dd>{money(today.sales_cents / 100)}</dd><dt>Nakit</dt><dd>{money(today.cash_cents / 100)}</dd><dt>Kart</dt><dd>{money(today.card_cents / 100)}</dd>
-          <dt>Veresiye</dt><dd>{money(today.credit_cents / 100)}</dd><dt>İade</dt><dd>{money(today.return_cents / 100)}</dd><dt>İptal</dt><dd>{money(today.cancel_cents / 100)}</dd></dl></section>)}
+          <dt>Veresiye</dt><dd>{money(today.credit_cents / 100)}</dd><dt>İade</dt><dd>{money(today.return_cents / 100)}</dd><dt>İptal</dt><dd>{money(today.cancel_cents / 100)}</dd>
+          {today.restaurant && <><dt>Restoran ({today.restaurant.orders} adisyon)</dt><dd>{money(today.restaurant.total_cents / 100)}</dd><dt>· nakit</dt><dd>{money(today.restaurant.cash_cents / 100)}</dd><dt>· kart</dt><dd>{money(today.restaurant.card_cents / 100)}</dd></>}</dl></section>)}
       {tab === 'ekip' && (team === null ? <p role="status" className="vm-note">Ekip yükleniyor…</p> : team === false
         ? <p className="vm-note">Ekip listesini yalnız yönetici ve müdür görür.</p>
         : <div className="vm-list">{team.map(u => <div key={u.id} className="vm-row"><span className="grow">{u.full_name || u.name || u.email}<small>{roleLabel(u.role)}</small></span></div>)}</div>)}

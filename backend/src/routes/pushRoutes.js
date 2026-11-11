@@ -1,0 +1,12 @@
+const express = require('express');
+const { authMiddleware } = require('../middlewares/authMiddleware');
+const push = require('../services/pushNotifier');
+const webPush = require('../services/webPush');
+const router = express.Router();
+const run = fn => async (req, res, next) => { try { res.json(await fn(req)); } catch (e) { next(e); } };
+router.use(authMiddleware);
+router.get('/key', run(async () => ({ publicKey: (await webPush.vapid()).publicKey })));
+router.post('/subscribe', run(req => push.subscribe(req.user, req.body)));
+router.delete('/subscribe', run(req => push.unsubscribe(req.user, req.body && req.body.endpoint)));
+router.post('/test', run(req => push.selfTest(req.user)));
+module.exports = router;
