@@ -19,3 +19,8 @@ test.each([[403,403],[429,429],[503,503]])('authority %i is classified as %i rat
  const r=await request(app()).post('/api/license/activate').send({license_key:'VNX-'+'A'.repeat(48),app_version:'web'});
  expect(r.status).toBe(expected);expect(JSON.stringify(r.body)).not.toContain('private authority details');
 });
+test('herkese açık fiyat özeti lisanssız okunur; aynı yolun diğer yöntemleri ve yakın yollar kapalı kalır',async()=>{
+ const a=app();
+ expect((await request(a).get('/api/public/prices')).status).toBe(200);
+ for(const [method,url] of [['post','/api/public/prices'],['put','/api/public/prices'],['get','/api/public/prices/extra'],['get','/api/public/other'],['get','/api/products']]){const r=await request(a)[method](url);expect(r.status).toBe(423);}
+});
