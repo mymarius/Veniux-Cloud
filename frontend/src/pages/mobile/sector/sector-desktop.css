@@ -62,10 +62,13 @@
 .sd .vm-mod b{font-weight:800}
 
 /* sipariş fişi: sepet alt sayfası masaüstünde sağ altta yapışık fiş olur */
-.sd .vm-sheet-back{position:fixed!important;inset:auto 28px 24px auto!important;width:min(430px,calc(100vw - 56px));background:none!important;pointer-events:none;z-index:40}
+.sd .vm-sheet-back{position:fixed!important;inset:auto 110px 24px auto!important;width:min(430px,calc(100vw - 56px));background:none!important;pointer-events:none;z-index:40}
 .sd .vm-sheet{position:relative;pointer-events:auto;border-radius:0!important;border:1px solid var(--sd-edge);background:#fffdf8;box-shadow:8px 8px 0 #17263a33!important;padding:22px 18px 16px!important}
 .sd .vm-sheet:before{content:'';position:absolute;left:50%;top:-12px;width:80px;height:24px;margin-left:-40px;background:var(--sd-tape);transform:rotate(-1.5deg)}
 .sd .vm-dialog{border-radius:0}
 
-@media (max-width:1100px){.sd .vm-body{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.sd .vm-list{grid-template-columns:1fr}.sd .vm-sheet-back{inset:auto 12px 12px auto!important}}
+/* adet düğmeleri (inline mavi stili markaya çevir) */
+.sd .vm-mod .vm-iconbtn{border-radius:0!important;background:#fde8da!important;color:#a63a05!important;border:1px solid #e4570a}
+.sd .vm-mod .vm-iconbtn[aria-label$=' artır']{background:#e4570a!important;color:#fff!important}
+@media (max-width:1100px){.sd .vm-body{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.sd .vm-list{grid-template-columns:1fr}.sd .vm-sheet-back{inset:auto 84px 12px auto!important}}
 @media (prefers-reduced-motion:reduce){.sd .vm-card,.sd .vm-row,.sd .vm-mod,.sd .vm-btn{transition:none}.sd .vm-card:hover,.sd .vm-row:hover,.sd .vm-mod:hover,.sd .vm-btn:hover{translate:none}}
