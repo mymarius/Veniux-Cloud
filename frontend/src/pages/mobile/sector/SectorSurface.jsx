@@ -13,6 +13,9 @@ export const sectorPath = (desktop, path) => (desktop ? path.replace(/^\/m(?=\/|
 const phoneQuery = '(max-width:760px)';
 const isPhone = () => Boolean(window.veniuxMobile) || window.matchMedia(phoneQuery).matches;
 
+// Hangi sektör paketine ait olduğu: başlıktaki küçük etiket için.
+const PACK_OF = { 'urun-ara': 'Hırdavat', kritik: 'Hırdavat', setler: 'Züccaciye', 'raf-etiket': 'Züccaciye', 'fiyat-etiket': 'Züccaciye', garson: 'Pide ve restoran', mutfak: 'Pide ve restoran', esnaf: 'Pide ve restoran', 'restoran-ayar': 'Pide ve restoran' };
+
 export function DesktopSurface({ children }) {
   const [phone, setPhone] = useState(isPhone);
   const location = useLocation();
@@ -24,5 +27,5 @@ export function DesktopSurface({ children }) {
   }, []);
   // Dar ekranda ve uygulamada telefon yüzeyine geçilir.
   if (phone) return <Navigate to={location.pathname.replace(/^\/sektor(?=\/|$)/, '/m') + location.search} replace />;
-  return <SurfaceContext.Provider value={{ desktop: true }}><div className="sd" data-surface="desktop">{children}</div></SurfaceContext.Provider>;
+  return <SurfaceContext.Provider value={{ desktop: true, pack: PACK_OF[location.pathname.split('/')[2]] || '' }}><div className="sd" data-surface="desktop">{children}</div></SurfaceContext.Provider>;
 }
