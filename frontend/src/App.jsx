@@ -45,7 +45,19 @@ const Login = lazy(() => import('./pages/Login'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Register = lazy(() => import('./pages/Register'));
-const Dashboard = lazy(() => window.veniuxMobile?import('./pages/mobile/MobileHome'):import('./pages/Dashboard'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+// Mobil mağaza uygulaması (Android arayüzü veya cihazda açılan "mobil görünüm"): kendi üst bandı olan /m ekranları.
+const MOBILE_UI = !!window.veniuxMobile || (() => { try { return localStorage.getItem('veniux-mobile-ui') === '1'; } catch { return false; } })();
+const MobileHome = lazy(() => import('./pages/mobile/MobileHome'));
+const MobileModules = lazy(() => import('./pages/mobile/MobileModules'));
+const MobileStores = lazy(() => import('./pages/mobile/MobileStores').then(m => ({ default: m.MobileStores })));
+const MobileStoreDetail = lazy(() => import('./pages/mobile/MobileStores').then(m => ({ default: m.MobileStoreDetail })));
+const MobileScan = lazy(() => import('./pages/mobile/MobileScan'));
+const MobileList = lazy(() => import('./pages/mobile/MobileList'));
+const MobileNotifications = lazy(() => import('./pages/mobile/MobileInfo').then(m => ({ default: m.MobileNotifications })));
+const MobileDocs = lazy(() => import('./pages/mobile/MobileInfo').then(m => ({ default: m.MobileDocs })));
+const MobileReleaseNotes = lazy(() => import('./pages/mobile/MobileInfo').then(m => ({ default: m.MobileReleaseNotes })));
+const MobileSupport = lazy(() => import('./pages/mobile/MobileInfo').then(m => ({ default: m.MobileSupport })));
 const Inventory = lazy(() => import('./pages/Inventory'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
@@ -91,7 +103,7 @@ const ProtectedRoute = ({ children }) => {
   if (required && access.type !== 'BOTH' && access.type !== required) {
     return <Layout><div role="alert" className="p-8"><h1 className="text-xl font-bold">Bu modül paketinizde bulunmuyor</h1><p className="mt-3">Paketinize dahil ekranları sol menüden kullanabilirsiniz.</p></div></Layout>;
   }
-  return pathname==='/magaza/kasa' ? children : <Layout>{children}</Layout>;
+  return pathname==='/magaza/kasa' || pathname==='/m' || pathname.startsWith('/m/') ? children : <Layout>{children}</Layout>;
 };
 
 // Eski /crm/... adreslerini tek sayfadaki ilgili sekmeye yönlendirir.
@@ -152,7 +164,17 @@ function AppContent() {
             <Route path="/" element={<Navigate to={localStorage.getItem('token') ? '/dashboard' : '/login'} replace />} />
             
             {/* DASHBOARD / GENERAL */}
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={MOBILE_UI ? <Navigate to="/m" replace /> : <ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/m" element={<ProtectedRoute><MobileHome /></ProtectedRoute>} />
+            <Route path="/m/moduller" element={<ProtectedRoute><MobileModules /></ProtectedRoute>} />
+            <Route path="/m/magazalar" element={<ProtectedRoute><MobileStores /></ProtectedRoute>} />
+            <Route path="/m/magazalar/:id" element={<ProtectedRoute><MobileStoreDetail /></ProtectedRoute>} />
+            <Route path="/m/tara" element={<ProtectedRoute><MobileScan /></ProtectedRoute>} />
+            <Route path="/m/liste" element={<ProtectedRoute><MobileList /></ProtectedRoute>} />
+            <Route path="/m/bildirimler" element={<ProtectedRoute><MobileNotifications /></ProtectedRoute>} />
+            <Route path="/m/dokumanlar" element={<ProtectedRoute><MobileDocs /></ProtectedRoute>} />
+            <Route path="/m/surum-notlari" element={<ProtectedRoute><MobileReleaseNotes /></ProtectedRoute>} />
+            <Route path="/m/destek" element={<ProtectedRoute><MobileSupport /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
             <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />

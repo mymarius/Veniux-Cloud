@@ -1,25 +1,60 @@
-import React,{useEffect,useState} from 'react';
-import {Link} from 'react-router-dom';
-import {ScanBarcode,Package,Warehouse,ClipboardCheck,ArrowDownLeft,ArrowUpRight,RefreshCw,ChevronRight,Settings,AlertCircle,BarChart3,Handshake,Printer} from 'lucide-react';
-import api,{useDataSync} from '../../api/client';
-import {readSessionUser} from '../../lib/sessionUser';
-import {asList} from '../../lib/stockAnalytics';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ScanBarcode, ChevronRight, ShoppingCart, BarChart3, FileText } from 'lucide-react';
+import api from '../../api/client';
+import release from '../../data/programRelease.json';
 import useCustomerSetup from '../../hooks/useCustomerSetup';
-import {moduleForPath} from '../../lib/customerExperience.mjs';
-export default function MobileHome(){
- const {setup}=useCustomerSetup();
- const [data,setData]=useState(null),[error,setError]=useState(''),[revision,setRevision]=useState(0);
- const user=readSessionUser();useDataSync(()=>setRevision(n=>n+1));
- useEffect(()=>{let active=true;const controller=new AbortController();setError('');Promise.all(['/normal-depo/dashboard-stats','/warehouses','/alerts'].map(p=>api.get(p,{signal:controller.signal}))).then(([p,w,a])=>{if(active)setData({productCount:Number(p.data.totalProducts||0),warehouses:asList(w.data),alerts:asList(a.data)});}).catch(()=>{if(active)setError('Kayıtlar yenilenemedi. İnternet bağlantınızı kontrol edin.');});return()=>{active=false;controller.abort();};},[revision]);
- const tasks=[['Etiketler','/magaza/etiketler',Printer,'orange'],['Depolar','/normal-depo/warehouses',Warehouse,'blue'],['Ürünler','/normal-depo/products',Package,'violet'],['Raporlar','/normal-depo/analytics',BarChart3,'teal'],...(['admin','manager'].includes(user.role)?[['Mal kabul','/normal-depo/inbound',ArrowDownLeft,'orange'],['Sayım','/normal-depo/counting',ClipboardCheck,'green']]:[]),...(window.VeniuxAndroid?.isCloud?.()?[['Saha ve bayi','/business',Handshake,'pink']]:[])];
- return <div className="mobile-home"><div className="mobile-home-heading"><div><p className="mobile-kicker">{user.company_name||'İŞLETMENİZ'}</p><h1>Merhaba{user.full_name?', '+user.full_name.split(' ')[0]:''}</h1><p>Bugün hangi işlemle başlayalım?</p></div><button aria-label="Kayıtları yenile" className="mobile-refresh" onClick={()=>setRevision(n=>n+1)}><RefreshCw size={20}/></button></div>
- {error&&<p role="alert" className="mobile-warning"><AlertCircle size={18}/>{error}</p>}
- <Link className="mobile-scan-action" to="/magaza/hizli-ekle"><span className="mobile-scan-icon"><ScanBarcode size={30}/></span><span><strong>Barkod okut</strong><small>Ürünü bulun, fiyatını görün.</small></span><ChevronRight size={22}/></Link>
- <h2 className="mobile-section-title mobile-hub-label">İşlemler</h2><div className="mobile-module-grid">{tasks.filter(([,to])=>!setup||setup.revision===0||!moduleForPath(to)||setup.modules.includes(moduleForPath(to))).map(([title,to,Icon,tone])=><Link key={to} to={to}><span data-tone={tone}><Icon size={25}/></span><strong>{title}</strong></Link>)}</div>
- <div className="mobile-summary mobile-compact-summary"><Link to="/normal-depo/products"><span>Ürün</span><strong>{data?data.productCount:'—'}</strong></Link><Link to="/normal-depo/warehouses"><span>Depo</span><strong>{data?data.warehouses.length:'—'}</strong></Link></div>
- <div className="mobile-section-heading"><h2 className="mobile-section-title">Uyarılar</h2><Link to="/alerts">Tümünü gör <ChevronRight size={14}/></Link></div>
- <div className="mobile-alert-list">{!data?<p role="status">Kayıtlar yükleniyor…</p>:data.alerts.length?data.alerts.slice(0,3).map(a=><Link key={a.id} to="/alerts"><AlertCircle size={20}/><span><strong>{a.title||'Stok bildirimi'}</strong><small>{a.message}</small></span><ChevronRight size={16}/></Link>):<p>Henüz uyarı kaydı bulunmuyor.</p>}</div>
- <Link className="mobile-settings-link" to="/settings"><Settings size={18}/>Hesap, lisans ve bağlantı<ChevronRight size={16}/></Link>
- </div>;
-}
+import { moduleForPath } from '../../lib/customerExperience.mjs';
+import { readSessionUser } from '../../lib/sessionUser';
+import { asList } from '../../lib/stockAnalytics';
+import { greeting, roleLabel } from '../../lib/mobileHub.mjs';
+import { HomeTop } from './mobileKit';
+import { HOME_TILES, visibleModules } from './moduleList';
 
+// Afiş: güncel sürüm notları ve kısa ipuçları, birkaç saniyede bir döner.
+const TIPS = [
+  { title: 'Etiket kontrolü', text: 'Rafın etiketini okutun, yazan fiyatı girin; sistem fiyatıyla karşılaştırılır.' },
+  { title: 'Fiyat Gör', text: 'Barkodu okutun, ürünün güncel satış fiyatını anında görün ve listeye ekleyin.' }
+];
+
+export default function MobileHome() {
+  const user = readSessionUser();
+  const { setup } = useCustomerSetup();
+  const [unread, setUnread] = useState(0), [slide, setSlide] = useState(0);
+  const latest = release.releases?.[0];
+  const slides = [...(latest ? [{ title: 'Sürüm ' + latest.version + ': ' + latest.title, text: latest.items?.[0] || '' }] : []), ...TIPS];
+  useEffect(() => { const t = setInterval(() => setSlide(s => (s + 1) % slides.length), 5000); return () => clearInterval(t); }, [slides.length]);
+  useEffect(() => {
+    let live = true;
+    api.get('/alerts').then(r => { if (live) setUnread(asList(r.data).filter(a => !a.is_read && !a.read).length); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  const modules = visibleModules(setup, moduleForPath), first = (user.full_name || user.name || '').split(' ')[0];
+  const current = slides[slide] || slides[0];
+  return <div className="vm">
+    <HomeTop unread={unread} />
+    <div className="vm-body">
+      <div className="vm-hello">
+        <strong>{greeting()}{first ? ', ' + first : ''}</strong>
+        <span>{[user.company_name, roleLabel(user.role)].filter(Boolean).join(' · ')}</span>
+      </div>
+      <div className="vm-label"><span>İşlemler</span><Link to="/m/moduller">Tüm modüller</Link></div>
+      <nav className="vm-tiles" aria-label="İşlemler">
+        {modules.slice(0, HOME_TILES).map(({ key, title, to, Icon, tone }) => <Link key={key} to={to} className="vm-tile"><i className={'vm-tone-' + tone}><Icon size={26} /></i>{title}</Link>)}
+      </nav>
+      <div className="vm-label"><span>Duyurular</span></div>
+      <section className="vm-banner" aria-live="polite">
+        <b>{current.title}</b><span>{current.text}</span>
+        <div className="vm-banner-dots" aria-hidden="true">{slides.map((_, i) => <i key={i} className={i === slide ? 'on' : ''} />)}</div>
+      </section>
+      <div className="vm-label"><span>Yönlendirmeler</span></div>
+      <div className="vm-promos">
+        <Link to="/magaza/kasa" className="vm-promo a"><ShoppingCart size={26} /><b>Kasa</b><span>Satış yap, vardiya ve nakit işlemlerini yönet.</span></Link>
+        <Link to="/normal-depo/analytics" className="vm-promo b"><BarChart3 size={26} /><b>Raporlar</b><span>Satış ve stok hareketlerine göz at.</span></Link>
+      </div>
+      <div className="vm-label"><span>Diğer</span></div>
+      <div className="vm-list"><Link to="/m/dokumanlar" className="vm-row"><FileText size={20} /><span className="grow">Kılavuzlar</span><ChevronRight size={18} /></Link></div>
+    </div>
+    <Link to="/m/tara" className="vm-fab" aria-label="Barkod okut"><ScanBarcode size={30} /></Link>
+  </div>;
+}
