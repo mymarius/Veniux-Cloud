@@ -1,5 +1,5 @@
 // Sektör paketleri: Hırdavat (hardware), Züccaciye (tableware), Pide/Restoran (restaurant). Her biri ayrı satın alınır.
-// Hak kaynağı: (1) paket sözleşmesi varsa sözleşmenin modül listesi (tek yetkili), (2) sözleşmesiz eski lisanslarda platform
+// Hak kaynağı: (0) lisans merkezinin imzalı yanıtındaki addons, (1) paket sözleşmesi varsa sözleşmenin modül listesi (tek yetkili), (2) sözleşmesiz eski lisanslarda platform
 // yöneticisinin verdiği kayıt (sector_packs). Platform sahibinin kendi çalışma alanı deneme için tüm paketleri görür.
 const db = require('../config/database');
 const packages = require('./productPackages');
@@ -12,6 +12,8 @@ async function has(user, pack, central) {
   if (user.isPlatformAdmin) return true;
   const contract = await packages.rights(user.tenantId, db, central);
   if (contract && contract.blocked) return false;
+  // Lisans merkezi lisansa sektör paketi işaretlemişse (imzalı yanıttaki addons) paket açıktır.
+  if (central && Array.isArray(central.addons) && central.addons.includes(pack)) return true;
   if (contract) return packages.hasModule(contract, pack);
   return Boolean((await db.query('SELECT pack FROM sector_packs WHERE tenant_id=$1 AND pack=$2', [user.tenantId, pack])).rows[0]);
 }

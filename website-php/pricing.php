@@ -21,8 +21,37 @@ function sitePlanSelection($value): ?array {
     return ['code'=>$value,'name'=>$plan['name'],'period'=>$match[2]==='yillik'?'Yıllık (12 ay)':'3 aylık','amount_try'=>$plan[$match[2]==='yillik'?'annual':'quarter'],'tax'=>'%20 KDV dahil'.(!empty($plan['from'])?' · başlayan fiyat':'')];
 }
 // Sektör paketleri: genel pakete ek, yıllık, KDV dahil. Uygulamadaki paket kodu: backend/src/config/productPackages.json.
+// Fiyatın tek doğru kaynağı bulut paket kataloğudur (API Yönetim Merkezi). Katalogda sektör paketi fiyatı girilmişse site onu gösterir;
+// katalog boşsa ya da ulaşılamıyorsa aşağıdaki varsayılanlar kullanılır. Son başarılı yanıt dosyada saklanır.
+function siteCloudPrices(): ?array {
+    static $result=false;
+    if($result!==false)return $result;
+    $result=null;
+    $url=getenv('VENIUX_PRICES_URL')?:'https://app.veniux.com/api/public/prices';
+    if($url==='off'||getenv('VENIUX_SITE_ENV')==='development')return $result;
+    $file=getenv('VENIUX_PRICES_CACHE')?:dirname(__DIR__).'/.local/website-prices.json';
+    $cached=is_file($file)?json_decode((string)@file_get_contents($file),true):null;
+    if(is_array($cached)&&time()-(int)@filemtime($file)<900)return $result=$cached;
+    $context=stream_context_create(['http'=>['timeout'=>3,'ignore_errors'=>true,'header'=>"Accept: application/json
+User-Agent: veniux-site
+"]]);
+    $raw=@file_get_contents($url,false,$context);
+    $data=$raw===false?null:json_decode($raw,true);
+    if(is_array($data)&&is_array($data['sector']??null)){
+        if(is_dir(dirname($file))||@mkdir(dirname($file),0700,true)){@file_put_contents($file,json_encode($data),LOCK_EX);@chmod($file,0600);}
+        return $result=$data;
+    }
+    if(is_file($file))@touch($file);
+    return $result=is_array($cached)?$cached:null;
+}
 function siteSectorPrices(): array {
-    return ['hirdavat'=>1788,'zuccaciye'=>1788,'pide'=>2988];
+    $prices=['hirdavat'=>1788,'zuccaciye'=>1788,'pide'=>2988];
+    $keys=['hardware'=>'hirdavat','tableware'=>'zuccaciye','restaurant'=>'pide'];
+    foreach((siteCloudPrices()['sector']??[]) as $item){
+        $key=$keys[$item['pack']??'']??null;$cents=$item['annual_cents']??null;
+        if($key&&is_int($cents)&&$cents>0&&$cents<=100000000)$prices[$key]=intdiv($cents,100);
+    }
+    return $prices;
 }
 // Ek kullanım (yıllık, KDV dahil). Kodda otomatik değil; teklifte lisans sınırı yükseltilir.
 function siteAddOns(): array {
