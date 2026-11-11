@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePrice, priceMatches, createLabelLog, createProductList, greeting, initials, roleLabel } from './mobileHub.mjs';
+import { parsePrice, priceMatches, createLabelLog, createProductList, greeting, initials, roleLabel, createOutbox, flushOutbox, chooseSummary, isPermanentRejection } from './mobileHub.mjs';
 
 const memory = () => { const map = new Map(); return { getItem: k => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k) }; };
 const broken = { getItem() { throw new Error('kapalı'); }, setItem() { throw new Error('kapalı'); }, removeItem() { throw new Error('kapalı'); } };
@@ -64,4 +64,37 @@ test('karşılama, baş harfler ve rol adı', () => {
   assert.equal(initials(''), 'V');
   assert.equal(roleLabel('manager'), 'Müdür');
   assert.equal(roleLabel('bilinmeyen'), 'Mağaza Personeli');
+});
+
+const httpError = status => Object.assign(new Error('x'), { response: { status } });
+
+test('gönderim sırası: başarılı kayıt silinir, bağlantı hatasında durur ve kayıt korunur, kalıcı ret sıradan çıkar', async () => {
+  const outbox = createOutbox(memory(), 'S');
+  for (const id of ['a', 'b', 'c', 'd']) outbox.add({ id });
+  const sent = [];
+  const result = await flushOutbox(outbox, async item => { if (item.id === 'b') throw httpError(400); if (item.id === 'c') throw new Error('Network Error'); sent.push(item.id); });
+  assert.deepEqual(sent, ['a']);
+  assert.equal(result.stopped, true);
+  assert.deepEqual(outbox.load().map(i => i.id), ['c', 'd']);
+  const again = await flushOutbox(outbox, async item => { sent.push(item.id); });
+  assert.deepEqual(sent, ['a', 'c', 'd']); assert.equal(again.stopped, false); assert.deepEqual(outbox.load(), []);
+});
+
+test('sıra aynı kimliği iki kez tutmaz; sınır 500; kalıcı ret ayrımı', () => {
+  const outbox = createOutbox(memory(), 'S');
+  outbox.add({ id: 'x', v: 1 }); outbox.add({ id: 'x', v: 2 });
+  assert.deepEqual(outbox.load(), [{ id: 'x', v: 2 }]);
+  for (let i = 0; i < 520; i++) outbox.add({ id: 'k' + i });
+  assert.equal(outbox.load().length, 500);
+  assert.equal(isPermanentRejection(httpError(400)), true);
+  for (const s of [408, 423, 429, 500, 502, 503]) assert.equal(isPermanentRejection(httpError(s)), false, String(s));
+  assert.equal(isPermanentRejection(new Error('Network Error')), false);
+  assert.deepEqual(createOutbox(broken, 'S').load(), []);
+});
+
+test('özet seçimi: bekleyen kayıt yoksa sunucu, varsa yerel', () => {
+  const local = { correct: 3, wrong: [{ barcode: '1' }] }, server = { correct: 9, wrong: [] };
+  assert.deepEqual(chooseSummary(local, server, 0), { correct: 9, wrong: [] });
+  assert.deepEqual(chooseSummary(local, server, 2), local);
+  assert.deepEqual(chooseSummary(local, null, 0), local);
 });

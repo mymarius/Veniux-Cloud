@@ -70,3 +70,29 @@ export const initials = name => String(name || '').trim().split(/\s+/).filter(Bo
 
 export const ROLE_LABELS = { admin: 'Yönetici', manager: 'Müdür', cashier: 'Kasiyer', user: 'Personel', staff: 'Personel' };
 export const roleLabel = role => ROLE_LABELS[role] || 'Mağaza Personeli';
+
+// Etiket kontrollerinin sunucuya gönderimi: bağlantı yokken kayıtlar cihazda sıraya girer, gidene kadar silinmez.
+// Kalıcı olarak reddedilen (4xx) kayıt sıradan çıkar; geçici hata (bağlantı, 5xx) kaydı korur.
+export function createOutbox(storage, scope) {
+  const key = `vx-label-outbox:${scope}`;
+  const load = () => { const v = read(storage, key, []); return Array.isArray(v) ? v.filter(i => i && typeof i.id === 'string') : []; };
+  return {
+    load,
+    add(item) { const list = load().filter(i => i.id !== item.id); list.push(item); write(storage, key, list.slice(-500)); },
+    remove(id) { write(storage, key, load().filter(i => i.id !== id)); }
+  };
+}
+
+export const isPermanentRejection = error => { const s = error?.response?.status; return Number.isInteger(s) && s >= 400 && s < 500 && s !== 408 && s !== 423 && s !== 429; };
+
+// Sunucudaki özet tüm cihazları kapsar; gönderilmeyen kayıt kalmadıysa o gösterilir, kaldıysa bu cihazın yerel durumu.
+export const chooseSummary = (local, server, pending) => (server && pending === 0 ? { correct: server.correct, wrong: server.wrong || [] } : local);
+
+export async function flushOutbox(outbox, send) {
+  let sent = 0;
+  for (const item of outbox.load()) {
+    try { await send(item); outbox.remove(item.id); sent += 1; }
+    catch (error) { if (isPermanentRejection(error)) outbox.remove(item.id); else return { sent, stopped: true }; }
+  }
+  return { sent, stopped: false };
+}

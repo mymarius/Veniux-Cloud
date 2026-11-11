@@ -4,7 +4,7 @@ import { AlertCircle, Bell, BookOpen, ChevronRight, History, Mail, PlayCircle } 
 import api from '../../api/client';
 import release from '../../data/programRelease.json';
 import { asList } from '../../lib/stockAnalytics';
-import { EmptyState, MobileTop } from './mobileKit';
+import { EmptyState, MobileTop, SUPPORT_URL } from './mobileKit';
 
 // "Bildirimlerim": stok uyarıları. Bildirim yoksa boş durum gösterilir.
 export function MobileNotifications() {
@@ -47,14 +47,14 @@ export function MobileReleaseNotes() {
   </div>;
 }
 
-// "Bize Ulaşın": e-posta adresi uygulama ayarından okunur; tanımlı değilse yönetici bilgisi gösterilir.
+// "Bize Ulaşın": Veniux sitesindeki iletişim formuna gider (cevap e-postayla döner).
 export function MobileSupport() {
-  const mail = import.meta.env.VITE_SUPPORT_EMAIL || '';
   return <div className="vm">
     <MobileTop title="Bize Ulaşın" flat />
     <div className="vm-body" style={{ marginTop: 0, paddingTop: 18 }}>
-      <section className="vm-card"><Mail size={22} /><p style={{ margin: '10px 0' }}>Sorun mu yaşıyorsunuz? Ekran görüntüsüyle birlikte yazın, hızlıca dönelim.</p>
-        {mail ? <a className="vm-btn" href={'mailto:' + mail}>E-posta gönder</a> : <p className="vm-note">Destek adresi henüz tanımlanmamış. Lütfen yöneticinizle iletişime geçin.</p>}</section>
+      <section className="vm-card"><Mail size={22} />
+        <p style={{ margin: '10px 0' }}>Sorun mu yaşıyorsunuz? Formu doldurun, hızlıca dönelim. Mümkünse hangi ekranda olduğunuzu yazın.</p>
+        <a className="vm-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">İletişim formunu aç</a></section>
     </div>
   </div>;
 }

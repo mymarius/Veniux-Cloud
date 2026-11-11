@@ -48,6 +48,7 @@ const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 // Mobil mağaza uygulaması (Android arayüzü veya cihazda açılan "mobil görünüm"): kendi üst bandı olan /m ekranları.
 const MOBILE_UI = !!window.veniuxMobile || (() => { try { return localStorage.getItem('veniux-mobile-ui') === '1'; } catch { return false; } })();
+const MobileLogin = lazy(() => import('./pages/mobile/MobileLogin'));
 const MobileHome = lazy(() => import('./pages/mobile/MobileHome'));
 const MobileModules = lazy(() => import('./pages/mobile/MobileModules'));
 const MobileStores = lazy(() => import('./pages/mobile/MobileStores').then(m => ({ default: m.MobileStores })));
@@ -154,7 +155,7 @@ function AppContent() {
             {/* PUBLIC */}
             <Route path="/business" element={<ProtectedRoute><BusinessPortal /></ProtectedRoute>} />
             <Route path="/business-invite" element={<BusinessInvite />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={MOBILE_UI ? <MobileLogin /> : <Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register" element={<Register />} />

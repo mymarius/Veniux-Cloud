@@ -6,6 +6,9 @@ import release from '../../data/programRelease.json';
 import { readSessionUser } from '../../lib/sessionUser';
 import { initials, roleLabel } from '../../lib/mobileHub.mjs';
 
+// Destek: Veniux sitesindeki iletişim formu (kişisel e-posta adresi uygulamaya gömülmez). Gerekirse VITE_SUPPORT_URL ile değiştirilir.
+export const SUPPORT_URL = import.meta.env.VITE_SUPPORT_URL || 'https://veniux.com/#iletisim';
+
 export const sessionScope = () => { const u = readSessionUser(); return String(u.tenant_id ?? u.tenantId ?? 't') + ':' + String(u.id ?? u.userId ?? 'u'); };
 
 // Üst bant: ana ekranda marka ve profil; iç ekranlarda geri ve başlık.
@@ -22,7 +25,7 @@ export function HomeTop({ unread = 0 }) {
   const [open, setOpen] = useState(false);
   return <>
     <header className="vm-top">
-      <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran">VENIUX<small>Mağaza</small></Link>
+      <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran">veniux<i>.</i><small>mağaza</small></Link>
       <div className="vm-top-actions">
         <Link to="/m/bildirimler" className="vm-iconbtn" aria-label={unread ? unread + ' bildirim' : 'Bildirimler'}><Bell size={20} />{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}</Link>
         <button type="button" className="vm-iconbtn" aria-label="Profil" onClick={() => setOpen(true)}><UserRound size={20} /></button>

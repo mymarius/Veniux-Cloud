@@ -66,7 +66,7 @@ async function gate(req,res,next) {
       res.set('X-Veniux-Offline-Until',String(license.offline_until));
     }
     if(!license.valid) return res.status(423).json({code:'LICENSE_BLOCKED',error:'Lisans aktif değil. Veniux yöneticisiyle iletişime geçin.'});
-    req.centralLicense=license; return next();
+    req.centralLicense=license; require('./cloudLicenseSeen').touch(license).catch(()=>{}); return next();
   } catch { return res.status(503).json({code:'LICENSE_UNAVAILABLE',error:'Merkezi lisans doğrulanamadı ve çevrimdışı izin yok veya süresi doldu. İnternet bağlantısını kontrol edin.'}); }
 }
 module.exports={enabled,verify,request,gate,offlineLease,dropLease,OFFLINE_HOURS};

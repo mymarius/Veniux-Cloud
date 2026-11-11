@@ -4,7 +4,7 @@ import { Check, List, Search, X, AlertTriangle } from 'lucide-react';
 import api from '../../api/client';
 import BarcodeCamera from '../../components/BarcodeCamera';
 import { asList } from '../../lib/stockAnalytics';
-import { createLabelLog, createProductList, parsePrice } from '../../lib/mobileHub.mjs';
+import { chooseSummary, createLabelLog, createOutbox, createProductList, flushOutbox, parsePrice } from '../../lib/mobileHub.mjs';
 import { readSessionUser } from '../../lib/sessionUser';
 import { ConfirmBox, Sheet, money, sessionScope } from './mobileKit';
 
@@ -20,6 +20,7 @@ export default function MobileScan() {
   const scope = sessionScope() + ':' + (store?.id ?? 'x');
   const labels = useMemo(() => createLabelLog(window.localStorage, scope), [scope]);
   const list = useMemo(() => createProductList(window.localStorage, sessionScope()), []);
+  const outbox = useMemo(() => createOutbox(window.localStorage, scope), [scope]);
   const [log, setLog] = useState(() => ({ correct: 0, wrong: [] })), [items, setItems] = useState(() => list.load());
   const [product, setProduct] = useState(null), [message, setMessage] = useState(''), [notice, setNotice] = useState(''), [shelf, setShelf] = useState(''), [verdict, setVerdict] = useState(null);
   const [code, setCode] = useState(''), [busy, setBusy] = useState(false), [paused, setPaused] = useState(false), [resume, setResume] = useState(0);
@@ -27,7 +28,16 @@ export default function MobileScan() {
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
   useEffect(() => { api.get('/warehouses').then(r => { if (live.current) setStores(asList(r.data)); }).catch(() => {}); }, []);
-  useEffect(() => { setLog(labels.load()); }, [labels]);
+  // Etiket kontrolleri sunucuya gönderilir (tüm cihazlar aynı mağaza özetini görür); bağlantı yoksa cihazda sıraya girer.
+  async function sync() {
+    if (!store) return;
+    await flushOutbox(outbox, item => api.post('/label-checks', item));
+    try {
+      const server = (await api.get('/label-checks', { params: { warehouse_id: store.id } })).data;
+      if (live.current) setLog(chooseSummary(labels.load(), server, outbox.load().length));
+    } catch { /* yerel durum gösterilir */ }
+  }
+  useEffect(() => { setLog(labels.load()); sync(); }, [labels, store?.id]);
   useEffect(() => { try { if (store) localStorage.setItem(STORE_KEY, String(store.id)); } catch { /* yok say */ } }, [store]);
 
   const next = () => { setProduct(null); setMessage(''); setNotice(''); setShelf(''); setVerdict(null); setCode(''); setPaused(false); setResume(n => n + 1); };
@@ -49,6 +59,8 @@ export default function MobileScan() {
     setMessage('');
     const result = labels.record({ barcode: product.barcode, id: product.id, name: product.name, shelf: entered, system: Number(product.sale_price) });
     setLog({ correct: result.correct, wrong: result.wrong }); setVerdict(result.ok ? 'ok' : 'bad');
+    if (store) outbox.add({ id: crypto.randomUUID(), warehouse_id: store.id, barcode: product.barcode, product_id: product.id ?? null, product_name: product.name, shelf_price: entered, system_price: Number(product.sale_price), checked_at: new Date().toISOString() });
+    sync();
   }
   function add() { setItems(list.add({ barcode: product.barcode, id: product.id, name: product.name, price: Number(product.sale_price) })); setNotice('Listeye eklendi.'); }
   const close = () => { if (mode === 'fiyat' && items.length) setLeave(true); else navigate('/m'); };
