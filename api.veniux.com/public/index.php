@@ -21,7 +21,7 @@ try{
         exit;
     }
     if(str_starts_with($path,'/updates/'))updateDispatch($path);
-    if((int)sql('SELECT MAX(version) FROM schema_versions')->fetchColumn()!==1)throw new RuntimeException('Schema unavailable');
+    if(!in_array((int)sql('SELECT MAX(version) FROM schema_versions')->fetchColumn(),[1,2],true))throw new RuntimeException('Schema unavailable');
     if($path==='/health')jsonOut(['status'=>'ok','service'=>'veniux-license-authority','schema'=>1]);
     if(str_starts_with($path,'/v1/')){
         if($path==='/v1/public-key'&&!$post){header('Content-Type: text/plain');echo file_get_contents(dataDir().'/signing-public.pem');exit;}
@@ -35,7 +35,7 @@ try{
         if($path==='/v1/companion'){rate('companion-activation',20);jsonOut(activateCompanion($input));}
         jsonOut($path==='/v1/activate'?activate($input):verifyDevice($input));
     }
-    if(!in_array($path,['/','/login','/logout','/account','/terminals','/activity','/server','/licenses/create','/licenses/state','/devices/update'],true))jsonOut(['error'=>'Bulunamadı.'],404);
+    if(!in_array($path,['/','/login','/logout','/account','/terminals','/activity','/server','/systems','/licenses/create','/licenses/update','/licenses/state','/devices/update'],true))jsonOut(['error'=>'Bulunamadı.'],404);
     ini_set('session.use_strict_mode','1');
     $sessions=dataDir().'/sessions';if(!is_dir($sessions))mkdir($sessions,0700,true);session_save_path($sessions);
     session_name('veniux_authority');session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>production(),'httponly'=>true,'samesite'=>'Strict']);session_start();
@@ -60,6 +60,7 @@ try{
                 audit('admin.identity.changed',(string)$actor,$actor);$_SESSION=[];session_destroy();header('Location: /login');exit;
             }
             if($path==='/licenses/create'){$new=issueLicense((string)($_POST['company']??''),(string)($_POST['plan']??''),(int)($_POST['seats']??0),(string)($_POST['expires']??''),$actor);$_SESSION['issued_key']=$new['key'];}
+            elseif($path==='/licenses/update')updateLicense((int)($_POST['id']??0),$_POST,$actor);
             elseif($path==='/licenses/state')setLicenseState((int)($_POST['id']??0),(string)($_POST['state']??''),$actor);
             elseif($path==='/devices/update'){
                 $alias=trim((string)($_POST['alias']??''));$enabled=(string)($_POST['enabled']??'');$id=(int)($_POST['id']??0);
@@ -76,12 +77,13 @@ try{
     }
     if(empty($_SESSION['admin'])){$page='login';require dirname(__DIR__).'/src/views.php';exit;}
     if($path==='/account'){$page='account';require dirname(__DIR__).'/src/accountView.php';exit;}
-    if(!in_array($path,['/','/terminals','/activity','/server'],true)){http_response_code(404);exit('Bulunamadı.');}
-    $page=['/'=>'licenses','/terminals'=>'terminals','/activity'=>'activity','/server'=>'server'][$path];
+    if(!in_array($path,['/','/terminals','/activity','/server','/systems'],true)){http_response_code(404);exit('Bulunamadı.');}
+    $page=['/'=>'licenses','/terminals'=>'terminals','/activity'=>'activity','/server'=>'server','/systems'=>'systems'][$path];
     $licenses=sql('SELECT l.*, (SELECT COUNT(*) FROM devices d WHERE d.license_id=l.id AND d.enabled=1) AS used FROM licenses l ORDER BY l.id DESC')->fetchAll();
     $devices=sql('SELECT d.*,l.company,l.status AS license_status FROM devices d JOIN licenses l ON l.id=d.license_id ORDER BY d.last_seen DESC')->fetchAll();
     $events=sql('SELECT action,subject,created_at FROM audit ORDER BY id DESC LIMIT 60')->fetchAll();
     $issued=$_SESSION['issued_key']??null;unset($_SESSION['issued_key']);$message=$_SESSION['flash']??$message;unset($_SESSION['flash']);
+    require_once dirname(__DIR__).'/src/systems.php';
     require dirname(__DIR__).'/src/views.php';
 }catch(InvalidArgumentException|JsonException $e){if(str_starts_with($path,'/updates/'))jsonOut(['error'=>$e->getMessage()],400);if(str_starts_with($path,'/v1/'))jsonOut(['error'=>'Lisans veya terminal işlemi reddedildi.'],403);http_response_code(400);echo '<p>'.e($e->getMessage()).'</p><a href="/">Panele dön</a>';}
 catch(Throwable $e){if(str_starts_with($path,'/updates/'))jsonOut(['error'=>$e->getMessage()==='RATE_LIMIT'?'İstek sınırı aşıldı.':'Güncelleme hizmeti şu anda kullanılamıyor.'],$e->getMessage()==='RATE_LIMIT'?429:503);if($e->getMessage()==='RATE_LIMIT'){http_response_code(429);header('Retry-After: 60');echo 'İstek sınırı aşıldı.';exit;}if(str_starts_with($path,'/v1/')||$path==='/health')jsonOut(['error'=>'Lisans merkezi şu anda doğrulanamıyor.'],503);http_response_code(503);echo 'Lisans merkezi hazırlanamadı. Sunucu yapılandırmasını kontrol edin.';}

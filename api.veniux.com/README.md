@@ -39,3 +39,11 @@ Electron makine kimliği hashlenir; terminal adı/RAM/ağ adaptörü değişikli
 `node api.veniux.com/bin/acceptance.cjs`: gerçek HTTP üzerinden iki ayrı PHP süreci ve ayrı SQLite bağlantılarıyla tek koltuk yarışı, imzalı doğrulama, yanlış donanım reddi, merkezi terminal adı, askıya alma/yeniden etkinleştirme/sonlandırma, iptal sonrası aktivasyon reddi ve sunucu kapalıyken Node API kapısının engeli geçti. Üretim verileri kullanılmadı. PHP sözdizimi ve iki arayüz derlemesi geçti. Yerel yönetici girişi ve lisans penceresi tarayıcıda görüldü.
 
 Bekleyen: yeni lisans merkezinin MySQL/MariaDB canlı kabulü, DNS/HTTPS yayınlama, tüm Electron akışının merkez açık/kapalı kabulü, temiz Windows kurulum testi ve güvenlik değerlendirmesi. Bu kontroller geçmeden üretime hazır veya tüm ürünler bağlandı denemez.
+
+## Lisans düzenleme ve şema 2 (11 Kasım 2026)
+
+- Panelde lisans satırından **Düzenle**: firma, paket, terminal sınırı (etkin terminalden az olamaz), bitiş günü (+1 ay/+3 ay/+1 yıl), sektör paketleri (Hırdavat, Züccaciye, Pide ve restoran), iletişim e-postası ve not. Sonlandırılmış lisans düzenlenemez.
+- Sektör paketleri imzalı doğrulama yanıtında `addons` olarak döner (`hardware`, `tableware`, `restaurant`). Yanıtı okuyan ürün bu alanı yok sayabilir; mevcut istemciler etkilenmez.
+- Not, e-posta ve eklenti sütunları şema 2 ister: `php bin/upgrade.php` (yalnız CLI; yalnız sütun ekler, mevcut kayıtlara dokunmaz, tekrar çalıştırılabilir). Yükseltmeden önce kod şema 1'de de çalışır; bu alanlar o zamana kadar kapalı görünür.
+- **Sistemler** sayfası bulut uygulamasının sağlığını, canlı destek durumunu ve paket kataloğunu yalnız okur.
+- Kabul: `LICENSE_ENV=development LICENSE_DATA_DIR=<geçici klasör> php bin/edit-acceptance.php a` ardından aynı komutla `b` (iki ayrı süreç).

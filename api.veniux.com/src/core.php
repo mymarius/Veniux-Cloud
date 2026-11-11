@@ -54,6 +54,60 @@ function setLicenseState(int $id,string $state,int $actor):void {
         sql('UPDATE licenses SET status=? WHERE id=?',[$state,$id]);audit('license.'.strtolower($state),(string)$id,$actor);
     });
 }
+// ---- Şema 2: lisansa not, iletişim e-postası ve sektör eklentileri. Kod şema 1'de de çalışır; sütunlar yükseltmeden sonra kullanılır.
+const LICENSE_ADDONS=['hardware'=>'Hırdavat','tableware'=>'Züccaciye','restaurant'=>'Pide ve restoran'];
+const LICENSE_PLANS=['STARTER_ANNUAL'=>'Başlangıç','BUSINESS_ANNUAL'=>'İşletme','ENTERPRISE_ANNUAL'=>'Kurumsal'];
+function schemaVersion(): int {
+    static $version;
+    if($version===null){try{$version=(int)sql('SELECT MAX(version) FROM schema_versions')->fetchColumn();}catch(Throwable){$version=1;}}
+    return $version;
+}
+function hasExtras(): bool { return schemaVersion()>=2; }
+function columnExists(string $table,string $column): bool {
+    if(db()->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){foreach(sql("PRAGMA table_info($table)")->fetchAll() as $row)if($row['name']===$column)return true;return false;}
+    return (bool)sql('SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?',[$table,$column])->fetchColumn();
+}
+// Yalnız ekleme yapar; mevcut kayıtlara dokunmaz. Yarıda kalırsa yeniden çalıştırılabilir.
+function upgradeAuthority(): string {
+    if(schemaVersion()>=2)return 'already-current';
+    foreach(['notes'=>"VARCHAR(500) NOT NULL DEFAULT ''",'contact_email'=>"VARCHAR(190) NOT NULL DEFAULT ''",'addons'=>"VARCHAR(120) NOT NULL DEFAULT ''",'updated_at'=>"VARCHAR(20) NOT NULL DEFAULT ''"] as $column=>$definition)
+        if(!columnExists('licenses',$column))db()->exec("ALTER TABLE licenses ADD COLUMN $column $definition");
+    sql('INSERT INTO schema_versions(version,applied_at) VALUES(2,?)',[now()]);
+    return 'upgraded';
+}
+function licenseAddons(array $license): array {
+    $list=array_filter(explode(',',(string)($license['addons']??'')),fn($key)=>isset(LICENSE_ADDONS[$key]));
+    return array_values(array_unique($list));
+}
+function updateLicense(int $id,array $input,int $actor): void {
+    $company=trim((string)($input['company']??''));$plan=(string)($input['plan']??'');$seats=(int)($input['seats']??0);$expires=(string)($input['expires']??'');
+    if(!$company||mb_strlen($company)>120||!isset(LICENSE_PLANS[$plan])||$seats<1||$seats>1000)throw new InvalidArgumentException('Firma, paket veya terminal sınırı geçersiz.');
+    $date=DateTimeImmutable::createFromFormat('!Y-m-d',$expires);
+    if(!$date||$date->format('Y-m-d')!==$expires||$date->setTime(23,59,59)<=new DateTimeImmutable())throw new InvalidArgumentException('Gelecekteki geçerli bir bitiş günü seçin.');
+    $extras=[];
+    if(hasExtras()){
+        $email=trim((string)($input['contact_email']??''));
+        if($email!==''&&(strlen($email)>254||!filter_var($email,FILTER_VALIDATE_EMAIL)))throw new InvalidArgumentException('İletişim e-postasını kontrol edin.');
+        $notes=trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u','',(string)($input['notes']??''))??'');
+        if(mb_strlen($notes)>500)throw new InvalidArgumentException('Not en fazla 500 karakter olabilir.');
+        $picked=is_array($input['addons']??null)?$input['addons']:[];
+        foreach($picked as $key)if(!is_string($key)||!isset(LICENSE_ADDONS[$key]))throw new InvalidArgumentException('Sektör paketi seçimi geçersiz.');
+        $extras=['contact_email'=>$email,'notes'=>$notes,'addons'=>implode(',',array_values(array_unique(array_filter($picked,'is_string'))))];
+    }
+    atomic(function()use($id,$company,$plan,$seats,$date,$extras,$actor){
+        $row=sql('SELECT status FROM licenses WHERE id=?'.(db()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':''),[$id])->fetch();
+        if(!$row)throw new InvalidArgumentException('Lisans bulunamadı.');
+        if($row['status']==='REVOKED')throw new InvalidArgumentException('Sonlandırılmış lisans düzenlenemez.');
+        $used=(int)sql('SELECT COUNT(*) FROM devices WHERE license_id=? AND enabled=1',[$id])->fetchColumn();
+        if($seats<$used)throw new InvalidArgumentException("Terminal sınırı etkin terminal sayısından ($used) az olamaz. Önce terminal kapatın.");
+        $set='company=?,plan=?,seats=?,expires_at=?';$values=[$company,$plan,$seats,$date->format('Y-m-d').' 23:59:59'];
+        foreach($extras as $column=>$value){$set.=",$column=?";$values[]=$value;}
+        if($extras){$set.=',updated_at=?';$values[]=now();}
+        $values[]=$id;
+        sql("UPDATE licenses SET $set WHERE id=?",$values);
+        audit('license.updated',(string)$id,$actor);
+    });
+}
 function rate(string $scope,int $limit): void {
     $key=hash('sha256',$scope.'|'.($_SERVER['REMOTE_ADDR']??'cli').'|'.gmdate('YmdHi'));
     $count=atomic(function()use($key){
@@ -87,10 +141,10 @@ function activate(array $input): array {
 function verifyDevice(array $input): array {
     $credential=(string)($input['device_token']??'');$fp=(string)($input['device_fingerprint']??'');$nonce=(string)($input['nonce']??'');
     if(!preg_match('/^[a-f0-9]{64}$/D',$credential)||!preg_match('/^HW-[A-F0-9]{32}$/D',$fp)||!preg_match('/^[a-f0-9]{32}$/D',$nonce))throw new InvalidArgumentException('Doğrulama bilgileri geçersiz.');
-    $r=sql('SELECT d.id,d.fingerprint,d.alias,d.enabled,l.id AS license_id,l.status,l.expires_at,l.company,l.plan,l.seats FROM devices d JOIN licenses l ON l.id=d.license_id WHERE d.credential_hash=?',[hash('sha256',$credential)])->fetch();
+    $r=sql('SELECT d.id,d.fingerprint,d.alias,d.enabled,l.id AS license_id,l.status,l.expires_at,l.company,l.plan,l.seats'.(hasExtras()?',l.addons':'').' FROM devices d JOIN licenses l ON l.id=d.license_id WHERE d.credential_hash=?',[hash('sha256',$credential)])->fetch();
     $valid=$r && hash_equals($r['fingerprint'],$fp) && (int)$r['enabled']===1 && $r['status']==='ACTIVE' && $r['expires_at']>now();
     $payload=['valid'=>(bool)$valid,'nonce'=>$nonce,'device_fingerprint'=>$fp,'issued_at'=>time(),'valid_until'=>time()+30,'status'=>$valid?'ACTIVE':($r?(!(int)$r['enabled']?'DEVICE_DISABLED':($r['expires_at']<=now()?'EXPIRED':$r['status'])):'INVALID')];
-    if($valid){$payload+=['license_id'=>(int)$r['license_id'],'device_id'=>(int)$r['id'],'max_devices'=>(int)$r['seats'],'tenant_name'=>$r['company'],'terminal_name'=>$r['alias'],'plan_id'=>$r['plan'],'expires_at'=>str_replace(' ','T',$r['expires_at']).'Z'];sql('UPDATE devices SET last_seen=? WHERE id=?',[now(),$r['id']]);}
+    if($valid){$payload+=['license_id'=>(int)$r['license_id'],'device_id'=>(int)$r['id'],'max_devices'=>(int)$r['seats'],'tenant_name'=>$r['company'],'terminal_name'=>$r['alias'],'plan_id'=>$r['plan'],'expires_at'=>str_replace(' ','T',$r['expires_at']).'Z'];if(hasExtras())$payload['addons']=licenseAddons($r);sql('UPDATE devices SET last_seen=? WHERE id=?',[now(),$r['id']]);}
     $signed=json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
     if(!openssl_sign($signed,$signature,file_get_contents(dataDir().'/signing-private.pem'),OPENSSL_ALGO_SHA256))throw new RuntimeException('Signing unavailable');
     return ['signed_payload'=>$signed,'signature'=>base64_encode($signature)];
