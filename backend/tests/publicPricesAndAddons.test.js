@@ -47,3 +47,38 @@ describe('lisanstaki sektör paketi', () => {
     expect(await sectorPacks.has(user(), 'bilinmeyen', { valid: true, addons: ['bilinmeyen'] })).toBe(false);
   });
 });
+
+describe('sektör paketi yönetimi (platform yöneticisi)', () => {
+  const jwt = require('jsonwebtoken');
+  const db = require('../src/config/database');
+  const { JWT_SECRET } = require('../src/middlewares/authMiddleware');
+  const { createUser } = require('./factories');
+  let admin, customer, plain;
+  beforeAll(async () => {
+    admin = await createTenant(); customer = await createTenant();
+    const a = await createUser(admin.tenantId, 'admin');
+    await db.query('INSERT INTO platform_admins (user_id) VALUES ($1)', [a.id]);
+    admin = { ...admin, token: jwt.sign({ userId: a.id, tenantId: admin.tenantId, role: 'admin' }, JWT_SECRET) };
+    const c = await createUser(customer.tenantId, 'admin');
+    plain = { token: jwt.sign({ userId: c.id, tenantId: customer.tenantId, role: 'admin' }, JWT_SECRET) };
+  });
+  const get = who => request(app).get('/api/sector/packs/admin').set('Authorization', 'Bearer ' + who.token);
+
+  test('platform dışı kullanıcı listeyi göremez', async () => {
+    expect((await get(plain)).status).toBe(403);
+  });
+
+  test('yönetici tüm işletmeleri ve verilen paketleri görür; verme ve geri alma listeye yansır', async () => {
+    const set = packs => request(app).put('/api/sector/packs/admin/' + customer.tenantId).set('Authorization', 'Bearer ' + admin.token).send({ packs });
+    expect((await set(['hardware', 'restaurant'])).status).toBe(200);
+    let list = (await get(admin)).body;
+    expect(list.packs.sort()).toEqual(['hardware', 'restaurant', 'tableware']);
+    const row = list.tenants.find(t => t.id === customer.tenantId);
+    expect(row.packs).toEqual(['hardware', 'restaurant']);
+    expect(typeof row.company_name).toBe('string');
+    expect((await set(['tableware'])).status).toBe(200);
+    list = (await get(admin)).body;
+    expect(list.tenants.find(t => t.id === customer.tenantId).packs).toEqual(['tableware']);
+    expect((await set(['bilinmeyen'])).status).toBe(400);
+  });
+});

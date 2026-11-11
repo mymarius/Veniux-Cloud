@@ -14,6 +14,7 @@ router.use(authMiddleware);
 
 // Hangi sektör paketleri bu hesapta açık.
 router.get('/packs/me', run(async req => ({ packs: await packs.mine(req.user, req.centralLicense), labels: packs.LABELS })));
+router.get('/packs/admin', run(req => packs.listAll(req.user)));
 router.put('/packs/admin/:tenant', run(req => packs.setForTenant(req.user, req.params.tenant, req.body && req.body.packs)));
 
 // Hırdavat

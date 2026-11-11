@@ -28,6 +28,16 @@ const require_ = pack => async (req, res, next) => {
   try { if (!(await has(req.user, pack, req.centralLicense))) throw denied(pack); next(); } catch (e) { next(e); }
 };
 
+// Platform yöneticisi: tüm işletmeleri ve verilmiş sektör paketlerini listeler (en çok 500 işletme).
+async function listAll(admin) {
+  if (!admin.isPlatformAdmin) throw Object.assign(new Error('Platform yöneticisi gerekli.'), { status: 403 });
+  const tenants = (await db.query('SELECT id, company_name FROM tenants ORDER BY id DESC LIMIT 500')).rows;
+  const granted = (await db.query('SELECT tenant_id, pack FROM sector_packs')).rows;
+  const byTenant = new Map();
+  for (const row of granted) { const list = byTenant.get(Number(row.tenant_id)) || []; list.push(row.pack); byTenant.set(Number(row.tenant_id), list); }
+  return { packs: PACKS, labels: LABELS, tenants: tenants.map(t => ({ id: Number(t.id), company_name: t.company_name, packs: (byTenant.get(Number(t.id)) || []).sort() })) };
+}
+
 // Platform yöneticisi: sözleşmesiz bir işletmeye paket hakkı verir/alır.
 async function setForTenant(admin, tenantId, packs) {
   if (!admin.isPlatformAdmin) throw Object.assign(new Error('Platform yöneticisi gerekli.'), { status: 403 });
@@ -44,4 +54,4 @@ async function setForTenant(admin, tenantId, packs) {
   });
 }
 
-module.exports = { PACKS, LABELS, has, mine, require: require_, setForTenant };
+module.exports = { PACKS, LABELS, has, mine, require: require_, setForTenant, listAll };
