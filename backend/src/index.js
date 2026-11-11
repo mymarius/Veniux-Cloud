@@ -77,6 +77,8 @@ app.post('/integrations/tokenx/callback', express.json({ limit: '64kb' }), async
   try { const ok = await require('./services/retailExternalService').applyCallback(req.body?.data?.basketID, tokenx.parseResult(req.body)); res.json({ received: true, matched: ok }); }
   catch { res.status(500).json({ error: 'Bildirim işlenemedi.' }); }
 });
+const apiThrottle = require('./middlewares/apiThrottle');
+app.use('/api', apiThrottle);
 app.use('/api', require('./services/centralLicense').gate);
 app.use('/api/updates', (req,res,next)=>{
  if(!require('./services/updateStorage').validName(req.path.slice(1)))return res.sendStatus(404);

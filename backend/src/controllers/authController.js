@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 const policies = require('../services/settingsPolicyService');
 const crypto = require('crypto');
+// Olmayan hesapta da bcrypt karşılaştırması yapılsın diye sabit, geçersiz bir parola özeti.
+const DUMMY_HASH = bcrypt.hashSync('veniux-dummy-password', 10);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
@@ -92,6 +94,10 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    const loginThrottle = require('../services/loginThrottle');
+    const wait = loginThrottle.retryAfter(email);
+    if (wait) return res.set('Retry-After', String(wait)).status(429).json({ error: 'Çok fazla hatalı deneme. Bir süre sonra tekrar deneyin.' });
+
     // Find user
     const result = await pool.query(
       'SELECT u.id, u.email, u.password_hash, u.role, u.tenant_id, u.status, u.session_version, t.is_active,t.email AS company_owner_email FROM users u JOIN tenants t ON t.id=u.tenant_id WHERE LOWER(u.email) = $1',
@@ -99,6 +105,9 @@ const login = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      // Olmayan hesapta da aynı parola maliyeti ödenir: yanıt süresiyle hesap varlığı anlaşılamaz.
+      await bcrypt.compare(password, DUMMY_HASH);
+      loginThrottle.fail(email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -118,6 +127,7 @@ const login = async (req, res) => {
     const validPassword = centralOwner===null?await bcrypt.compare(password, user.password_hash):centralOwner;
 
     if (!validPassword || user.status !== 'active' || Number(user.is_active) !== 1) {
+      loginThrottle.fail(email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(user.tenant_id)==='NONE'){
@@ -128,7 +138,8 @@ const login = async (req, res) => {
     
     const second=await require('../services/mfaService').verify(user,typeof req.body.mfa_code==='string'?req.body.mfa_code.trim():'');
     if(second.required&&!req.body.mfa_code)return res.json({mfa_required:true});
-    if(!second.ok)return res.status(401).json({error:'İkinci doğrulama kodu geçersiz veya yeniden kullanılmış.'});
+    if(!second.ok){loginThrottle.fail(email);return res.status(401).json({error:'İkinci doğrulama kodu geçersiz veya yeniden kullanılmış.'});}
+    loginThrottle.clear(email);
     await require('../services/cloudLicenseBinding').claim(user.tenant_id,req.centralLicense);
     if(ownerBinding&&centralOwner===true&&!existingPlatformAdmin)await pool.transaction(async client=>{
       await client.query('INSERT INTO platform_admins(user_id) VALUES($1)',[user.id]);
