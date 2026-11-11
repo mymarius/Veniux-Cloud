@@ -1,8 +1,17 @@
 {
-  "version": "2.4.60",
+  "version": "2.4.61",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.61",
+      "date": "11 Kasım 2026",
+      "title": "Mağaza–bulut eşitleme",
+      "items": [
+        "Mağaza satış, iade, vardiya ve giderleri buluta gönderilir; ürün ve fiyat buluttan mağazaya iner (bulut kazanır).",
+        "Ayarlarda mağaza anahtarı üretme, iptal ve mağaza karşılaştırma ekranı eklendi."
+      ]
+    },
     {
       "version": "2.4.60",
       "date": "11 Kasım 2026",
