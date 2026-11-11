@@ -1,8 +1,18 @@
 {
-  "version": "2.4.62",
+  "version": "2.4.63",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.63",
+      "date": "11 Kasım 2026",
+      "title": "Sektör paketleri ve telefon yenilemesi",
+      "items": [
+        "Hırdavat, züccaciye ve pide/restoran paketleri ayrı satılabilir",
+        "Telefon uygulaması yenilendi; bildirim, etiket yazdırma ve cihaz testi eklendi",
+        "Mağaza ile bulut eşitlemesi ve lisans süre tanıma iyileştirildi"
+      ]
+    },
     {
       "version": "2.4.62",
       "date": "11 Kasım 2026",
