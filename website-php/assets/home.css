@@ -1172,3 +1172,20 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .vf-word .vf-l.vf-dance:nth-child(n),.vf-word.vf-idle .vf-l.vf-dance:nth-child(n),.vf-word.vf-on .vf-l.vf-dance:nth-child(n){animation-name:vf-sway;animation-duration:1.25s;animation-delay:var(--d,0ms);animation-iteration-count:1;animation-timing-function:cubic-bezier(.45,0,.25,1)}
 .vf-word.vf-dancing:after{animation-iteration-count:1;animation-duration:1.6s}
 .vf-word.vf-soft .vf-l.vf-dance:nth-child(n){animation-name:vf-soft}
+
+/* Canlı destek: ekip */
+.ch-me{margin:0;padding:8px 18px;border-bottom:1px dashed #c9bda6;background:var(--paper);color:var(--ink-soft);font-size:13px}
+.ch-me b{color:var(--ink)}
+.ch-item-agent{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--orange)}
+.ch-team{padding:20px;display:grid;gap:16px;align-content:start;overflow-y:auto}
+.ch-team-form{display:grid;grid-template-columns:1fr auto;gap:10px}
+.ch-team-form input{padding:10px 12px;border:1px solid #b5a88f;border-radius:0;font:500 16px var(--display)}
+.ch-team-form .ch-error{grid-column:1/-1}
+.ch-newkey{padding:14px 16px;background:#fbeea8;border-left:4px solid var(--orange);display:grid;gap:8px}
+.ch-newkey code{display:block;padding:8px 10px;background:var(--white);border:1px dashed var(--ink-soft);font-size:15px;overflow-wrap:anywhere;user-select:all}
+.ch-newkey p{margin:0;font-size:13.5px;color:var(--ink-soft)}
+.ch-agents{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ch-agents li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border:1px solid #c9bda6}
+.ch-agents li span{display:grid}
+.ch-agents small{color:var(--ink-soft)}
+.ch-agent-off{opacity:.55}

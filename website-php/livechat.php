@@ -86,9 +86,11 @@ function chatClean(string $text): string {
     return trim($text);
 }
 
-function chatPush(array &$conversation, string $from, string $text): void {
+function chatPush(array &$conversation, string $from, string $text, string $by = ''): void {
     $next = count($conversation['messages']) + 1;
-    $conversation['messages'][] = ['n' => $next, 'from' => $from, 't' => gmdate('c'), 'text' => $text];
+    $message = ['n' => $next, 'from' => $from, 't' => gmdate('c'), 'text' => $text];
+    if ($from === 'o' && $by !== '') { $message['by'] = $by; $conversation['agent'] = $by; }
+    $conversation['messages'][] = $message;
     $conversation['updated'] = gmdate('c');
     if ($from === 'v') $conversation['unread'] = (int)($conversation['unread'] ?? 0) + 1;
     else $conversation['unread'] = 0;
@@ -96,7 +98,7 @@ function chatPush(array &$conversation, string $from, string $text): void {
 
 function chatPublic(array $conversation, int $after): array {
     $out = [];
-    foreach ($conversation['messages'] as $message) if ($message['n'] > $after) $out[] = ['n' => $message['n'], 'from' => $message['from'], 't' => $message['t'], 'text' => $message['text']];
+    foreach ($conversation['messages'] as $message) if ($message['n'] > $after) $out[] = ['n' => $message['n'], 'from' => $message['from'], 't' => $message['t'], 'text' => $message['text'], 'by' => (string)($message['by'] ?? '')];
     return $out;
 }
 
@@ -129,6 +131,46 @@ function chatAdminKey(): string {
 
 function chatAdminAllowed(): bool { return !empty($_SESSION['chat_admin']); }
 
+// ---- Ekip: her çalışanın kendi anahtarı olur; yönetici (sahip) anahtarı ekibi yönetir. Anahtarın yalnız özeti saklanır.
+const CHAT_MAX_AGENTS = 20;
+
+function chatAgents(string $dir): array {
+    $file = $dir . '/agents.json';
+    $data = is_file($file) ? json_decode((string)@file_get_contents($file), true) : [];
+    return is_array($data) ? $data : [];
+}
+
+function chatAgentsEdit(string $dir, callable $change): ?array {
+    $handle = @fopen($dir . '/agents.json', 'c+');
+    if (!$handle || !flock($handle, LOCK_EX)) return null;
+    try {
+        $list = json_decode((string)stream_get_contents($handle, 262145), true);
+        if (!is_array($list)) $list = [];
+        $result = $change($list);
+        if ($result === false) return null;
+        rewind($handle); ftruncate($handle, 0); fwrite($handle, (string)json_encode($list, JSON_UNESCAPED_UNICODE)); fflush($handle);
+        @chmod($dir . '/agents.json', 0600);
+        return $list;
+    } finally { flock($handle, LOCK_UN); fclose($handle); }
+}
+
+// Verilen anahtara göre kimlik: sahip ya da etkin bir çalışan; eşleşme yoksa null.
+function chatIdentify(string $dir, string $given): ?array {
+    $hash = hash('sha256', $given);
+    $owner = chatAdminKey();
+    if ($owner !== '' && hash_equals(hash('sha256', $owner), $hash)) return ['role' => 'owner', 'name' => 'Yönetici', 'id' => 'owner'];
+    foreach (chatAgents($dir) as $agent) {
+        if (!empty($agent['active']) && hash_equals((string)$agent['hash'], $hash)) return ['role' => 'agent', 'name' => (string)$agent['name'], 'id' => (string)$agent['id']];
+    }
+    return null;
+}
+
+function chatSessionStillValid(string $dir): bool {
+    if (($_SESSION['chat_role'] ?? '') === 'owner') return chatAdminKey() !== '';
+    foreach (chatAgents($dir) as $agent) if (($agent['id'] ?? '') === ($_SESSION['chat_agent'] ?? '') && !empty($agent['active'])) return true;
+    return false;
+}
+
 function chatAdminPage(string $nonce): void {
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
@@ -141,13 +183,13 @@ function chatAdminPage(string $nonce): void {
 <meta name="robots" content="noindex,nofollow">
 <title>Canlı destek yönetimi | Veniux</title>
 <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
-<link rel="stylesheet" href="/assets/home.css?v=20261112f">
+<link rel="stylesheet" href="/assets/home.css?v=20261112g">
 </head>
 <body class="ch-admin-body">
-<main class="ch-admin" id="ch-admin" data-enabled="<?= $enabled ? '1' : '0' ?>" data-auth="<?= chatAdminAllowed() ? '1' : '0' ?>" data-csrf="<?= htmlspecialchars((string)($_SESSION['chat_csrf'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+<main class="ch-admin" id="ch-admin" data-enabled="<?= $enabled ? '1' : '0' ?>" data-auth="<?= chatAdminAllowed() ? '1' : '0' ?>" data-name="<?= htmlspecialchars((string)($_SESSION['chat_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-role="<?= htmlspecialchars((string)($_SESSION['chat_role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars((string)($_SESSION['chat_csrf'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
   <noscript>Bu ekran için JavaScript gerekir.</noscript>
 </main>
-<script src="/assets/chat-admin.js?v=20261112f" defer></script>
+<script src="/assets/chat-admin.js?v=20261112g" defer></script>
 </body>
 </html><?php
     exit;
@@ -219,24 +261,59 @@ function chatRoutes(string $path, array $config): bool {
     if (!str_starts_with($action, 'yonetim/')) chatReply(404, ['error' => 'Bulunamadı.']);
     $admin = substr($action, strlen('yonetim/'));
     if ($admin === 'giris' && $method === 'POST') {
-        $key = chatAdminKey();
-        if ($key === '') chatReply(503, ['error' => 'Yönetim anahtarı tanımlı değil.']);
+        if (chatAdminKey() === '') chatReply(503, ['error' => 'Yönetim anahtarı tanımlı değil.']);
         if (!chatRate($dir, 'login|' . chatClientIp(), 6, 900)) chatReply(429, ['error' => 'Çok fazla deneme. 15 dakika sonra tekrar deneyin.']);
         $data = chatBody();
         usleep(300000);
-        if (!hash_equals(hash('sha256', $key), hash('sha256', (string)($data['key'] ?? '')))) chatReply(403, ['error' => 'Anahtar yanlış.']);
+        $who = chatIdentify($dir, (string)($data['key'] ?? ''));
+        if (!$who) chatReply(403, ['error' => 'Anahtar yanlış.']);
         session_regenerate_id(true);
         $_SESSION['chat_admin'] = true;
+        $_SESSION['chat_role'] = $who['role'];
+        $_SESSION['chat_name'] = $who['name'];
+        $_SESSION['chat_agent'] = $who['id'];
         $_SESSION['chat_csrf'] = bin2hex(random_bytes(24));
-        chatReply(200, ['csrf' => $_SESSION['chat_csrf']]);
+        chatReply(200, ['csrf' => $_SESSION['chat_csrf'], 'name' => $who['name'], 'role' => $who['role']]);
     }
-    if (!chatAdminAllowed()) chatReply(401, ['error' => 'Giriş gerekli.']);
+    if (!chatAdminAllowed() || !chatSessionStillValid($dir)) { unset($_SESSION['chat_admin']); chatReply(401, ['error' => 'Giriş gerekli.']); }
     if ($method === 'POST') {
         $token = (string)($_SERVER['HTTP_X_CHAT_CSRF'] ?? '');
         if (!hash_equals((string)($_SESSION['chat_csrf'] ?? ''), $token)) chatReply(403, ['error' => 'Oturum doğrulanamadı. Sayfayı yenileyin.']);
     }
     @touch($dir . '/operator-seen');
     if ($admin === 'cikis' && $method === 'POST') { unset($_SESSION['chat_admin']); chatReply(200, ['ok' => true]); }
+    if ($admin === 'ben' && $method === 'GET') chatReply(200, ['name' => (string)($_SESSION['chat_name'] ?? ''), 'role' => (string)($_SESSION['chat_role'] ?? '')]);
+    if (str_starts_with($admin, 'ekip')) {
+        if (($_SESSION['chat_role'] ?? '') !== 'owner') chatReply(403, ['error' => 'Bu işlem yalnız yönetici içindir.']);
+        $publicAgents = static fn(array $list) => array_map(static fn($a) => ['id' => $a['id'], 'name' => $a['name'], 'active' => !empty($a['active']), 'created' => $a['created']], $list);
+        if ($admin === 'ekip' && $method === 'GET') chatReply(200, ['agents' => $publicAgents(chatAgents($dir))]);
+        if ($admin === 'ekip-ekle' && $method === 'POST') {
+            $data = chatBody();
+            $name = chatClean((string)($data['name'] ?? ''));
+            if (mb_strlen($name) < 2 || mb_strlen($name) > 40 || $name === 'Yönetici') chatReply(422, ['error' => 'Ad 2-40 karakter olmalı.']);
+            $key = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+            $added = null;
+            $list = chatAgentsEdit($dir, function (array &$list) use ($name, $key, &$added) {
+                if (count($list) >= CHAT_MAX_AGENTS) return false;
+                foreach ($list as $agent) if (mb_strtolower($agent['name']) === mb_strtolower($name)) return false;
+                $added = ['id' => bin2hex(random_bytes(8)), 'name' => $name, 'hash' => hash('sha256', $key), 'active' => true, 'created' => gmdate('c')];
+                $list[] = $added;
+                return true;
+            });
+            if ($list === null || !$added) chatReply(422, ['error' => 'Ekip kişisi eklenemedi: ad kullanımda ya da en fazla ' . CHAT_MAX_AGENTS . ' kişi.']);
+            chatReply(200, ['key' => $key, 'agents' => $publicAgents($list)]);
+        }
+        if ($admin === 'ekip-durum' && $method === 'POST') {
+            $data = chatBody();
+            $id = (string)($data['id'] ?? '');
+            $active = !empty($data['active']);
+            $found = false;
+            $list = chatAgentsEdit($dir, function (array &$list) use ($id, $active, &$found) { foreach ($list as &$agent) if ($agent['id'] === $id) { $agent['active'] = $active; $found = true; } });
+            if ($list === null || !$found) chatReply(404, ['error' => 'Kişi bulunamadı.']);
+            chatReply(200, ['agents' => $publicAgents($list)]);
+        }
+        chatReply(404, ['error' => 'Bulunamadı.']);
+    }
     if ($admin === 'liste' && $method === 'GET') {
         chatPurge($dir);
         $rows = [];
@@ -244,7 +321,7 @@ function chatRoutes(string $path, array $config): bool {
             $c = json_decode((string)@file_get_contents($file), true);
             if (!is_array($c)) continue;
             $last = end($c['messages']);
-            $rows[] = ['id' => $c['id'], 'name' => $c['name'], 'email' => $c['email'], 'status' => $c['status'], 'unread' => (int)($c['unread'] ?? 0), 'updated' => $c['updated'], 'last' => $last ? mb_substr((string)$last['text'], 0, 90) : '', 'count' => count($c['messages'])];
+            $rows[] = ['id' => $c['id'], 'name' => $c['name'], 'email' => $c['email'], 'status' => $c['status'], 'unread' => (int)($c['unread'] ?? 0), 'agent' => (string)($c['agent'] ?? ''), 'updated' => $c['updated'], 'last' => $last ? mb_substr((string)$last['text'], 0, 90) : '', 'count' => count($c['messages'])];
         }
         usort($rows, static fn($a, $b) => strcmp($b['updated'], $a['updated']));
         chatReply(200, ['conversations' => array_slice($rows, 0, 200)]);
@@ -265,7 +342,7 @@ function chatRoutes(string $path, array $config): bool {
         }
         $text = chatClean((string)($data['text'] ?? ''));
         if ($text === '' || mb_strlen($text) > CHAT_MAX_TEXT) chatReply(422, ['error' => 'Yanıt 1-' . CHAT_MAX_TEXT . ' karakter olmalı.']);
-        $ok = chatEdit($dir, $id, function (array &$c) use ($text) { $c['status'] = 'open'; chatPush($c, 'o', $text); });
+        $ok = chatEdit($dir, $id, function (array &$c) use ($text) { $c['status'] = 'open'; chatPush($c, 'o', $text, (string)($_SESSION['chat_name'] ?? '')); });
         chatReply($ok ? 200 : 404, $ok ? ['ok' => true] : ['error' => 'Sohbet bulunamadı.']);
     }
     chatReply(404, ['error' => 'Bulunamadı.']);

@@ -70,7 +70,7 @@
     const stick = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
     for (const m of list) {
       lastN = Math.max(lastN, m.n);
-      log.append(h('div', { class: 'ch-msg ch-' + (m.from === 'v' ? 'me' : 'them') }, h('p', {}, m.text), h('time', {}, (m.from === 'v' ? 'Siz' : 'Veniux') + ' · ' + time(m.t))));
+      log.append(h('div', { class: 'ch-msg ch-' + (m.from === 'v' ? 'me' : 'them') }, h('p', {}, m.text), h('time', {}, (m.from === 'v' ? 'Siz' : 'Veniux' + (m.by ? ' · ' + m.by : '')) + ' · ' + time(m.t))));
       if (m.from === 'o' && !open) unread += 1;
     }
     badge.textContent = unread ? String(unread) : '';

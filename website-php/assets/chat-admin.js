@@ -5,6 +5,7 @@
   const API = '/api/destek/yonetim/';
   let csrf = root.dataset.csrf || '';
   let current = null, lastN = 0, lastTotalUnread = 0, listTimer = null, threadTimer = null, audio = null;
+  let me = { name: root.dataset.name || '', role: root.dataset.role || '' };
 
   const h = (tag, attrs = {}, ...kids) => {
     const node = document.createElement(tag);
@@ -51,7 +52,7 @@
     const error = h('p', { class: 'ch-error', role: 'alert', hidden: true });
     const form = h('form', { class: 'ch-login-form', onsubmit: async event => {
       event.preventDefault(); error.hidden = true;
-      try { const data = await call('giris', { method: 'POST', body: JSON.stringify({ key: key.value }) }); csrf = data.csrf; key.value = ''; desk(); }
+      try { const data = await call('giris', { method: 'POST', body: JSON.stringify({ key: key.value }) }); csrf = data.csrf; me = { name: data.name, role: data.role }; key.value = ''; desk(); }
       catch (failure) { error.textContent = failure.message; error.hidden = false; }
     } }, key, h('button', { class: 'hx-btn', type: 'submit' }, 'Giriş yap'), error);
     root.append(h('section', { class: 'ch-login' }, h('h1', {}, 'Canlı destek yönetimi'), h('p', {}, 'Devam etmek için yönetim anahtarını girin.'), form));
@@ -64,7 +65,8 @@
     const thread = h('div', { class: 'ch-thread' }, h('p', { class: 'ch-empty' }, 'Soldan bir sohbet seçin.'));
     root.append(h('div', { class: 'ch-desk' },
       h('aside', { class: 'ch-side' },
-        h('div', { class: 'ch-side-head' }, h('b', {}, 'Sohbetler'), h('button', { type: 'button', class: 'ch-link', onclick: async () => { try { await call('cikis', { method: 'POST', body: '{}' }); } catch { /* çıkış */ } root.dataset.auth = '0'; login(); } }, 'Çıkış')),
+        h('div', { class: 'ch-side-head' }, h('b', {}, 'Sohbetler'), me.role === 'owner' ? h('button', { type: 'button', class: 'ch-link', onclick: () => team() }, 'Ekip') : null, h('button', { type: 'button', class: 'ch-link', onclick: async () => { try { await call('cikis', { method: 'POST', body: '{}' }); } catch { /* çıkış */ } root.dataset.auth = '0'; login(); } }, 'Çıkış')),
+        h('p', { class: 'ch-me' }, 'Giriş: ', h('b', {}, me.name || '—')),
         list),
       thread));
 
@@ -93,7 +95,7 @@
           const stick = log.scrollHeight - log.scrollTop - log.clientHeight < 80;
           for (const m of data.messages) {
             lastN = Math.max(lastN, m.n);
-            log.append(h('div', { class: 'ch-msg ch-' + (m.from === 'o' ? 'me' : 'them') }, h('p', {}, m.text), h('time', {}, (m.from === 'o' ? 'Siz' : data.name) + ' · ' + fmt(m.t))));
+            log.append(h('div', { class: 'ch-msg ch-' + (m.from === 'o' ? 'me' : 'them') }, h('p', {}, m.text), h('time', {}, (m.from === 'o' ? (m.by && m.by !== me.name ? m.by : 'Siz') : data.name) + ' · ' + fmt(m.t))));
           }
           if (stick || first) log.scrollTop = log.scrollHeight;
         } catch (failure) { if (failure.status === 401) login(); }
@@ -102,6 +104,29 @@
       await load(true);
       text.focus();
       refresh();
+    };
+
+    const team = async () => {
+      current = null; clearTimeout(threadTimer);
+      const box = h('div', { class: 'ch-team' });
+      thread.replaceChildren(h('header', { class: 'ch-thread-head' }, h('div', {}, h('b', {}, 'Ekip'), h('small', {}, 'Her çalışanın kendi anahtarı olur; istediğiniz zaman kapatabilirsiniz.'))), box);
+      const draw = async (agents, newKey) => {
+        const nameInput = h('input', { type: 'text', maxlength: 40, required: true, placeholder: 'Çalışanın adı', 'aria-label': 'Çalışanın adı' });
+        const err = h('p', { class: 'ch-error', role: 'alert', hidden: true });
+        const form = h('form', { class: 'ch-team-form', onsubmit: async event => {
+          event.preventDefault(); err.hidden = true;
+          try { const data = await call('ekip-ekle', { method: 'POST', body: JSON.stringify({ name: nameInput.value }) }); draw(data.agents, { name: nameInput.value, key: data.key }); }
+          catch (failure) { err.textContent = failure.message; err.hidden = false; }
+        } }, nameInput, h('button', { class: 'ch-send', type: 'submit' }, 'Ekle'), err);
+        const keyBox = newKey ? h('div', { class: 'ch-newkey', role: 'status' },
+          h('b', {}, newKey.name + ' için anahtar'), h('code', {}, newKey.key),
+          h('p', {}, 'Bu anahtar yalnızca şimdi gösterilir; saklanmaz. Çalışana güvenli bir yoldan iletin. Kaybolursa kişiyi kapatıp yeniden ekleyin.'),
+          h('button', { type: 'button', class: 'ch-link', onclick: () => { navigator.clipboard && navigator.clipboard.writeText(newKey.key); } }, 'Kopyala')) : null;
+        box.replaceChildren(form, keyBox, h('ul', { class: 'ch-agents' }, ...(agents.length ? agents.map(a => h('li', { class: a.active ? '' : 'ch-agent-off' },
+          h('span', {}, h('b', {}, a.name), h('small', {}, (a.active ? 'Etkin' : 'Kapalı') + ' · ' + fmt(a.created))),
+          h('button', { type: 'button', class: 'ch-link', onclick: async () => { const data = await call('ekip-durum', { method: 'POST', body: JSON.stringify({ id: a.id, active: !a.active }) }); draw(data.agents); } }, a.active ? 'Kapat' : 'Aç'))) : [h('li', { class: 'ch-empty' }, 'Henüz ekip kişisi yok.')])));
+      };
+      try { const data = await call('ekip'); draw(data.agents); } catch (failure) { box.textContent = failure.message; }
     };
 
     const refresh = async () => {
@@ -114,6 +139,7 @@
         list.replaceChildren(...(data.conversations.length ? data.conversations.map(c => h('button', { type: 'button', role: 'listitem', class: 'ch-item' + (c.id === current ? ' ch-item-on' : '') + (c.status === 'closed' ? ' ch-item-closed' : ''), onclick: () => open(c.id) },
           h('span', { class: 'ch-item-top' }, h('b', {}, c.name), h('time', {}, fmt(c.updated))),
           h('span', { class: 'ch-item-last' }, c.last),
+          c.agent ? h('span', { class: 'ch-item-agent' }, 'İlgilenen: ' + c.agent) : null,
           c.unread ? h('span', { class: 'ch-badge ch-badge-list' }, String(c.unread)) : null)) : [h('p', { class: 'ch-empty' }, 'Henüz sohbet yok.')]));
       } catch (failure) { if (failure.status === 401) { login(); return; } }
       listTimer = setTimeout(refresh, 3500);
