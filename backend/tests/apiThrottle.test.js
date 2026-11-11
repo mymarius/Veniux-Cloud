@@ -24,6 +24,13 @@ describe('genel API hız sınırı', () => {
     expect((await call(tokenB)).status).not.toBe(429);
   });
 
+  test('yerel vekilin arkasında her istemci kendi IP sayacını kullanır (en sağdaki X-Forwarded-For girdisi)', async () => {
+    const call = ip => request(app).get('/api/public/prices').set('X-Forwarded-For', '198.51.100.99, ' + ip);
+    for (let i = 0; i < 5; i++) expect((await call('203.0.113.1')).status).toBe(200);
+    expect((await call('203.0.113.1')).status).toBe(429);
+    expect((await call('203.0.113.2')).status).toBe(200);
+  });
+
   test('OPTIONS ön kontrol istekleri sayılmaz', async () => {
     for (let i = 0; i < 12; i++) expect((await request(app).options('/api/public/prices')).status).not.toBe(429);
   });

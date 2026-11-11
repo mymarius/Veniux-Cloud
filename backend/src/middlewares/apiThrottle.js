@@ -16,7 +16,20 @@ function identity(req) {
   if (bearer) return { key: 'u:' + sha(bearer[1]), max: AUTH_MAX };
   const device = req.headers['x-veniux-device-token'];
   if (typeof device === 'string' && device.length >= 20) return { key: 'd:' + sha(device), max: AUTH_MAX };
-  return { key: 'i:' + (req.ip || req.socket?.remoteAddress || 'unknown'), max: ANON_MAX };
+  return { key: 'i:' + clientAddress(req), max: ANON_MAX };
+}
+
+// Uygulama bir ters vekilin (nginx/Passenger) arkasında çalışırken bağlantı adresi vekilin adresidir; herkes tek IP görünür.
+// Bağlantı yerel vekilden geliyorsa vekilin eklediği en sağdaki X-Forwarded-For girdisi gerçek istemcidir.
+// Soldaki girdiler istemci tarafından yazılabildiği için kullanılmaz. Doğrudan bağlantılarda başlığa güvenilmez.
+function clientAddress(req) {
+  const remote = String(req.socket?.remoteAddress || '');
+  const fromProxy = !remote || remote === '::1' || remote.startsWith('127.') || remote.startsWith('::ffff:127.');
+  if (fromProxy) {
+    const forwarded = String(req.headers['x-forwarded-for'] || '').split(',').map(part => part.trim()).filter(Boolean);
+    if (forwarded.length) return forwarded[forwarded.length - 1].slice(0, 64);
+  }
+  return remote || 'unknown';
 }
 
 function prune(now) {
