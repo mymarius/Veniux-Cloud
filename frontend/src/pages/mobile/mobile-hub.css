@@ -98,7 +98,7 @@ html:root[data-design] .vm .vm-panel .vm-price-in input{border:1.5px solid var(-
 .vm-login .opts{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;color:#4c6072;margin:4px 0 6px}.vm-login .opts a{color:#165da4;font-weight:700;text-decoration:none}
 
 /* ===== Telefon: web sitesiyle aynı dil (kâğıt zemin, lacivert, turuncu vurgu, kare köşe, noktalı fiş çizgileri) ===== */
-.vm,.vm-login{--vm-brand:#17263a;--vm-brand-2:#2c415c;--vm-deep:#10192a;--vm-accent:#e4570a;--vm-bg:#f4eee2;--vm-card:#fffdf8;--vm-line:#d6c9b2;--vm-text:#17263a;--vm-muted:#4d5a6b;--vm-good:#0d7a57;--vm-bad:#b92c1c;background:#f4eee2}
+.vm,.vm-login{--vm-brand:#17263a;--vm-brand-2:#2c415c;--vm-deep:#10192a;--vm-accent:#e4570a;--vm-bg:#f4eee2;--vm-card:#fffdf8;--vm-line:#d6c9b2;--vm-text:#17263a;--vm-muted:#4d5a6b;--vm-good:#0d7a57;--vm-bad:#b92c1c;background:var(--vm-bg)}
 .vm-top{background:#17263a;position:relative}
 .vm-top:after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,#e4570a 0 14px,transparent 14px 20px)}
 .vm-top h1{font-weight:800;font-stretch:78%;font-size:22px}

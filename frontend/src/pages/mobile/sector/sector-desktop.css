@@ -72,3 +72,16 @@
 .sd .vm-mod .vm-iconbtn[aria-label$=' artır']{background:#e4570a!important;color:#fff!important}
 @media (max-width:1100px){.sd .vm-body{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.sd .vm-list{grid-template-columns:1fr}.sd .vm-sheet-back{inset:auto 84px 12px auto!important}}
 @media (prefers-reduced-motion:reduce){.sd .vm-card,.sd .vm-row,.sd .vm-mod,.sd .vm-btn{transition:none}.sd .vm-card:hover,.sd .vm-row:hover,.sd .vm-mod:hover,.sd .vm-btn:hover{translate:none}}
+
+/* Koyu tema: kartlar ve metinler koyu zemine uyar (site koyu tema sunmaz; uygulamada okunaklı kalır). */
+html:root[data-theme='dark'] .sd{--vm-card:#14243a;--vm-line:#30455e;--vm-text:#e8ecf4;--vm-muted:#b0bccd;--sd-edge:#30455e;--sd-tape:#8a7b4acc}
+html:root[data-theme='dark'] .sd-head h1,html:root[data-theme='dark'] .sd-back{color:#e8ecf4}
+html:root[data-theme='dark'] .sd-head{border-bottom-color:#4a5d78}
+html:root[data-theme='dark'] .sd .vm-card,html:root[data-theme='dark'] .sd .vm-row,html:root[data-theme='dark'] .sd .vm-mod,html:root[data-theme='dark'] .sd .vm-sheet{background:#14243a;border-color:#30455e;color:#e8ecf4}
+html:root[data-theme='dark'] .sd .vm-note{color:#b0bccd}
+html:root[data-theme='dark'] .sd .vm-search,html:root[data-theme='dark'] .sd .vm-price-in input{background:#0e1520;border-color:#30455e;color:#e8ecf4}
+html:root[data-theme='dark'] .sd .vm-search input{color:#e8ecf4}
+html:root[data-theme='dark'] .sd .vm-btn.soft,html:root[data-theme='dark'] .sd .vm-btn.ghost{border-color:#9fb0c8;color:#e8ecf4}
+html:root[data-theme='dark'] .sd .vm-btn.soft:hover:not(:disabled),html:root[data-theme='dark'] .sd .vm-btn.ghost:hover:not(:disabled){background:#e8ecf4;border-color:#e8ecf4;color:#17263a}
+html:root[data-theme='dark'] .sd .vm-iconbtn{background:#14243a;border-color:#9fb0c8;color:#e8ecf4}
+html:root[data-theme='dark'] .sd:after{background:repeating-linear-gradient(90deg,#9fb0c8 0 3px,transparent 3px 6px,#9fb0c8 6px 7px,transparent 7px 11px,#9fb0c8 11px 15px,transparent 15px 18px)}
