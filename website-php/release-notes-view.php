@@ -20,10 +20,10 @@
     </div>
     <div class="rl-list">
     <?php foreach($releases as $index=>$release):?>
-      <article class="rl-entry" data-release-platforms="<?=e(implode(' ',$release['platforms']))?>" aria-labelledby="release-heading-<?=$index?>">
+      <article class="rl-entry"<?=$index===0?' data-latest':''?> data-release-platforms="<?=e(implode(' ',$release['platforms']))?>" aria-labelledby="release-heading-<?=$index?>">
         <div class="rl-date"><time datetime="<?=e($release['date'])?>"><?=e($release['date_label'])?></time><span><?=!empty($release['pending'])?'Yayın hazırlığı':($release['version']?'Sürüm '.e($release['version']):'Site yayını')?></span></div>
         <div class="rl-receipt">
-          <div class="rl-tags"><?php foreach($release['platforms'] as $platform):?><span><?=e($platformLabels[$platform])?></span><?php endforeach;?><?php if($index===0):?><span class="rl-latest">Son yayın</span><?php endif;?></div>
+          <div class="rl-tags"><?php foreach($release['platforms'] as $platform):?><span class="rl-p-<?=e($platform)?>"><?=e($platformLabels[$platform])?></span><?php endforeach;?><?php if($index===0):?><span class="rl-latest">Son yayın</span><?php endif;?></div>
           <h2 id="release-heading-<?=$index?>"><?=e($release['title'])?></h2>
           <p><?=e($release['summary'])?></p>
           <?php foreach($release['groups'] as $label=>$items):?><section><h3><?=e($label)?></h3><ul><?php foreach($items as $item):?><li><?=e($item)?></li><?php endforeach;?></ul></section><?php endforeach;?>

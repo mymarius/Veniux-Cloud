@@ -10,11 +10,19 @@ function sitePlans(): array {
     ];
 }
 function sitePlanSelection($value): ?array {
+    if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide):yillik$/D',$value,$pack)) {
+        $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)'];
+        return ['code'=>$value,'name'=>$names[$pack[1]],'period'=>'Yıllık (12 ay)','amount_try'=>siteSectorPrices()[$pack[1]],'tax'=>'%20 KDV dahil'];
+    }
     if (!is_string($value) || !preg_match('/^(baslangic|isletme|kurumsal):(uc-aylik|yillik)$/D',$value,$match)) return null;
     $plan=sitePlans()[$match[1]];
     // 3 aylık seçeneği olmayan paket (Kurumsal) yıllık teklif olarak alınır.
     if ($plan['quarter']===null) { $match[2]='yillik'; $value=$match[1].':yillik'; }
     return ['code'=>$value,'name'=>$plan['name'],'period'=>$match[2]==='yillik'?'Yıllık (12 ay)':'3 aylık','amount_try'=>$plan[$match[2]==='yillik'?'annual':'quarter'],'tax'=>'%20 KDV dahil'.(!empty($plan['from'])?' · başlayan fiyat':'')];
+}
+// Sektör paketleri: genel pakete ek, yıllık, KDV dahil. Uygulamadaki paket kodu: backend/src/config/productPackages.json.
+function siteSectorPrices(): array {
+    return ['hirdavat'=>1788,'zuccaciye'=>1788,'pide'=>2988];
 }
 // Ek kullanım (yıllık, KDV dahil). Kodda otomatik değil; teklifte lisans sınırı yükseltilir.
 function siteAddOns(): array {

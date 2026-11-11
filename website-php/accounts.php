@@ -238,9 +238,10 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="stylesheet" href="/assets/home.css?v=20261109a"><script src="/assets/home.js?v=20261109a" defer></script>
+    <link rel="stylesheet" href="/assets/home.css?v=20261112f"><script src="/assets/home.js?v=20261112f" defer></script><script src="/assets/chat.js?v=20261112f" defer></script>
 </head>
 <body>
+<?php if(!$account): $path=$register?'/kayit':'/giris'; require __DIR__.'/components/navbar.php'; else:?>
 <header class="dp-header">
     <div class="dp-container dp-nav">
         <a class="dp-brand" href="/" aria-label="Veniux ana sayfa">
@@ -261,6 +262,7 @@ function accountRoutes(string $path,array $config):bool {
         </div>
     </div>
 </header>
+<?php endif;?>
 
 <main class="dp-container dp-portal" id="main">
 <?php if($isPortal):?>

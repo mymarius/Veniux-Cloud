@@ -92,7 +92,7 @@ if (in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD'],true) && ($path==='/index
 }
 
 if (!in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD','POST'],true)) { http_response_code(405); header('Allow: GET, HEAD, POST'); exit; }
-if ($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,['/','/kayit','/giris','/cikis','/demo'],true)) { http_response_code(405); exit; }
+if ($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,['/','/kayit','/giris','/cikis','/demo'],true) && !str_starts_with($path,'/api/destek/')) { http_response_code(405); exit; }
 
 ini_set('session.use_strict_mode','1');
 $sessionDir=dirname($config['request_dir']).'/website-sessions';
@@ -106,6 +106,8 @@ header('Cache-Control: no-store');
 
 require_once __DIR__.'/accounts.php';
 if(accountRoutes($path,$config))exit;
+require_once __DIR__.'/livechat.php';
+if(chatRoutes($path,$config))exit;
 
 if ($path==='/contact-token' && $_SERVER['REQUEST_METHOD']==='GET') {
     header('Content-Type: application/json; charset=utf-8');
@@ -179,7 +181,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261109a"><script src="/assets/home.js?v=20261109a" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261112f"><script src="/assets/home.js?v=20261112f" defer></script><script src="/assets/chat.js?v=20261112f" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>

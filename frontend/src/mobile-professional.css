@@ -83,7 +83,7 @@ html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-launch svg{colo
 html:root[data-design='veniux'][data-mobile='true'] .mobile-scan-launch small{color:#bbd3ed}
 html:root[data-design='veniux'][data-mobile='true'] .reader-result-panel{background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)}
 html:root[data-design='veniux'][data-mobile='true'] .reader-product-values>div{background:var(--color-surface-raised)}
-html:root[data-design='veniux'][data-mobile='true'] .veniux-chat{left:0;right:0;bottom:0;width:100%;height:calc(100dvh - 12px);max-height:none;border-radius:22px 22px 0 0;border:1px solid var(--color-border);background:var(--color-surface)}
+html:root[data-design='veniux'][data-mobile='true'] .veniux-chat{position:fixed;left:0;right:0;bottom:0;margin:0;width:100%;height:calc(100dvh - max(10px,env(safe-area-inset-top)));max-height:none;border-radius:22px 22px 0 0;border:1px solid var(--color-border);background:var(--color-surface)}
 html:root[data-design='veniux'][data-mobile='true'] .business-content{min-width:0}
 html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.overflow-x-auto,.ax-table-wrap,.crm-table-wrap){max-width:100%;overscroll-behavior-x:contain}
 @media(max-width:600px){html:root[data-design='veniux'][data-mobile='true'] :is(.enterprise-content form,.vx-dialog-body) .grid{grid-template-columns:1fr!important}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-metrics,.ax-kpis,.product-stat-grid){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-heading-actions,.ax-head-actions){width:100%;flex-wrap:wrap}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.business-heading-actions,.ax-head-actions)>*{flex:1}html:root[data-design='veniux'][data-mobile='true'] .enterprise-content :is(.retail-workspace,.retail-grid){grid-template-columns:1fr}}
@@ -112,3 +112,6 @@ html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error p{c
 html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error button{min-height:48px}
 
 @media(min-width:1024px){html:root[data-design='veniux'][data-mobile='true'] .enterprise-shell .sb{width:264px;border-radius:0}}
+/* Asistan başlığı durum çubuğuna girmesin; ses uyarısı hata gibi kırmızı görünmesin */
+html:root[data-design='veniux'][data-mobile='true'] .veniux-chat header{padding-top:max(14px,env(safe-area-inset-top))}
+.veniux-chat-note{margin:12px 0;padding:10px 12px;background:#fff4d6;border-left:4px solid #e4570a;color:#5b3a05;font-size:13px;line-height:1.5}

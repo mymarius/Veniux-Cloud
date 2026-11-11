@@ -59,7 +59,7 @@
     reveal.observe(element);
   };
   // Her sayfanın içeriğini gezer: düzen kutularına iner, içerik bloklarını sırayla getirir.
-  const skip = '.hx-shelf,.hx-obj,.hx-stage,.hx-hero h1,.hx-lead,.hx-cta,.vx-band,dialog,script,style,[hidden]';
+  const skip = '.pr-page,.hx-shelf,.hx-obj,.hx-stage,.hx-hero h1,.hx-lead,.hx-cta,.vx-band,dialog,script,style,[hidden]';
   const atomic = 'form,table,figure,details,pre,img,svg,h1,h2,h3,h4,p,a,button,.hx-pos,.hx-step,.hx-card,.pr-tag,.pg-ticket,.hx-hang';
   const walk = (element, depth) => {
     if (element.matches(skip) || !element.getClientRects().length) return;
@@ -115,7 +115,9 @@
 (() => {
   const word = document.querySelector('.vf-word');
   if (!word || !('IntersectionObserver' in window)) return;
-  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const force = /[?&]hareket=acik(&|$)/.test(location.search);
+  if (force) document.documentElement.classList.add('pr-force');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches && !force;
   const text = word.textContent.trim();
   word.textContent = '';
   const letters = [...text].map((char, i) => {
@@ -124,7 +126,35 @@
     word.append(letter);
     return letter;
   });
+  // Dalga: harfler soldan sağa sırayla hafifçe yükselip iner, üzerlerinden ışık geçer.
+  let busy = false, visible = false;
+  const domino = (start = 0) => {
+    if (busy) return;
+    busy = true;
+    word.classList.toggle('vf-soft', calm);
+    const gap = 130, length = 1500;
+    word.classList.add('vf-dancing');
+    letters.forEach((letter, i) => {
+      letter.style.setProperty('--d', `${Math.abs(i - start) * gap}ms`);
+      letter.classList.add('vf-dance');
+    });
+    setTimeout(() => {
+      letters.forEach(letter => letter.classList.remove('vf-dance'));
+      word.classList.remove('vf-dancing');
+      busy = false;
+    }, length + letters.length * gap);
+  };
+  // Birkaç saniyede bir kendiliğinden oynar; hareketi azalt açıksa yumuşak, küçük zıplamayla.
+  const loop = () => {
+    if (visible && !busy) domino(0);
+    setTimeout(loop, 9000 + Math.random() * 3000);
+  };
+  setTimeout(loop, 5000);
   let timer;
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible) setTimeout(() => { if (visible) domino(0); }, 1900);
+  }, { threshold: .35 }).observe(word);
   new IntersectionObserver(([entry]) => {
     clearTimeout(timer);
     if (!entry.isIntersecting) { word.classList.remove('vf-on'); word.classList.add('vf-idle'); return; }
@@ -146,4 +176,44 @@
     word.classList.remove('vf-near');
     for (const letter of letters) { letter.style.translate = ''; letter.style.color = ''; }
   });
+})();
+
+
+// Fiyat sayfası: sakin giriş hareketi ve fiyat sayacı. Betik yoksa her şey olduğu gibi görünür.
+(() => {
+  const page = document.querySelector('.pr-page');
+  if (!page) return;
+  // ?hareket=acik: sistem "hareketi azalt" açıkken bile tam hareketi önizlemek için.
+  const force = /[?&]hareket=acik(&|$)/.test(location.search);
+  if (force) document.documentElement.classList.add('pr-force');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches && !force;
+  const items = [...page.querySelectorAll('[data-pr]')];
+  if (!('IntersectionObserver' in window)) return;
+  items.forEach(item => { if (item.dataset.i) item.style.setProperty('--i', item.dataset.i); });
+  // Hareketi azalt açıksa yalnız yumuşak solma kalır: kayma ve sayaç yok.
+  document.documentElement.classList.add('pr-js');
+  if (calm) document.documentElement.classList.add('pr-calm');
+  const money = value => Math.round(value).toLocaleString('tr-TR');
+  const count = span => {
+    const end = Number(span.dataset.count);
+    if (!end) return;
+    const start = performance.now(), length = 900;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / length);
+      span.textContent = money(end * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) requestAnimationFrame(tick); else span.textContent = money(end);
+    };
+    requestAnimationFrame(tick);
+  };
+  const seen = new IntersectionObserver(entries => {
+    for (const { isIntersecting, target } of entries) {
+      if (!isIntersecting) continue;
+      seen.unobserve(target);
+      target.classList.add('pr-in');
+      if (!calm) target.querySelectorAll('[data-count]').forEach(count);
+    }
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
+  items.forEach(item => seen.observe(item));
+  // Güvenlik: gözlemci hiç tetiklenmezse içerik gizli kalmasın.
+  setTimeout(() => items.forEach(item => item.classList.add('pr-in')), 4000);
 })();

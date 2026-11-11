@@ -10,25 +10,36 @@ $compare=[
  ['Kâr/zarar, kasiyer ve saatlik raporlar',0,1,1],['İşletme asistanı',0,1,1],['Şube karşılaştırması ve şube bazında erişim',0,1,1],
  ['Öncelikli destek',0,1,1],['Kurulum ve veri aktarımı desteği',0,0,1],
 ]; ?>
+<div class="pr-page">
 <section class="pr-hero">
-  <div class="hx-wrap">
-    <h1>Kasanız, stoğunuz ve şubeleriniz için tek fiyat.</h1>
-    <p class="hx-lead">Kasa ve depo her pakette. İşletmeniz büyüdükçe şube, veresiye, sadakat ve analiz eklenir. Fiyatlar KDV dahildir; teklifle başlarız, online ödeme yoktur. Gizli kalem yok; neyin dahil olmadığını da aşağıda yazdık.</p>
-    <nav class="pr-switch" aria-label="Plan süresi">
-      <a href="/fiyatlandirma?donem=uc-aylik#planlar" <?=$annual?'':'aria-current="true"'?>>3 aylık</a>
-      <a href="/fiyatlandirma?donem=yillik#planlar" <?=$annual?'aria-current="true"':''?>>Yıllık</a>
-    </nav>
+  <div class="hx-wrap pr-hero-grid">
+    <div>
+      <p class="pr-eyebrow" data-pr>Fiyatlandırma</p>
+      <h1 data-pr>Kasanız, stoğunuz ve şubeleriniz için tek fiyat.</h1>
+      <p class="hx-lead" data-pr>Kasa ve depo her pakette. İşletmeniz büyüdükçe şube, veresiye, sadakat ve analiz eklenir. Gizli kalem yok; neyin dahil olmadığını da aşağıda yazdık.</p>
+      <nav class="pr-switch" aria-label="Plan süresi" data-pr>
+        <a href="/fiyatlandirma?donem=uc-aylik#planlar" <?=$annual?'':'aria-current="true"'?>>3 aylık</a>
+        <a href="/fiyatlandirma?donem=yillik#planlar" <?=$annual?'aria-current="true"':''?>>Yıllık <span>%20 avantaj</span></a>
+      </nav>
+    </div>
+    <ul class="pr-trust" data-pr aria-label="Fiyatlandırma ilkeleri">
+      <li><b>KDV dahil</b><span>Ödeyeceğiniz toplam tutar yazar.</span></li>
+      <li><b>Online ödeme yok</b><span>Teklifle başlarız, kendiliğinden abonelik olmaz.</span></li>
+      <li><b>Sabit bedel</b><span>Sözleşme süresince fiyat değişmez.</span></li>
+    </ul>
   </div>
 </section>
+
 <section class="pr-rack" id="planlar" aria-label="<?=$annual?'Yıllık':'3 aylık'?> paketler">
-  <div class="pr-rail" aria-hidden="true"></div>
   <div class="hx-wrap pr-tags">
-  <?php foreach($plans as $code=>$plan): $amount=$plan[$annual?'annual':'quarter']; $saving=$plan['quarter']===null?0:$plan['quarter']*4-$plan['annual']; ?>
-    <article class="pr-tag" <?=$code==='isletme'?'data-featured':''?>>
+  <?php $n=0; foreach($plans as $code=>$plan): $amount=$plan[$annual?'annual':'quarter']; $saving=$plan['quarter']===null?0:$plan['quarter']*4-$plan['annual']; ?>
+    <article class="pr-tag" data-pr data-i="<?=$n++?>" <?=$code==='isletme'?'data-featured':''?>>
+      <?php if($code==='isletme'):?><span class="pr-ribbon">En çok tercih edilen</span><?php endif;?>
+      <div class="pr-tag-top"><span>VENİUX · PAKET 0<?=$n?></span><span><?=$annual?'YILLIK':'3 AYLIK'?></span></div>
       <h2><?=e($plan['name'])?></h2>
       <p class="pr-for"><?=e($plan['tag'])?></p>
-      <?php if($amount===null):?><div class="pr-price">Yalnız yıllık</div><p class="pr-period">Yıllık <?=siteMoney($plan['annual'])?>’den başlar · KDV dahil</p>
-      <?php else:?><div class="pr-price"><?=number_format($amount,0,',','.')?><small> ₺<?=!empty($plan['from'])?'’den':''?></small></div>
+      <?php if($amount===null):?><div class="pr-price pr-price-text">Yalnız yıllık</div><p class="pr-period">Yıllık <?=siteMoney($plan['annual'])?>’den başlar · KDV dahil</p>
+      <?php else:?><div class="pr-price"><span data-count="<?=$amount?>"><?=number_format($amount,0,',','.')?></span><small> ₺<?=!empty($plan['from'])?'’den':''?></small></div>
       <p class="pr-period">/ <?=$annual?'yıl':'3 ay'?> · KDV dahil · aylık <?=number_format($amount/($annual?12:3),0,',','.')?> ₺<?=!empty($plan['from'])?' · başlayan fiyat':''?></p><?php endif;?>
       <?php if($annual&&$saving>0):?><p class="pr-save"><?=siteMoney($saving)?> daha az</p><?php endif;?>
       <dl class="pr-limits"><div><dd><?=e((string)$plan['warehouses'])?></dd><dt>depo</dt></div><div><dd><?=e((string)$plan['users'])?></dd><dt>kullanıcı</dt></div><div><dd><?=e((string)$plan['devices'])?></dd><dt>cihaz</dt></div></dl>
@@ -38,20 +49,42 @@ $compare=[
     </article>
   <?php endforeach;?>
   </div>
-  <p class="hx-wrap pr-terms"><?=$annual?'Tasarruf, aynı paketin dört adet 3 aylık dönem toplamına göre hesaplanır. ':''?>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Bedel sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve 30 gün önce bildirilir.</p>
+  <p class="hx-wrap pr-terms" data-pr><?=$annual?'Tasarruf, aynı paketin dört adet 3 aylık dönem toplamına göre hesaplanır. ':''?>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Bedel sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve 30 gün önce bildirilir. Mevcut müşterilerimiz ilk yenilemede eski fiyattan devam eder.</p>
 </section>
 
-<section class="pr-guide" aria-label="Kısa yönlendirme"><div class="hx-wrap">
-  <h2>Hangi paket bana uygun?</h2>
-  <ul>
-    <li><b>Başlangıç:</b> Tek kasa, tek depo; barkodlu satış, stok, lot ve miat, kayıp uyarıları yeter.</li>
-    <li><b>İşletme:</b> İki-üç şube, veresiye defteri, sadakat kartı veya kâr ve kasiyer raporu istiyorsanız.</li>
-    <li><b>Kurumsal:</b> Çok şube, çok kullanıcı; kurulum ve veri aktarımında destek istiyorsanız.</li>
-  </ul>
-  <p class="pr-note">Mevcut müşterilerimiz ilk yenilemede eski fiyattan devam eder.</p>
+<div class="pr-band" aria-hidden="true"><div><span>Hırdavat ·</span><span>Züccaciye ·</span><span>Pide ve restoran ·</span><span>Hırdavat ·</span><span>Züccaciye ·</span><span>Pide ve restoran ·</span><span>Hırdavat ·</span><span>Züccaciye ·</span><span>Pide ve restoran ·</span></div></div>
+<section class="pr-sector" id="sektor-paketleri" aria-label="Sektör paketleri"><div class="hx-wrap">
+  <div class="pr-sector-head" data-pr>
+    <p class="pr-eyebrow">Sektör paketleri</p>
+    <h2>Sektörünüze özel eklentiler</h2>
+    <p class="pr-sector-lead">Genel paketinize eklenir, ayrı satın alınır ve kendi fiyatı vardır. İhtiyacınız olmayan özellik için ödeme yapmazsınız.</p>
+  </div>
+  <div class="pr-sector-grid">
+<?php $sec=[
+ ['hirdavat','Hırdavat','Telefonla ürün arama: “3 numara vida var mı?” sorusuna koridor, raf ve kutu sayısıyla saniyede cevap.',['Ölçü ve kategori filtresiyle binlerce ürün arasında hızlı arama','Telefon kamerasıyla barkod okuma','Raf, koridor ve kat bilgisi','Kritik stok uyarısı ve toptancıya WhatsApp ile tek dokunuşla yazma'],'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.1L3 17.7 6.3 21l6.3-6.3a4 4 0 0 0 5.1-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>'],
+ ['zuccaciye','Züccaciye','Takım ve set ürünlerde eksik parçayı raftan önce siz öğrenin.',['Takım eşleme: “6 kişilik setin 2 bıçağı eksik” uyarısı','Kırılgan bölge, vitrin, üst raf gibi hassas raf etiketleri ve yanlış yerleştirme uyarısı','Fiyat güncelleyince raf etiketini yazıcıya gönderme'],'<path d="M6 3h12l-1.5 8a4.5 4.5 0 0 1-9 0zM12 15.5V21M8 21h8"/>'],
+ ['pide','Pide ve restoran','Garson siparişi telefondan girer, mutfak anında öter, stok o an düşer.',['Garson modu, masa ve paket/motor siparişi','Mutfak ekranı ve sesli uyarı','Reçeteye göre malzeme stoğu (pide başına hamur, kaşar)','Esnaf paneli: gün sonunda kaç pide, kaç motor gitti; sipariş geldiğinde telefona uyarı'],'<path d="M5 3v8a2 2 0 0 0 2 2v8M9 3v6M7 3v6M19 21V3c-2.5 1-4 4-4 8h4"/>'],
+]; $tops=['hirdavat'=>'HIRDAVAT','zuccaciye'=>'ZÜCCACİYE','pide'=>'RESTORAN']; foreach($sec as $k=>[$key,$name,$lead,$items,$icon]): $price=siteSectorPrices()[$key]; ?>
+    <article class="pr-pack" data-pr data-i="<?=$k?>">
+      <div class="pr-tag-top"><span>RAF · <?=$tops[$key]?></span><span>EK PAKET</span></div>
+      <span class="pr-pack-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><?=$icon?></svg></span>
+      <h3><?=e($name)?></h3>
+      <p class="pr-pack-lead"><?=e($lead)?></p>
+      <ul><?php foreach($items as $item):?><li><?=e($item)?></li><?php endforeach;?></ul>
+      <div class="pr-pack-foot">
+        <span class="pr-sector-badge">Genel pakete ek</span>
+        <div class="pr-pack-price"><span data-count="<?=$price?>"><?=number_format($price,0,',','.')?></span><small> ₺ / yıl</small></div>
+        <em>KDV dahil · aylık <?=number_format($price/12,0,',','.')?> ₺</em>
+        <a class="hx-btn" href="/?request_type=quote&amp;plan=<?=$key?>%3Ayillik#iletisim"><?=e($name)?> paketini isteyin</a>
+      </div>
+      <?=homeBarcode('sektor-'.$key,26)?>
+    </article>
+<?php endforeach;?>
+  </div>
+  <p class="pr-sector-cta" data-pr>Birden fazla sektör paketi alırsanız birlikte teklif hazırlarız. <a href="/#iletisim">Bize yazın</a>.</p>
 </div></section>
 
-<section class="pr-finder" id="uygun-paket">
+<section class="pr-finder" id="uygun-paket" data-pr>
   <div class="hx-wrap pr-finder-grid">
     <div>
       <h2>Hangi paket bana uygun?</h2>
@@ -81,22 +114,7 @@ $compare=[
     </div>
   </div>
 </section>
-
-<section class="pr-sector" id="sektor-paketleri" aria-label="Sektör paketleri"><div class="hx-wrap">
-  <h2>Sektörünüze özel paketler</h2>
-  <p class="pr-sector-lead">Her sektör paketi ayrı satın alınır ve kendi fiyatıyla teklif edilir. Genel paketinize eklenir; ihtiyacınız olmayan özellik için ödeme yapmazsınız.</p>
-  <div class="pr-sector-grid">
-    <article><h3>Hırdavat</h3><p>Telefonla ürün arama: “3 numara vida var mı?” sorusuna koridor, raf ve kutu sayısıyla saniyede cevap.</p>
-      <ul><li>Ölçü ve kategori filtresiyle binlerce ürün arasında hızlı arama</li><li>Telefon kamerasıyla barkod okuma</li><li>Raf, koridor ve kat bilgisi</li><li>Kritik stok uyarısı ve toptancıya WhatsApp ile tek dokunuşla yazma</li></ul></article>
-    <article><h3>Züccaciye</h3><p>Takım ve set ürünlerde eksik parçayı raftan önce siz öğrenin.</p>
-      <ul><li>Takım eşleme: “6 kişilik setin 2 bıçağı eksik” uyarısı</li><li>Kırılgan bölge, vitrin, üst raf gibi hassas raf etiketleri ve yanlış yerleştirme uyarısı</li><li>Fiyat güncelleyince raf etiketini yazıcıya gönderme</li></ul></article>
-    <article><h3>Pide ve restoran</h3><p>Garson siparişi telefondan girer, mutfak anında öter, stok o an düşer.</p>
-      <ul><li>Garson modu, masa ve paket/motor siparişi</li><li>Mutfak ekranı ve sesli uyarı</li><li>Reçeteye göre malzeme stoğu (pide başına hamur, kaşar)</li><li>Esnaf paneli: gün sonunda kaç pide, kaç motor gitti; sipariş geldiğinde telefona uyarı</li></ul></article>
-  </div>
-  <p class="pr-sector-cta"><a class="button primary" href="/#iletisim">Sektör paketi için teklif isteyin</a></p>
-</div></section>
-
-<section class="pr-value"><div class="hx-wrap"><h2>Kaybolan stok da bir maliyettir</h2><p>Rafta görünüp sistemde olmayan, sistemde görünüp rafta olmayan her ürün ya kaçan bir satış ya da bağlanmış bir paradır. Son kullanma tarihi geçen ürün çöpe gider; sayılmayan fark ay sonunda “nereye gitti” sorusuna dönüşür. Veniux bu farkları ay sonunda değil, oluştuğu gün gösterir: kritik stok, yaklaşan miat, sayım farkı ve kayıp şüphesi uyarısı her pakette vardır. Kaybın ne kadar azalacağı işletmenize bağlıdır; biz ölçebileceğiniz bir yer veriyoruz.</p></div></section>
+<section class="pr-value" data-pr><div class="hx-wrap"><h2>Kaybolan stok da bir maliyettir</h2><p>Rafta görünüp sistemde olmayan, sistemde görünüp rafta olmayan her ürün ya kaçan bir satış ya da bağlanmış bir paradır. Son kullanma tarihi geçen ürün çöpe gider; sayılmayan fark ay sonunda “nereye gitti” sorusuna dönüşür. Veniux bu farkları ay sonunda değil, oluştuğu gün gösterir: kritik stok, yaklaşan miat, sayım farkı ve kayıp şüphesi uyarısı her pakette vardır. Kaybın ne kadar azalacağı işletmenize bağlıdır; biz ölçebileceğiniz bir yer veriyoruz.</p></div></section>
 
 <section class="pr-ledger">
   <div class="hx-wrap pr-ledger-grid">
@@ -136,3 +154,4 @@ $compare=[
   <div><h3>Lisans ne zaman açılır?</h3><p>Kapsam ve ödeme netleştikten sonra. Siteye kayıt olmak ücretli lisansı kendiliğinden açmaz.</p></div>
 </div></div></section>
 <?php require __DIR__."/guide-view.php"; ?>
+</div>

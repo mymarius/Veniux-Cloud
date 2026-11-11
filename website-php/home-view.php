@@ -106,22 +106,27 @@ $steps=[
   </div>
 </section>
 
-<section class="hx-plain">
+<section class="hx-plain hx-rates">
   <div class="hx-wrap hx-plain-grid">
-    <div id="fiyatlandirma">
+    <div id="fiyatlandirma" class="hx-ratecard">
+      <div class="hx-rate-top"><span>VENİUX · FİYAT ETİKETİ</span><span>KDV DAHİL</span></div>
       <h2>Fiyat etiketi</h2>
-      <div class="hx-table-scroll"><table class="hx-table">
+      <div class="hx-table-scroll"><table class="hx-table hx-ratetable">
         <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th></tr></thead>
         <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=e(sitePrice($plan,true))?></td><td><?=e(sitePrice($plan,false))?></td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
+        <tbody class="hx-ratepacks"><tr><th scope="rowgroup" colspan="5">Sektör paketleri · genel pakete ek, yıllık</th></tr>
+        <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):?><tr><th scope="row"><?=e($label)?></th><td colspan="4"><?=e(siteMoney(siteSectorPrices()[$key]))?> <small>· aylık <?=number_format(siteSectorPrices()[$key]/12,0,',','.')?> ₺</small></td></tr><?php endforeach;?></tbody>
       </table></div>
-      <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları</a></p>
+      <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları ve sektör paketleri</a></p>
+      <?=homeBarcode('fiyat-etiketi',26)?>
     </div>
-    <div>
+    <div class="hx-limits">
       <h2>Size uygun olmayabilir</h2>
-      <ul class="hx-list">
-        <li><b>Pazaryeri entegrasyonu şart mı?</b> Trendyol üzerinde çalışıyoruz, henüz gerçek mağazada denenmedi.</li>
-        <li><b>Muhasebe mi arıyorsunuz?</b> Veniux stok, depo ve kasa programıdır; muhasebe programının yerine geçmez.</li>
-        <li><b>iPhone mu kullanıyorsunuz?</b> Şimdilik Windows ve Android var.</li>
+      <p class="hx-limits-lead">Satın almadan önce bilmeniz gerekenleri açıkça yazdık.</p>
+      <ul class="hx-list hx-notices">
+        <li><span class="hx-notice-no">01</span><div><b>Pazaryeri entegrasyonu şart mı?</b> Trendyol üzerinde çalışıyoruz, henüz gerçek mağazada denenmedi.</div></li>
+        <li><span class="hx-notice-no">02</span><div><b>Muhasebe mi arıyorsunuz?</b> Veniux stok, depo ve kasa programıdır; muhasebe programının yerine geçmez.</div></li>
+        <li><span class="hx-notice-no">03</span><div><b>iPhone mu kullanıyorsunuz?</b> Şimdilik Windows ve Android var.</div></li>
       </ul>
     </div>
   </div>
@@ -131,19 +136,23 @@ $steps=[
   <div class="hx-wrap hx-plain-grid">
     <div>
       <h2>Verileriniz nerede?</h2>
-      <ul class="hx-list">
-        <li><b>Bilgisayara kurulan Veniux:</b> Ürün, stok ve satış kayıtlarınız o bilgisayarda tutulur; internet kesilse de satış sürer. Günlük yedek kendiliğinden alınır, dilerseniz ikinci bir konuma ve şifreli dış yedeğe de kopyalanır.</li>
-        <li><b>Bulut sürümü:</b> Kayıtlarınız Veniux sunucusunda, firmanıza ayrılmış alanda tutulur; başka firma göremez.</li>
-        <li><b>Kim görebilir?</b> Çalışanlarınız yalnız rolünün izin verdiği ekranları görür. Kim neyi ne zaman değiştirdi, işlem kaydında durur. Ayrıntısı <a href="/kvkk-aydinlatma">KVKK metninde</a>.</li>
+      <ul class="hx-list hx-datacards">
+        <li><span class="hx-tagtop">BİLGİSAYARA KURULAN</span><b>Kendi bilgisayarınızda</b>Ürün, stok ve satış kayıtlarınız o bilgisayarda tutulur; internet kesilse de satış sürer. Günlük yedek kendiliğinden alınır, dilerseniz ikinci bir konuma ve şifreli dış yedeğe de kopyalanır.</li>
+        <li><span class="hx-tagtop">BULUT SÜRÜMÜ</span><b>Firmanıza ayrılmış alanda</b>Kayıtlarınız Veniux sunucusunda, firmanıza ayrılmış alanda tutulur; başka firma göremez.</li>
+        <li><span class="hx-tagtop">ERİŞİM</span><b>Kim görebilir?</b>Çalışanlarınız yalnız rolünün izin verdiği ekranları görür. Kim neyi ne zaman değiştirdi, işlem kaydında durur. Ayrıntısı <a href="/kvkk-aydinlatma">KVKK metninde</a>.</li>
       </ul>
     </div>
-    <div>
+    <div class="hx-support">
       <h2>Destek</h2>
-      <ul class="hx-list">
-        <li><b>Nereden?</b> Aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</li>
-        <li><b>Ne zaman?</b> Hafta içi 09:00–18:00, cumartesi 10:00–14:00.</li>
-        <li><b>Ne kadar sürede?</b> Kasa satış yapamıyorsa 2 saat içinde, diğer sorularda 1 iş günü içinde ilk yanıtı veririz.</li>
-      </ul>
+      <div class="hx-supportcard">
+        <div class="hx-rate-top"><span>VENİUX · DESTEK FİŞİ</span><span>E-POSTA</span></div>
+        <dl>
+          <div><dt>Nereden?</dt><dd>Aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</dd></div>
+          <div><dt>Ne zaman?</dt><dd><strong>Hafta içi 09:00–18:00</strong><span>Cumartesi 10:00–14:00</span></dd></div>
+          <div><dt>Ne kadar sürede?</dt><dd><strong>Kasa satış yapamıyorsa 2 saat</strong><span>Diğer sorularda 1 iş günü içinde ilk yanıt.</span></dd></div>
+        </dl>
+        <a class="hx-btn hx-support-btn" href="#iletisim">Bize yazın</a>
+      </div>
     </div>
   </div>
 </section>
@@ -151,24 +160,24 @@ $steps=[
 <section class="hx-plain hx-roadmap" id="yol-haritasi">
   <div class="hx-wrap">
     <h2>Yol haritası</h2>
-    <p>Aşağıdakiler henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak.</p>
-    <ul class="hx-list">
-      <li><b>Yapım aşamasında:</b> Mağaza ile bulutun kendiliğinden eşitlenmesi.</li>
-      <li><b>Bugün var, sınırlı:</b> Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</li>
-      <li><b>Planlanıyor:</b> Yazarkasa (yeni nesil ÖKC) entegrasyonu.</li>
-      <li><b>Planlanıyor:</b> e-Fatura, e-Arşiv ve e-İrsaliye.</li>
-      <li><b>Planlanıyor:</b> Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</li>
-      <li><b>Planlanıyor:</b> Teraziye kablolu bağlantı (terazi etiketindeki barkod bugün okunuyor).</li>
-      <li><b>Denenmedi:</b> Trendyol entegrasyonu gerçek mağazada denenmedi; Hepsiburada ve N11 planlanıyor.</li>
-      <li><b>Yok:</b> iPhone uygulaması.</li>
-    </ul>
+    <p class="hx-road-lead">Aşağıdakilerin bir kısmı henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak.</p>
+    <ol class="hx-road">
+      <li data-s="build"><span class="hx-chip">Yapım aşamasında</span><div>Mağaza ile bulutun kendiliğinden eşitlenmesi.</div></li>
+      <li data-s="limited"><span class="hx-chip">Bugün var, sınırlı</span><div>Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</div></li>
+      <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Yazarkasa (yeni nesil ÖKC) entegrasyonu.</div></li>
+      <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>e-Fatura, e-Arşiv ve e-İrsaliye.</div></li>
+      <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</div></li>
+      <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Teraziye kablolu bağlantı (terazi etiketindeki barkod bugün okunuyor).</div></li>
+      <li data-s="untested"><span class="hx-chip">Denenmedi</span><div>Trendyol entegrasyonu gerçek mağazada denenmedi; Hepsiburada ve N11 planlanıyor.</div></li>
+      <li data-s="no"><span class="hx-chip">Yok</span><div>iPhone uygulaması.</div></li>
+    </ol>
   </div>
 </section>
 
 <section class="hx-faq" id="sorular">
   <div class="hx-wrap">
     <h2>Sık sorulanlar</h2>
-    <div class="hx-qa">
+    <div class="hx-qa hx-qacards">
       <div><h3>Ürünleri tek tek mi gireceğim?</h3><p>Hayır. Excel veya CSV dosyanızı yükler, sütunları eşleştirir, önizlemeden sonra aktarırsınız.</p></div>
       <div><h3>Verilerim nerede duruyor?</h3><p>Windows kurulumunda kendi bilgisayarınızda veya ayrı bir sunucuda tutabilirsiniz. <a href="/sunucu-kurulumu">Kurulum seçenekleri</a></p></div>
       <div><h3>Tahmini yapay zekâ mı yapıyor?</h3><p>Hayır, satış hızı ve teslim süresinden yapılan düz bir hesap. Yapay zekâ asistanda ve ürün ile fatura fotoğrafını okumada kullanılır; fotoğraftan okunan hiçbir şey siz onaylamadan stoğa işlenmez.</p></div>

@@ -19,7 +19,7 @@ $related=array_filter(['/stok-yonetimi'=>['Stok','Ürün kartı, hareket geçmi�
 <?php endif;?>
 <?php if($data['shot'])echo pageFrame($data['shot'][0],$data['shot'][1],str_starts_with($data['shot'][0],'product-')?1914:1500,str_starts_with($data['shot'][0],'product-')?860:900);?>
 <?php if($faqs):?>
-<section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa"><?php foreach($faqs as [$question,$answer]):?><div><h3><?=e($question)?></h3><p><?=e($answer)?></p></div><?php endforeach;?></div></div></section>
+<section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa hx-qacards"><?php foreach($faqs as [$question,$answer]):?><div><h3><?=e($question)?></h3><p><?=e($answer)?></p></div><?php endforeach;?></div></div></section>
 <?php endif;?>
 <?php if($path!=='/demo'):?>
 <nav class="hx-more" aria-label="İlgili sayfalar"><div class="hx-wrap"><h2>Rafta başka neler var?</h2><div class="hx-tags"><?php foreach($related as $url=>[$label,$text]):?><a href="<?=e($url)?>"><b><?=e($label)?></b><span><?=e($text)?></span></a><?php endforeach;?></div></div></nav>
