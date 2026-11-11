@@ -7,11 +7,13 @@ import { readSessionUser } from '../../../lib/sessionUser';
 import { criticalKey, idsOf, newItems, whatsappLink, wholesalerText } from '../../../lib/sectorHub.mjs';
 import { EmptyState, MobileTop, money } from '../mobileKit';
 import { NotifyButton, PackGate, errorText, notify, usePolling } from './SectorKit';
+import { sectorPath, useSurface } from './SectorSurface';
 
 const isBoss = () => ['admin', 'manager'].includes(readSessionUser().role);
 
 // "3 numara vida var mı?": tek kutuda ara, ölçü ve kategori düğmeleriyle daralt, raf ve koridor bilgisini saniyesinde gör.
 export function MobileProductSearch() {
+  const { desktop } = useSurface();
   const [q, setQ] = useState(''), [size, setSize] = useState(''), [category, setCategory] = useState('');
   const [facets, setFacets] = useState({ sizes: [], categories: [] }), [result, setResult] = useState(null), [error, setError] = useState(''), [camera, setCamera] = useState(false);
   const seq = useRef(0);
@@ -28,7 +30,7 @@ export function MobileProductSearch() {
   }, [q, size, category]);
   const reset = () => { setQ(''); setSize(''); setCategory(''); };
   return <div className="vm">
-    <MobileTop title="Ürün Ara" flat right={<Link to="/m/kritik" className="vm-iconbtn" aria-label="Kritik stok"><AlertTriangle size={20} /></Link>} />
+    <MobileTop title="Ürün Ara" flat right={<Link to={sectorPath(desktop, '/m/kritik')} className="vm-iconbtn" aria-label="Kritik stok"><AlertTriangle size={20} /></Link>} />
     <PackGate pack="hardware"><div className="vm-body" style={{ marginTop: 0, paddingTop: 16 }}>
       <div className="vm-search"><Search size={18} />
         <input type="search" autoFocus placeholder="Ürün, ölçü, barkod…  örn. 3 numara vida" value={q} onChange={e => setQ(e.target.value)} aria-label="Ürün ara" />

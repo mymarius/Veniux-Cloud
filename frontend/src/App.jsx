@@ -57,6 +57,7 @@ const MobileWaiter = lazy(() => import('./pages/mobile/sector/MobileRestaurant')
 const MobileKitchen = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileKitchen })));
 const MobileOwner = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileOwner })));
 const MobileRestaurantSetup = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileRestaurantSetup })));
+const DesktopSurface = lazy(() => import('./pages/mobile/sector/SectorSurface').then(m => ({ default: m.DesktopSurface })));
 const MobileDeviceTest = lazy(() => import('./pages/mobile/sector/MobileDeviceTest'));
 const MobileLogin = lazy(() => import('./pages/mobile/MobileLogin'));
 const MobileHome = lazy(() => import('./pages/mobile/MobileHome'));
@@ -194,6 +195,15 @@ function AppContent() {
             <Route path="/m/garson" element={<ProtectedRoute><MobileWaiter /></ProtectedRoute>} />
             <Route path="/m/mutfak" element={<ProtectedRoute><MobileKitchen /></ProtectedRoute>} />
             <Route path="/m/esnaf" element={<ProtectedRoute><MobileOwner /></ProtectedRoute>} />
+            <Route path="/sektor/urun-ara" element={<ProtectedRoute><DesktopSurface><MobileProductSearch /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/kritik" element={<ProtectedRoute><DesktopSurface><MobileCritical /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/setler" element={<ProtectedRoute><DesktopSurface><MobileSets /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/raf-etiket" element={<ProtectedRoute><DesktopSurface><MobileShelfTags /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/fiyat-etiket" element={<ProtectedRoute><DesktopSurface><MobilePriceLabel /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/garson" element={<ProtectedRoute><DesktopSurface><MobileWaiter /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/mutfak" element={<ProtectedRoute><DesktopSurface><MobileKitchen /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/esnaf" element={<ProtectedRoute><DesktopSurface><MobileOwner /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/restoran-ayar" element={<ProtectedRoute><DesktopSurface><MobileRestaurantSetup /></DesktopSurface></ProtectedRoute>} />
             <Route path="/m/cihaz-testi" element={<ProtectedRoute><MobileDeviceTest /></ProtectedRoute>} />
             <Route path="/m/restoran-ayar" element={<ProtectedRoute><MobileRestaurantSetup /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />

@@ -92,14 +92,14 @@ const NAVIGATION = [
 ];
 // Sektör paketleri: her biri ayrı satın alınır; yalnız hesapta açık olanın bağlantıları görünür. Ekranlar telefon düzenindedir, masaüstünde de çalışır.
 const SECTOR_NAV = [
-  { name: 'Ürün Ara', path: '/m/urun-ara', icon: SearchIcon, pack: 'hardware' },
-  { name: 'Kritik Stok', path: '/m/kritik', icon: AlertTriangleIcon, pack: 'hardware' },
-  { name: 'Takımlar', path: '/m/setler', icon: Layers, pack: 'tableware' },
-  { name: 'Raf Etiketleri', path: '/m/raf-etiket', icon: Grid3x3, pack: 'tableware' },
-  { name: 'Fiyat Etiketi', path: '/m/fiyat-etiket', icon: PrinterIcon, pack: 'tableware' },
-  { name: 'Garson', path: '/m/garson', icon: Utensils, pack: 'restaurant' },
-  { name: 'Mutfak', path: '/m/mutfak', icon: ChefHat, pack: 'restaurant' },
-  { name: 'Esnaf Paneli', path: '/m/esnaf', icon: ClipboardCheck, pack: 'restaurant' }
+  { name: 'Ürün Ara', path: '/sektor/urun-ara', icon: SearchIcon, pack: 'hardware' },
+  { name: 'Kritik Stok', path: '/sektor/kritik', icon: AlertTriangleIcon, pack: 'hardware' },
+  { name: 'Takımlar', path: '/sektor/setler', icon: Layers, pack: 'tableware' },
+  { name: 'Raf Etiketleri', path: '/sektor/raf-etiket', icon: Grid3x3, pack: 'tableware' },
+  { name: 'Fiyat Etiketi', path: '/sektor/fiyat-etiket', icon: PrinterIcon, pack: 'tableware' },
+  { name: 'Garson', path: '/sektor/garson', icon: Utensils, pack: 'restaurant' },
+  { name: 'Mutfak', path: '/sektor/mutfak', icon: ChefHat, pack: 'restaurant' },
+  { name: 'Esnaf Paneli', path: '/sektor/esnaf', icon: ClipboardCheck, pack: 'restaurant' }
 ];
 const ALL_ITEMS = NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]);
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };

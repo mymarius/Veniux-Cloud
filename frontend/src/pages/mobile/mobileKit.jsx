@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, LogOut, Mail, UserRound, HelpCircle } from 'lucide-react';
 import './mobile-hub.css';
+import { sectorPath, useSurface } from './sector/SectorSurface';
 import release from '../../data/programRelease.json';
 import { readSessionUser } from '../../lib/sessionUser';
 import { initials, roleLabel } from '../../lib/mobileHub.mjs';
@@ -14,6 +15,9 @@ export const sessionScope = () => { const u = readSessionUser(); return String(u
 // Üst bant: ana ekranda marka ve profil; iç ekranlarda geri ve başlık.
 export function MobileTop({ title, back = '/m', right, children, flat = false, onBack }) {
   const navigate = useNavigate();
+  const { desktop } = useSurface();
+  // Masaüstü yüzeyinde telefon üst bandı yerine sayfa başlığı gösterilir; Veniux düzeni kendi menüsünü taşır.
+  if (desktop) return title ? <header className="sd-head">{onBack ? <button type="button" className="sd-back" onClick={onBack}>← Geri</button> : back && back !== '/m' ? <Link className="sd-back" to={sectorPath(true, back)}>← Geri</Link> : null}<h1>{title}</h1><div className="sd-head-actions">{right}</div></header> : null;
   return <header className={'vm-top' + (flat ? ' flat' : '')}>
     {title
       ? <><button type="button" className="vm-iconbtn" aria-label="Geri" onClick={() => (onBack ? onBack() : window.history.length > 1 ? navigate(-1) : navigate(back))}><ChevronLeft size={22} /></button><h1>{title}</h1><div className="vm-top-actions">{right}</div></>

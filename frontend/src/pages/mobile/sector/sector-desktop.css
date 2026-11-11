@@ -1,0 +1,35 @@
+/* Sektör ekranlarının masaüstü yüzeyi (/sektor/...): telefon düzenini geniş çalışma alanına çevirir. Telefon (/m/...) bundan etkilenmez. */
+.sd{--vm-brand:#17263a;--vm-brand-2:#e4570a;--vm-deep:#17263a;--vm-accent:#e4570a;--vm-bg:transparent;--vm-card:#fffdf8;--vm-line:#d6c9b2;--vm-text:#17263a;--vm-muted:#4d5a6b;--vm-good:#0d7a57;--vm-bad:#b92c1c;max-width:1240px;margin:0 auto;padding:6px 4px 48px}
+.sd .vm{max-width:none;min-height:0;margin:0;padding-bottom:0;background:transparent}
+.sd .vm-body{max-width:none!important;margin:0!important;padding:0!important}
+.sd-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:0 0 22px;padding-bottom:16px;border-bottom:1px dashed #6c7d96}
+.sd-head h1{flex:1;min-width:0;margin:0;font-size:clamp(30px,3.2vw,44px);font-weight:800;font-stretch:80%;line-height:1.05;color:#17263a}
+.sd-head h1:after{content:'';display:block;width:56px;height:5px;margin-top:12px;background:#e4570a}
+.sd-back{font-weight:700;color:#17263a;text-decoration:underline;text-underline-offset:4px}
+.sd-back:hover{color:#e4570a}
+.sd-head-actions{display:flex;gap:10px;align-items:center}
+.sd .vm-iconbtn{width:44px;height:44px;border-radius:0;background:#fffdf8;border:1px solid #17263a;color:#17263a}
+.sd .vm-iconbtn:hover{background:#e4570a;border-color:#e4570a;color:#fff}
+.sd .vm-search{max-width:720px;border-radius:0;border:1px solid #b5a88f;background:#fff;box-shadow:none;padding:6px 12px}
+.sd .vm-search:focus-within{border-color:#e4570a;box-shadow:0 0 0 3px #e4570a44}
+.sd .vm-search input{font-size:17px}
+.sd .vm-card{border-radius:0;border:1px solid #c9bda6;background:#fffdf8;box-shadow:none;padding:22px}
+.sd .vm-label{margin:26px 0 10px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#e4570a}
+.sd .vm-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;background:transparent;border:0;border-radius:0;box-shadow:none}
+.sd .vm-row{border:1px solid #c9bda6;border-radius:0;background:#fffdf8;padding:14px 16px;transition:border-color .2s,translate .2s}
+.sd .vm-row:hover{border-color:#17263a;translate:0 -2px}
+.sd .vm-btn{width:auto;min-width:180px;border-radius:3px;font-weight:700;padding:0 22px}
+.sd .vm-btn.soft,.sd .vm-btn.ghost{background:transparent;border:2px solid #17263a;color:#17263a}
+.sd .vm-btn.soft:hover,.sd .vm-btn.ghost:hover{background:#17263a;color:#fff}
+.sd .vm-note{max-width:60em}
+.sd .vm-err{border-radius:0}
+.sd .vm-modgrid,.sd .vm-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.sd .vm-dialog,.sd .vm-sheet{border-radius:0}
+@media (prefers-reduced-motion:reduce){.sd .vm-row{transition:none}.sd .vm-row:hover{translate:none}}
+/* Kartlar masaüstünde ızgarada yan yana akar; arama kutusu, süzgeçler ve başlıklar tam genişlikte kalır. */
+.sd .vm-body{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;align-items:start}
+.sd .vm-body>:not(.vm-card){grid-column:1/-1;margin-top:0}
+.sd .vm-body>.vm-search{max-width:720px}
+.sd .vm-body .vm-card{height:100%}
+@media (max-width:1100px){.sd .vm-body{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
+.sd .vm-body{background:transparent!important;border-radius:0!important;box-shadow:none!important}

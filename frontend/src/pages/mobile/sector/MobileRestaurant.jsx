@@ -5,6 +5,7 @@ import api from '../../../api/client';
 import { TYPE_LABELS, cartAdd, cartCount, cartNote, cartPayload, cartTotal, feedMessage, kitchenNew, waitLevel, waitMinutes } from '../../../lib/sectorHub.mjs';
 import { EmptyState, MobileTop, money } from '../mobileKit';
 import { NotifyButton, PackGate, beep, errorText, notify, useAsync, usePolling } from './SectorKit';
+import { sectorPath, useSurface } from './SectorSurface';
 
 const STORE_KEY = 'vx-m-store';
 const storedWarehouse = () => { try { return Number(localStorage.getItem(STORE_KEY)) || undefined; } catch { return undefined; } };
@@ -105,6 +106,7 @@ export function MobileKitchen() {
 
 // Esnafın cebi: gün sonu özeti (kaç pide, kaç motor) ve siparişi girildiği anda titreyen "sipariş geldi" uyarısı.
 export function MobileOwner() {
+  const { desktop } = useSurface();
   const summary = useAsync(async () => (await api.get('/sector/restaurant/summary')).data, []);
   const [feed, setFeed] = useState([]), [banner, setBanner] = useState('');
   const last = useRef(0);
@@ -126,7 +128,7 @@ export function MobileOwner() {
         {data.products.length === 0 ? <p className="vm-note">Henüz sipariş yok.</p> : <div className="vm-list">{data.products.map(p => <div key={p.product_id} className="vm-row"><span className="grow">{p.name}</span><b>{p.quantity}</b><span className="vm-note" style={{ minWidth: 80, textAlign: 'right' }}>{money(p.revenue)}</span></div>)}</div>}</>}
       {feed.length > 0 && <><div className="vm-label"><span>Gelen siparişler</span></div><div className="vm-list">{feed.map(f => <div key={f.order_id} className="vm-row"><span className="grow">{f.table || TYPE_LABELS[f.type]}<small>{f.text}</small></span><b>{money(f.total)}</b></div>)}</div></>}
       <div style={{ marginTop: 14 }}><NotifyButton /></div>
-      <Link to="/m/restoran-ayar" className="vm-btn ghost" style={{ marginTop: 10 }}>Masa, menü ve reçete ayarları</Link>
+      <Link to={sectorPath(desktop, '/m/restoran-ayar')} className="vm-btn ghost" style={{ marginTop: 10 }}>Masa, menü ve reçete ayarları</Link>
     </div></PackGate>
   </div>;
 }
