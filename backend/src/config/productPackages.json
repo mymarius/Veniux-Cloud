@@ -204,6 +204,66 @@
       "annual_cents": null,
       "discount_percent": 0,
       "available": true
+    },
+    {
+      "code": "RETAIL_HIRDAVAT",
+      "family": "retail",
+      "name": "Hırdavat Paketi",
+      "modules": [
+        "stock",
+        "pos",
+        "hardware"
+      ],
+      "limits": {
+        "users": 10,
+        "warehouses": 2,
+        "registers": 2,
+        "devices": 6
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "RETAIL_ZUCCACIYE",
+      "family": "retail",
+      "name": "Züccaciye Paketi",
+      "modules": [
+        "stock",
+        "pos",
+        "tableware"
+      ],
+      "limits": {
+        "users": 10,
+        "warehouses": 2,
+        "registers": 2,
+        "devices": 6
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
+    },
+    {
+      "code": "RETAIL_PIDE",
+      "family": "retail",
+      "name": "Pide ve Restoran Paketi",
+      "modules": [
+        "stock",
+        "pos",
+        "restaurant"
+      ],
+      "limits": {
+        "users": 10,
+        "warehouses": 2,
+        "registers": 2,
+        "devices": 6
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
     }
   ]
 }

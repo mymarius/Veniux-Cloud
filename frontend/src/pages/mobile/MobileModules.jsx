@@ -4,13 +4,15 @@ import { ChevronRight, Search } from 'lucide-react';
 import useCustomerSetup from '../../hooks/useCustomerSetup';
 import { moduleForPath } from '../../lib/customerExperience.mjs';
 import { MobileTop, EmptyState } from './mobileKit';
-import { visibleModules } from './moduleList';
+import { sectorFor, visibleModules } from './moduleList';
+import { usePacks } from './sector/SectorKit';
 
 // "Tüm modüller": arama kutusu ve iki sütunlu modül kartları.
 export default function MobileModules() {
   const { setup } = useCustomerSetup();
   const [q, setQ] = useState('');
-  const all = visibleModules(setup, moduleForPath);
+  const packs = usePacks();
+  const all = [...visibleModules(setup, moduleForPath), ...sectorFor(packs)];
   const norm = s => s.toLocaleLowerCase('tr-TR');
   const shown = all.filter(m => norm(m.title).includes(norm(q.trim())));
   return <div className="vm">

@@ -8,7 +8,7 @@ import {
   ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings,
   ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard,
   Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen
-} from 'lucide-react';
+, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon} from 'lucide-react';
 import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
@@ -17,6 +17,7 @@ import { useToast } from './Toast';
 import OwnerWelcome from './OwnerWelcome';
 import ReleaseNotes, { PROGRAM_VERSION } from './ReleaseNotes';
 import release from '../data/programRelease.json';
+import { useSectorPacks } from '../lib/useSectorPacks';
 import { evaluateCompatibility } from '../lib/versionCompat.mjs';
 import useCustomerSetup from '../hooks/useCustomerSetup';
 import {personalizeNavigation,PROFILES,profileActions} from '../lib/customerExperience.mjs';
@@ -89,6 +90,17 @@ const NAVIGATION = [
     ]
   }
 ];
+// Sektör paketleri: her biri ayrı satın alınır; yalnız hesapta açık olanın bağlantıları görünür. Ekranlar telefon düzenindedir, masaüstünde de çalışır.
+const SECTOR_NAV = [
+  { name: 'Ürün Ara', path: '/m/urun-ara', icon: SearchIcon, pack: 'hardware' },
+  { name: 'Kritik Stok', path: '/m/kritik', icon: AlertTriangleIcon, pack: 'hardware' },
+  { name: 'Takımlar', path: '/m/setler', icon: Layers, pack: 'tableware' },
+  { name: 'Raf Etiketleri', path: '/m/raf-etiket', icon: Grid3x3, pack: 'tableware' },
+  { name: 'Fiyat Etiketi', path: '/m/fiyat-etiket', icon: PrinterIcon, pack: 'tableware' },
+  { name: 'Garson', path: '/m/garson', icon: Utensils, pack: 'restaurant' },
+  { name: 'Mutfak', path: '/m/mutfak', icon: ChefHat, pack: 'restaurant' },
+  { name: 'Esnaf Paneli', path: '/m/esnaf', icon: ClipboardCheck, pack: 'restaurant' }
+];
 const ALL_ITEMS = NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]);
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };
 
@@ -153,12 +165,15 @@ export function Layout({ children }) {
     .filter(group => !group.modules || group.modules.includes(moduleType))
     .map(group => ({ ...group, items: group.items.filter(item => (!item.platformOnly || user.is_platform_admin)&&(!item.cloudOnly||window.veniuxDesktop?.apiBase==='https://business.veniux.com/api'||window.VeniuxAndroid?.isCloud?.())) })),customerSetup,location.pathname),
   [moduleType, user.is_platform_admin,customerSetup,location.pathname]);
+  const sectorPacks = useSectorPacks();
+  const sectorItems = SECTOR_NAV.filter(item => sectorPacks && sectorPacks[item.pack]);
+  const navGroups = useMemo(() => (sectorItems.length ? [...groups.slice(0, -1), { id: 'sector', group: 'Sektör paketleri', items: sectorItems }, ...groups.slice(-1)] : groups), [groups, sectorItems.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Varsayılan olarak yalnızca aktif sayfanın bölümü açıktır; başka bir
   // bölüme geçildiğinde menü yine sadeleşir.
   const [openSections, setOpenSections] = useState({});
   const [showMore, setShowMore] = useState({});
-  const activeGroupId = groups.find(g => [...g.items, ...(g.more || [])].some(isItemActive))?.id;
+  const activeGroupId = navGroups.find(g => [...g.items, ...(g.more || [])].some(isItemActive))?.id;
   const isSectionOpen = id => openSections[id] === true;
   const toggleSection = id => setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
   useEffect(() => { setOpenSections(activeGroupId ? { [activeGroupId]: true } : {}); }, [activeGroupId]);
@@ -224,7 +239,7 @@ export function Layout({ children }) {
         </button>
 
         <nav className="sb-nav">
-          {groups.map(group => {
+          {navGroups.map(group => {
             const open = !group.group || isSectionOpen(group.id);
             const extraActive = (group.more || []).some(isItemActive);
             const moreOpen = showMore[group.id] || extraActive;

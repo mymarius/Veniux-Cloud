@@ -12,11 +12,11 @@ export const SUPPORT_URL = import.meta.env.VITE_SUPPORT_URL || 'https://veniux.c
 export const sessionScope = () => { const u = readSessionUser(); return String(u.tenant_id ?? u.tenantId ?? 't') + ':' + String(u.id ?? u.userId ?? 'u'); };
 
 // Üst bant: ana ekranda marka ve profil; iç ekranlarda geri ve başlık.
-export function MobileTop({ title, back = '/m', right, children, flat = false }) {
+export function MobileTop({ title, back = '/m', right, children, flat = false, onBack }) {
   const navigate = useNavigate();
   return <header className={'vm-top' + (flat ? ' flat' : '')}>
     {title
-      ? <><button type="button" className="vm-iconbtn" aria-label="Geri" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate(back))}><ChevronLeft size={22} /></button><h1>{title}</h1><div className="vm-top-actions">{right}</div></>
+      ? <><button type="button" className="vm-iconbtn" aria-label="Geri" onClick={() => (onBack ? onBack() : window.history.length > 1 ? navigate(-1) : navigate(back))}><ChevronLeft size={22} /></button><h1>{title}</h1><div className="vm-top-actions">{right}</div></>
       : children}
   </header>;
 }

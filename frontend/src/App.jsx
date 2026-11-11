@@ -48,6 +48,15 @@ const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 // Mobil mağaza uygulaması (Android arayüzü veya cihazda açılan "mobil görünüm"): kendi üst bandı olan /m ekranları.
 const MOBILE_UI = !!window.veniuxMobile || (() => { try { return localStorage.getItem('veniux-mobile-ui') === '1'; } catch { return false; } })();
+const MobileProductSearch = lazy(() => import('./pages/mobile/sector/MobileHardware').then(m => ({ default: m.MobileProductSearch })));
+const MobileCritical = lazy(() => import('./pages/mobile/sector/MobileHardware').then(m => ({ default: m.MobileCritical })));
+const MobileSets = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileSets })));
+const MobileShelfTags = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileShelfTags })));
+const MobilePriceLabel = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobilePriceLabel })));
+const MobileWaiter = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileWaiter })));
+const MobileKitchen = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileKitchen })));
+const MobileOwner = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileOwner })));
+const MobileRestaurantSetup = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileRestaurantSetup })));
 const MobileLogin = lazy(() => import('./pages/mobile/MobileLogin'));
 const MobileHome = lazy(() => import('./pages/mobile/MobileHome'));
 const MobileModules = lazy(() => import('./pages/mobile/MobileModules'));
@@ -176,6 +185,15 @@ function AppContent() {
             <Route path="/m/dokumanlar" element={<ProtectedRoute><MobileDocs /></ProtectedRoute>} />
             <Route path="/m/surum-notlari" element={<ProtectedRoute><MobileReleaseNotes /></ProtectedRoute>} />
             <Route path="/m/destek" element={<ProtectedRoute><MobileSupport /></ProtectedRoute>} />
+            <Route path="/m/urun-ara" element={<ProtectedRoute><MobileProductSearch /></ProtectedRoute>} />
+            <Route path="/m/kritik" element={<ProtectedRoute><MobileCritical /></ProtectedRoute>} />
+            <Route path="/m/setler" element={<ProtectedRoute><MobileSets /></ProtectedRoute>} />
+            <Route path="/m/raf-etiket" element={<ProtectedRoute><MobileShelfTags /></ProtectedRoute>} />
+            <Route path="/m/fiyat-etiket" element={<ProtectedRoute><MobilePriceLabel /></ProtectedRoute>} />
+            <Route path="/m/garson" element={<ProtectedRoute><MobileWaiter /></ProtectedRoute>} />
+            <Route path="/m/mutfak" element={<ProtectedRoute><MobileKitchen /></ProtectedRoute>} />
+            <Route path="/m/esnaf" element={<ProtectedRoute><MobileOwner /></ProtectedRoute>} />
+            <Route path="/m/restoran-ayar" element={<ProtectedRoute><MobileRestaurantSetup /></ProtectedRoute>} />
             <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
             <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />

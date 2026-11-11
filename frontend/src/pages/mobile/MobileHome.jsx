@@ -9,7 +9,9 @@ import { readSessionUser } from '../../lib/sessionUser';
 import { asList } from '../../lib/stockAnalytics';
 import { greeting, roleLabel } from '../../lib/mobileHub.mjs';
 import { HomeTop } from './mobileKit';
-import { HOME_TILES, visibleModules } from './moduleList';
+import { HOME_TILES, sectorFor, visibleModules } from './moduleList';
+import { usePacks } from './sector/SectorKit';
+import { useCriticalWatcher } from './sector/MobileHardware';
 
 // Afiş: güncel sürüm notları ve kısa ipuçları, birkaç saniyede bir döner.
 const TIPS = [
@@ -20,6 +22,7 @@ const TIPS = [
 export default function MobileHome() {
   const user = readSessionUser();
   const { setup } = useCustomerSetup();
+  const packs = usePacks(), critical = useCriticalWatcher(Boolean(packs?.hardware));
   const [unread, setUnread] = useState(0), [slide, setSlide] = useState(0);
   const latest = release.releases?.[0];
   const slides = [...(latest ? [{ title: 'Sürüm ' + latest.version + ': ' + latest.title, text: latest.items?.[0] || '' }] : []), ...TIPS];
@@ -40,8 +43,9 @@ export default function MobileHome() {
       </div>
       <div className="vm-label"><span>İşlemler</span><Link to="/m/moduller">Tüm modüller</Link></div>
       <nav className="vm-tiles" aria-label="İşlemler">
-        {modules.slice(0, HOME_TILES).map(({ key, title, to, Icon, tone }) => <Link key={key} to={to} className="vm-tile"><i className={'vm-tone-' + tone}><Icon size={26} /></i>{title}</Link>)}
+        {[...modules.slice(0, HOME_TILES), ...sectorFor(packs)].map(({ key, title, to, Icon, tone }) => <Link key={key} to={to} className="vm-tile"><i className={'vm-tone-' + tone}><Icon size={26} /></i>{title}</Link>)}
       </nav>
+      {critical && critical.count > 0 && <Link to="/m/kritik" className="vm-card" role="status" style={{ display: 'block', textDecoration: 'none', color: 'inherit', borderColor: 'var(--vm-accent)', marginTop: 16 }}><b>{critical.count} ürün kritik seviyede{critical.empty ? ' (' + critical.empty + ' tanesi bitti)' : ''}</b><div className="vm-note">{critical.items[0].message}</div></Link>}
       <div className="vm-label"><span>Duyurular</span></div>
       <section className="vm-banner" aria-live="polite">
         <b>{current.title}</b><span>{current.text}</span>

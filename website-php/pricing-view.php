@@ -82,6 +82,20 @@ $compare=[
   </div>
 </section>
 
+<section class="pr-sector" id="sektor-paketleri" aria-label="Sektör paketleri"><div class="hx-wrap">
+  <h2>Sektörünüze özel paketler</h2>
+  <p class="pr-sector-lead">Her sektör paketi ayrı satın alınır ve kendi fiyatıyla teklif edilir. Genel paketinize eklenir; ihtiyacınız olmayan özellik için ödeme yapmazsınız.</p>
+  <div class="pr-sector-grid">
+    <article><h3>Hırdavat</h3><p>Telefonla ürün arama: “3 numara vida var mı?” sorusuna koridor, raf ve kutu sayısıyla saniyede cevap.</p>
+      <ul><li>Ölçü ve kategori filtresiyle binlerce ürün arasında hızlı arama</li><li>Telefon kamerasıyla barkod okuma</li><li>Raf, koridor ve kat bilgisi</li><li>Kritik stok uyarısı ve toptancıya WhatsApp ile tek dokunuşla yazma</li></ul></article>
+    <article><h3>Züccaciye</h3><p>Takım ve set ürünlerde eksik parçayı raftan önce siz öğrenin.</p>
+      <ul><li>Takım eşleme: “6 kişilik setin 2 bıçağı eksik” uyarısı</li><li>Kırılgan bölge, vitrin, üst raf gibi hassas raf etiketleri ve yanlış yerleştirme uyarısı</li><li>Fiyat güncelleyince raf etiketini yazıcıya gönderme</li></ul></article>
+    <article><h3>Pide ve restoran</h3><p>Garson siparişi telefondan girer, mutfak anında öter, stok o an düşer.</p>
+      <ul><li>Garson modu, masa ve paket/motor siparişi</li><li>Mutfak ekranı ve sesli uyarı</li><li>Reçeteye göre malzeme stoğu (pide başına hamur, kaşar)</li><li>Esnaf paneli: gün sonunda kaç pide, kaç motor gitti; sipariş geldiğinde telefona uyarı</li></ul></article>
+  </div>
+  <p class="pr-sector-cta"><a class="button primary" href="/#iletisim">Sektör paketi için teklif isteyin</a></p>
+</div></section>
+
 <section class="pr-value"><div class="hx-wrap"><h2>Kaybolan stok da bir maliyettir</h2><p>Rafta görünüp sistemde olmayan, sistemde görünüp rafta olmayan her ürün ya kaçan bir satış ya da bağlanmış bir paradır. Son kullanma tarihi geçen ürün çöpe gider; sayılmayan fark ay sonunda “nereye gitti” sorusuna dönüşür. Veniux bu farkları ay sonunda değil, oluştuğu gün gösterir: kritik stok, yaklaşan miat, sayım farkı ve kayıp şüphesi uyarısı her pakette vardır. Kaybın ne kadar azalacağı işletmenize bağlıdır; biz ölçebileceğiniz bir yer veriyoruz.</p></div></section>
 
 <section class="pr-ledger">

@@ -575,3 +575,15 @@ main a:not([class]){transition:color .15s}
 .pr-ledger .hx-table-scroll{overflow-y:hidden}
 .pr-table tbody th{font-size:16px;font-weight:700;font-stretch:normal;line-height:1.3}
 @media(min-width:941px){.pr-excluded{position:sticky;top:120px}}
+
+/* Sektör paketleri (fiyatlandırma): üç kart, sakin beyaz zemin, site mavisi vurgu. */
+.pr-sector{padding:72px 0;border-top:1px solid #e0e6eb}
+.pr-sector h2{font-size:clamp(28px,3.2vw,40px);letter-spacing:-1.2px;font-weight:500;margin:0 0 12px}
+.pr-sector-lead{max-width:720px;color:#4c6072;line-height:1.8;margin:0 0 28px}
+.pr-sector-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.pr-sector-grid article{border:1px solid #d7e2ef;border-radius:6px;padding:24px;background:#fff}
+.pr-sector-grid h3{margin:0 0 8px;font-size:20px;color:#165da4}
+.pr-sector-grid p{margin:0 0 14px;color:#4c6072;line-height:1.7;font-size:15px}
+.pr-sector-grid ul{margin:0;padding-left:18px;color:#182939;line-height:1.7;font-size:14px}
+.pr-sector-cta{margin-top:28px}
+@media (max-width:860px){.pr-sector-grid{grid-template-columns:1fr}.pr-sector{padding:48px 0}}
