@@ -4,6 +4,7 @@ module.exports = (req, res, next) => {
   req.requestId = randomUUID();
   res.setHeader('X-Request-Id', req.requestId);
   res.setHeader('Cache-Control', 'no-store');
-  res.on('finish',()=>require('../services/platformDiagnostics').record(req,res.statusCode));
+  // Tanılama kaydı en iyi çabadır: kaydın kendisindeki bir hata (ör. kapanan ortam) isteği veya süreci asla düşürmemeli.
+  res.on('finish',()=>{try{require('../services/platformDiagnostics').record(req,res.statusCode);}catch{/* tanılama yazılamadı */}});
   next();
 };

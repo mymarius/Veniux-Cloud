@@ -63,6 +63,8 @@ async function selfTest(user, options) {
 // ---------- Kritik stok özeti ----------
 const timers = new Map();
 function lowStockChanged(tenantId) {
+  // Test ortamında zamanlayıcı kurulmaz: ortam kapandıktan sonra tetiklenip süreci hatalı bitirmesin (testler digest'i doğrudan çağırır).
+  if (process.env.NODE_ENV === 'test' && !process.env.PUSH_DIGEST_TIMER) return;
   if (timers.has(tenantId)) return;
   const timer = setTimeout(() => { timers.delete(tenantId); digest(tenantId).catch(() => {}); }, 5000);
   if (timer.unref) timer.unref();
