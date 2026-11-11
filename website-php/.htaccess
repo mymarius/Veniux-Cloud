@@ -12,5 +12,12 @@ RewriteRule ^ index.php [L]
 <FilesMatch "^(?:[a-z]+\.[a-f0-9]{12}\.(?:css|js)|logo-(?:[0-9]+|hero(?:-[0-9]+)?)-v[0-9]+\.webp|product-(?:barcode|warehouse|lot|expiry|terminal)-v[0-9]+\.jpg|sector-(?:market|kirtasiye|hirdavat|kafe)-v[0-9]+\.jpg|manrope-v1\.woff2|hostimux-sponsor-v1\.png)$">
 Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
+# Sürüm parametreli betik ve stil dosyaları (?v=...) bir gün önbellekte kalır, sonra doğrulanır; yazı tipi ve görseller 30 gün.
+<FilesMatch "^(?:home\.(?:css|js)|chat(?:-admin)?\.js|veniux-site\.css|cookie-consent\.css|release-notes\.js)$">
+Header setifempty Cache-Control "public, max-age=86400, must-revalidate"
+</FilesMatch>
+<FilesMatch "\.(?:woff2|png|webp|jpg|jpeg|svg|ico)$">
+Header setifempty Cache-Control "public, max-age=2592000"
+</FilesMatch>
 </IfModule>
 

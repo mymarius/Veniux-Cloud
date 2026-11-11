@@ -65,6 +65,9 @@ $GLOBALS['nonce'] = $nonce;
 $assetManifest=require __DIR__.'/asset-manifest.php';
 $assetGroup=['/program-indir'=>'program','/fiyatlandirma'=>'pricing','/guncelleme-notlari'=>'notes','/surum-arsivi'=>'notes'][$path]??'main';
 
+header_remove('X-Powered-By');
+if(($_SERVER['HTTPS']??'')==='on')header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");

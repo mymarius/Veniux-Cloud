@@ -114,4 +114,4 @@ html:root[data-design='veniux'][data-mobile='true'] .mobile-connection-error but
 @media(min-width:1024px){html:root[data-design='veniux'][data-mobile='true'] .enterprise-shell .sb{width:264px;border-radius:0}}
 /* Asistan başlığı durum çubuğuna girmesin; ses uyarısı hata gibi kırmızı görünmesin */
 html:root[data-design='veniux'][data-mobile='true'] .veniux-chat header{padding-top:max(14px,env(safe-area-inset-top))}
-.veniux-chat-note{margin:12px 0;padding:10px 12px;background:#fff4d6;border-left:4px solid #e4570a;color:#5b3a05;font-size:13px;line-height:1.5}
+.veniux-chat-note{margin:12px 0;padding:10px 12px;background:#fff4d6;border-left:4px solid #cf4b06;color:#5b3a05;font-size:13px;line-height:1.5}

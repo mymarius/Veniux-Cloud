@@ -98,25 +98,26 @@ html:root[data-design] .vm .vm-panel .vm-price-in input{border:1.5px solid var(-
 .vm-login .opts{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;color:#4c6072;margin:4px 0 6px}.vm-login .opts a{color:#165da4;font-weight:700;text-decoration:none}
 
 /* ===== Telefon: web sitesiyle aynı dil (kâğıt zemin, lacivert, turuncu vurgu, kare köşe, noktalı fiş çizgileri) ===== */
-.vm,.vm-login{--vm-brand:#17263a;--vm-brand-2:#2c415c;--vm-deep:#10192a;--vm-accent:#e4570a;--vm-bg:#f4eee2;--vm-card:#fffdf8;--vm-line:#d6c9b2;--vm-text:#17263a;--vm-muted:#4d5a6b;--vm-good:#0d7a57;--vm-bad:#b92c1c;background:var(--vm-bg)}
+.vm,.vm-login{--vm-brand:#17263a;--vm-brand-2:#2c415c;--vm-deep:#10192a;--vm-accent:#cf4b06;--vm-bg:#f4eee2;--vm-card:#fffdf8;--vm-line:#d6c9b2;--vm-text:#17263a;--vm-muted:#4d5a6b;--vm-good:#0d7a57;--vm-bad:#b92c1c;background:var(--vm-bg)}
 .vm-top{background:#17263a;position:relative}
-.vm-top:after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,#e4570a 0 14px,transparent 14px 20px)}
+.vm-top:after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,#cf4b06 0 14px,transparent 14px 20px)}
 .vm-top h1{font-weight:800;font-stretch:78%;font-size:22px}
 .vm-brand{font-weight:900;font-stretch:72%}
-.vm-brand i{color:#e4570a}
+.vm-brand i{color:#b23f04}
 .vm-iconbtn{border-radius:0;background:#ffffff1f}
 .vm-card,.vm-mod,.vm-row,.vm-list{border-radius:0;border-color:#c9bda6}
 .vm-card,.vm-mod{box-shadow:none}
 .vm-search{border-radius:0;border-color:#b5a88f}
-.vm-btn{border-radius:3px;background:#e4570a;font-weight:700}
+.vm-btn{border-radius:3px;background:#cf4b06;font-weight:700}
 .vm-btn.ghost,.vm-btn.soft{background:transparent;border:2px solid #17263a;color:#17263a}
-html:root[data-design] .vm .vm-panel .vm-btn{background:#e4570a!important;border-radius:3px!important}
+html:root[data-design] .vm .vm-panel .vm-btn{background:#cf4b06!important;border-radius:3px!important}
 .vm-banner{border-radius:0;background:#17263a}
-.vm-banner:after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(90deg,#e4570a 0 14px,transparent 14px 20px)}
+.vm-banner:after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(90deg,#cf4b06 0 14px,transparent 14px 20px)}
 .vm-promo{border-radius:0}
-.vm-promo.a{background:#17263a}.vm-promo.b{background:#e4570a}
-.vm-tone-blue,.vm-tone-sky{background:#17263a}.vm-tone-teal{background:#0d7a57}.vm-tone-orange{background:#e4570a}.vm-tone-violet{background:#4d5a6b}.vm-tone-rose{background:#b92c1c}
+.vm-promo.a{background:#17263a}.vm-promo.b{background:#cf4b06}
+.vm-tone-blue,.vm-tone-sky{background:#17263a}.vm-tone-teal{background:#0d7a57}.vm-tone-orange{background:#cf4b06}.vm-tone-violet{background:#4d5a6b}.vm-tone-rose{background:#b92c1c}
 .vm-tile>i,.vm-mod>i{border-radius:0}
-.vm-fab{border-radius:0;background:#e4570a}
-.vm-login .help a{color:#e4570a}
-.vm-label span{letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#e4570a;font-size:12px}
+.vm-fab{border-radius:0;background:#cf4b06}
+.vm-login .help a{color:#b23f04}
+.vm-label span{letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#b23f04;font-size:12px}
+html:root[data-theme='dark'] .vm-label span,html:root[data-theme='dark'] .vm-login .help a{color:#ff9a5a}

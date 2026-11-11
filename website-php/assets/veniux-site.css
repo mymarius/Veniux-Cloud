@@ -1,5 +1,5 @@
 /* Veniux sitesi. Kart, gölge, gradyan ve animasyon yok: çizgi, tablo, gerçek ekran görüntüsü ve okunur yazı. */
-:root{--bg:#f4eee2;--line:#d6c9b2;--text:#17263a;--soft:#4d5a6b;--accent:#b84504;--button:#e4570a;--serif:Archivo,'Arial Narrow',Arial,sans-serif;--sans:Archivo,'Segoe UI',system-ui,Arial,sans-serif}
+:root{--bg:#f4eee2;--line:#d6c9b2;--text:#17263a;--soft:#4d5a6b;--accent:#b84504;--button:#cf4b06;--serif:Archivo,'Arial Narrow',Arial,sans-serif;--sans:Archivo,'Segoe UI',system-ui,Arial,sans-serif}
 *{box-sizing:border-box}
 html{scroll-padding-top:70px}
 body{margin:0;background:var(--bg);color:var(--text);font:400 17px/1.65 var(--sans)}

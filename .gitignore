@@ -42,3 +42,6 @@ ftp-parola*
 
 # Geliştirme ortamında oluşan güvenlik kopyaları: veritabanı, .env ve lisans özel anahtarı içerir.
 backend/recovery/
+
+# Yerel testlerin bıraktığı hız sınırı sayaçları
+website-php/rate-*
