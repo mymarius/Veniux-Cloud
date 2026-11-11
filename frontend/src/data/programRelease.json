@@ -1,8 +1,17 @@
 {
-  "version": "2.4.61",
+  "version": "2.4.62",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.62",
+      "date": "11 Kasım 2026",
+      "title": "Yeni mobil mağaza uygulaması",
+      "items": [
+        "A101 SOS düzeninde yeni mobil ana ekran: modül ızgarası, mağazalar ve mağaza detayı, kamerayla etiket kontrol ve fiyat gör.",
+        "Ürün listesi, bildirimler, kılavuzlar ve profil paneli eklendi; ürün listesinden etiket yazdırılır."
+      ]
+    },
     {
       "version": "2.4.61",
       "date": "11 Kasım 2026",
