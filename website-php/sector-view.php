@@ -10,7 +10,7 @@ $sector=$sectorPages[$path];
 </div></section>
 <section class="hx-plain hx-sector-benefits"><div class="hx-wrap">
   <h2>Ne kazandırır?</h2>
-  <ul class="hx-list"><?php foreach($sector['benefits'] as $benefit):?><li><?=e($benefit)?></li><?php endforeach;?></ul>
+  <div class="hx-qa hx-qacards"><?php foreach($sector['benefits'] as $benefit):?><div><p><?=e($benefit)?></p></div><?php endforeach;?></div>
   <?php if(!empty($sector['limits'])):?><p class="hx-sector-limit"><b>Sınır:</b> <?=e($sector['limits'])?></p><?php endif;?>
 </div></section>
 <?=pageFrame($sector['image'],$sector['alt'],1366,800)?>

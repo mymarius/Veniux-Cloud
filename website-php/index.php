@@ -182,7 +182,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
-    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
+    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
     <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261113a"><script src="/assets/home.js?v=20261113a" defer></script><script src="/assets/chat.js?v=20261113a" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
