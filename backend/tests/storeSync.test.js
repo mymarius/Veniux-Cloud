@@ -159,3 +159,9 @@ test('ürün çekme anahtarsız veya iptal edilmiş anahtarla reddedilir', async
   expect((await request(app).get('/api/store-sync/products')).status).toBe(401);
   expect((await request(app).get('/api/store-sync/products').set('Authorization', 'Bearer vsk_' + 'B'.repeat(32))).status).toBe(401);
 });
+
+test('denetim kaydı: cihaz kimliği sayısal entity_id sütununa değil details içine yazılır (MySQL BIGINT)', async () => {
+  const row = (await db.query("SELECT entity_id,details FROM audit_logs WHERE tenant_id=$1 AND action='store_sync.device_created' ORDER BY id DESC LIMIT 1", [cloud.tenantId])).rows[0];
+  expect(row.entity_id).toBeNull();
+  expect(JSON.parse(row.details).device_id).toMatch(/^[0-9a-f-]{36}$/);
+});
