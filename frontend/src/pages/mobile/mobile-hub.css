@@ -121,3 +121,84 @@ html:root[data-design] .vm .vm-panel .vm-btn{background:#cf4b06!important;border
 .vm-login .help a{color:#b23f04}
 .vm-label span{letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#b23f04;font-size:12px}
 html:root[data-theme='dark'] .vm-label span,html:root[data-theme='dark'] .vm-login .help a{color:#ff9a5a}
+
+/* ===== Telefon, ikinci geçiş: PHP siteyle birebir dil (fiş/raf etiketi, bant, barkod şeridi, kare köşeler) ===== */
+/* Tam genişlik: flex sütun içinde margin:auto kutuyu içeriğine daraltıyordu (kısa ekranlar ortada dar şerit kalıyordu). */
+.vm,.vm-login{width:100%}
+.vm{--vm-edge:#c9bda6;--vm-tape:#f2e4a9cc}
+.vm-top{padding-bottom:30px}
+.vm-top.flat{padding-bottom:18px}
+.vm-body{margin-top:0;border-radius:0;padding-top:22px}
+/* ekranın sonunda barkod şeridi (sitenin alt çizgisi gibi) */
+.vm-body:after{content:'';display:block;height:22px;margin:30px 0 6px;opacity:.85;background:repeating-linear-gradient(90deg,var(--vm-text) 0 3px,transparent 3px 6px,var(--vm-text) 6px 7px,transparent 7px 11px,var(--vm-text) 11px 15px,transparent 15px 18px)}
+/* bölüm başlıkları: noktalı fiş çizgisi */
+.vm-label{padding-bottom:8px;border-bottom:1px dashed #6c7d96}
+.vm-hello{padding-bottom:12px;border-bottom:1px dashed #6c7d96}
+.vm-hello strong{font-weight:800;font-stretch:80%;font-size:20px}
+/* kartlar: bantlı raf etiketi */
+.vm-card{position:relative;border:1px solid var(--vm-edge);padding-top:20px}
+.vm-card:before{content:'';position:absolute;left:18px;top:-9px;width:54px;height:18px;background:var(--vm-tape);transform:rotate(-2deg);pointer-events:none}
+.vm-card:nth-child(even):before{left:auto;right:18px;transform:rotate(2deg)}
+.vm-mod,.vm-list{border:1px solid var(--vm-edge)}
+.vm-row{border-bottom:1px dashed #9a8f7a}
+.vm-mod b,.vm-tile{font-weight:700}
+.vm-tile{font-size:12.5px}
+.vm-money{font-stretch:78%;font-weight:800}
+/* gösterge ve sayaçlar */
+.vm-count,.vm-stat .chip{border-radius:0}
+.vm-count.ok{background:#e6f2ec}.vm-count.bad{background:#f7e4e0}
+.vm-stat .chip{background:#e6f2ec}.vm-stat .chip.down{background:#f7e4e0}
+.vm-avatar{border-radius:0;background:#17263a;color:#fff;border:2px solid #cf4b06}
+.vm-empty i{border-radius:0;border:1px dashed #6c7d96;background:var(--vm-card);color:#cf4b06}
+.vm-seg{border-radius:0}.vm-seg button{border-radius:0}.vm-seg button[aria-pressed='true']{color:#17263a}
+.vm-tabs{border-bottom:1px dashed #6c7d96}
+.vm-tabs button[aria-selected='true']{color:#17263a;border-bottom-color:#cf4b06}
+.vm-label a{color:#17263a;text-decoration:underline;text-underline-offset:3px}
+.vm-price-in input{border-radius:0;border:1px solid #b5a88f}
+.vm-btn.soft{background:transparent}
+html:root[data-design] .vm .vm-panel .vm-btn.ghost,html:root[data-design] .vm .vm-panel .vm-btn.soft{background:transparent!important;color:#17263a!important;border:2px solid #17263a!important}
+html:root[data-design] .vm .vm-panel .vm-price-in input{border-radius:0!important;border:1px solid #b5a88f!important}
+html:root[data-design] .vm .vm-panel .vm-count.ok{background:#e6f2ec!important}
+html:root[data-design] .vm .vm-panel .vm-count.bad{background:#f7e4e0!important}
+/* alt sayfa ve onay kutusu: bantlı fiş */
+.vm-sheet-back{background:#17263acc}
+.vm-sheet,.vm-panel{border-radius:0;border-top:1px solid var(--vm-edge,#c9bda6);position:relative}
+.vm-sheet:before{width:80px;height:22px;border-radius:0;background:#f2e4a9cc;margin:-22px auto 14px;transform:rotate(-1.5deg)}
+.vm-dialog{border-radius:0;border:1px solid #c9bda6;box-shadow:8px 8px 0 #17263a55;position:relative}
+.vm-dialog:before{content:'';position:absolute;left:50%;top:-11px;width:70px;height:22px;margin-left:-35px;background:#f2e4a9cc;transform:rotate(-1.5deg)}
+.vm-fab{box-shadow:5px 5px 0 #17263a}
+/* kamera ekranı: yuvarlak düğmeleri kare yap */
+html:root[data-design] .vm .mobile-camera>header button:not(.reader-camera-mode button){border-radius:0!important}
+html:root[data-design] .vm .mobile-camera .reader-camera-mode{border-radius:0!important}
+html:root[data-design] .vm .mobile-camera .reader-camera-mode button{border-radius:0!important}
+html:root[data-design] .vm .mobile-camera .reader-camera-mode button[aria-pressed=true]{color:#17263a!important}
+
+/* Giriş ekranı: kâğıt zemin, lacivert imza, turuncu vurgu */
+.vm-login{background:#f4eee2;color:#17263a}
+.vm-login:before{height:12px;top:0;left:0;right:0;border-radius:0;background:repeating-linear-gradient(90deg,#cf4b06 0 14px,transparent 14px 20px)}
+.vm-login .logo{color:#17263a;font-weight:900;font-stretch:72%}
+.vm-login .logo:after{color:#cf4b06}
+.vm-login h1{font-weight:800;font-stretch:78%;font-size:30px}
+.vm-login h1:after{content:'';display:block;width:56px;height:6px;margin-top:12px;background:#cf4b06}
+.vm-login .sub,.vm-login .help,.vm-login .opts{color:#4d5a6b}
+.vm-field{border-radius:0;border:1px solid #b5a88f;background:#fffdf8}
+.vm-field:focus-within{border-color:#cf4b06;box-shadow:0 0 0 3px #cf4b0644}
+.vm-field input{color:#17263a}.vm-field svg,.vm-field button{color:#4d5a6b}
+.vm-login .opts a,.vm-login .help a{color:#b23f04}
+.vm-login .alert{border-radius:0;border:1px solid #b92c1c;background:#fbe9e6;color:#b92c1c}
+html:root[data-theme='dark'] .vm-login{background:#0e1520;color:#e8ecf4}
+html:root[data-theme='dark'] .vm-login .logo,html:root[data-theme='dark'] .vm-login h1{color:#e8ecf4}
+html:root[data-theme='dark'] .vm-field{background:#14243a;border-color:#30455e}
+html:root[data-theme='dark'] .vm-field input{color:#e8ecf4}
+html:root[data-theme='dark'] .vm-login .sub,html:root[data-theme='dark'] .vm-login .help,html:root[data-theme='dark'] .vm-login .opts{color:#b0bccd}
+html:root[data-theme='dark'] .vm-body:after{background:repeating-linear-gradient(90deg,#9fb0c8 0 3px,transparent 3px 6px,#9fb0c8 6px 7px,transparent 7px 11px,#9fb0c8 11px 15px,transparent 15px 18px)}
+html:root[data-theme='dark'] .vm{--vm-edge:#30455e;--vm-tape:#8a7b4acc}
+html:root[data-theme='dark'] .vm-label,html:root[data-theme='dark'] .vm-hello,html:root[data-theme='dark'] .vm-tabs{border-bottom-color:#4a5d78}
+/* masaüstü yüzeyi (.sd) kendi kurallarını korur: telefon kuralları orada geçersiz */
+.sd .vm-body:after{display:none}
+.sd .vm-label{border-bottom:0;padding-bottom:0}
+.sd .vm-hello{border-bottom:0}
+.sd .vm-card{padding-top:24px}
+
+/* Telefon yüzeyinde asistan düğmesi sol alta geçer: sağ alttaki barkod okut düğmesinin ve içeriğin üstüne binmez. */
+body:not(:has([data-surface='desktop'])):has(.vm) .veniux-assistant{right:auto;left:12px}
