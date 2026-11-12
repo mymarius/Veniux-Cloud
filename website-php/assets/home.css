@@ -1203,3 +1203,4 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-qaacc p{margin:0;padding:0 20px 20px;max-width:none;font-size:17px;line-height:1.6;color:var(--ink-soft)}
 @media(max-width:600px){.hx-qaacc summary{font-size:19px;padding:16px 52px 16px 16px}.hx-qaacc p{padding:0 16px 18px}}
 @media (prefers-reduced-motion:reduce){.hx-qaacc details{transition:none}}
+.pr-why{margin:14px 0 0;padding:12px 14px;border:1px dashed #b5a88f;background:#faf5ea;font-size:15px;line-height:1.5;color:var(--ink-soft)}.pr-why strong{color:var(--ink)}

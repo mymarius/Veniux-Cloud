@@ -44,6 +44,11 @@ $compare=[
       <?php if($annual&&$saving>0):?><p class="pr-save"><?=siteMoney($saving)?> daha az</p><?php endif;?>
       <dl class="pr-limits"><div><dd><?=e((string)$plan['warehouses'])?></dd><dt>depo</dt></div><div><dd><?=e((string)$plan['users'])?></dd><dt>kullanıcı</dt></div><div><dd><?=e((string)$plan['devices'])?></dd><dt>cihaz</dt></div></dl>
       <ul><?php foreach($plan['features'] as $feature):?><li><?=e($feature)?></li><?php endforeach;?></ul>
+      <?php if(!empty($plan['from'])&&isset($plans['isletme'])&&$plan['warehouses']>0&&$plan['users']>0):
+        $perWh=(int)round($plan['annual']/$plan['warehouses']);$perUser=(int)round($plan['annual']/$plan['users']);
+        $baseWh=(int)round($plans['isletme']['annual']/$plans['isletme']['warehouses']);$baseUser=(int)round($plans['isletme']['annual']/$plans['isletme']['users']); ?>
+      <p class="pr-why"><strong>Neden bu fiyat?</strong> <?=e((string)$plan['warehouses'])?> depo ve <?=e((string)$plan['users'])?> kullanıcıya yayılınca birim maliyet düşer: depo başına yaklaşık <?=siteMoney($perWh)?>, kullanıcı başına yaklaşık <?=siteMoney($perUser)?> / yıl (İşletme paketinde <?=siteMoney($baseWh)?> ve <?=siteMoney($baseUser)?>). Kurulum ve veri aktarımı desteği fiyata dahildir; kapsam büyüdükçe teklifle netleşir.</p>
+      <?php endif;?>
       <a class="hx-btn" href="/?request_type=quote&amp;plan=<?=$code?>%3A<?=$plan['quarter']===null?'yillik':$period?>#iletisim"><?=e($plan['name'])?> için görüşelim</a>
       <?=homeBarcode('paket-'.$code,26)?>
     </article>
