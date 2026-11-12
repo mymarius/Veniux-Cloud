@@ -24,6 +24,7 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
     foreach($meta as $name=>$value)$html.='<meta name="'.$name.'" content="'.$escape($value).'">';
     $og=['type'=>'website','locale'=>'tr_TR','site_name'=>'Veniux Cloud','title'=>$page['title'],'description'=>$page['description'],'url'=>$url,'image'=>$image,'image:secure_url'=>$image,'image:type'=>$screenshot?'image/jpeg':'image/webp','image:width'=>$screenshot?(string)($page['image_width']??1280):'420','image:height'=>$screenshot?(string)($page['image_height']??800):'420','image:alt'=>$imageAlt];
     foreach($og as $name=>$value)$html.='<meta property="og:'.$name.'" content="'.$escape($value).'">';
+    if($path==='/')$html.='<meta name="google-site-verification" content="1VEoKi2e_dQVEQ5sQtNMvYgeEXWGkENrJW_KT--Rjl4">';
     return $html;
 }
 function siteRobots(array $config):string {
