@@ -68,3 +68,15 @@
 .mobile-stock-details[open]>summary{border-bottom:1px solid #e8edf3}
 @media(min-width:1024px){[data-mobile="true"] .enterprise-shell>div.lg\:pl-\[264px\]{padding-left:264px}.mobile-bottom-nav{left:264px}}
 .mobile-home-heading{margin-bottom:20px}.mobile-home h1{font-size:23px;letter-spacing:-.5px}.mobile-scan-action{padding:16px;border-radius:16px;box-shadow:none}.mobile-hub-label{margin-top:24px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#708294}.mobile-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 12px;background:#fff;border:1px solid #e0e8f0;border-radius:18px;padding:22px 14px}.mobile-module-grid>a{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;min-height:78px}.mobile-module-grid span{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:#e7effb;color:#245b9b}.mobile-module-grid span[data-tone=violet]{background:#ede8fb;color:#7054b1}.mobile-module-grid span[data-tone=teal]{background:#ddf3f3;color:#218485}.mobile-module-grid span[data-tone=orange]{background:#fff0df;color:#b76921}.mobile-module-grid span[data-tone=green]{background:#e5f4e9;color:#34784c}.mobile-module-grid span[data-tone=pink]{background:#fce9ef;color:#a34e6d}.mobile-module-grid strong{font-size:12px;font-weight:600;color:#31475d}.mobile-compact-summary{margin:18px 0 24px}.mobile-compact-summary>a{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:14px}.mobile-compact-summary strong{font-size:23px;margin:0}.mobile-home .mobile-alert-list{box-shadow:none}
+
+/* Telefon alt gezinme çubuğu: mağaza ekranları ve Veniux Cloud ekranları aynı çubuğu kullanır (PhoneTabs). Web sitesiyle aynı dil. */
+.mobile-bottom-nav{background:#17263a;border-top:0;box-shadow:none;padding-top:13px;grid-template-columns:repeat(5,1fr)}
+.mobile-bottom-nav:before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:repeating-linear-gradient(90deg,#cf4b06 0 14px,transparent 14px 20px)}
+.mobile-bottom-nav a,.mobile-bottom-nav button{color:#c3cddc;border-radius:0;text-decoration:none;background:none;border:0;font-family:inherit}
+.mobile-bottom-nav a.active{color:#fff;background:#ffffff1c;box-shadow:inset 0 -3px 0 #cf4b06}
+.mobile-bottom-nav a.tab-scan{color:#fff;background:#cf4b06;box-shadow:3px 3px 0 #0d1621}
+.mobile-bottom-nav a.tab-scan.active{background:#b23f04;box-shadow:inset 0 -3px 0 #fff,3px 3px 0 #0d1621}
+.mobile-bottom-nav span{letter-spacing:.01em}
+.vm .phone-tabs{left:max(0px,calc(50vw - 260px));right:max(0px,calc(50vw - 260px));z-index:30}
+[data-mobile="true"] .enterprise-header>div:last-child>button.mobile-header-assistant{background:#17263a;color:#fff;border-radius:0}
+.vm-ai{background:#cf4b06;color:#fff}

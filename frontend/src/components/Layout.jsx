@@ -13,6 +13,7 @@ import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
 import GlobalCommandPalette from './GlobalCommandPalette';
+import PhoneTabs from './PhoneTabs';
 import { useToast } from './Toast';
 import OwnerWelcome from './OwnerWelcome';
 import ReleaseNotes, { PROGRAM_VERSION } from './ReleaseNotes';
@@ -401,7 +402,7 @@ export function Layout({ children }) {
       </div>
 
       {/* Global Modals */}
-      {window.veniuxMobile&&<nav className="mobile-bottom-nav" aria-label="Mobil gezinme">{[['/dashboard','Özet',LayoutDashboard],['/normal-depo/products','Ürünler',Package],['/magaza/hizli-ekle','Barkod',ScanBarcode],['/normal-depo/warehouses','Depolar',Warehouse]].map(([to,label,Icon])=><NavLink key={to} to={to}><Icon size={21}/><span>{label}</span></NavLink>)}<button aria-label="Tüm ekranlar" aria-expanded={sidebarOpen} onClick={()=>setSidebarOpen(true)}><Menu size={21}/><span>Menü</span></button></nav>}
+      {window.veniuxMobile&&<PhoneTabs onMenu={()=>setSidebarOpen(true)} menuOpen={sidebarOpen}/>}
       <QuickStockModal isOpen={stockModalOpen} onClose={() => setStockModalOpen(false)} type={stockModalType} onSuccess={() => { showToast(`Stok ${stockModalType === 'inbound' ? 'girişi' : 'çıkışı'} tamamlandı.`, 'success'); setStockModalOpen(false); }} />
       <QuickTransferModal isOpen={transferModalOpen} onClose={() => setTransferModalOpen(false)} onSuccess={() => { showToast('Depolar arası stok transferi tamamlandı.', 'success'); setTransferModalOpen(false); }} />
       <GlobalCommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />

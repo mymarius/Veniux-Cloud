@@ -26,7 +26,7 @@ export const SECTOR_MODULES = [
   { key: 'r-kitchen', title: 'Mutfak', to: '/m/mutfak', Icon: ChefHat, tone: 'rose', pack: 'restaurant' },
   { key: 'r-owner', title: 'Esnaf Paneli', to: '/m/esnaf', Icon: ClipboardList, tone: 'blue', pack: 'restaurant' }
 ];
-export const HOME_TILES = 5;
+export const HOME_TILES = 8;
 export const sectorFor = packs => SECTOR_MODULES.filter(m => packs && packs[m.pack]);
 
 export function visibleModules(setup, moduleForPath) {

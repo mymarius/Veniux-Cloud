@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ScanBarcode, ChevronRight, ShoppingCart, BarChart3, FileText } from 'lucide-react';
+import { ChevronRight, ShoppingCart, BarChart3, FileText } from 'lucide-react';
 import api from '../../api/client';
 import release from '../../data/programRelease.json';
 import useCustomerSetup from '../../hooks/useCustomerSetup';
@@ -59,6 +59,5 @@ export default function MobileHome() {
       <div className="vm-label"><span>Diğer</span></div>
       <div className="vm-list"><Link to="/m/dokumanlar" className="vm-row"><FileText size={20} /><span className="grow">Kılavuzlar</span><ChevronRight size={18} /></Link></div>
     </div>
-    <Link to="/m/tara" className="vm-fab" aria-label="Barkod okut"><ScanBarcode size={30} /></Link>
   </div>;
 }

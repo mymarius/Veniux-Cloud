@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, LogOut, Mail, UserRound, HelpCircle } from 'lucide-react';
+import { Bell, ChevronLeft, LogOut, Mail, UserRound, HelpCircle, Sparkles } from 'lucide-react';
+import PhoneTabs from '../../components/PhoneTabs';
 import './mobile-hub.css';
 import { sectorPath, useSurface } from './sector/SectorSurface';
 import release from '../../data/programRelease.json';
@@ -10,6 +11,11 @@ import { initials, roleLabel } from '../../lib/mobileHub.mjs';
 // Destek: Veniux sitesindeki iletişim formu (kişisel e-posta adresi uygulamaya gömülmez). Gerekirse VITE_SUPPORT_URL ile değiştirilir.
 export const SUPPORT_URL = import.meta.env.VITE_SUPPORT_URL || 'https://veniux.com/#iletisim';
 
+// İşletme asistanı her telefon ekranında üst bantta durur (Veniux Cloud ekranlarındakiyle aynı düğme).
+export function AiButton() {
+  return <button type="button" className="vm-iconbtn vm-ai" aria-label="İşletme asistanını aç" onClick={() => window.dispatchEvent(new Event('veniux:assistant-open'))}><Sparkles size={20} /></button>;
+}
+
 export const sessionScope = () => { const u = readSessionUser(); return String(u.tenant_id ?? u.tenantId ?? 't') + ':' + String(u.id ?? u.userId ?? 'u'); };
 
 // Üst bant: ana ekranda marka ve profil; iç ekranlarda geri ve başlık.
@@ -18,11 +24,11 @@ export function MobileTop({ title, back = '/m', right, children, flat = false, o
   const { desktop, pack } = useSurface();
   // Masaüstü yüzeyinde telefon üst bandı yerine sayfa başlığı gösterilir; Veniux düzeni kendi menüsünü taşır.
   if (desktop) return title ? <header className="sd-head"><div className="sd-head-text">{onBack ? <button type="button" className="sd-back" onClick={onBack}>← Geri</button> : back && back !== '/m' ? <Link className="sd-back" to={sectorPath(true, back)}>← Geri</Link> : null}{pack && <span className="sd-eyebrow">Sektör paketi · {pack}</span>}<h1>{title}</h1></div><div className="sd-head-actions">{right}</div></header> : null;
-  return <header className={'vm-top' + (flat ? ' flat' : '')}>
+  return <><header className={'vm-top' + (flat ? ' flat' : '')}>
     {title
-      ? <><button type="button" className="vm-iconbtn" aria-label="Geri" onClick={() => (onBack ? onBack() : window.history.length > 1 ? navigate(-1) : navigate(back))}><ChevronLeft size={22} /></button><h1>{title}</h1><div className="vm-top-actions">{right}</div></>
+      ? <><button type="button" className="vm-iconbtn" aria-label="Geri" onClick={() => (onBack ? onBack() : window.history.length > 1 ? navigate(-1) : navigate(back))}><ChevronLeft size={22} /></button><h1>{title}</h1><div className="vm-top-actions">{right}<AiButton /></div></>
       : children}
-  </header>;
+  </header><PhoneTabs /></>;
 }
 
 export function HomeTop({ unread = 0 }) {
@@ -31,11 +37,13 @@ export function HomeTop({ unread = 0 }) {
     <header className="vm-top">
       <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran">veniux<i>.</i><small>mağaza</small></Link>
       <div className="vm-top-actions">
+        <AiButton />
         <Link to="/m/bildirimler" className="vm-iconbtn" aria-label={unread ? unread + ' bildirim' : 'Bildirimler'}><Bell size={20} />{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}</Link>
         <button type="button" className="vm-iconbtn" aria-label="Profil" onClick={() => setOpen(true)}><UserRound size={20} /></button>
       </div>
     </header>
     {open && <ProfileSheet onClose={() => setOpen(false)} />}
+    <PhoneTabs />
   </>;
 }
 

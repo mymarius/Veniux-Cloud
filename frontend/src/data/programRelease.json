@@ -1,8 +1,18 @@
 {
-  "version": "2.4.65",
+  "version": "2.4.66",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.66",
+      "date": "12 Kasım 2026",
+      "title": "Tek gezinme düzeni",
+      "items": [
+        "Telefonda mağaza ekranları ve Veniux Cloud ekranları aynı alt çubuğu kullanır: Ana ekran, Ürünler, Barkod, Mağazalar, Menü",
+        "İşletme asistanı düğmesi tüm telefon ekranlarının üst bandında görünür",
+        "Ana ekranda iki tam satır işlem kutusu gösterilir; sabit barkod düğmesi alt çubuğa taşındı"
+      ]
+    },
     {
       "version": "2.4.65",
       "date": "12 Kasım 2026",
