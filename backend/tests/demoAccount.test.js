@@ -63,3 +63,47 @@ describe('kişiye özel demo hesabı', () => {
     expect((10 - (sum % 10)) % 10).toBe(digits[12]);
   });
 });
+
+describe('Müşteriler ve Ekip örnek verisi', () => {
+  test('demo hesap açılınca CRM ve Personel verisi API ile gelir; alanlar ekranın okuduğu biçimde', async () => {
+    const email = `demo_crm_${Date.now()}@ornek.com`;
+    const account = await demo.create(db, { email, company: 'CRM Denemesi' });
+    const login = await request(app).post('/api/auth/login').send({ email, password: account.password });
+    expect(login.status).toBe(200);
+    const auth = { Authorization: 'Bearer ' + login.body.token };
+    const crm = (await request(app).get('/api/workspaces/crm').set(auth)).body;
+    expect(crm.revision).toBe(1);
+    expect(crm.data.companies).toHaveLength(4);
+    expect(crm.data.contacts).toHaveLength(5);
+    expect(crm.data.leads).toHaveLength(4);
+    expect(crm.data.deals).toHaveLength(5);
+    expect(crm.data.tasks).toHaveLength(4);
+    expect(crm.data.tasks.every(x => ['todo', 'in_progress', 'completed'].includes(x.status))).toBe(true);
+    expect(crm.data.companies.every(c => c.id && c.name && c.industry)).toBe(true);
+    expect(crm.data.contacts.every(c => c.fullName && crm.data.companies.some(x => x.id === c.companyId))).toBe(true);
+    expect(crm.data.deals.every(d => d.title && d.value > 0 && ['qualification', 'proposal', 'negotiation', 'won', 'lost'].includes(d.stage))).toBe(true);
+    const hr = (await request(app).get('/api/workspaces/hr').set(auth)).body;
+    expect(hr.data.employees).toHaveLength(6);
+    expect(hr.data.employees.every(e => e.fullName && e.title && e.status === 'aktif')).toBe(true);
+    // Satış ekibi, fırsatlardaki sorumlularla eşleşir
+    const names = new Set(hr.data.employees.map(e => e.fullName));
+    expect(crm.data.deals.every(d => names.has(d.salesRep))).toBe(true);
+    // Sunucunun kendi doğrulamasından geçer (PUT ile aynı veri geri yazılabilir)
+    const put = await request(app).put('/api/workspaces/crm').set(auth).send({ data: crm.data, revision: crm.revision });
+    expect(put.status).toBe(200);
+  });
+
+  test('seedExisting: yalnız demo işletmeye yazar, mevcut kaydı ezmez, gerçek işletmeyi reddeder', async () => {
+    const email = `demo_seed_${Date.now()}@ornek.com`;
+    const account = await demo.create(db, { email });
+    await db.query("DELETE FROM workspace_collections WHERE tenant_id=$1 AND scope='crm'", [account.tenantId]);
+    await demo.seedExisting(db, account.tenantId);
+    expect((await db.query("SELECT revision FROM workspace_collections WHERE tenant_id=$1 AND scope='crm'", [account.tenantId])).rows).toHaveLength(1);
+    await db.query("UPDATE workspace_collections SET payload='{\"companies\":[]}' WHERE tenant_id=$1 AND scope='hr'", [account.tenantId]);
+    await demo.seedExisting(db, account.tenantId);
+    expect((await db.query("SELECT payload FROM workspace_collections WHERE tenant_id=$1 AND scope='hr'", [account.tenantId])).rows[0].payload).toBe('{"companies":[]}');
+    const real = await require('./factories').createTenant();
+    await expect(demo.seedExisting(db, real.tenantId)).rejects.toMatchObject({ code: 'NOT_DEMO' });
+    await expect(demo.seedExisting(db, 999999)).rejects.toMatchObject({ code: 'NO_TENANT' });
+  });
+});

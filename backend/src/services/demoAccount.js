@@ -38,6 +38,83 @@ function makePassword(length = 14) {
 
 function sqlDate(date) { return date.toISOString().replace('T', ' ').replace('Z', ''); }
 
+
+// Müşteriler ve Ekip bölümü için örnek veri (CRM ve Personel). Tümü kurgusaldır; gerçek kişi veya firma değildir.
+const dayISO = offset => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+const uid = () => crypto.randomUUID();
+const mailName = name => name.toLowerCase().replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u').replace(/[^a-z]+/g, '.');
+
+function sampleWorkspaces() {
+  const dep = { depo: 'dep-depo', satis: 'dep-satis', lojistik: 'dep-lojistik', muhasebe: 'dep-muhasebe' };
+  const staff = [
+    ['Selin Aydın', 'Satış Müdürü', dep.satis, 450000, -900],
+    ['Mert Yıldız', 'Satış Temsilcisi', dep.satis, 250000, -420],
+    ['Elif Kaya', 'Satış Temsilcisi', dep.satis, 220000, -250],
+    ['Burak Demir', 'Depo Sorumlusu', dep.depo, '', -1100],
+    ['Zeynep Arslan', 'Muhasebe Uzmanı', dep.muhasebe, '', -600],
+    ['Can Öztürk', 'Sevkiyat Koordinatörü', dep.lojistik, '', -300]
+  ].map(([fullName, title, departmentId, salesQuota, hire], index) => {
+    const id = uid();
+    return { id, fullName, title, departmentId, managerId: '', employmentType: 'Belirsiz Süreli', hireDate: dayISO(hire), phone: '0 5xx xxx xx ' + String(10 + index), email: mailName(fullName) + '@ornek-market.example', city: 'İstanbul', workSite: 'Merkez', defaultShift: 'gunduz', sicilNo: 'VNX-' + id.slice(0, 8), notes: '', salesQuota, status: 'aktif', weeklyHours: 45 };
+  });
+  const companies = [
+    ['Anadolu Toptan Gıda', 'Toptan Gıda', '50-200', '₺18 Mn', 'İstanbul, Esenyurt', 'Kurumsal', 'healthy', 'Selin Aydın'],
+    ['Başak Kırtasiye Zinciri', 'Kırtasiye', '10-50', '₺6 Mn', 'Ankara, Çankaya', 'Büyüme', 'healthy', 'Mert Yıldız'],
+    ['Deniz Hırdavat ve Yapı', 'Hırdavat', '10-50', '₺9 Mn', 'İzmir, Bornova', 'Büyüme', 'attention', 'Elif Kaya'],
+    ['Lale Kafe ve Büfe Grubu', 'Yiyecek-İçecek', '10-50', '₺4 Mn', 'Bursa, Nilüfer', 'Başlangıç', 'healthy', 'Mert Yıldız']
+  ].map(([name, industry, employees, annualRevenue, location, tier, healthStatus, accountOwner], i) => ({ id: uid(), name, industry, employees, annualRevenue, location, tier, healthStatus, accountOwner, openDealsCount: 0, openDealsValue: 0, lastActivity: dayISO(-(i + 1)), createdDate: dayISO(-120 + i * 10) }));
+  const contacts = [
+    ['Hakan Çelik', 'Satın Alma Müdürü', 0, 'Karar Verici'], ['Aylin Şahin', 'Genel Müdür', 1, 'Karar Verici, Üst Yönetim'],
+    ['Oğuz Tekin', 'Mağaza Müdürü', 2, 'Kullanıcı'], ['Derya Koç', 'İşletme Sahibi', 3, 'Karar Verici'], ['Tolga Erdem', 'Muhasebe Sorumlusu', 0, 'Etkileyici']
+  ].map(([fullName, jobTitle, ci, tags], i) => ({ id: uid(), fullName, jobTitle, companyId: companies[ci].id, companyName: companies[ci].name, email: mailName(fullName) + '@ornek-musteri.example', phone: '0 5xx xxx xx ' + String(20 + i), tags: tags.split(',').map(t => t.trim()), contactStatus: 'Active Opportunity', owner: companies[ci].accountOwner, leadScore: 55 + i * 8, notesCount: i % 3, dealsCount: 0, totalDealValue: 0, lastContacted: dayISO(-(i + 1)), createdDate: dayISO(-100 + i * 9) }));
+  const leads = [
+    ['Gökhan Polat', 'Polat Market', 'Market Sahibi', 'Web sitesi demo talebi', 38000, 82, 'qualified'],
+    ['Nehir Aksoy', 'Aksoy Züccaciye', 'Mağaza Sahibi', 'Fuar görüşmesi', 52000, 64, 'new'],
+    ['Ercan Bilgin', 'Bilgin Pide Salonu', 'İşletme Sahibi', 'Tavsiye', 27000, 71, 'contacted'],
+    ['Pınar Güneş', 'Güneş Toptan', 'Satın Alma', 'Web sitesi demo talebi', 90000, 58, 'new']
+  ].map(([name, company, jobTitle, source, estimatedValue, score, status], i) => ({ id: uid(), name, company, jobTitle, email: mailName(name) + '@ornek-aday.example', phone: '0 5xx xxx xx ' + String(30 + i), source, estimatedValue, owner: staff[1 + (i % 2)].fullName, notes: '', score, status, lastActivity: dayISO(-i), createdDate: dayISO(-30 + i * 3) }));
+  const deals = [
+    ['Anadolu Toptan: 3 depo stok ve kasa kurulumu', 0, 240000, 'proposal', 'Selin Aydın', 30, 'high'],
+    ['Başak Kırtasiye: 12 şube kasa geçişi', 1, 180000, 'negotiation', 'Mert Yıldız', 21, 'high'],
+    ['Deniz Hırdavat: depo sayım ve etiket', 2, 64000, 'qualification', 'Elif Kaya', 45, 'medium'],
+    ['Lale Kafe: hızlı satış ve stok', 3, 36000, 'won', 'Mert Yıldız', -7, 'medium'],
+    ['Anadolu Toptan: lot ve miat modülü', 0, 48000, 'qualification', 'Selin Aydın', 60, 'low']
+  ].map(([title, ci, value, stage, salesRep, close, priority], i) => ({ id: uid(), title, companyId: companies[ci].id, companyName: companies[ci].name, contactName: contacts.find(c => c.companyId === companies[ci].id).fullName, value, stage, salesRep, expectedCloseDate: dayISO(close), priority, tags: ['Yıllık'], probability: stage === 'won' ? 100 : stage === 'proposal' ? 60 : stage === 'negotiation' ? 75 : 30, pipelineId: 'pipe-enterprise', createdAt: new Date(Date.now() - (40 - i * 5) * 86400000).toISOString(), lastActivity: dayISO(-(i + 1)), ...(stage === 'won' ? { closedAt: new Date(Date.now() - 7 * 86400000).toISOString() } : {}) }));
+  for (const c of companies) { const open = deals.filter(d => d.companyId === c.id && !['won', 'lost'].includes(d.stage)); c.openDealsCount = open.length; c.openDealsValue = open.reduce((t, d) => t + d.value, 0); }
+  for (const c of contacts) { const mine = deals.filter(d => d.companyId === c.companyId); c.dealsCount = mine.length; c.totalDealValue = mine.reduce((t, d) => t + d.value, 0); }
+  const tasks = [
+    ['Anadolu Toptan teklifini güncelle', 'high', 'Selin Aydın', 2, deals[0].title, 'todo'],
+    ['Başak Kırtasiye fiyat görüşmesi için hazırlık', 'high', 'Mert Yıldız', 1, deals[1].title, 'in_progress'],
+    ['Deniz Hırdavat saha ziyareti planla', 'medium', 'Elif Kaya', 5, deals[2].title, 'todo'],
+    ['Lale Kafe kurulum sonrası memnuniyet araması', 'low', 'Mert Yıldız', 7, deals[3].title, 'completed']
+  ].map(([title, priority, assignee, due, relatedDeal, status]) => ({ id: uid(), title, priority, assignee, dueDate: dayISO(due), relatedDeal, tags: ['Takip'], status }));
+  return {
+    crm: { companies, contacts, leads, deals, tasks, activities: [], automations: [], notifications: [] },
+    hr: { employees: staff, schedule: [], attendance: [], leaveRequests: [], balances: [], goals: [], reviews: [] }
+  };
+}
+
+// Müşteriler ve Ekip örnek verisi: yalnız kaydı olmayan çalışma alanına yazar (mevcut veriyi ezmez).
+async function seedWorkspaces(client, tenant) {
+  const { crm, hr } = sampleWorkspaces();
+  for (const [scope, data] of [['crm', crm], ['hr', hr]]) {
+    const have = (await client.query("SELECT revision FROM workspace_collections WHERE tenant_id=$1 AND scope=$2 AND name='workspace'", [tenant, scope])).rows;
+    if (have.length) continue;
+    await client.query("INSERT INTO workspace_collections (tenant_id,scope,name,payload,revision) VALUES ($1,$2,'workspace',$3,1)", [tenant, scope, JSON.stringify(data)]);
+  }
+}
+
+// Daha önce açılmış bir demo işletmeye örnek müşteri/ekip verisi ekler. Yalnız "Veniux Demo – " ile başlayan işletmelerde çalışır.
+async function seedExisting(db, tenantId) {
+  const id = Number(tenantId);
+  if (!Number.isSafeInteger(id) || id < 1) throw Object.assign(new Error('Geçerli bir işletme numarası verin.'), { code: 'BAD_TENANT' });
+  const row = (await db.query('SELECT company_name FROM tenants WHERE id=$1', [id])).rows[0];
+  if (!row) throw Object.assign(new Error('İşletme bulunamadı.'), { code: 'NO_TENANT' });
+  if (!String(row.company_name).startsWith('Veniux Demo – ')) throw Object.assign(new Error('Bu işletme bir demo işletmesi değil; örnek veri yazılmadı.'), { code: 'NOT_DEMO' });
+  await db.transaction(client => seedWorkspaces(client, id));
+  return { tenantId: id };
+}
+
 async function create(db, { email, company, days = 14 }) {
   const address = typeof email === 'string' ? email.trim().toLowerCase() : '';
   if (!EMAIL.test(address) || address.length > 254) throw Object.assign(new Error('Geçerli bir e-posta adresi verin.'), { code: 'BAD_EMAIL' });
@@ -79,6 +156,7 @@ async function create(db, { email, company, days = 14 }) {
         await client.query("INSERT INTO stock_movements (tenant_id, product_id, warehouse_id, change_amount, movement_type, source, note) VALUES ($1,$2,$3,$4,'IN','demo','Örnek açılış stoku')", [tenant, product, warehouse, quantity]);
       }
     }
+    await seedWorkspaces(client, tenant);
     await client.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)',
       [tenant, address, 'demo.created', 'tenant', tenant, JSON.stringify({ days, plan: plan.id })]);
     return { tenantId: Number(tenant), userId: Number(user) };
@@ -86,4 +164,4 @@ async function create(db, { email, company, days = 14 }) {
   return { ...result, email: address, password, plan: plan.id, expiresAt: expires.toISOString(), days };
 }
 
-module.exports = { create, makePassword, ean13 };
+module.exports = { create, seedExisting, sampleWorkspaces, makePassword, ean13 };
