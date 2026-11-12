@@ -14,7 +14,7 @@ describe('kişiye özel demo hesabı', () => {
     expect(account.password).toHaveLength(14);
 
     const tenant = (await db.query('SELECT company_name FROM tenants WHERE id=$1', [account.tenantId])).rows[0];
-    expect(tenant.company_name).toBe('[DEMO] Örnek Market');
+    expect(tenant.company_name).toBe('Veniux Demo – Örnek Market');
     const license = (await db.query("SELECT status,plan_id,expires_at FROM licenses WHERE tenant_id=$1", [account.tenantId])).rows[0];
     expect(license.status).toBe('ACTIVE');
     expect(license.plan_id).toBe('BUSINESS_ANNUAL');

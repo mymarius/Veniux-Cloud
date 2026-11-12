@@ -1,6 +1,6 @@
 'use strict';
 // Kişiye özel süreli demo hesabı: ayrı işletme + yönetici kullanıcı + örnek ürün/stok verisi + süreli lisans.
-// Şema değişikliği yoktur. Demo işletme adı "[DEMO] " ile başlar. Şifre rastgele üretilir ve yalnız çağırana döner, kayda yazılmaz.
+// Şema değişikliği yoktur. Demo işletme adı "Veniux Demo – " ile başlar. Şifre rastgele üretilir ve yalnız çağırana döner, kayda yazılmaz.
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
@@ -51,7 +51,7 @@ async function create(db, { email, company, days = 14 }) {
 
   const password = makePassword();
   const hash = await bcrypt.hash(password, 10);
-  const name = '[DEMO] ' + (typeof company === 'string' && company.trim() ? company.trim().slice(0, 80) : address.split('@')[0]);
+  const name = 'Veniux Demo – ' + (typeof company === 'string' && company.trim() ? company.trim().slice(0, 80) : address.split('@')[0]);
   const expires = new Date(Date.now() + days * 86400000);
   const licenseKey = licenseService.generateKey();
 
