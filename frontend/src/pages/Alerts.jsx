@@ -23,6 +23,7 @@ export default function Alerts() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ status: '', severity: '' });
   const [runningEngine, setRunningEngine] = useState(false);
+  const [busyId, setBusyId] = useState(null);
 
   const { showToast } = useToast();
 
@@ -48,12 +49,17 @@ export default function Alerts() {
   };
 
   const handleMarkAsRead = async (id) => {
+    if (busyId !== null) return;
+    setBusyId(id);
     try {
       await apiClient.put(`/alerts/${id}`, { status: 'read' });
+      setAlerts((list) => list.map((item) => (item.id === id ? { ...item, status: 'read' } : item)));
       showToast('Uyarı çözümlendi / okundu.', 'info');
       fetchAlerts();
     } catch (err) {
       showToast('İşlem başarısız oldu.', 'error');
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -231,13 +237,29 @@ export default function Alerts() {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => handleMarkAsRead(a.id)}
-                    className="px-4 py-2 bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 rounded-md text-xs font-semibold transition-colors shrink-0 flex items-center gap-2 shadow-sm"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    Çözüldü İşaretle
-                  </button>
+                  {a.status === 'unread' || a.status === 'active' ? (
+
+                    <button
+
+                      onClick={() => handleMarkAsRead(a.id)}
+
+                      disabled={busyId !== null}
+
+                      className="px-4 py-2 bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 rounded-md text-xs font-semibold transition-colors shrink-0 flex items-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+
+                    >
+
+                      <Check className="w-3.5 h-3.5" />
+
+                      Çözüldü İşaretle
+
+                    </button>
+
+                  ) : (
+
+                    <span className="px-4 py-2 text-xs font-semibold text-emerald-700 shrink-0 flex items-center gap-2"><Check className="w-3.5 h-3.5" />Çözüldü</span>
+
+                  )}
                 </div>
               ))}
             </div>

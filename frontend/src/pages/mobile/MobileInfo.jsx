@@ -4,20 +4,39 @@ import { AlertCircle, Bell, BookOpen, ChevronRight, History, Mail, PlayCircle } 
 import api from '../../api/client';
 import release from '../../data/programRelease.json';
 import { asList } from '../../lib/stockAnalytics';
+import { isOpenAlert } from '../../lib/alerts.mjs';
+import { readSessionUser } from '../../lib/sessionUser';
 import { EmptyState, MobileTop, SUPPORT_URL } from './mobileKit';
 
-// "Bildirimlerim": stok uyarıları. Bildirim yoksa boş durum gösterilir.
+// "Bildirimlerim": stok uyarıları. Açık olanlar üstte ve "Okundu" ile kapatılır; okunanlar altta soluk görünür.
 export function MobileNotifications() {
-  const [items, setItems] = useState(null), [error, setError] = useState('');
+  const [items, setItems] = useState(null), [error, setError] = useState(''), [busy, setBusy] = useState(null), [notice, setNotice] = useState('');
+  const role = readSessionUser().role, canResolve = ['admin', 'manager'].includes(role);
   useEffect(() => { let live = true; api.get('/alerts').then(r => live && setItems(asList(r.data))).catch(e => live && setError(e.response?.data?.error || 'Bildirimler alınamadı.')); return () => { live = false; }; }, []);
+  const resolve = async alert => {
+    if (busy !== null) return;
+    setBusy(alert.id); setError(''); setNotice('');
+    try { await api.put('/alerts/' + alert.id, { status: 'read' }); setItems(list => list.map(item => (item.id === alert.id ? { ...item, status: 'read' } : item))); setNotice('Bildirim okundu olarak işaretlendi.'); }
+    catch (e) { setError(e.response?.data?.error || 'İşlem tamamlanamadı.'); }
+    finally { setBusy(null); }
+  };
+  const open = items ? items.filter(isOpenAlert) : [], done = items ? items.filter(a => !isOpenAlert(a)).slice(0, 20) : [];
+  const row = (a, active) => <div key={a.id} className="vm-row" style={active ? undefined : { opacity: 0.6 }}>
+    <Link to="/alerts" className="vm-row-main" style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, color: 'inherit', textDecoration: 'none' }}><AlertCircle size={20} /><span className="grow">{a.title || 'Stok bildirimi'}<small>{a.message || a.description || ''}</small></span></Link>
+    {active && canResolve ? <button type="button" className="vm-btn ghost" style={{ width: 'auto', minHeight: 38, padding: '0 12px', fontSize: 13 }} disabled={busy !== null} onClick={() => resolve(a)}>{busy === a.id ? '…' : 'Okundu'}</button> : active ? <ChevronRight size={18} /> : <span className="vm-note">Okundu</span>}
+  </div>;
   return <div className="vm">
     <MobileTop title="Bildirimlerim" flat />
     <div className="vm-body" style={{ marginTop: 0, paddingTop: 18 }}>
       {error && <p role="alert" className="vm-err">{error}</p>}
+      {notice && <p role="status" className="vm-note">{notice}</p>}
       {!items && !error && <p role="status" className="vm-note">Bildirimler yükleniyor…</p>}
       {items && (items.length === 0
         ? <EmptyState icon={<Bell size={36} />} title="Bildirim Yok" text="Bildirim olduğunda buradan görüntüleyebilirsiniz." />
-        : <div className="vm-list">{items.slice(0, 50).map(a => <Link key={a.id} to="/alerts" className="vm-row"><AlertCircle size={20} /><span className="grow">{a.title || 'Stok bildirimi'}<small>{a.message || a.description || ''}</small></span><ChevronRight size={18} /></Link>)}</div>)}
+        : <>
+          {open.length === 0 ? <EmptyState icon={<Bell size={36} />} title="Açık bildirim yok" text="Tüm bildirimler okundu." /> : <div className="vm-list">{open.slice(0, 50).map(a => row(a, true))}</div>}
+          {done.length > 0 && <><div className="vm-label"><span>Okunanlar</span></div><div className="vm-list">{done.map(a => row(a, false))}</div></>}
+        </>)}
     </div>
   </div>;
 }

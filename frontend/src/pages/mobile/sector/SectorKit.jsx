@@ -44,7 +44,27 @@ export function beep(times = 2) {
 // Telefon bildirimi: izin verilmişse sistem bildirimi, ayrıca titreşim. Uygulama açıkken çalışır.
 export function notify(title, body) {
   try { navigator.vibrate?.([200, 100, 200]); } catch { /* yok say */ }
+  // Android uygulaması (WebView): web bildirimi yok, telefonun kendi bildirim sistemi kullanılır.
+  try { const bridge = window.VeniuxAndroid; if (bridge?.showNotification && bridge.canNotify?.()) { bridge.showNotification(String(title || 'Veniux'), String(body || '')); return; } } catch { /* yok say */ }
   try { if (typeof Notification !== 'undefined' && Notification.permission === 'granted') new Notification(title, { body, tag: 'veniux-sector' }); } catch { /* yok say */ }
+}
+
+function NativeNotify({ bridge }) {
+  const [granted, setGranted] = useState(() => { try { return Boolean(bridge.canNotify()); } catch { return false; } }), [message, setMessage] = useState('');
+  const ask = () => {
+    setMessage('');
+    try { bridge.requestNotify(); } catch { /* yok say */ }
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1; let ok = false;
+      try { ok = Boolean(bridge.canNotify()); } catch { /* yok say */ }
+      if (ok || tries > 20) { clearInterval(timer); setGranted(ok); if (!ok) setMessage('Bildirim izni verilmedi. Telefonun Ayarlar > Uygulamalar > Veniux > Bildirimler bölümünden açabilirsiniz.'); }
+    }, 500);
+  };
+  if (granted) return <div><p className="vm-note">Telefon bildirimleri açık: uygulama açıkken yeni ve kritik stok uyarıları telefon bildirimi olarak gelir.</p>
+    <button type="button" className="vm-btn soft" onClick={() => { notify('Veniux deneme', 'Bildirimler çalışıyor.'); setMessage('Deneme bildirimi gönderildi.'); }}>Deneme gönder</button>{message && <p role="status" className="vm-note">{message}</p>}</div>;
+  return <div><p className="vm-note">Uygulama açıkken yeni ve kritik stok uyarılarını telefon bildirimi olarak almak için izin verin.</p>
+    <button type="button" className="vm-btn soft" onClick={ask}>Bildirimlere izin ver</button>{message && <p role="alert" className="vm-err">{message}</p>}</div>;
 }
 
 export function NotifyButton() {
@@ -52,6 +72,8 @@ export function NotifyButton() {
   const refresh = async () => setState(await getPushState());
   useEffect(() => { refresh(); }, []);
   const run = async (fn, ok) => { setBusy(true); setMessage(''); try { await fn(); setMessage(ok || ''); } catch (e) { setMessage(errorText(e, e.message || 'İşlem başarısız.')); } finally { setBusy(false); await refresh(); } };
+  const nativeBridge = typeof window !== 'undefined' ? window.VeniuxAndroid : null;
+  if (nativeBridge?.showNotification) return <NativeNotify bridge={nativeBridge} />;
   if (!state) return null;
   if (state.status === 'unsupported') return <p className="vm-note">{state.reason} Uygulama açıkken uyarılar ekranda ve titreşimle gelir.</p>;
   if (state.status === 'blocked') return <p className="vm-note">Bildirim izni kapalı. Tarayıcı ayarlarından Veniux için bildirime izin verin.</p>;

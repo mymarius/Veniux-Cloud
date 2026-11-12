@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, ShoppingCart, BarChart3, FileText } from 'lucide-react';
-import api from '../../api/client';
 import release from '../../data/programRelease.json';
 import useCustomerSetup from '../../hooks/useCustomerSetup';
 import { moduleForPath } from '../../lib/customerExperience.mjs';
 import { readSessionUser } from '../../lib/sessionUser';
-import { asList } from '../../lib/stockAnalytics';
+import useAlertWatcher from './useAlertWatcher';
 import { greeting, roleLabel } from '../../lib/mobileHub.mjs';
 import { HomeTop } from './mobileKit';
 import { HOME_TILES, sectorFor, visibleModules } from './moduleList';
@@ -27,11 +26,7 @@ export default function MobileHome() {
   const latest = release.releases?.[0];
   const slides = [...(latest ? [{ title: 'Sürüm ' + latest.version + ': ' + latest.title, text: latest.items?.[0] || '' }] : []), ...TIPS];
   useEffect(() => { const t = setInterval(() => setSlide(s => (s + 1) % slides.length), 5000); return () => clearInterval(t); }, [slides.length]);
-  useEffect(() => {
-    let live = true;
-    api.get('/alerts').then(r => { if (live) setUnread(asList(r.data).filter(a => !a.is_read && !a.read).length); }).catch(() => {});
-    return () => { live = false; };
-  }, []);
+  useAlertWatcher(count => setUnread(count));
   const modules = visibleModules(setup, moduleForPath), first = (user.full_name || user.name || '').split(' ')[0];
   const current = slides[slide] || slides[0];
   return <div className="vm">

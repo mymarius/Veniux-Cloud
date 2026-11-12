@@ -1,8 +1,19 @@
 {
-  "version": "2.4.66",
+  "version": "2.4.67",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.67",
+      "date": "12 Kasım 2026",
+      "title": "Bildirim düzeltmeleri",
+      "items": [
+        "Zil rozeti okunan uyarıyı sayıp sönmüyordu; artık yalnız açık uyarıları sayar ve dakikada bir yenilenir",
+        "Bildirimlerim ekranında açık uyarılar \"Okundu\" düğmesiyle kapatılır, okunanlar altta ayrı görünür",
+        "Çözülmüş uyarıda \"Çözüldü işaretle\" düğmesi artık yoktur; üst üste çıkan mesajlar giderildi",
+        "Android: yeni ve kritik stok uyarıları telefonun bildirim çubuğuna gelir; \"Bildirim izni kapalı\" hatası giderildi"
+      ]
+    },
     {
       "version": "2.4.66",
       "date": "12 Kasım 2026",
