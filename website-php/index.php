@@ -89,6 +89,12 @@ if ($path === '/structured-data.json') {
     exit;
 }
 
+// Alan adının eski forum kullanımından kalan adresler (index.php?page=thread|category|profile...): kalıcı olarak kaldırıldı.
+if (in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD'],true) && $path==='/index.php' && isset($_GET['page'])) {
+    http_response_code(410); header('X-Robots-Tag: noindex, nofollow'); header('Content-Type: text/plain; charset=utf-8'); echo "Bu adres kalıcı olarak kaldırıldı.
+"; exit;
+}
+
 $trimmed = $path === '/' ? '/' : rtrim($path, '/');
 if (in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD'],true) && ($path==='/index.php' || ($trimmed!==$path && isset($pages[$trimmed])))) {
     header('Location: '.($path==='/index.php'?'/':$trimmed),true,301); exit;
