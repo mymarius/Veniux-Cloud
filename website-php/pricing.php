@@ -32,8 +32,8 @@ function siteCloudPrices(): ?array {
     $file=getenv('VENIUX_PRICES_CACHE')?:dirname(__DIR__).'/.local/website-prices.json';
     $cached=is_file($file)?json_decode((string)@file_get_contents($file),true):null;
     if(is_array($cached)&&time()-(int)@filemtime($file)<900)return $result=$cached;
-    $context=stream_context_create(['http'=>['timeout'=>3,'ignore_errors'=>true,'header'=>"Accept: application/json
-User-Agent: veniux-site
+    $context=stream_context_create(['http'=>['timeout'=>3,'ignore_errors'=>true,'header'=>"Accept: application/json
+User-Agent: veniux-site
 "]]);
     $raw=@file_get_contents($url,false,$context);
     $data=$raw===false?null:json_decode($raw,true);
@@ -45,7 +45,7 @@ User-Agent: veniux-site
     return $result=is_array($cached)?$cached:null;
 }
 function siteSectorPrices(): array {
-    $prices=['hirdavat'=>1788,'zuccaciye'=>1788,'pide'=>2988];
+    $prices=['hirdavat'=>21456,'zuccaciye'=>21456,'pide'=>35856];
     $keys=['hardware'=>'hirdavat','tableware'=>'zuccaciye','restaurant'=>'pide'];
     foreach((siteCloudPrices()['sector']??[]) as $item){
         $key=$keys[$item['pack']??'']??null;$cents=$item['annual_cents']??null;
