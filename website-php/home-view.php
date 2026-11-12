@@ -151,7 +151,7 @@ $steps=[
           <div><dt>Ne zaman?</dt><dd><strong>Hafta içi 09:00–18:00</strong><span>Cumartesi 10:00–14:00</span></dd></div>
           <div><dt>Ne kadar sürede?</dt><dd><strong>Kasa satış yapamıyorsa 2 saat</strong><span>Diğer sorularda 1 iş günü içinde ilk yanıt.</span></dd></div>
         </dl>
-        <a class="hx-btn hx-support-btn" href="#iletisim">Bize yazın</a>
+        <a class="hx-btn hx-support-btn" href="/#iletisim">Bize yazın</a>
       </div>
     </div>
   </div>
