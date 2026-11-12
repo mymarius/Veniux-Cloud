@@ -216,3 +216,6 @@ video::-webkit-media-controls,video::-webkit-media-controls-enclosure,video::-we
 html:root[data-mobile='true'] .vm-top{padding-top:14px}
 html:root[data-mobile='true'] .vm-login .logo{padding-top:48px}
 html:root[data-mobile='true'] .mobile-camera header,html:root[data-design][data-mobile='true'] .mobile-camera>header{padding-top:12px!important}
+/* Gerçek telefonda ölçüldü: env(safe-area-inset-top)=40px, env(safe-area-inset-bottom)=16px; uygulama bu boşlukları zaten Java tarafında ekliyor. */
+html:root[data-mobile='true'] .veniux-chat{height:calc(100dvh - 10px)!important}
+html:root[data-mobile='true'] .mobile-bottom-nav{padding-bottom:9px!important}
