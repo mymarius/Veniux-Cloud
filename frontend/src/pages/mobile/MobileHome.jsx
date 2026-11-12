@@ -26,7 +26,7 @@ export default function MobileHome() {
   const latest = release.releases?.[0];
   const slides = [...(latest ? [{ title: 'Sürüm ' + latest.version + ': ' + latest.title, text: latest.items?.[0] || '' }] : []), ...TIPS];
   useEffect(() => { const t = setInterval(() => setSlide(s => (s + 1) % slides.length), 5000); return () => clearInterval(t); }, [slides.length]);
-  useAlertWatcher(count => setUnread(count));
+  useAlertWatcher(count => setUnread(count), { notify: false });
   const modules = visibleModules(setup, moduleForPath), first = (user.full_name || user.name || '').split(' ')[0];
   const current = slides[slide] || slides[0];
   return <div className="vm">

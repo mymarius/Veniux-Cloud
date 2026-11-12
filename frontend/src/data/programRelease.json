@@ -11,7 +11,7 @@
         "Zil rozeti okunan uyarıyı sayıp sönmüyordu; artık yalnız açık uyarıları sayar ve dakikada bir yenilenir",
         "Bildirimlerim ekranında açık uyarılar \"Okundu\" düğmesiyle kapatılır, okunanlar altta ayrı görünür",
         "Çözülmüş uyarıda \"Çözüldü işaretle\" düğmesi artık yoktur; üst üste çıkan mesajlar giderildi",
-        "Android: yeni ve kritik stok uyarıları telefonun bildirim çubuğuna gelir; \"Bildirim izni kapalı\" hatası giderildi"
+        "Android: uygulama açıkken, hangi ekranda olursanız olun, yeni ve kritik stok uyarıları telefonun bildirim çubuğuna gelir; \"Bildirim izni kapalı\" hatası giderildi"
       ]
     },
     {
