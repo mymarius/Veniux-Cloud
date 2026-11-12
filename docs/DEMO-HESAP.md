@@ -22,3 +22,13 @@ exec -- node --env-file=../cloud-private/install.env backend/scripts/create_demo
 - Bu betik yalnız ekler; süresi biten demo işletmeleri silmez.
 - Aynı e-posta ikinci kez açılamaz. Platform sahibi e-postası için demo açılmaz.
 - Şema değişikliği yoktur.
+
+## Merkezi lisans gereği (canlıda zorunlu)
+`app.veniux.com`'da her API isteği merkezi lisans kapısından geçer; cihazın `VNX-` anahtarıyla etkinleştirilmiş olması gerekir. Betikle açılan hesap tek başına giriş yapamaz (`423 LICENSE_REQUIRED`). Her demo için şu adımlar gerekir:
+
+1. **Lisans oluşturun:** https://api.veniux.com/login yönetim paneline girin → lisans oluşturma formu: firma (`Veniux Demo – <ad>`), paket **İşletme (`BUSINESS_ANNUAL`)**, terminal sınırı (telefon + bilgisayar kullanacaksa 2), bitiş günü (örn. +14 gün). `VNX-…` anahtarı **yalnız bir kez** gösterilir.
+2. **Hesabı açın:** yukarıdaki betik.
+3. **Kişiye iletin:** e-posta, şifre ve `VNX-` anahtarı. Kişi `https://app.veniux.com/activate` ("Lisans Kontrolü") sayfasında anahtarı etkinleştirir, sonra giriş yapar.
+4. İlk girişte anahtar o işletmeye **bağlanır** (bir anahtar bir işletme). Anahtarı başka kişiyle paylaşmayın.
+
+Lisans bitiş günü, merkezde girişi kapatan tarihtir; uygulamadaki yerel lisans kaydı bu modda kullanılmaz (modül türü merkezi lisanstaki plandan gelir).
