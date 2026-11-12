@@ -373,7 +373,7 @@ export default function NormalProducts() {
           <div className="grid grid-cols-2 gap-4">
             <Input type="number" step="0.01" label="Alış fiyatı (TL)" value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} /><label className="text-sm">Alış fiyatı KDV temeli<select aria-label="Alış fiyatı KDV temeli" className="w-full border rounded-lg p-2" value={formData.purchase_price_tax_basis||''} onChange={e=>setFormData({...formData,purchase_price_tax_basis:e.target.value||null})}><option value="">Doğrulanmadı — maliyet belirsiz</option><option value="exclusive">KDV hariç</option><option value="inclusive">KDV dahil</option></select></label><Input label="Ürün KDV oranı (%)" type="number" min="0" max="100" value={formData.kdv_orani} onChange={e=>setFormData({...formData,kdv_orani:e.target.value})}/>
             <Input type="number" step="0.01" required label="Satış fiyatı (TL, KDV dahil)" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} />
-            <Input type="number" min="0" step="0.001" label="Minimum stok" value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
+            <Input type="number" min="0" max="1000000" step="0.001" label="Minimum stok" value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
             <Input type="number" min="0" step="0.001" label="Hedef stok (sipariş önerisi)" value={formData.max_stock_level} onChange={e=>setFormData({...formData,max_stock_level:e.target.value})}/>
           </div>
 

@@ -1,4 +1,6 @@
 const pool = require('../config/database');
+// Minimum stok için makul üst sınır: eskiden 1 milyara kadar kabul ediliyordu, test verisinde 10.000.000 gibi anlamsız eşikler girilebiliyordu.
+const MAX_MIN_STOCK = 1000000;
 
 // Get all products with stock aggregations
 const getAllProducts = async (req, res) => {
@@ -150,7 +152,7 @@ const createProduct = async (req, res) => {
       supplier_id = null
     } = req.body;
 
-    if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>1000000000)return res.status(400).json({error:'Minimum stok sıfır veya pozitif bir sayı olmalıdır.'});
+    if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>MAX_MIN_STOCK)return res.status(400).json({error:'Minimum stok 0 ile 1.000.000 arasında olmalıdır.'});
     if (!sku || !name) {
       return res.status(400).json({ error: 'SKU and name are required' });
     }
@@ -207,7 +209,7 @@ const updateProduct = async (req, res) => {
       supplier_id = null
     } = req.body;
 
-    if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>1000000000)return res.status(400).json({error:'Minimum stok sıfır veya pozitif bir sayı olmalıdır.'});
+    if(!Number.isFinite(Number(min_stock_level))||Number(min_stock_level)<0||Number(min_stock_level)>MAX_MIN_STOCK)return res.status(400).json({error:'Minimum stok 0 ile 1.000.000 arasında olmalıdır.'});
     if (!sku || !name) {
       return res.status(400).json({ error: 'SKU and name are required' });
     }
