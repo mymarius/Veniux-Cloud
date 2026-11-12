@@ -3,8 +3,8 @@ import {Flashlight,SwitchCamera,X} from 'lucide-react';
 export default function BarcodeCamera({ onCode, onClose, fullScreen=false, onManual, continuous=false,paused=false,resumeKey=0,toolbar,bottomPanel,embedded=false }) {
  const video=useRef(null),frame=useRef(null),latest=useRef(onCode);
  const [error,setError]=useState(''),[facing,setFacing]=useState('environment'),[torch,setTorch]=useState(false),[canTorch,setCanTorch]=useState(false);latest.current=onCode;
- // Android uygulamasında (WebView) BarcodeDetector yok: tam ekran okuma yerel kamerayla yapılır; kamera görüntüsü sayfanın arkasında görünür.
- const nativeBridge=fullScreen&&typeof window!=='undefined'&&typeof window.VeniuxAndroid?.startBarcode==='function'?window.VeniuxAndroid:null,nativeMode=Boolean(nativeBridge);
+ // Yalnız WebView'de BarcodeDetector yoksa (bazı Android sürümleri) tam ekran okuma yerel kamerayla yapılır. BarcodeDetector varsa web kamerası kullanılır (gerçek telefonda kasa kamerası bu yolla çalışıyor).
+ const nativeBridge=fullScreen&&typeof window!=='undefined'&&!window.BarcodeDetector&&typeof window.VeniuxAndroid?.startBarcode==='function'?window.VeniuxAndroid:null,nativeMode=Boolean(nativeBridge);
  const blocked=useRef(paused),track=useRef(null),detected=useRef(false),closeButton=useRef(null);blocked.current=paused;
  useEffect(()=>{detected.current=false;},[resumeKey]);
  useEffect(()=>{if(!fullScreen)return;const previous=document.activeElement;closeButton.current?.focus();const escape=e=>{if(e.key==='Escape')onClose();if(e.key==='Tab'){const controls=[...(closeButton.current?.closest('[role=dialog]')?.querySelectorAll('button:not(:disabled),input:not(:disabled)')||[])];const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};document.addEventListener('keydown',escape);return()=>{document.removeEventListener('keydown',escape);previous?.focus?.();};},[fullScreen]);

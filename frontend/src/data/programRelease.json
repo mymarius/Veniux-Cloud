@@ -1,8 +1,18 @@
 {
-  "version": "2.4.64",
+  "version": "2.4.65",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.65",
+      "date": "12 Kasım 2026",
+      "title": "Kamera ve asistan düzeltmeleri",
+      "items": [
+        "Tam ekran barkod okuma bu telefonda kasadaki kamerayla aynı yolu kullanır; kamera görüntüsü görünmeme sorunu giderildi",
+        "Kamera açılırken çıkan büyük oynat simgesi gizlendi",
+        "Asistanın işletme takibi panelinde veri eksik gelince çıkan \"Bir şeyler ters gitti\" hatası giderildi"
+      ]
+    },
     {
       "version": "2.4.64",
       "date": "12 Kasım 2026",

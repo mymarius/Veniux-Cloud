@@ -207,3 +207,7 @@ body:not(:has([data-surface='desktop'])):has(.vm) .veniux-assistant{right:auto;l
 html.native-camera-on,html.native-camera-on body,html.native-camera-on #root,html.native-camera-on *:has(.mobile-camera.native-cam){background:transparent!important}
 html:root[data-design] .mobile-camera.native-cam,.mobile-camera.native-cam{background:transparent!important}
 .mobile-camera.native-cam>header{background:linear-gradient(#10192acc,#10192a00)!important}
+
+/* WebView'de kamera akışı başlarken çıkan büyük "oynat" simgesini gizle (video yalnızca kamera önizlemesidir, oynatıcı değildir). */
+video::-webkit-media-controls,video::-webkit-media-controls-enclosure,video::-webkit-media-controls-panel,video::-webkit-media-controls-overlay-play-button,video::-webkit-media-controls-start-playback-button{display:none!important;-webkit-appearance:none!important;opacity:0!important}
+.till-camera video,.mobile-camera>video{background:#0d1621}
