@@ -1,8 +1,18 @@
 {
-  "version": "2.4.63",
+  "version": "2.4.64",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.64",
+      "date": "12 Kasım 2026",
+      "title": "Telefonda web sitesiyle aynı görünüm ve güvenlik",
+      "items": [
+        "Telefon arayüzü web sitesiyle aynı dile geçti: kâğıt zemin, lacivert üst bant, turuncu vurgu, kare köşe ve bantlı kartlar",
+        "Kısa içerikli telefon ekranlarının ortada dar şerit gibi görünmesi düzeltildi",
+        "Hesap başına giriş denemesi sınırı ve genel API hız sınırı eklendi"
+      ]
+    },
     {
       "version": "2.4.63",
       "date": "11 Kasım 2026",
