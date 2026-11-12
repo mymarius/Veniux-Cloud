@@ -95,7 +95,8 @@ const login = async (req, res) => {
     }
 
     const loginThrottle = require('../services/loginThrottle');
-    const wait = loginThrottle.retryAfter(email);
+    const clientAddress = require('../middlewares/apiThrottle').clientAddress(req);
+    const wait = loginThrottle.retryAfter(email, clientAddress);
     if (wait) return res.set('Retry-After', String(wait)).status(429).json({ error: 'Çok fazla hatalı deneme. Bir süre sonra tekrar deneyin.' });
 
     // Find user
@@ -107,7 +108,7 @@ const login = async (req, res) => {
     if (result.rows.length === 0) {
       // Olmayan hesapta da aynı parola maliyeti ödenir: yanıt süresiyle hesap varlığı anlaşılamaz.
       await bcrypt.compare(password, DUMMY_HASH);
-      loginThrottle.fail(email);
+      loginThrottle.fail(email, clientAddress);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -127,7 +128,7 @@ const login = async (req, res) => {
     const validPassword = centralOwner===null?await bcrypt.compare(password, user.password_hash):centralOwner;
 
     if (!validPassword || user.status !== 'active' || Number(user.is_active) !== 1) {
-      loginThrottle.fail(email);
+      loginThrottle.fail(email, clientAddress);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(user.tenant_id)==='NONE'){
@@ -138,8 +139,8 @@ const login = async (req, res) => {
     
     const second=await require('../services/mfaService').verify(user,typeof req.body.mfa_code==='string'?req.body.mfa_code.trim():'');
     if(second.required&&!req.body.mfa_code)return res.json({mfa_required:true});
-    if(!second.ok){loginThrottle.fail(email);return res.status(401).json({error:'İkinci doğrulama kodu geçersiz veya yeniden kullanılmış.'});}
-    loginThrottle.clear(email);
+    if(!second.ok){loginThrottle.fail(email, clientAddress);return res.status(401).json({error:'İkinci doğrulama kodu geçersiz veya yeniden kullanılmış.'});}
+    loginThrottle.clear(email, clientAddress);
     await require('../services/cloudLicenseBinding').claim(user.tenant_id,req.centralLicense);
     if(ownerBinding&&centralOwner===true&&!existingPlatformAdmin)await pool.transaction(async client=>{
       await client.query('INSERT INTO platform_admins(user_id) VALUES($1)',[user.id]);

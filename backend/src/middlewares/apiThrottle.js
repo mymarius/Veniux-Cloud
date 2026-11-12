@@ -59,4 +59,5 @@ function apiThrottle(req, res, next) {
 }
 
 apiThrottle.reset = () => buckets.clear();
+apiThrottle.clientAddress = clientAddress;
 module.exports = apiThrottle;
