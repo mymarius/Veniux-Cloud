@@ -4,8 +4,8 @@ async function syncStockAlert(tx,item){
  if(active){try{require('./pushNotifier').lowStockChanged(item.tenant_id);}catch{}}
  if(!active){await tx.query("UPDATE alerts SET status='resolved' WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3 AND alert_type='low_stock' AND status<>'resolved'",[item.tenant_id,item.product_id,item.warehouse_id]);return 0;}
  const message=`${item.product_name}: ${item.warehouse_name} deposunda ${item.quantity} kaldı. Minimum: ${item.min_stock_level}.`,severity=Number(item.quantity)<=0?'critical':'warning';
- if(rows.length){const row=rows[0];await tx.query('UPDATE alerts SET message=$1,severity=$2,status=$3 WHERE id=$4',[message,severity,row.status==='resolved'||row.message!==message?'unread':row.status,row.id]);for(const extra of rows.slice(1))await tx.query("UPDATE alerts SET status='resolved' WHERE id=$1",[extra.id]);return 0;}
- await tx.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'low_stock',$4,$5,'unread')",[item.tenant_id,item.product_id,item.warehouse_id,severity,message]);return 1;
+ if(rows.length){const row=rows[0];if(row.status==='resolved'){try{require('./pushNotifier').alertCreated(item.tenant_id,message,severity);}catch{}}await tx.query('UPDATE alerts SET message=$1,severity=$2,status=$3 WHERE id=$4',[message,severity,row.status==='resolved'||row.message!==message?'unread':row.status,row.id]);for(const extra of rows.slice(1))await tx.query("UPDATE alerts SET status='resolved' WHERE id=$1",[extra.id]);return 0;}
+ await tx.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'low_stock',$4,$5,'unread')",[item.tenant_id,item.product_id,item.warehouse_id,severity,message]);try{require('./pushNotifier').alertCreated(item.tenant_id,message,severity);}catch{}return 1;
 }
 async function syncWarehouseStockAlert(tx,tenant,product,warehouse){
  const preferences=await require('./settingsPolicyService').read(tenant,'notifications',tx);

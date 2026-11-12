@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, LogOut, Mail, UserRound, HelpCircle, Sparkles } from 'lucide-react';
 import PhoneTabs from '../../components/PhoneTabs';
+import { unregisterFcm } from './useFcmRegistration';
 import './mobile-hub.css';
 import { sectorPath, useSurface } from './sector/SectorSurface';
 import release from '../../data/programRelease.json';
@@ -63,7 +64,8 @@ export function Sheet({ onClose, label, children }) {
 
 export function ProfileSheet({ onClose }) {
   const user = readSessionUser();
-  const logout = () => {
+  const logout = async () => {
+    await unregisterFcm();
     localStorage.removeItem('token'); localStorage.removeItem('user');
     sessionStorage.removeItem('platform-tenant'); sessionStorage.removeItem('platform-tenant-name');
     window.location.href = '/login';

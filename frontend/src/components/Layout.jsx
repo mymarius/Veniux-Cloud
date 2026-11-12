@@ -14,6 +14,7 @@ import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
 import GlobalCommandPalette from './GlobalCommandPalette';
 import PhoneTabs from './PhoneTabs';
+import { unregisterFcm } from '../pages/mobile/useFcmRegistration';
 import { useToast } from './Toast';
 import OwnerWelcome from './OwnerWelcome';
 import ReleaseNotes, { PROGRAM_VERSION } from './ReleaseNotes';
@@ -206,7 +207,8 @@ export function Layout({ children }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await unregisterFcm();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem('platform-tenant');
