@@ -211,3 +211,8 @@ html:root[data-design] .mobile-camera.native-cam,.mobile-camera.native-cam{backg
 /* WebView'de kamera akışı başlarken çıkan büyük "oynat" simgesini gizle (video yalnızca kamera önizlemesidir, oynatıcı değildir). */
 video::-webkit-media-controls,video::-webkit-media-controls-enclosure,video::-webkit-media-controls-panel,video::-webkit-media-controls-overlay-play-button,video::-webkit-media-controls-start-playback-button{display:none!important;-webkit-appearance:none!important;opacity:0!important}
 .till-camera video,.mobile-camera>video{background:#0d1621}
+
+/* Android uygulaması: WebView zaten durum çubuğunun altında başlar (Java tarafı boşluğu ekler). CSS'in env(safe-area-inset-top) payı bir kez daha eklenince başlıklara ~40dp boşluk giriyordu. */
+html:root[data-mobile='true'] .vm-top{padding-top:14px}
+html:root[data-mobile='true'] .vm-login .logo{padding-top:48px}
+html:root[data-mobile='true'] .mobile-camera header,html:root[data-design][data-mobile='true'] .mobile-camera>header{padding-top:12px!important}

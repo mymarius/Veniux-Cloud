@@ -1,8 +1,17 @@
 {
-  "version": "2.4.67",
+  "version": "2.4.68",
   "date": "7 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.68",
+      "date": "12 Kasım 2026",
+      "title": "Gerçek telefonda görünüm düzeltmeleri",
+      "items": [
+        "Üst başlıkta ve kamera ekranında durum çubuğu payı iki kez sayılıyordu; fazla boşluk giderildi",
+        "Alt gezinme çubuğunda seçili sekmenin bozuk görünümü düzeltildi"
+      ]
+    },
     {
       "version": "2.4.67",
       "date": "12 Kasım 2026",
