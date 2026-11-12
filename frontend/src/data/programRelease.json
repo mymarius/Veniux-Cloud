@@ -10,7 +10,8 @@
       "items": [
         "Telefon arayüzü web sitesiyle aynı dile geçti: kâğıt zemin, lacivert üst bant, turuncu vurgu, kare köşe ve bantlı kartlar",
         "Kısa içerikli telefon ekranlarının ortada dar şerit gibi görünmesi düzeltildi",
-        "Hesap başına giriş denemesi sınırı ve genel API hız sınırı eklendi"
+        "Hesap başına giriş denemesi sınırı ve genel API hız sınırı eklendi",
+        "Android: ürün barkodları artık telefonun kendi kamerasıyla okunur; \"tarayıcı desteklemiyor\" hatası giderildi"
       ]
     },
     {

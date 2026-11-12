@@ -202,3 +202,8 @@ html:root[data-theme='dark'] .vm-label,html:root[data-theme='dark'] .vm-hello,ht
 
 /* Telefon yüzeyinde asistan düğmesi sol alta geçer: sağ alttaki barkod okut düğmesinin ve içeriğin üstüne binmez. */
 body:not(:has([data-surface='desktop'])):has(.vm) .veniux-assistant{right:auto;left:12px}
+
+/* Android uygulaması: ürün barkodu yerel kamerayla okunur ve kamera sayfanın arkasında görünür; sayfa ve üst kaplar saydamlaşır. */
+html.native-camera-on,html.native-camera-on body,html.native-camera-on #root,html.native-camera-on *:has(.mobile-camera.native-cam){background:transparent!important}
+html:root[data-design] .mobile-camera.native-cam,.mobile-camera.native-cam{background:transparent!important}
+.mobile-camera.native-cam>header{background:linear-gradient(#10192acc,#10192a00)!important}
