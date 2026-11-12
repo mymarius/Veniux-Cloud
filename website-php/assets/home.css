@@ -1189,3 +1189,17 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .ch-agents li span{display:grid}
 .ch-agents small{color:var(--ink-soft)}
 .ch-agent-off{opacity:.55}
+
+/* Fiyat sayfası sık sorulanlar: açılır kartlar */
+.hx-qaacc{align-items:start;gap:14px 28px}
+.hx-qaacc details{border:1px solid #c9bda6;background:var(--white);transition:border-color .2s}
+.hx-qaacc details[open]{border-color:var(--ink)}
+.hx-qaacc summary{position:relative;display:block;cursor:pointer;list-style:none;padding:18px 56px 18px 20px;font:700 21px/1.25 var(--display);font-stretch:85%;color:var(--ink)}
+.hx-qaacc summary::-webkit-details-marker{display:none}
+.hx-qaacc summary:after{content:'+';position:absolute;right:18px;top:50%;translate:0 -50%;width:28px;height:28px;display:grid;place-items:center;border:1px solid #c9bda6;font:500 20px/1 var(--display);color:var(--orange-text)}
+.hx-qaacc details[open] summary:after{content:'–';background:var(--ink);border-color:var(--ink);color:#fff}
+.hx-qaacc summary:hover{background:#f8f2e6}
+.hx-qaacc summary:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+.hx-qaacc p{margin:0;padding:0 20px 20px;max-width:none;font-size:17px;line-height:1.6;color:var(--ink-soft)}
+@media(max-width:600px){.hx-qaacc summary{font-size:19px;padding:16px 52px 16px 16px}.hx-qaacc p{padding:0 16px 18px}}
+@media (prefers-reduced-motion:reduce){.hx-qaacc details{transition:none}}

@@ -140,18 +140,18 @@ $compare=[
   </div>
 </section>
 
-<section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa">
-  <div><h3>Deneme sürümü var mı?</h3><p>Kendiliğinden açılan bir deneme lisansı yok. Bunun yerine programı sizin ürünlerinizle ve iş akışınızla görüşmede birlikte deniyoruz; demo talebinizi aşağıdaki formdan bırakabilirsiniz.</p></div>
-  <div><h3>Yazarkasa (ÖKC) ile çalışır mı?</h3><p>Henüz hayır. Veniux kasası yasal fişin yerine geçmez; yasal fiş yazarkasanızdan ayrıca kesilir. Yazarkasa entegrasyonu planlanıyor; yükümlülüğünüzü mali müşavirinizle netleştirin.</p></div>
-  <div><h3>Fiyatlar neden KDV dahil yazılı?</h3><p>Ödeyeceğiniz toplam tutarı ilk bakışta görün diye. KDV hariç tutar teklifte ayrıca yazılır.</p></div>
-  <div><h3>Hangi paket bana uygun?</h3><p>Tek kasa ve tek depoysanız Başlangıç. Şubeniz, veresiyeniz veya sadakat kartınız varsa İşletme. Çok şubeli ve büyük depolar için Kurumsal.</p></div>
-  <div><h3>3 aylık ile yıllık arasında ne fark var?</h3><p>Özellikler ve sınırlar aynıdır. Yıllık ödeme yaklaşık %20 daha avantajlıdır. Kurumsal paket yalnız yıllık sunulur.</p></div>
-  <div><h3>Fiyat yenilemede artar mı?</h3><p>Sözleşme süresince sabittir. Yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p></div>
-  <div><h3>İnternet kesilince ne olur?</h3><p>Bilgisayara kurulan (yerel) sürümde satış devam eder. Bulut sürümde kasa sayfası önceden internetle açılmışsa nakit ve kart satış devam eder, bağlantı gelince gönderilir; indirim, iade ve veresiye çevrimdışıyken kapalıdır. Bu özellik Chrome’da denendi.</p></div>
-  <div><h3>e-Fatura ve iPhone uygulaması var mı?</h3><p>e-Fatura entegrasyonu hazırlık aşamasında; canlıya açıldığında duyuracağız. Şu an Windows ve Android var; iPhone sürümü yok.</p></div>
-  <div><h3>Buradan ödeme yapabilir miyim?</h3><p>Hayır. Paket seçiminiz görüşme talebine eklenir, ödeme birlikte netleşir. Kendiliğinden abonelik başlamaz.</p></div>
-  <div><h3>İhtiyacım değişirse ne olur?</h3><p>Uygun paketi yeniden belirleriz. Geçiş tarihi, süre ve ücret farkı yeni teklifte yazılır.</p></div>
-  <div><h3>Lisans ne zaman açılır?</h3><p>Kapsam ve ödeme netleştikten sonra. Siteye kayıt olmak ücretli lisansı kendiliğinden açmaz.</p></div>
+<section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa hx-qaacc">
+  <details><summary>Deneme sürümü var mı?</summary><p>Kendiliğinden açılan bir deneme lisansı yok. Bunun yerine programı sizin ürünlerinizle ve iş akışınızla görüşmede birlikte deniyoruz; demo talebinizi aşağıdaki formdan bırakabilirsiniz.</p></details>
+  <details><summary>Yazarkasa (ÖKC) ile çalışır mı?</summary><p>Henüz hayır. Veniux kasası yasal fişin yerine geçmez; yasal fiş yazarkasanızdan ayrıca kesilir. Yazarkasa entegrasyonu planlanıyor; yükümlülüğünüzü mali müşavirinizle netleştirin.</p></details>
+  <details><summary>Fiyatlar neden KDV dahil yazılı?</summary><p>Ödeyeceğiniz toplam tutarı ilk bakışta görün diye. KDV hariç tutar teklifte ayrıca yazılır.</p></details>
+  <details><summary>Hangi paket bana uygun?</summary><p>Tek kasa ve tek depoysanız Başlangıç. Şubeniz, veresiyeniz veya sadakat kartınız varsa İşletme. Çok şubeli ve büyük depolar için Kurumsal.</p></details>
+  <details><summary>3 aylık ile yıllık arasında ne fark var?</summary><p>Özellikler ve sınırlar aynıdır. Yıllık ödeme yaklaşık %20 daha avantajlıdır. Kurumsal paket yalnız yıllık sunulur.</p></details>
+  <details><summary>Fiyat yenilemede artar mı?</summary><p>Sözleşme süresince sabittir. Yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p></details>
+  <details><summary>İnternet kesilince ne olur?</summary><p>Bilgisayara kurulan (yerel) sürümde satış devam eder. Bulut sürümde kasa sayfası önceden internetle açılmışsa nakit ve kart satış devam eder, bağlantı gelince gönderilir; indirim, iade ve veresiye çevrimdışıyken kapalıdır. Bu özellik Chrome’da denendi.</p></details>
+  <details><summary>e-Fatura ve iPhone uygulaması var mı?</summary><p>e-Fatura entegrasyonu hazırlık aşamasında; canlıya açıldığında duyuracağız. Şu an Windows ve Android var; iPhone sürümü yok.</p></details>
+  <details><summary>Buradan ödeme yapabilir miyim?</summary><p>Hayır. Paket seçiminiz görüşme talebine eklenir, ödeme birlikte netleşir. Kendiliğinden abonelik başlamaz.</p></details>
+  <details><summary>İhtiyacım değişirse ne olur?</summary><p>Uygun paketi yeniden belirleriz. Geçiş tarihi, süre ve ücret farkı yeni teklifte yazılır.</p></details>
+  <details><summary>Lisans ne zaman açılır?</summary><p>Kapsam ve ödeme netleştikten sonra. Siteye kayıt olmak ücretli lisansı kendiliğinden açmaz.</p></details>
 </div></div></section>
 <?php require __DIR__."/guide-view.php"; ?>
 </div>

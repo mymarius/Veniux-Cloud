@@ -1,8 +1,8 @@
 {
   "note": "Sitedeki fiyat sayfasıyla (website-php/pricing.php) aynı tutulur; tests/visitorAssistant.test.js eşitliği denetler. Tutarlar yıllık, %20 KDV dahil TL.",
   "plans": [
-    { "id": "baslangic", "name": "Başlangıç", "annual_try": 4188, "quarter_try": 1308, "from": false, "warehouses": 1, "users": 5, "devices": 3, "registers": 1, "summary": "Barkodlu kasa, kampanyalar, stok ve mal kabul, lot ve miat, sipariş önerisi, kritik stok/miat/sayım farkı/kayıp şüphesi uyarıları." },
-    { "id": "isletme", "name": "İşletme", "annual_try": 10788, "quarter_try": 3372, "from": false, "warehouses": 3, "users": 15, "devices": 10, "registers": 3, "summary": "Başlangıç'taki her şey; veresiye ve vade hatırlatması, sadakat kartı, kâr/kasiyer/saatlik raporlar, işletme asistanı, şube karşılaştırması, öncelikli destek." },
-    { "id": "kurumsal", "name": "Kurumsal", "annual_try": 35988, "quarter_try": null, "from": true, "warehouses": 50, "users": 250, "devices": 100, "registers": 50, "summary": "İşletme'deki her şey; kurulum ve veri aktarımı desteği. Yalnız yıllık; fiyat başlangıç fiyatıdır, kapsam büyüdükçe teklifle netleşir." }
+    { "id": "baslangic", "name": "Başlangıç", "annual_try": 8388, "quarter_try": 2628, "from": false, "warehouses": 1, "users": 5, "devices": 3, "registers": 1, "summary": "Barkodlu kasa, kampanyalar, stok ve mal kabul, lot ve miat, sipariş önerisi, kritik stok/miat/sayım farkı/kayıp şüphesi uyarıları." },
+    { "id": "isletme", "name": "İşletme", "annual_try": 21588, "quarter_try": 6744, "from": false, "warehouses": 3, "users": 15, "devices": 10, "registers": 3, "summary": "Başlangıç'taki her şey; veresiye ve vade hatırlatması, sadakat kartı, kâr/kasiyer/saatlik raporlar, işletme asistanı, şube karşılaştırması, öncelikli destek." },
+    { "id": "kurumsal", "name": "Kurumsal", "annual_try": 71988, "quarter_try": null, "from": true, "warehouses": 50, "users": 250, "devices": 100, "registers": 50, "summary": "İşletme'deki her şey; kurulum ve veri aktarımı desteği. Yalnız yıllık; fiyat başlangıç fiyatıdır, kapsam büyüdükçe teklifle netleşir." }
   ]
 }
