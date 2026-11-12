@@ -1,8 +1,7 @@
 const express=require('express'),router=express.Router(),service=require('../services/backupService');
 const {authMiddleware}=require('../middlewares/authMiddleware');
 router.use(authMiddleware);
-// Yedek sağlığı her firma yöneticisine görünür; yedeğin kendisine yalnız platform yöneticisi erişir.
-router.get('/health',(req,res)=>{if(!['admin','manager'].includes(req.user.role)&&!req.user.isPlatformAdmin)return res.status(403).json({error:'Yetki yok.'});res.set('Cache-Control','no-store').json(service.health?service.health():{level:'unknown',messages:[]});});
+// Yedek sağlığı yalnız platform yöneticisine (ve tek firmalı masaüstü yöneticisine) görünür; diğer firma yöneticilerine her zaman "ok" döner.
 // Masaüstü kurulumunda veritabanı tek firmaya aittir: firma genelinde yetkili yönetici kendi yedeğini yönetir.
 // Bulutta yedek bütün firmaları içerdiği için yalnız platform yöneticisi erişir.
 router.use(async(req,res,next)=>{try{
@@ -10,6 +9,8 @@ router.use(async(req,res,next)=>{try{
   const db=require('../config/database');const count=Number((await db.query('SELECT COUNT(*) AS n FROM tenants')).rows[0].n);
   if(count===1&&Number((await db.query('SELECT id FROM tenants LIMIT 1')).rows[0].id)===Number(req.user.tenantId))req.user.backupManager=true;
  }next();}catch(e){next(e);}});
+router.get('/health',(req,res)=>{if(!['admin','manager'].includes(req.user.role)&&!req.user.isPlatformAdmin)return res.status(403).json({error:'Yetki yok.'});res.set('Cache-Control','no-store');// Bulutta ortak yedek bütün firmalar için tek sistemdir; firma yöneticisi bunu düzeltemez, bu yüzden yalnız platform yöneticisi (ve tek firmalı masaüstü kurulumunda firma yöneticisi) sağlık durumunu görür.
+if(!req.user.isPlatformAdmin&&!req.user.backupManager)return res.json({level:'ok',messages:[]});res.json(service.health?service.health():{level:'unknown',messages:[]});});
 router.use((req,res,next)=>req.user.isPlatformAdmin||req.user.backupManager?next():res.status(403).json({error:'Ortak sistem yedeği yalnızca platform yöneticisine açıktır.'}));
 const handle=fn=>async(req,res,next)=>{try{await fn(req,res);}catch(e){next(e);}};
 router.get('/',handle(async(req,res)=>res.json(service.summary())));
