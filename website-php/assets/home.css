@@ -1247,3 +1247,4 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .wa-num{font-weight:600;color:var(--ink-soft)}
 @media (max-width:520px){.wa-float{right:12px;bottom:76px;padding:13px}.wa-float span{display:none}}
 .dp-contact .wa-num{color:#fff;opacity:.92}
+.ac-after-note{margin:-8px 0 20px;padding:10px 12px;border-left:3px solid #cf4b06;background:#fffdf8;font-size:14px;color:var(--ink-soft)}

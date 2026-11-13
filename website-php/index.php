@@ -49,6 +49,9 @@ $pages['/lot-miat-takibi']['alt']='Veniux ürün ekranında stok ve lot takibi p
 
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
 if($path==='/eczane-stok-takibi'){header('Location: /stok-yonetimi',true,301);exit;}
+// Dışarıda dolaşan tahmini adresler doğru sayfalara gider.
+$legacyRedirects=['/kurulum-secenekleri'=>'/sunucu-kurulumu','/el-terminali'=>'/el-terminali-depo-yonetimi','/el-terminali-stok-takibi'=>'/el-terminali-depo-yonetimi','/operasyon-asistani'=>'/yapay-zeka','/bize-yazin'=>'/#iletisim'];
+if(isset($legacyRedirects[$path])){header('Location: '.$legacyRedirects[$path],true,301);exit;}
 
 $legalPages=require __DIR__.'/legal.php';
 foreach($legalPages as $legalPath=>$legalPage){
@@ -195,7 +198,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261113h"><script src="/assets/home.js?v=20261113e" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261113i"><script src="/assets/home.js?v=20261113e" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>

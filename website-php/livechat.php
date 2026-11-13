@@ -183,7 +183,7 @@ function chatAdminPage(string $nonce): void {
 <meta name="robots" content="noindex,nofollow">
 <title>Canlı destek yönetimi | Veniux</title>
 <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
-<link rel="stylesheet" href="/assets/home.css?v=20261113e">
+<link rel="stylesheet" href="/assets/home.css?v=20261113i">
 </head>
 <body class="ch-admin-body">
 <main class="ch-admin" id="ch-admin" data-enabled="<?= $enabled ? '1' : '0' ?>" data-auth="<?= chatAdminAllowed() ? '1' : '0' ?>" data-name="<?= htmlspecialchars((string)($_SESSION['chat_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-role="<?= htmlspecialchars((string)($_SESSION['chat_role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars((string)($_SESSION['chat_csrf'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
