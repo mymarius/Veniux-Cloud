@@ -6,7 +6,7 @@ import release from '../../data/programRelease.json';
 import { asList } from '../../lib/stockAnalytics';
 import { isOpenAlert } from '../../lib/alerts.mjs';
 import { readSessionUser } from '../../lib/sessionUser';
-import { EmptyState, MobileTop, SUPPORT_URL } from './mobileKit';
+import { EmptyState, MobileTop, SUPPORT_URL, WHATSAPP_URL } from './mobileKit';
 
 // "Bildirimlerim": stok uyarıları. Açık olanlar üstte ve "Okundu" ile kapatılır; okunanlar altta soluk görünür.
 export function MobileNotifications() {
@@ -71,9 +71,13 @@ export function MobileSupport() {
   return <div className="vm">
     <MobileTop title="Bize Ulaşın" flat />
     <div className="vm-body" style={{ marginTop: 0, paddingTop: 18 }}>
+      <section className="vm-hero"><p className="vm-eyebrow">Destek · Hafta içi 09:00–18:00</p><h2>Size nasıl <em>yardım</em> edelim?</h2></section>
+      <section className="vm-card hot"><b style={{ fontSize: 18 }}>WhatsApp'tan yazın</b>
+        <p className="vm-note" style={{ margin: '6px 0 14px' }}>En hızlı yol. Hangi ekranda olduğunuzu yazarsanız daha çabuk yardımcı oluruz.</p>
+        <a className="vm-btn" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">WhatsApp'ı aç</a></section>
       <section className="vm-card"><Mail size={22} />
-        <p style={{ margin: '10px 0' }}>Sorun mu yaşıyorsunuz? Formu doldurun, hızlıca dönelim. Mümkünse hangi ekranda olduğunuzu yazın.</p>
-        <a className="vm-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">İletişim formunu aç</a></section>
+        <p style={{ margin: '10px 0' }}>İsterseniz iletişim formundan da yazabilirsiniz; size e-postayla dönelim.</p>
+        <a className="vm-btn ghost" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">İletişim formunu aç</a></section>
     </div>
   </div>;
 }

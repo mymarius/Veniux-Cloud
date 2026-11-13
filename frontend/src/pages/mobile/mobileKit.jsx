@@ -11,6 +11,8 @@ import { initials, roleLabel } from '../../lib/mobileHub.mjs';
 
 // Destek: Veniux sitesindeki iletişim formu (kişisel e-posta adresi uygulamaya gömülmez). Gerekirse VITE_SUPPORT_URL ile değiştirilir.
 export const SUPPORT_URL = import.meta.env.VITE_SUPPORT_URL || 'https://veniux.com/#iletisim';
+// WhatsApp destek hattı (veniux.com ile aynı numara).
+export const WHATSAPP_URL = 'https://wa.me/905524643518?text=' + encodeURIComponent('Merhaba, Veniux mobil uygulaması hakkında yardım istiyorum.');
 
 // İşletme asistanı her telefon ekranında üst bantta durur (Veniux Cloud ekranlarındakiyle aynı düğme).
 export function AiButton() {
@@ -36,7 +38,7 @@ export function HomeTop({ unread = 0 }) {
   const [open, setOpen] = useState(false);
   return <>
     <header className="vm-top">
-      <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran">veniux<i>.</i><small>mağaza</small></Link>
+      <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran"><img src="/veniux-logo.png" alt="" width="30" height="30" />Veniux<small>Mağaza</small></Link>
       <div className="vm-top-actions">
         <AiButton />
         <Link to="/m/bildirimler" className="vm-iconbtn" aria-label={unread ? unread + ' bildirim' : 'Bildirimler'}><Bell size={20} />{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}</Link>

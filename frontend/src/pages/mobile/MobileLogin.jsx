@@ -34,12 +34,13 @@ export default function MobileLogin() {
     } finally { setLoading(false); }
   };
 
-  if (centralRequired && licenseLoading) return <div className="vm-login" role="status"><div className="logo">veniux</div><p className="sub" style={{ marginTop: 40 }}>Lisansınız kontrol ediliyor…</p></div>;
+  if (centralRequired && licenseLoading) return <div className="vm-login" role="status"><div className="logo"><img src="/veniux-logo.png" alt="" width="40" height="40" />Veniux</div><p className="sub" style={{ marginTop: 40 }}>Lisansınız kontrol ediliyor…</p></div>;
   if (centralRequired && !isLicensed) return <Navigate to="/activate" replace />;
   return <div className="vm-login">
-    <div className="logo" aria-label="Veniux">veniux</div>
-    <h1>Hesabına giriş yap!</h1>
-    <p className="sub">Hoş geldin! E-posta adresin ve şifrenle giriş yapabilirsin.</p>
+    <div className="logo"><img src="/veniux-logo.png" alt="" width="40" height="40" />Veniux</div>
+    <p className="eyebrow">Stok · Kasa · Etiket</p>
+    <h1>Hesabına <em>gir.</em></h1>
+    <p className="sub">E-posta adresin ve şifrenle giriş yap; mağazan cebinde.</p>
     {error && <div role="alert" className="alert" data-testid="status-login-error"><ShieldAlert size={18} />{error}</div>}
     {billing && <div style={{ marginBottom: 12 }}><BankTransferPayment billing={billing} /></div>}
     <form onSubmit={submit}>
@@ -47,9 +48,10 @@ export default function MobileLogin() {
       <label className="vm-field"><Lock size={18} /><input type={show ? 'text' : 'password'} autoComplete="current-password" placeholder="Şifre" aria-label="Şifre" value={password} onChange={e => setPassword(e.target.value)} required />
         <button type="button" aria-label={show ? 'Şifreyi gizle' : 'Şifreyi göster'} onClick={() => setShow(v => !v)}>{show ? <EyeOff size={18} /> : <Eye size={18} />}</button></label>
       {mfaRequired && <label className="vm-field"><ShieldAlert size={18} /><input autoFocus autoComplete="one-time-code" placeholder="Doğrulama veya kurtarma kodu" aria-label="Doğrulama kodu" maxLength={24} value={mfaCode} onChange={e => setMfaCode(e.target.value)} required /></label>}
-      <div className="opts"><span /><Link to="/forgot-password">Şifremi unuttum</Link></div>
+      <div className="opts"><Link to="/forgot-password">Şifremi unuttum</Link></div>
       <button type="submit" className="vm-btn" disabled={loading} data-testid="button-login-submit">{loading ? 'Doğrulanıyor…' : 'Giriş'}</button>
     </form>
-    <p className="help">Sorun mu yaşıyorsun? <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">Bize Ulaş</a></p>
+    <p className="help">Sorun mu yaşıyorsun? <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">Bize ulaş</a></p>
+    <div className="ticket" aria-hidden="true"><i /><span>veniux.com</span></div>
   </div>;
 }
