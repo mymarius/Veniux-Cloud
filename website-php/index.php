@@ -250,7 +250,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                     <h2 class="dp-h2">Bize yazın</h2>
                     <p>
                         İşletmenizi, depo sayınızı ve ne aradığınızı yazın. Size dönüp programı kendi işinize göre gösterelim.</p>
-                    <?php require_once __DIR__.'/whatsapp.php'; ?><p class="wa-line"><a class="wa-btn" href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer"><?=whatsappIcon(22)?><span>WhatsApp'tan yazın</span></a><span class="wa-num"><?=e(VENIUX_WHATSAPP_DISPLAY)?> · Hafta içi 09:00–18:00</span></p>
+                    <?php require_once __DIR__.'/whatsapp.php'; ?><p class="wa-line"><a class="wa-btn" href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer"><?=whatsappIcon(22)?><span>WhatsApp'tan yazın</span></a></p>
                 </div>
 
                 <div class="dp-contact-form-area">
