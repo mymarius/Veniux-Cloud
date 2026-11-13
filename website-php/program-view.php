@@ -26,6 +26,14 @@
       <b>Önceden söyleyelim</b>
       <p>Windows kurulum dosyasında henüz doğrulanmış yayıncı imzası yok; SmartScreen uyarısı çıkabilir. Kod imzalama çalışması tamamlanmadı.</p>
     </aside>
+    <section class="pg-steps" aria-labelledby="kurulum-adimlari">
+      <h2 id="kurulum-adimlari">3 adımda kurulum</h2>
+      <ol>
+        <li><span class="pg-step-no" aria-hidden="true">1</span><div><b>Kurulum dosyasını indirin</b><p>Yukarıdan Windows’u seçin ve dosyayı çalıştırın. Kurulum Windows’un standart ekranlarıyla ilerler; klasörü seçip İleri’ye basmanız yeter.</p></div></li>
+        <li><span class="pg-step-no" aria-hidden="true">2</span><div><b>Windows uyarı gösterirse</b><p>“Windows bilgisayarınızı korudu” ekranı çıkarsa <b>Ek bilgi</b>’ye, ardından <b>Yine de çalıştır</b>’a basın. Bu uyarı, kurulum dosyasında henüz doğrulanmış yayıncı imzası olmadığı içindir. Dosyayı yalnızca bu sayfadan veya Veniux’tan aldığınızdan emin olun.</p></div></li>
+        <li><span class="pg-step-no" aria-hidden="true">3</span><div><b>Açın ve bağlanın</b><p>İlk açılışta bu bilgisayarı sunucu olarak kullanmayı veya mevcut bir sunucuya bağlanmayı seçin. Telefon için bilgisayardaki QR kodu Android uygulamasıyla okutun; telefon ve bilgisayar aynı ağda, bilgisayar açık olmalıdır.</p></div></li>
+      </ol>
+    </section>
     <p class="pg-link"><a href="/guncelleme-notlari">Son sürümde neler değişti?</a></p>
   </div>
 </section>
