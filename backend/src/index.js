@@ -161,6 +161,8 @@ if (process.env.NODE_ENV !== 'test') {
       const storeSync = require('./services/storeSyncService');
       setInterval(() => storeSync.pushAll().catch(() => {}), 120000).unref();
     }
+    // Süresi dolmuş demo işletmelerini temizle: yalnız bulut hizmetinde; VENIUX_DEMO_PURGE_DAYS=0 kapatır.
+    if (process.env.VENIUX_CLOUD_SERVICE === '1' && process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') require('./services/demoPurge').start(database);
     if (process.env.VENIUX_DISABLE_BACKGROUND_JOBS !== '1') { require('./services/stockLossMonitor').startScheduler(); require('./services/marketplaceService').startScheduler(); }
     // Optional: Start cron background tasks
     try {

@@ -19,7 +19,7 @@ exec -- node --env-file=../cloud-private/install.env backend/scripts/create_demo
 - Örnek veri: 2 depo (Ana Depo, Şube Mağaza), 12 ürün (geçerli EAN-13 barkod, minimum stok), her depoda stok kaydı ve açılış hareketi. Bazı ürünler minimum stoğun altındadır, böylece uyarılar ve sipariş önerisi görünür.
 
 ## Sınırlar
-- Bu betik yalnız ekler; süresi biten demo işletmeleri silmez.
+- Süresi biten demo işletmeleri bulut hizmetinde günde bir kez otomatik silinir: yalnız adı `Veniux Demo – ` ile başlayan ve tüm lisansları bitişten en az 30 gün önce dolmuş olanlar. Bekleme süresi `VENIUX_DEMO_PURGE_DAYS` ile değişir (`0` kapatır). Elle önizleme: `node backend/scripts/purge_expired_demos.js [--days 30]` (silmez); silmek için `--apply`. Silinen işletmenin merkezdeki `VNX-` anahtarı ayrıca api.veniux.com panelinden iptal edilmelidir.
 - Aynı e-posta ikinci kez açılamaz. Platform sahibi e-postası için demo açılmaz.
 - Şema değişikliği yoktur.
 

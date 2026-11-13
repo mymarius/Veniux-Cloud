@@ -5,10 +5,18 @@ const { register, login, getMe, getAllUsers } = require('../controllers/authCont
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
 const checkEntitlement = require('../middlewares/licenseMiddleware');
 
+// Giriş/kayıt: istemci adresi başına 15 dakikada en fazla 20 BAŞARISIZ deneme.
+// - Başarılı girişler sayılmaz (aynı ofisten çok kişinin sabah girişi birbirini kilitlemez).
+// - Adres, ters vekilin (Passenger/nginx) arkasında bile gerçek istemciden alınır; aksi halde tüm müşteriler tek IP görünür.
+// - Hesap bazlı kilit ayrıca loginThrottle'dadır (e-posta + adres çifti).
+const { clientAddress } = require('../middlewares/apiThrottle');
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 requests per windowMs
-  message: 'Too many authentication attempts, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  skipSuccessfulRequests: true,
+  keyGenerator: req => clientAddress(req),
+  validate: { ip: false, trustProxy: false, xForwardedForHeader: false },
+  message: { error: 'Çok fazla deneme. Bir süre sonra tekrar deneyin.' }
 });
 
 // Self-signup: Creates a new tenant and sets user as admin
