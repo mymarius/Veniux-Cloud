@@ -70,7 +70,11 @@ if(($_SERVER['HTTPS']??'')==='on')header('Strict-Transport-Security: max-age=315
 header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+$analyticsIds=require __DIR__.'/analytics-config.php';
+$cspScript=$cspConnect=$cspImg='';
+if(!empty($analyticsIds['ga'])){$cspScript.=' https://www.googletagmanager.com';$cspConnect.=' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com';$cspImg.=' https://www.google-analytics.com https://www.googletagmanager.com';}
+if(!empty($analyticsIds['clarity'])){$cspScript.=' https://www.clarity.ms https://scripts.clarity.ms';$cspConnect.=' https://*.clarity.ms https://c.bing.com';$cspImg.=' https://*.clarity.ms https://c.bing.com';}
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$nonce}'{$cspScript}; connect-src 'self'{$cspConnect}; style-src 'self' 'nonce-{$nonce}'; img-src 'self' data:{$cspImg}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
 
 if ($path === '/robots.txt') { header('Content-Type: text/plain; charset=utf-8'); echo siteRobots($config); exit; }
 if ($path === '/sitemap.xml') { header('Content-Type: application/xml; charset=utf-8'); echo siteSitemap($config,$pages); exit; }

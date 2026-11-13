@@ -1,4 +1,5 @@
-<section id="cookie-banner" class="cookie-banner" aria-labelledby="cookie-title" hidden>
+<?php $analyticsIds=require __DIR__.'/analytics-config.php';$analyticsNames=array_filter([!empty($analyticsIds['ga'])?'Google Analytics':null,!empty($analyticsIds['clarity'])?'Microsoft Clarity':null]); ?>
+<section id="cookie-banner" class="cookie-banner" data-analytics="<?=htmlspecialchars(json_encode(array_filter(['ga'=>$analyticsIds['ga']??'','clarity'=>$analyticsIds['clarity']??''])),ENT_QUOTES)?>" aria-labelledby="cookie-title" hidden>
  <div><p class="cookie-eyebrow">VENIUX · GİZLİLİK TERCİHİNİZ</p><h2 id="cookie-title">Çerezler sizin kontrolünüzde.</h2><p>Giriş ve form güvenliği için gerekli çerezleri kullanıyoruz. İsteğe bağlı istatistikler yalnız onayınızla açılır. Reddetmeniz siteyi kullanmanızı engellemez. <a href="/cerez-politikasi">Çerez politikasını okuyun</a>.</p></div>
  <div class="cookie-actions"><button type="button" data-cookie-choice="reject">Reddet</button><button type="button" data-cookie-open>Tercihleri yönet</button><button type="button" data-cookie-choice="accept">Tümünü kabul et</button></div>
 </section>
@@ -6,7 +7,7 @@
  <div class="cookie-heading"><div><p class="cookie-eyebrow">GİZLİLİK MERKEZİ</p><h2 id="cookie-preferences-title">Çerez tercihleri</h2></div><button type="button" class="cookie-close" data-cookie-close aria-label="Tercihleri değiştirmeden kapat">×</button></div>
  <p id="cookie-description">İsteğe bağlı istatistik iznini ayrı seçebilirsiniz. Tercihiniz bu tarayıcıda 180 gün tutulur; alt menüden istediğiniz zaman değiştirebilirsiniz.</p>
  <section class="cookie-category"><h3>Zorunlu <span>Her zaman etkin</span></h3><p>Hesap oturumu ve güvenli form gönderimi için gereklidir. Bu panelden kapatılamaz. Tema tercihi, görünümü değiştirdiğinizde cihazınızda saklanır.</p></section>
- <section class="cookie-category"><label><span>İstatistikler <small>İsteğe bağlı</small></span><input type="checkbox" name="analytics" role="switch"></label><p>Sayfa ve talep performansını anlamaya yönelik ölçümler. Varsayılan kapalıdır. Google Analytics ve reklam pikseli şu anda etkin değildir; kabul etmeniz bir hizmeti kendiliğinden başlatmaz.</p></section>
+ <section class="cookie-category"><label><span>İstatistikler <small>İsteğe bağlı</small></span><input type="checkbox" name="analytics" role="switch"></label><p>Sayfa ve talep performansını anlamaya yönelik ölçümler<?=$analyticsNames?' ('.e(implode(' ve ',$analyticsNames)).')':''?>. Varsayılan kapalıdır; yalnız kabul ederseniz yüklenir, reddederseniz hiç çalışmaz. Reklam pikseli kullanılmaz.</p></section>
  <p id="cookie-gpc" hidden>Tarayıcınızın Global Privacy Control sinyali nedeniyle isteğe bağlı istatistikler kapalı tutulur.</p>
  <p><a href="/cerez-politikasi">Saklama bilgileri ve çerez politikası</a> · <a href="/gizlilik-politikasi">Gizlilik politikası</a></p>
  <div class="cookie-actions"><button type="button" data-cookie-choice="reject">Reddet</button><button type="button" data-cookie-save>Seçimlerimi kaydet</button><button type="button" data-cookie-choice="accept">Tümünü kabul et</button></div>
