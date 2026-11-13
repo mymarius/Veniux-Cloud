@@ -113,4 +113,10 @@ foreach($catalog['releases'] as $release){
  'version'=>$release['version'],'date'=>$isoDate,'date_label'=>$release['date'],'title'=>$release['title'],
  'platforms'=>$release['platforms'],'summary'=>$release['title'].'.','groups'=>['Güncellenenler'=>$release['items']],'notice'=>$release['notice']
 ];}
-return array_merge($newer,require __DIR__.'/release-notes-20261018.php',$recent,$history);
+// Herkese açık sayfada yalnız kullanıcıyı ilgilendiren maddeler kalır: uyarı kutuları ve iç test/doğrulama notları gösterilmez.
+$internal='/test edildi|testi geçti|test işletmesinde|bağımlılıkları çıkarıldı|SHA-256|imzasız|SmartScreen|HENÜZ YAYIMLANMADI|denenmedi|oluşturulmadı|canlı çıktısı|doğrulandı\.?$/iu';
+return array_map(function(array $release) use ($internal):array{
+ unset($release['notice']);
+ foreach($release['groups'] as $label=>$items){$items=array_values(array_filter($items,fn($item)=>!preg_match($internal,(string)$item)));if($items)$release['groups'][$label]=$items;else unset($release['groups'][$label]);}
+ return $release;
+},array_merge($newer,require __DIR__.'/release-notes-20261018.php',$recent,$history));
