@@ -52,6 +52,8 @@ $steps=[
   </div>
 </section>
 
+<?php require __DIR__.'/home-film.php'; ?>
+
 <section class="hx-till" id="kasa">
   <div class="hx-wrap hx-till-grid">
     <div>

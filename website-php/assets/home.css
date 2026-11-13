@@ -1217,3 +1217,23 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .pg-steps li>div>b{font-size:1.1rem;display:block}
 .pg-steps li p{margin:6px 0 0;line-height:1.5}
 @media(max-width:860px){.pg-steps ol{grid-template-columns:1fr}}
+
+/* Tanıtım filmi ve adım adım görseller */
+.hx-film{padding:96px 0 80px;background:var(--paper)}
+.hx-film-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:64px;align-items:center}
+.hx-film-eyebrow{font-size:14px;font-weight:800;letter-spacing:.16em;color:var(--orange-text);margin:0 0 14px}
+.hx-film h2 em{font-style:normal;color:var(--orange-text)}
+.hx-film-lead{max-width:34em;margin:18px 0 26px;color:var(--ink-soft)}
+.hx-film-steps{list-style:none;margin:0 0 30px;padding:0;display:grid;gap:2px;border-top:2px solid var(--line)}
+.hx-film-steps li{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:12px 0;border-bottom:2px solid var(--line)}
+.hx-film-steps span{font-weight:800;color:var(--orange-text);font-variant-numeric:tabular-nums}
+.hx-film-steps b{font-weight:800}.hx-film-steps p{margin:2px 0 0;color:var(--ink-soft);font-size:16px;line-height:1.45}
+.hx-film-phone{justify-self:center;width:min(380px,100%)}
+.hx-film-phone video{display:block;width:100%;height:auto;aspect-ratio:9/16;background:var(--ink);border:3px solid var(--ink);border-radius:28px;box-shadow:12px 12px 0 var(--orange)}
+.hx-film-note{margin:18px 0 0;text-align:center;font-size:14px;color:var(--ink-soft)}
+.hx-film-gal-title{margin:72px 0 18px}
+.hx-film-gallery{list-style:none;margin:0;padding:6px 4px 22px;display:grid;grid-auto-flow:column;grid-auto-columns:min(300px,78%);gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain}
+.hx-film-gallery li{scroll-snap-align:start}
+.hx-film-gallery img{display:block;width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;background:var(--white)}
+.hx-film-gallery:focus-visible{outline:3px solid var(--orange);outline-offset:4px}
+@media(max-width:860px){.hx-film{padding:64px 0}.hx-film-grid{grid-template-columns:1fr;gap:40px}.hx-film-phone{order:-1;width:min(340px,86%)}}
