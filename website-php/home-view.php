@@ -149,7 +149,7 @@ $steps=[
       <div class="hx-supportcard">
         <div class="hx-rate-top"><span>VENİUX · DESTEK FİŞİ</span><span>E-POSTA</span></div>
         <dl>
-          <div><dt>Nereden?</dt><dd><strong>WhatsApp: <?=e(VENIUX_WHATSAPP_DISPLAY)?></strong><span>ya da aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</span></dd></div>
+          <div><dt>Nereden?</dt><dd><strong>WhatsApp’tan</strong><span>ya da aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</span></dd></div>
           <div><dt>Ne zaman?</dt><dd><strong>Hafta içi 09:00–18:00</strong><span>Cumartesi 10:00–14:00</span></dd></div>
           <div><dt>Ne kadar sürede?</dt><dd><strong>Kasa satış yapamıyorsa 2 saat</strong><span>Diğer sorularda 1 iş günü içinde ilk yanıt.</span></dd></div>
         </dl>
