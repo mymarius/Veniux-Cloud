@@ -78,3 +78,20 @@
 .vm .phone-tabs{left:max(0px,calc(50vw - 260px));right:max(0px,calc(50vw - 260px));z-index:30}
 [data-mobile="true"] .enterprise-header>div:last-child>button.mobile-header-assistant{background:#17263a;color:#fff;border-radius:0}
 .vm-ai{background:#cf4b06;color:#fff}
+
+/* Telefon uygulaması: ortak (masaüstüyle paylaşılan) sayfaların üst bandı, telefon ekranlarındaki bantla aynı:
+   krem zemin, üstte turuncu şerit, altta lacivert çizgi, solda geri, ortada sayfa adı; menü yalnız alttaki "Menü"de. */
+html:root[data-mobile='true'] .enterprise-header{position:sticky;top:0;height:auto!important;min-height:66px;padding:12px 16px!important;background:#f4eee2!important;border-bottom:2px solid #17263a!important;box-shadow:none!important}
+html:root[data-mobile='true'] .enterprise-header:before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:#cf4b06}
+html:root[data-mobile='true'] .enterprise-header .mobile-header-back,html:root[data-mobile='true'] .enterprise-header .mobile-header-assistant{width:42px;height:42px;display:inline-grid;place-items:center;border:2px solid #17263a!important;border-radius:3px!important;background:#fffdf8;color:#17263a;flex:none}
+html:root[data-mobile='true'] .enterprise-header .mobile-header-assistant{background:#cf4b06;color:#fff}
+html:root[data-mobile='true'] .enterprise-header .mobile-page-title{display:block;min-width:0}
+html:root[data-mobile='true'] .enterprise-header .mobile-page-title p{margin:0;font:800 23px/1.05 Archivo,sans-serif!important;font-stretch:75%;color:#17263a!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw}
+html:root[data-mobile='true'] .enterprise-header .mobile-header-brand{display:none}
+html:root[data-mobile='true'][data-theme='dark'] .enterprise-header{background:#0e1520!important;border-bottom-color:#e8ecf4!important}
+html:root[data-mobile='true'][data-theme='dark'] .enterprise-header .mobile-page-title p{color:#e8ecf4!important}
+/* Ortak sayfa başlığı: /m ekranlarıyla aynı düğmeler */
+html:root[data-mobile='true'] .enterprise-header .mobile-header-assistant{background:#cf4b06!important;color:#fff!important;border:2px solid #17263a!important;border-radius:3px!important}
+html:root[data-mobile='true'] .enterprise-header button[aria-label="Bildirimleri göster"]{width:42px;height:42px;border:2px solid #17263a!important;border-radius:3px!important;background:#fffdf8!important;color:#17263a!important;box-shadow:none!important}
+html:root[data-mobile='true'] .enterprise-header button[aria-label="Bildirimleri göster"] span{border-radius:0;background:#cf4b06;--tw-ring-color:#f4eee2}
+html:root[data-mobile='true'] .customer-setup>header,html:root[data-mobile='true'] .customer-setup>div>section{padding:18px 16px!important}

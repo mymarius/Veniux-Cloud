@@ -5,7 +5,7 @@ import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock,
   ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers,
-  ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings,
+  ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings,
   ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard,
   Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen
 , Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon} from 'lucide-react';
@@ -305,13 +305,15 @@ export function Layout({ children }) {
         {/* Oval Corporate Header */}
         <header className="enterprise-header sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <button 
+            {window.veniuxMobile
+              ? <button type="button" aria-label="Geri" className="mobile-header-back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/m'))}><ChevronLeft size={22} /></button>
+              : <button 
               aria-label="Ana menüyü aç" aria-expanded={sidebarOpen}
               onClick={() => setSidebarOpen(true)} 
               className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 lg:hidden"
             >
               <Menu className="h-5 w-5" />
-            </button>
+            </button>}
             <button
               type="button"
               aria-label={sidebarCollapsed ? 'Menüyü genişlet' : 'Menüyü daralt'} aria-expanded={!sidebarCollapsed} title={`${sidebarCollapsed ? 'Menüyü genişlet' : 'Menüyü daralt'} (Ctrl+B)`}
@@ -320,8 +322,7 @@ export function Layout({ children }) {
             >
               {sidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
             </button>
-            {window.veniuxMobile&&<img className="mobile-header-brand" src={veniuxLogo} alt=""/>}
-            <div className="mobile-workspace-title hidden sm:block">
+            <div className={window.veniuxMobile ? 'mobile-workspace-title mobile-page-title' : 'mobile-workspace-title hidden sm:block'}>
               <p className="text-sm font-semibold text-slate-800">{ALL_ITEMS.find(isItemActive)?.name || 'Veniux'}</p>
             </div>
           </div>

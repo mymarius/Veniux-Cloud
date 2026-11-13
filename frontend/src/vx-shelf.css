@@ -109,7 +109,7 @@ html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag 
 html:root[data-design='veniux']:not([data-theme='dark']) .vx-auth .vx-shelf-tag b{font-size:25px!important;font-stretch:76%!important}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .sb{box-shadow:none}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .mobile-workspace-title p:last-child{color:#17263a!important}
-html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-header>div:last-child>button.mobile-header-assistant{background:#17263a!important;border-radius:0;color:#fff}
+html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-header>div:last-child>button.mobile-header-assistant{background:#cf4b06!important;border-radius:3px;color:#fff}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .btn-primary{background:#cf4b06!important;color:#fff!important;border-color:#cf4b06!important}
 html:root[data-design='veniux']:not([data-theme='dark'])[data-mobile='true'] .enterprise-content :is(.ax-panel,.veniux-card,.vx-table-wrap,table,tr,.ax-btn,details){border-radius:0!important}
 html:root[data-design='veniux']:not([data-theme='dark']) .reader-mode button[aria-pressed='true']{background:#17263a;color:#fff}
