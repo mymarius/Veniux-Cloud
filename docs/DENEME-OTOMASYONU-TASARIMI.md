@@ -13,10 +13,10 @@ Bugün: ziyaretçi demo ister, siz elle üç iş yaparsınız: (1) api.veniux.co
 - **Merkezi lisans:** Anahtarı üretmek için app sunucusunun api.veniux.com'a hizmet kimlik bilgisiyle bağlanması gerekir. Bu, yönetici panel girişiyle aynı yetkidir; ayrı, yalnız "deneme lisansı üret" yetkili ve günlük kotalı bir kimlik tanımlanmalı. Hizmet anahtarı sunucuda `cloud-private/` altında tutulur, depoya girmez.
 - **Kota:** Günlük en fazla N deneme (örn. 20) ve toplam açık deneme üst sınırı; aşılınca "bekleme listesi" mesajı.
 - **KVKK:** Form metni ve aydınlatma bağlantısı; e-posta yalnız deneme için kullanılır, pazarlama onayı ayrı kutu.
-- **E-posta gönderimi:** SMTP yapılandırması şu an yok (şifre sıfırlama bile `503` verir). Kurumsal e-posta (destek@…) ve SMTP kurulmadan akış çalışmaz.
+- **E-posta gönderimi:** app.veniux.com'da Gmail üzerinden SMTP tanımlı. Kurumsal adresle (destek@veniux.com, Plesk'te hazır) göndermek için Cloudflare'de MX/SPF/DMARC kayıtları ve sunucu ayarının değiştirilmesi gerekir.
 
 ## Yapılacaklar (sırayla)
-1. Kurumsal e-posta + SMTP (Cloudflare DNS ile birlikte). **Engel:** şu an yok.
+1. Kurumsal e-posta (Cloudflare DNS kayıtları) ve SMTP'nin destek@veniux.com'a taşınması.
 2. api.veniux.com'da kotalı "deneme lisansı" hizmet kimliği ve uç noktası (merkezi lisans kodu; ayrı sürüm).
 3. App tarafında `/api/trial/request` ve `/api/trial/confirm` + bekleyen istek tablosu (şema 020).
 4. Site formu, onay sayfası ve metinler.
