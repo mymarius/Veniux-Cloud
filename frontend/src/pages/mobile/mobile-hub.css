@@ -85,8 +85,8 @@
 .vm-promo svg{position:absolute;top:14px;left:14px}
 .vm-promo b{font:800 24px/1 var(--vm-display);font-stretch:75%}
 .vm-promo span{font-size:12.5px;line-height:1.35;opacity:.92}
-.vm-promo.a{background:var(--vm-ink);box-shadow:6px 6px 0 var(--vm-orange)}
-.vm-promo.b{background:var(--vm-orange);box-shadow:6px 6px 0 var(--vm-ink)}
+.vm-promo.a{background:#e6d9c2!important;color:var(--vm-ink)!important;box-shadow:6px 6px 0 var(--vm-orange)}.vm-promo.a svg{color:var(--vm-orange)}
+.vm-promo.b{background:var(--vm-orange)!important;color:#fff!important;box-shadow:6px 6px 0 var(--vm-ink)}
 .vm-promo:active{translate:2px 2px;box-shadow:none}
 
 /* ---------- Liste ve satırlar ---------- */
