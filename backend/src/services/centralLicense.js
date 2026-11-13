@@ -51,6 +51,7 @@ async function gate(req,res,next) {
   if(!enabled()) return next();
   // Herkese açık, salt okunur fiyat özeti (web sitesi ve lisans merkezi okur); işletme verisi içermez.
   if(req.method==='GET'&&req.path==='/public/prices')return next();
+  if((req.method==='GET'&&req.path==='/trial/status')||(req.method==='POST'&&['/trial/request','/trial/confirm'].includes(req.path)))return next();
   // Mağaza satış yüklemesi kendi cihaz anahtarıyla (iptal edilebilir) doğrulanır; mağaza bilgisayarının lisans belirteci taşımaz.
   if((req.method==='POST'&&req.path==='/store-sync/sales')||(req.method==='GET'&&req.path==='/store-sync/products'))return next();
   // Public sales assistance does not operate on a licensed tenant's data.

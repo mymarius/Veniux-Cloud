@@ -28,3 +28,12 @@ Bugün: ziyaretçi demo ister, siz elle üç iş yaparsınız: (1) api.veniux.co
 - Günlük kota kaç olsun?
 
 Bu iş, kurumsal e-posta ve SMTP hazır olmadan başlatılmamalıdır; hazır olunca yaklaşık iki ayrı yayın (merkezi lisans ve app) gerekir.
+
+## Uygulama (13 Kasım 2026)
+Kararlar: CAPTCHA yok (yerine e-posta doğrulaması, görünmez tuzak alan, IP başına saatte 5 istek, e-posta başına 10 dakikada 1 gönderim, tek kullanımlık alan adı engeli). Paket İşletme (`BUSINESS_ANNUAL`), 14 gün, 2 cihaz. Günde en fazla 20 deneme, aynı anda en fazla 100 açık deneme.
+
+- Lisans merkezi: `POST /v1/trial` (`api.veniux.com/src/trial.php`). Veri klasöründe `trial-service.sha256` dosyası yoksa uç kapalıdır (404). Kabul testi: `node api.veniux.com/bin/trial-acceptance.cjs`.
+- Bulut uygulaması: `/api/trial/status|request|confirm` (`backend/src/services/trialSignup.js`). Bekleyen istek tablosu yok: doğrulama bağlantısı 24 saat geçerli, imzalı bir belirteçtir; aynı e-postayla ikinci hesap açılamadığı için tek kullanımlıktır. `VENIUX_TRIAL_SERVICE_KEY` tanımlı değilse kapalıdır.
+- Sayfalar: `app.veniux.com/deneme` ve `/deneme/onay#t=…`. Şifre ve `VNX-` anahtarı yalnız onay sayfasında bir kez gösterilir.
+
+Canlıya alma: (1) `api.veniux.com` dosyalarını yükle ve veri klasörüne servis anahtarının SHA-256 özetini `trial-service.sha256` olarak yaz; (2) aynı anahtarı `cloud-private/install.env` içine `VENIUX_TRIAL_SERVICE_KEY=` olarak ekle ve bulut uygulamasını güncelle; (3) siteyi yayınla. Onay e-postası şimdilik app'teki Gmail SMTP ile gider.

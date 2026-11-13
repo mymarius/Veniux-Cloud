@@ -42,6 +42,7 @@ const LicenseActivation = lazy(() => import('./pages/LicenseActivation'));
 
 // Core Veniux ERP & Stock Management Pages
 const Login = lazy(() => import('./pages/Login'));
+const Trial = lazy(() => import('./pages/Trial'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Register = lazy(() => import('./pages/Register'));
@@ -172,6 +173,8 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/admin/api" element={<ProtectedRoute><ApiManagement /></ProtectedRoute>} />
             <Route path="/activate" element={<LicenseActivation />} />
+            <Route path="/deneme" element={<Trial />} />
+            <Route path="/deneme/onay" element={<Trial />} />
             <Route path="/admin/master-key-generator" element={<Navigate to="/admin/api" replace />} />
             <Route path="/" element={<Navigate to={localStorage.getItem('token') ? '/dashboard' : '/login'} replace />} />
             

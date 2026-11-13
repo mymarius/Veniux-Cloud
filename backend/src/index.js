@@ -88,6 +88,7 @@ if(process.env.VENIUX_CLOUD_SERVICE==='1')app.use('/api/auth/register',(req,res)
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/business', require('./routes/businessRoutes'));
 app.use('/api/public', require('./routes/publicPrices'));
+app.use('/api/trial', require('./routes/trialRoutes'));
 app.use('/api/packages', require('./routes/packageRoutes'));
 app.use('/api/platform', require('./routes/platformRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));

@@ -25,13 +25,14 @@ try{
     if($path==='/health')jsonOut(['status'=>'ok','service'=>'veniux-license-authority','schema'=>1]);
     if(str_starts_with($path,'/v1/')){
         if($path==='/v1/public-key'&&!$post){header('Content-Type: text/plain');echo file_get_contents(dataDir().'/signing-public.pem');exit;}
-        if(!$post||!in_array($path,['/v1/activate','/v1/verify','/v1/owner/login','/v1/companion'],true))jsonOut(['error'=>'Bulunamadı.'],404);
+        if(!$post||!in_array($path,['/v1/activate','/v1/verify','/v1/owner/login','/v1/companion','/v1/trial'],true))jsonOut(['error'=>'Bulunamadı.'],404);
         if((int)($_SERVER['CONTENT_LENGTH']??0)>4096)jsonOut(['error'=>'İstek fazla büyük.'],413);
         rate($path,$path==='/v1/activate'?30:3000);
         $raw=file_get_contents('php://input',false,null,0,4097);if(strlen($raw)>4096)jsonOut(['error'=>'İstek fazla büyük.'],413);
         $input=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(!is_array($input))throw new InvalidArgumentException('Geçersiz istek.');
         if($path==='/v1/activate'&&str_starts_with((string)($input['license_key']??''),'HW-'))jsonOut(['code'=>'DEVICE_ID_NOT_LICENSE','error'=>'HW- kodu cihaz kimliğidir. Girişten önce lisans merkezinden verilen geçerli VNX- lisans anahtarını etkinleştirin.'],403);
         if($path==='/v1/owner/login'){$identity=verifyOwnerIdentity($input);jsonOut($identity,$identity['valid']?200:401);}
+        if($path==='/v1/trial'){require_once dirname(__DIR__).'/src/trial.php';if(!trialEnabled())jsonOut(['error'=>'Bulunamadı.'],404);rate('trial-issue',30);jsonOut(issueTrial($input));}
         if($path==='/v1/companion'){rate('companion-activation',20);jsonOut(activateCompanion($input));}
         jsonOut($path==='/v1/activate'?activate($input):verifyDevice($input));
     }

@@ -330,7 +330,7 @@ function accountRoutes(string $path,array $config):bool {
         <div class="ac-card">
             <h1><?=e($title)?></h1>
             <p class="ac-lead"><?=$register?'İşletmenizi kaydedin ve Veniux indirme merkezine hemen erişin.':'Hesabınıza giriş yaparak lisanslarınızı ve kurulum paketlerinizi yönetin.'?></p>
-            <?php if($register):?><p class="ac-after-note">Kayıt işlemini tamamladıktan sonra kurulum dosyasını hemen indirebilir, işletmeniz için ücretsiz deneme talebinde bulunabilirsiniz.</p><?php endif;?>
+            <?php if($register):?><p class="ac-after-note">Kayıt işlemini tamamladıktan sonra kurulum dosyasını hemen indirebilir, işletmeniz için <a href="https://app.veniux.com/deneme">14 gün ücretsiz deneme hesabı</a> açabilirsiniz.</p><?php endif;?>
             <?php if($error):?><div class="ac-error" role="alert"><?=e($error)?></div><?php endif;?>
             <form class="ac-form" action="<?=$register?'/kayit':'/giris'?>" method="post">
                 <input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>">
