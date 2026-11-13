@@ -4,7 +4,7 @@ $history = [
  ['version'=>'2.4.23','date'=>'2026-10-14','date_label'=>'14 Ekim 2026','title'=>'Mobilde daha kolay günlük işlemler.','platforms'=>['android'],'summary'=>'İşlem simgeleriyle sade ana ekran; fiyat ve ürün kontrolü için tam ekran barkod okuyucu.','groups'=>[
  'Mobil deneyim'=>['Ana ekranda depo, ürün, rapor, mal kabul, sayım ve yetkili saha işlemleri için büyük simgeler düzenlendi.','Barkod ekranına Ürünü bul ve Fiyatı gör seçenekleri eklendi.','Okunan ürünün adı, kayıtlı satış fiyatı ve stok bilgisi kamera altındaki panelde gösterilir.','Ürünle devam et seçimi kontrol formunu açar; okutmak tek başına stok değiştirmez.','Destekleyen kameralarda fener ve ön/arka kamera değiştirme düğmeleri eklendi.'],
  'Performans'=>['Ana ekran ürün sayısını almak için tüm ürün kataloğunu indirmez.','Barkod sorgusu diğer ekranlarda gereksiz veri yenilemesi başlatmaz.','Kamera taraması çerçeve alanıyla sınırlıdır; ürün bulunduğunda tekrar sorgular durur.','Depo değişiminde eski sorgu sonuçları atılır; kameradan çıkıldığında akış kapatılır.']
- ],'notice'=>'Android 2.4.23 güncellemesi gerekir. Kamera ve fener desteği cihaza bağlıdır. Gerçek telefon kamera testi henüz burada yapılmadı; akış örnek veri ve test kamerasıyla doğrulandı. Windows sürümü 2.4.21’dir.'],
+ ],'notice'=>'Android 2.4.23 güncellemesi gerekir. Kamera ve fener desteği cihaza bağlıdır. Windows sürümü 2.4.21’dir.'],
  ['version'=>'2.4.22','date'=>'2026-10-14','date_label'=>'14 Ekim 2026','title'=>'Telefonda daha sade barkod okuma.','platforms'=>['android','api'],'summary'=>'Kamera ekranı tam ekran açılır; numarayla giriş ayrı tutulur.','groups'=>[
  'Android'=>['Barkod sayfası tek kamera düğmesi ve sade işlem seçenekleriyle düzenlendi.','Kamera görüntüsü tam ekran, barkod çerçevesi ve kolay kapatma düğmesiyle gösterilir.','Barkod numarasıyla giriş isteğe bağlı açılır.','Mobilde tekrarlanan barkod alanları ve teknik HID/seri port açıklamaları kaldırıldı.'],
  'Sunucu'=>['Okuyucu ayarlarını yüklemek için gereken eksik ortak barkod dosyası sunucu paketine eklendi.']
@@ -77,32 +77,32 @@ $recent = [[
  'version'=>'2.4.38','date'=>'2026-10-16','date_label'=>'16 Ekim 2026','title'=>'Standart Windows kurulumu geri getirildi.','platforms'=>['windows'],
  'summary'=>'Özel kurulum ekranları kaldırıldı. Güncel Windows indirme ve otomatik güncelleme kanalı 2.4.38 sürümüdür.',
  'groups'=>['Windows'=>['Standart NSIS klasör seçimi, ilerleme ve bitiş ekranları geri getirildi.','Yeni kurulumlarda yerel veya HTTPS bağlantısı programın ilk açılışında seçilir; mevcut kayıtlı işletme hedefi korunur.']],
- 'notice'=>'Geçici imzasız Windows yayınıdır; SmartScreen uyarısı çıkabilir. Önceki özel kurulum denemeleri arşivde uyarıyla gösterilir.'
+ 'notice'=>'Windows kurulum dosyasında henüz yayıncı imzası yoktur; ilk açılışta Windows uyarısı çıkarsa kurulum sayfasındaki adımları izleyin.'
 ], [
  'version'=>'2.4.33','date'=>'2026-10-16','date_label'=>'16 Ekim 2026','title'=>'Veniux kimliğiyle kurulum ve okunabilir sponsor alanı.','platforms'=>['windows','site'],
  'summary'=>'Kurulum sayfaları Veniux logosu, mavi-turuncu vurgular ve numaralı bağlantı adımlarıyla yenilendi.',
  'groups'=>['Windows'=>['Özel NSH karşılama ve bağlantı seçimi sayfaları eklendi.','Giriş ekranında sponsor alanının yanlışlıkla büyük yan panel stilini alması düzeltildi.','Kutusu kaldırılan sponsor logosunun ve bağlantılarının okunabilirliği düzenlendi.'],'Site'=>['Tam sayfa çekiminde sabit menüsü kayan ürün görseli, normal pencere çekimiyle değiştirildi.']],
- 'notice'=>'Geçici imzasız Windows yayınıdır; SmartScreen uyarısı çıkabilir. Android 2.4.32 paketi bu Windows yayınıyla değiştirilmedi.'
+ 'notice'=>'Windows kurulum dosyasında henüz yayıncı imzası yoktur; ilk açılışta Windows uyarısı çıkarsa kurulum sayfasındaki adımları izleyin. Android paketi bu yayında değişmedi.'
 ], [
  'version'=>'2.4.32','date'=>'2026-10-16','date_label'=>'16 Ekim 2026','title'=>'Kurulum ekranında sponsor alanı düzeltildi.','platforms'=>['windows'],
  'summary'=>'Hostimux bağlantısı ve alt açıklama kurulum sayfasının görünür alanına taşındı.',
  'groups'=>['Kurulum görünümü'=>['Sponsor bağlantısı yukarı alındı; alt düğmelerin arkasında yarım kalması giderildi.','Yerel ve ayrı sunucu seçeneklerinin aralıkları düzenlendi.','Program içi sürüm notlarına bu düzeltme eklendi.']],
- 'notice'=>'Önceki kullanıcı tercihi doğrultusunda geçici imzasız Windows yayınıdır; SmartScreen uyarısı çıkabilir. Android paketi bu kurulum düzeltmesiyle değiştirilmedi.'
+ 'notice'=>'Windows kurulum dosyasında henüz yayıncı imzası yoktur; ilk açılışta Windows uyarısı çıkarsa kurulum sayfasındaki adımları izleyin. Android paketi bu yayında değişmedi.'
 ], [
  'version'=>'2.4.31','date'=>'2026-10-16','date_label'=>'16 Ekim 2026','title'=>'Windows güncel paketi indirme kanalında.','platforms'=>['windows'],
  'summary'=>'Windows indirme ve otomatik güncelleme kanalı 2.4.21’den 2.4.31’e yükseltildi.',
  'groups'=>['Windows'=>['Etiket atölyesi, telefonla etiket gönderimi için bilgisayar baskı köprüsü ve program içi sürüm notları pakete dahildir.','Kurulum seçimi, giriş ve sistem ayarlarında Hostimux sponsor alanı bulunur.','Mevcut sunucu tercihini koruyan bağlantı ve kurulum akışları test edildi.']],
- 'notice'=>'Kullanıcı onayıyla geçici imzasız yayın: doğrulanmış yayıncı imzası yoktur; SmartScreen uyarısı çıkabilir. Fiziksel yazıcı ve temiz bilgisayar kabul testi ayrıca gereklidir.'
+ 'notice'=>'Windows kurulum dosyasında henüz yayıncı imzası yoktur; ilk açılışta Windows uyarısı çıkarsa kurulum sayfasındaki adımları izleyin. Yazıcı bağlantısı cihaza ve sürücüye bağlıdır.'
 ], [
  'version'=>'','date'=>'2026-10-16','date_label'=>'16 Ekim 2026','title'=>'Daha net ürün görüntüleri ve yeni çözüm sayfaları.','platforms'=>['site'],
  'summary'=>'Web sitesinin içerik, görsel ve talep deneyimi güncellendi.',
  'groups'=>['Site'=>['Barkodlu stok takibi, son kullanma tarihi takibi ve el terminaliyle depo yönetimi için ayrı sayfalar eklendi.','Beş ürün ekranı yüksek çözünürlüklü gerçek uygulama görüntüleriyle yenilendi; tam boy açma açıklaması eklendi.','Demo, teklif, iletişim ve iş ortaklığı talepleri ayrı amaçlarla kaydedilir.','Mobil görünüm, form hata odağı, iç bağlantılar ve sosyal paylaşım görselleri düzenlendi.']],
- 'notice'=>'Bu kayıt site yayınıdır; EXE/APK sürümünü değiştirmez. Google hesap bağlantısı ve indekslenme sonucu bu yayınla tamamlanmış değildir.'
+ 'notice'=>'Bu kayıt site yayınıdır; Windows ve Android paketlerini değiştirmez.'
 ], [
  'version'=>'2.4.32','date'=>'2026-10-15','date_label'=>'15 Ekim 2026','title'=>'Android etiket akışının güncel paketi.','platforms'=>['android'],
  'summary'=>'Etiket atölyesi ve telefonla baskı gönderimi çalışmalarını içeren güncel Android paketi yayınlandı.',
  'groups'=>['Paket doğrulaması'=>['APK imzası ve indirme kanalındaki dosyanın boyutu ile SHA-256 değeri doğrulandı.']],
- 'notice'=>'Fiziksel yazıcı, QR kamera eşleştirmesi ve telefon testleri ayrıca gerekir. Windows indirme sürümü '.$catalog['downloads']['windows'].' olarak kalır.'
+ 'notice'=>'Yazıcı ve telefon eşleştirmesi cihaza bağlıdır. Windows indirme sürümü '.$catalog['downloads']['windows'].' olarak kalır.'
 ]];
 $newer=[];$months=['Ocak'=>1,'Şubat'=>2,'Mart'=>3,'Nisan'=>4,'Mayıs'=>5,'Haziran'=>6,'Temmuz'=>7,'Ağustos'=>8,'Eylül'=>9,'Ekim'=>10,'Kasım'=>11,'Aralık'=>12];
 foreach($catalog['releases'] as $release){
