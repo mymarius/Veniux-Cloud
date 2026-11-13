@@ -1,0 +1,35 @@
+name: Çalışma izleme
+
+# Her 10 dakikada üç adresi denetler. Biri yanıt vermezse iş başarısız olur ve GitHub,
+# zamanlamayı son değiştiren kişiye (hesap sahibine) e-posta gönderir.
+# Gizli anahtar kullanmaz; yalnızca herkese açık adreslere GET isteği atar.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Adresleri denetle
+        shell: bash
+        run: |
+          fail=0
+          check() {
+            local name="$1" url="$2" expect="$3" code body ok=0
+            for try in 1 2 3; do
+              body=$(curl -sS -L --max-time 20 -w '\n%{http_code}' "$url" 2>&1) || true
+              code=$(printf '%s' "$body" | tail -n1)
+              if [ "$code" = "200" ] && { [ -z "$expect" ] || printf '%s' "$body" | grep -q "$expect"; }; then ok=1; break; fi
+              sleep 10
+            done
+            if [ "$ok" = 1 ]; then echo "TAMAM  $name ($code)"; else echo "::error::SORUN  $name ($code) $url"; fail=1; fi
+          }
+          check "Site"          "https://veniux.com/"                 "Veniux"
+          check "Bulut uygulaması" "https://app.veniux.com/health"    '"status":"ok"'
+          check "Lisans merkezi" "https://api.veniux.com/"            "Veniux"
+          exit $fail
