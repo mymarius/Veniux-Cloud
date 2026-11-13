@@ -20,7 +20,7 @@ $steps=[
         <div class="hx-label-top"><span>VENİUX · RAF A-02</span><span>GÖZ 14</span></div>
         <strong class="hx-label-name">Filtre kahve 250 g</strong>
         <div class="hx-label-mid"><?=homeBarcode('filtre-kahve',52)?><div class="hx-price">46<small>,00 ₺</small></div></div>
-        <div class="hx-label-bot"><span>8690000010001</span><span>Stok: 18 adet</span></div>
+        <div class="hx-label-bot"><span>8690000010004</span><span>Stok: 18 adet</span></div>
       </div>
       <div class="hx-stamp"><b>3 günde bitiyor</b><span>80 adet sipariş önerisi</span></div>
       <div class="hx-rail" aria-hidden="true"></div>
@@ -149,11 +149,11 @@ $steps=[
       <div class="hx-supportcard">
         <div class="hx-rate-top"><span>VENİUX · DESTEK FİŞİ</span><span>E-POSTA</span></div>
         <dl>
-          <div><dt>Nereden?</dt><dd>Aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</dd></div>
+          <div><dt>Nereden?</dt><dd><strong>WhatsApp: <?=e(VENIUX_WHATSAPP_DISPLAY)?></strong><span>ya da aşağıdaki iletişim formundan yazın; size e-postayla dönelim.</span></dd></div>
           <div><dt>Ne zaman?</dt><dd><strong>Hafta içi 09:00–18:00</strong><span>Cumartesi 10:00–14:00</span></dd></div>
           <div><dt>Ne kadar sürede?</dt><dd><strong>Kasa satış yapamıyorsa 2 saat</strong><span>Diğer sorularda 1 iş günü içinde ilk yanıt.</span></dd></div>
         </dl>
-        <a class="hx-btn hx-support-btn" href="/#iletisim">Bize yazın</a>
+        <a class="hx-btn hx-support-btn" href="/#iletisim">Bize yazın</a> <a class="hx-btn hx-btn-ghost hx-support-btn wa-inline" href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer">WhatsApp'tan yazın</a>
       </div>
     </div>
   </div>

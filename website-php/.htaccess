@@ -6,7 +6,7 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.veniux\.com(?::[0-9]+)?$ [NC]
 RewriteRule ^ https://veniux.com%{REQUEST_URI} [R=301,L,NE]
 RewriteRule ^api\.veniux\.com(?:/|$) - [F,L]
-RewriteRule ^(?:config|router|contact|smtp|check-mail|pricing|pricing-view|accounts|owner-identity|seo|program-view|footer|legal|legal-view|release-notes|release-notes-view|release-catalog|release-archive|release-archive-view|terminal-guide|requestFirewall|asset-manifest|guide-view|use-cases|organic-guides|sponsor|hosting-guide|conversion|product-proof|growth-pages|growth-view|growth-evidence|product-faqs|release-live|home-view|home-film|analytics-config|sector-pages|sector-view).php$ - [F,L]
+RewriteRule ^(?:config|router|contact|smtp|check-mail|pricing|pricing-view|accounts|owner-identity|seo|program-view|footer|legal|legal-view|release-notes|release-notes-view|release-catalog|release-archive|release-archive-view|terminal-guide|requestFirewall|asset-manifest|guide-view|use-cases|organic-guides|sponsor|hosting-guide|conversion|product-proof|growth-pages|growth-view|growth-evidence|product-faqs|release-live|home-view|home-film|whatsapp|analytics-config|sector-pages|sector-view).php$ - [F,L]
 RewriteRule ^assets/[a-zA-Z0-9._-]+$ - [L]
 RewriteRule ^ index.php [L]
 

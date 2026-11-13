@@ -4,7 +4,7 @@ function siteSeoGraph(array $config,array $page,string $path,bool $notFound=fals
     $base=rtrim($config['url'],'/');$url=$base.$path;
     if($notFound)return ['@context'=>'https://schema.org','@graph'=>[]];
     $graph=[
-        ['@type'=>'Organization','@id'=>$base.'/#organization','name'=>'Veniux Cloud','alternateName'=>'Veniux','url'=>$base,'logo'=>$base.'/assets/logo-hero-420-v2.webp','sameAs'=>['https://discord.gg/WQyxdp7MKW']],
+        ['@type'=>'Organization','@id'=>$base.'/#organization','contactPoint'=>[['@type'=>'ContactPoint','telephone'=>'+90-552-464-35-18','contactType'=>'customer support','availableLanguage'=>'Turkish','areaServed'=>'TR']],'name'=>'Veniux Cloud','alternateName'=>'Veniux','url'=>$base,'logo'=>$base.'/assets/logo-hero-420-v2.webp','sameAs'=>['https://discord.gg/WQyxdp7MKW']],
         ['@type'=>'WebSite','@id'=>$base.'/#website','name'=>'Veniux Cloud','alternateName'=>'Veniux','url'=>$base,'inLanguage'=>'tr-TR','publisher'=>['@id'=>$base.'/#organization']],
         ['@type'=>'WebPage','@id'=>$url.'#webpage','url'=>$url,'name'=>$page['title'],'description'=>$page['description'],'inLanguage'=>'tr-TR','isPartOf'=>['@id'=>$base.'/#website'],'about'=>['@id'=>$base.'/#organization']],
     ];

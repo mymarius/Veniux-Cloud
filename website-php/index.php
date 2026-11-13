@@ -11,6 +11,7 @@ require_once __DIR__ . '/components/components.php';
 require_once __DIR__ . '/components/objects.php';
 
 function e(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+require_once __DIR__.'/whatsapp.php';
 
 $pages = [
  '/surum-arsivi' => ['title'=>'Windows ve Android Sürüm Arşivi | Veniux Cloud','description'=>'Veniux Windows ve Android kurulum paketlerini sürüm numarası, dosya boyutu ve SHA-256 özetiyle inceleyin.','label'=>'Sürüm arşivi','headline'=>'','intro'=>''],
@@ -194,7 +195,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261113g"><script src="/assets/home.js?v=20261113e" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261113h"><script src="/assets/home.js?v=20261113e" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
@@ -249,6 +250,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
                     <h2 class="dp-h2">Bize yazın</h2>
                     <p>
                         İşletmenizi, depo sayınızı ve ne aradığınızı yazın. Size dönüp programı kendi işinize göre gösterelim.</p>
+                    <?php require_once __DIR__.'/whatsapp.php'; ?><p class="wa-line"><a class="wa-btn" href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer"><?=whatsappIcon(22)?><span>WhatsApp'tan yazın</span></a><span class="wa-num"><?=e(VENIUX_WHATSAPP_DISPLAY)?> · Hafta içi 09:00–18:00</span></p>
                 </div>
 
                 <div class="dp-contact-form-area">

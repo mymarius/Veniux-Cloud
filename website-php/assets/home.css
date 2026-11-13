@@ -1237,3 +1237,13 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-film-gallery img{display:block;width:100%;height:auto;border:2px solid var(--ink);border-radius:14px;background:var(--white)}
 .hx-film-gallery:focus-visible{outline:3px solid var(--orange);outline-offset:4px}
 @media(max-width:860px){.hx-film{padding:64px 0}.hx-film-grid{grid-template-columns:1fr;gap:40px}.hx-film-phone{order:-1;width:min(340px,86%)}}
+
+/* WhatsApp destek */
+.wa-float{position:fixed;right:20px;bottom:84px;z-index:899;display:flex;align-items:center;gap:8px;padding:11px 16px;background:#1f7a52;color:#fff;border-radius:3px;font:700 16px var(--display);text-decoration:none;box-shadow:5px 5px 0 #17263a44}
+.wa-float:hover{background:#196845;translate:0 -2px}
+.wa-float:focus-visible,.wa-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.wa-line{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:18px 0 0}
+.wa-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:#1f7a52;color:#fff !important;border-radius:3px;font-weight:700;text-decoration:none}
+.wa-num{font-weight:600;color:var(--ink-soft)}
+@media (max-width:520px){.wa-float{right:12px;bottom:76px;padding:13px}.wa-float span{display:none}}
+.dp-contact .wa-num{color:#fff;opacity:.92}
