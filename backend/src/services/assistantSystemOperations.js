@@ -98,6 +98,9 @@ async function invoke(user,resolved,context={},preflight=false,file){
   const req=new http.IncomingMessage(socket);
   req.method=resolved.op.method;req.url=resolved.url;req.headers={authorization:headers.authorization,'idempotency-key':'assistant-'+crypto.randomUUID()};
   if(user.isPlatformAdmin)req.headers['x-tenant-id']=String(user.tenantId);
+  // Bulutta merkezi lisans kapısı iç isteği de denetler: kullanıcının cihaz lisans başlıkları (biçimi doğrulanarak) aktarılır.
+  if(/^[a-f0-9]{64}$/.test(headers['x-veniux-device-token']||''))req.headers['x-veniux-device-token']=headers['x-veniux-device-token'];
+  if(/^HW-[A-F0-9]{32}$/.test(headers['x-device-id']||''))req.headers['x-device-id']=headers['x-device-id'];
   req.body=file?(resolved.op.fileMode==='text'?{...resolved.body,content:file.buffer.toString('utf8'),fileName:file.name,fileType:require('path').extname(file.name).slice(1)||'xml'}:file.buffer):resolved.body;req[probe]=preflight;
   if(file){req.headers['content-type']=file.type;req.headers['x-file-name']=encodeURIComponent(file.name);}
   const res=new http.ServerResponse(req);let settled=false;
