@@ -28,8 +28,7 @@ jobs:
               if [ "$code" = "200" ] && [[ -z "$expect" || "$body" == *"$expect"* ]]; then ok=1; break; fi
               sleep 10
             done
-            if [ "$ok" = 1 ]; then echo "TAMAM  $name ($code)"; else echo "::error::SORUN  $name ($code) $url"; echo "Yanıtın başı (tanı için):"; printf '%s' "${body:0:400}" | tr -cd '[:print:]
-' || true; echo; fail=1; fi
+            if [ "$ok" = 1 ]; then echo "TAMAM  $name ($code)"; else echo "::error::SORUN  $name ($code) $url"; echo "Yanıtın başı (tanı için):"; printf '%s' "${body:0:400}" | tr -cd '[:print:]' || true; echo; fail=1; fi
           }
           check "Site"          "https://veniux.com/"                 "Veniux"
           check "Bulut uygulaması" "https://app.veniux.com/health"    '"status":"ok"'
