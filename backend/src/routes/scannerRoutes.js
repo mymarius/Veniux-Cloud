@@ -109,5 +109,8 @@ router.get('/gross-profit',requireRole('admin','manager'),async(req,res,next)=>{
   }catch(e){next(e);}
 });
 router.post('/day-close',async(req,res,next)=>{try{res.json(await require('../services/retailReportingService').closeDay(req.user,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
-router.get('/search',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{const q=String(req.query.q||'').trim();if(q.length<2||q.length>100)return res.json([]);res.json((await db.query("SELECT id,name,barcode,sku,sale_price,unit FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND (name LIKE $2 OR sku LIKE $2 OR barcode LIKE $2) ORDER BY name LIMIT 20",[req.user.tenantId,'%'+q+'%'])).rows);}catch(e){next(e);}});
+router.get('/search',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{const q=String(req.query.q||'').trim();if(q.length<2||q.length>100)return res.json([]);const {ciLike}=require('../services/sqlSearch');const rows=(await db.query("SELECT id,name,barcode,sku,sale_price,unit FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND ("+ciLike('name','$2')+" OR "+ciLike('sku','$2')+" OR "+ciLike('barcode','$2')+") ORDER BY name LIMIT 20",[req.user.tenantId,'%'+q+'%'])).rows;
+  // Adet stoklu ama kiloyla/metreyle satılabilen ürün: kasada ölçü penceresi açılsın diye ölçü birimi bildirilir.
+  const units=await require('../services/productUnits').unitsFor(req.user.tenantId,rows.map(r=>Number(r.id)));
+  res.json(rows.map(r=>{const m=(units.get(Number(r.id))||[]).find(u=>['kg','litre','metre'].includes(u.unit)&&u.unit!==r.unit);return m?{...r,measure_unit:{unit:m.unit,factor:m.factor,price:m.custom_price??Math.round(Number(r.sale_price)*m.factor*100)/100}}:r;}));}catch(e){next(e);}});
 module.exports=router;

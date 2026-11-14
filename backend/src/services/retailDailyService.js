@@ -92,7 +92,7 @@ async function price(tx,user,body,rights,settings,date){
         if(!u)fail(`Bu üründe ${item.sell_unit} birimi tanımlı değil.`,404);
         let amount;try{amount=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity,item.sell_unit);}catch(e){fail(e.message);}
         const factor=Number(u.conversion_factor);
-        sellUnit={unit:item.sell_unit,amount,factor,price:u.pack_price!=null?Number(u.pack_price):Math.round(Number(scan.product.sale_price)*factor*100)/100};
+        sellUnit={unit:item.sell_unit,amount,factor,custom:u.pack_price!=null,price:u.pack_price!=null?Number(u.pack_price):Math.round(Number(scan.product.sale_price)*factor*100)/100};
         qty=Number((amount*factor).toFixed(6));
       }
       if(item.quantity!==undefined&&!sellUnit){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
@@ -110,7 +110,7 @@ async function price(tx,user,body,rights,settings,date){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),set_name:item._set?item._set.name:undefined,sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),set_name:item._set?item._set.name:undefined,sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined||Boolean(item._set)||Boolean(scan.pack&&scan.pack.price!=null)||Boolean(sellUnit&&sellUnit.custom),weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');

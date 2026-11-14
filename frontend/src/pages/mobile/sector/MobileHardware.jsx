@@ -122,14 +122,22 @@ function ProductCard({ item: initial }) {
 const STORE_KEY = 'vx-m-store';
 // Kritik stoktan satın alma taslağı: tedarikçi başına taslak sipariş, koliye yuvarlanmış miktar. Stok değişmez.
 function OrderDraft() {
-  const [busy, setBusy] = useState(false), [result, setResult] = useState(null), [error, setError] = useState('');
+  const [busy, setBusy] = useState(false), [result, setResult] = useState(null), [error, setError] = useState(''), [stores, setStores] = useState([]), [store, setStore] = useState('');
   const key = useRef(null);
+  useEffect(() => {
+    api.get('/warehouses').then(r => {
+      const list = (Array.isArray(r.data) ? r.data : r.data?.data || []).filter(w => !w.warehouse_type || w.warehouse_type === 'NORMAL');
+      setStores(list);
+      let saved; try { saved = Number(localStorage.getItem(STORE_KEY)) || undefined; } catch { saved = undefined; }
+      setStore(String(list.find(w => w.id === saved)?.id || (list.length === 1 ? list[0].id : '')));
+    }).catch(() => {});
+  }, []);
   const create = async () => {
     setBusy(true); setError('');
-    let warehouse; try { warehouse = Number(localStorage.getItem(STORE_KEY)) || undefined; } catch { warehouse = undefined; }
+    const warehouse = Number(store);
     try {
-      if (!warehouse) { const list = (await api.get('/warehouses')).data; warehouse = (Array.isArray(list) ? list : list?.data || [])[0]?.id; }
-      key.current = key.current || 'kritik-' + Date.now();
+      if (!warehouse) throw Object.assign(new Error('Siparişin gireceği mağaza/depoyu seçin.'), { response: { data: { error: 'Siparişin gireceği mağaza/depoyu seçin.' } } });
+      key.current = key.current || 'kritik-' + warehouse + '-' + Date.now();
       setResult((await api.post('/sector/hardware/critical/order', { warehouse_id: warehouse }, { headers: { 'Idempotency-Key': key.current } })).data);
     } catch (e) { setError(errorText(e, 'Sipariş taslağı oluşturulamadı.')); } finally { setBusy(false); }
   };
@@ -137,7 +145,9 @@ function OrderDraft() {
     {result.orders.map(o => <div key={o.order_id} className="vm-note" style={{ marginTop: 6 }}>{o.order_no}: {o.lines.map(l => l.name + ' ' + (l.pack ? l.pack.count + ' ' + l.pack.unit + ' (' + l.quantity + ')' : l.quantity)).join(', ')}</div>)}
     {result.skipped.length > 0 && <p className="vm-err" style={{ marginTop: 6 }}>Tedarikçisi olmadığı için eklenmedi: {result.skipped.map(s => s.name).join(', ')}</p>}
     <p className="vm-note" style={{ marginTop: 6 }}>Taslaklar Satın Alma Siparişleri ekranında; onaylayıp tedarikçiye gönderebilirsiniz.</p></section>;
-  return <>{error && <p role="alert" className="vm-err">{error}</p>}<button type="button" className="vm-btn soft" style={{ marginBottom: 10 }} disabled={busy} onClick={create}><ClipboardList size={18} /> {busy ? 'Hazırlanıyor…' : 'Satın alma taslağı oluştur'}</button></>;
+  return <>{error && <p role="alert" className="vm-err">{error}</p>}
+    {stores.length > 1 && <select className="vm-input" aria-label="Siparişin gireceği mağaza" value={store} onChange={e => { setStore(e.target.value); key.current = null; }} style={{ marginBottom: 8 }}><option value="">Siparişin gireceği mağaza/depo…</option>{stores.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select>}
+    <button type="button" className="vm-btn soft" style={{ marginBottom: 10 }} disabled={busy} onClick={create}><ClipboardList size={18} /> {busy ? 'Hazırlanıyor…' : 'Satın alma taslağı oluştur'}</button></>;
 }
 
 // Toplu zam/indirim: önce önizleme, sonra onay. Kategori, tedarikçi veya aramayla daraltılır; koli fiyatları da güncellenir.
@@ -167,6 +177,8 @@ export function MobileBulkPrice() {
       {preview && <section className="vm-card"><b>{preview.changed} ürün değişecek</b>{preview.skipped > 0 && <span className="vm-note"> · {preview.skipped} ürün aynı kalıyor</span>}
         <div className="vm-list" style={{ marginTop: 8 }}>{preview.items.slice(0, 50).map(i => <div key={i.id} className="vm-row"><span className="grow">{i.name}<small>{i.category}</small></span><span className="vm-note" style={{ textDecoration: 'line-through' }}>{money(i.before)}</span><b>{money(i.after)}</b></div>)}</div>
         {preview.items.length > 50 && <p className="vm-note">… ve {preview.changed - 50} ürün daha</p>}
+        {preview.sets_to_review?.length > 0 && <div role="alert" className="vm-err" style={{ marginTop: 8 }}><b>Takım fiyatlarını gözden geçirin</b> (zamdan sonra otomatik değişmez):{preview.sets_to_review.map(t => <div key={t.id}>{t.name}: takım {money(t.set_price)}, parçalar toplamı {money(t.parts_total_after)}</div>)}</div>}
+        {preview.unit_prices_kept > 0 && <p className="vm-note" style={{ marginTop: 6 }}>{preview.unit_prices_kept} ürünün koliye özel fiyatı değişmeden kalacak.</p>}
         <button type="button" className="vm-btn" style={{ marginTop: 10 }} disabled={busy || !preview.changed} onClick={() => run(true)}>{preview.changed} ürüne uygula</button></section>}
     </div></PackGate>
   </div>;

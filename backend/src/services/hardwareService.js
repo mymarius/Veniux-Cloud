@@ -161,7 +161,19 @@ async function bulkPrice(user, body = {}) {
   const next = v => { const raw = percent !== null ? v * (1 + percent / 100) : v + amount; const r = Math.round(Math.round(raw / step) * step * 100) / 100; return Math.max(0, r); };
   const changes = pick.map(p => ({ id: p.id, name: p.name, category: p.category, before: current.get(p.id) ?? 0, after: next(current.get(p.id) ?? 0) })).filter(c => c.after !== c.before);
   const skipped = pick.length - changes.length;
-  if (!body.apply) return { preview: true, target, matched: pick.length, changed: changes.length, skipped, items: changes.slice(0, 300) };
+  // Takım ve koliye özel fiyatlar bilinçli olarak sabit tutulur; zamdan etkilenen parçası olan takımlar ve (tutar/alış zammında) koli fiyatları uyarı olarak döner.
+  const changedIds = changes.map(c => c.id), after = new Map(changes.map(c => [c.id, c.after]));
+  let setsToReview = [], unitPricesKept = 0;
+  if (changedIds.length && target === 'sale_price') {
+    const marks = changedIds.map((_, i) => '$' + (i + 2)).join(',');
+    const rows = (await db.query(`SELECT s.id,s.name,c.sale_price,i.product_id,i.quantity,p.sale_price AS list FROM product_set_codes c JOIN product_sets s ON s.id=c.set_id AND s.tenant_id=c.tenant_id JOIN product_set_items i ON i.set_id=s.id AND i.tenant_id=s.tenant_id JOIN products p ON p.id=i.product_id AND p.tenant_id=i.tenant_id WHERE c.tenant_id=$1 AND s.id IN (SELECT set_id FROM product_set_items WHERE tenant_id=$1 AND product_id IN (${marks}))`, [user.tenantId, ...changedIds])).rows;
+    const bySet = new Map();
+    for (const r of rows) { const e = bySet.get(Number(r.id)) || { id: Number(r.id), name: r.name, price: Number(r.sale_price), list: 0 }; e.list += Number(r.quantity) * (after.has(Number(r.product_id)) ? after.get(Number(r.product_id)) : Number(r.list)); bySet.set(Number(r.id), e); }
+    setsToReview = [...bySet.values()].map(e => ({ id: e.id, name: e.name, set_price: e.price, parts_total_after: Math.round(e.list * 100) / 100 }));
+    if (percent === null) unitPricesKept = Number((await db.query(`SELECT COUNT(*) AS n FROM product_unit_prices WHERE tenant_id=$1 AND product_id IN (${marks})`, [user.tenantId, ...changedIds])).rows[0].n);
+  }
+  const notes = { sets_to_review: setsToReview, unit_prices_kept: unitPricesKept };
+  if (!body.apply) return { preview: true, target, matched: pick.length, changed: changes.length, skipped, items: changes.slice(0, 300), ...notes };
   if (!changes.length) fail('Değişecek fiyat yok.', 409);
   if (Number(body.expected_count) !== changes.length) fail('Önizlemeden sonra ürün listesi değişti; önizlemeyi yenileyin.', 409);
   await db.transaction(async tx => {
@@ -173,7 +185,7 @@ async function bulkPrice(user, body = {}) {
     await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'hardware.bulk_price', 'product', null,
       JSON.stringify({ target, percent, amount, rounding: step, category, supplier_id: supplier, q: body.q || null, count: changes.length, changes: changes.slice(0, 2000).map(c => [c.id, c.before, c.after]) })]);
   });
-  return { preview: false, target, changed: changes.length, skipped };
+  return { preview: false, target, changed: changes.length, skipped, ...notes };
 }
 
 // Kritik stoktan satın alma taslağı: her ürün asgari stoğun iki katına tamamlanır, en büyük ambalaja (koli) yukarı yuvarlanır,

@@ -262,3 +262,6 @@ html:root[data-theme='dark'] .vm .vm-input{background:#14202f!important;color:#e
 .vm .vm-price-in input{min-width:0}
 .vm .vm-row.vm-menu-row{flex-wrap:wrap}
 .vm .vm-row.vm-menu-row>.grow{flex:1 1 100%}
+
+/* Karanlık tema: arama çubuğundaki kamera düğmesi beyaz kare kalmasın */
+html:root[data-theme='dark'] .vm .vm-search .vm-iconbtn{background:#cf4b06!important;color:#fff!important}

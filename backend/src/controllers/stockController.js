@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { ciLike } = require('../services/sqlSearch');
 const ledger = require('../services/inventoryTransactionService');
 const recordOperation = async (client, req, action, details) => {
   await client.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,details) VALUES ($1,$2,$3,$4,$5)', [req.user.tenantId,req.user.email,action,'stock',JSON.stringify({requestId:req.requestId,...details,user_id:req.user.userId})]);
@@ -336,7 +337,7 @@ const getStockRecords = async (req, res) => {
     }
 
     if (search) {
-      query += ` AND (p.name LIKE '%' || $${paramIndex} || '%' OR p.sku LIKE '%' || $${paramIndex} || '%' OR p.barcode LIKE '%' || $${paramIndex} || '%')`;
+      query += ` AND (${ciLike('p.name', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.sku', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.barcode', `'%' || $${paramIndex} || '%'`)})`;
       params.push(search);
       paramIndex++;
     }

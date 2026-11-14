@@ -60,6 +60,7 @@ test('toplu zam: önizleme değiştirmez, onay sayısı tutmalı, yuvarlar, koli
   expect((await call(owner, 'post', '/prices/bulk', { category: 'Bağlantı', percent: 10, amount: 1 })).status).toBe(400);
   const preview = await call(owner, 'post', '/prices/bulk', { category: 'Bağlantı', percent: 12, rounding: 0.05 });
   expect(preview.body).toMatchObject({ preview: true, matched: 3, changed: 3 });
+  expect(preview.body.sets_to_review).toEqual([]);
   expect(preview.body.items.find(i => i.id === dubel.id)).toMatchObject({ before: 0.8, after: 0.9 });
   expect(Number((await db.query('SELECT sale_price FROM products WHERE id=$1', [dubel.id])).rows[0].sale_price)).toBe(0.8);
   expect((await call(owner, 'post', '/prices/bulk', { category: 'Bağlantı', percent: 12, rounding: 0.05, apply: true, expected_count: 2 })).status).toBe(409);

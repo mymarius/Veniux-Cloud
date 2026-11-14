@@ -20,7 +20,7 @@ async function catalog(user,query){
  const limit=Number(query.limit??40),after=Number(query.after??0),q=String(query.q||'').trim(),category=String(query.category||'');
  if(!Number.isInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(after)||after<0||q.length>100||category.length>80)fail('Katalog sayfa sınırları geçersiz.');
  const params=[user.tenantId,after];let where="p.tenant_id=$1 AND p.module_type='NORMAL' AND p.id>$2";
- if(q){params.push(q.replace(/[!%_]/g,'!$&')+'%');where+=" AND (p.name LIKE $"+params.length+" ESCAPE '!' OR p.barcode LIKE $"+params.length+" ESCAPE '!' OR p.sku LIKE $"+params.length+" ESCAPE '!')";}
+ if(q){params.push(q.replace(/[!%_]/g,'!$&')+'%');const ph='$'+params.length,like=c=>require('./sqlSearch').ciLike(c,ph)+" ESCAPE '!'";where+=" AND ("+like('p.name')+" OR "+like('p.barcode')+" OR "+like('p.sku')+")";}
  if(query.favorites==='1'){
   const favorite=(await preferences(user)).favorites;if(!favorite.length)return {items:[],next:null,source:'tenant_catalog',global_catalog_available:false};
   const placeholders=favorite.map(id=>{params.push(id);return '$'+params.length;});where+=' AND p.id IN ('+placeholders.join(',')+')';
@@ -29,7 +29,7 @@ async function catalog(user,query){
  const rows=(await db.query('SELECT p.id,p.name,p.barcode,p.sku,p.category,p.unit,p.sale_price,p.kdv_orani,CASE WHEN m.image_path IS NOT NULL THEN 1 ELSE 0 END AS image_available,m.brand FROM products p LEFT JOIN retail_product_media m ON m.product_id=p.id AND m.tenant_id=p.tenant_id WHERE '+where+' ORDER BY p.id LIMIT '+(limit+1),params)).rows;
  // Kiloyla/metreyle satılabilen adet ürünleri: "1 kg = 250 adet" birimi olan ürün kasada tartı penceresiyle satılır.
  const page=rows.slice(0,limit),units=await require('./productUnits').unitsFor(user.tenantId,page.map(r=>Number(r.id)));
- return {items:page.map(r=>{const m=(units.get(Number(r.id))||[]).find(u=>['kg','litre','metre'].includes(u.unit)&&u.unit!==r.unit);return m?{...r,measure_unit:{unit:m.unit,factor:m.factor,price:m.custom_price??Math.round(Number(r.sale_price)*m.factor*100)/100}}:r;}),next:rows.length>limit?Number(rows[limit-1].id):null,source:'tenant_catalog',global_catalog_available:false};
+ return {items:page.map(r=>{const m=(units.get(Number(r.id))||[]).find(u=>['kg','litre','metre'].includes(u.unit)&&u.unit!==r.unit);const packs=(units.get(Number(r.id))||[]).filter(u=>u.barcode).map(u=>({unit:u.unit,factor:u.factor,barcode:u.barcode,price:u.custom_price??null}));const out=packs.length?{...r,packs}:r;return m?{...out,measure_unit:{unit:m.unit,factor:m.factor,price:m.custom_price??Math.round(Number(r.sale_price)*m.factor*100)/100}}:out;}),next:rows.length>limit?Number(rows[limit-1].id):null,source:'tenant_catalog',global_catalog_available:false};
 }
 // Çok satanlar: son N günde net adedi en yüksek ürünler. Kasiyerin "sık kullanılanlar" şeridi için; kısıtlı kullanıcı yalnız atanmış depoların satışını görür.
 async function topProducts(user,query={}){

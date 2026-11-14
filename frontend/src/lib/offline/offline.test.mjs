@@ -174,3 +174,18 @@ test('bekleyen satış uyarısı: en eski bekleyen satışa göre seviye; redded
   await q.markFailed('a', 'Yetersiz stok', { conflict: true });
   assert.equal((await q.counts()).oldestPendingAt, hoursAgo(3));
 });
+
+test('çevrimdışı koli: barkod koliyi bulur, fiş koli fiyatıyla yazılır; ölçüyle ve takım satışı reddedilir', () => {
+  const items = [{ id: 7, name: 'Vida M4', barcode: '869001', sku: 'V4', sale_price: 2, packs: [{ unit: 'koli', factor: 200, barcode: '869002', price: 360 }, { unit: 'paket', factor: 50, barcode: '869003', price: null }] }];
+  const index = buildIndex(items);
+  assert.equal(findProduct(index, '869001').pack, undefined);
+  assert.deepEqual(findProduct(index, '869002').pack, { unit: 'koli', factor: 200, price: 360 });
+  const koli = { barcode: '869002', count: 2, quantity: 200, product: { name: 'Vida M4' }, unit_price: 2, pack: { unit: 'koli', factor: 200, price: 360 } };
+  const paket = { barcode: '869003', count: 1, quantity: 50, product: { name: 'Vida M4' }, unit_price: 2, pack: { unit: 'paket', factor: 50, price: null } };
+  const single = { barcode: '869001', count: 3, quantity: 1, product: { name: 'Vida M4' }, unit_price: 2 };
+  assert.equal(offlineTotals([koli]).total_cents, 72000);
+  assert.equal(offlineTotals([paket, single]).total_cents, 10000 + 600);
+  assert.match(supportedOffline({ payment: 'cash', discount: 0, loyaltyCard: '', items: [{ sell_unit: 'kg' }] }), /ölçüyle/);
+  assert.match(supportedOffline({ payment: 'cash', discount: 0, loyaltyCard: '', items: [{ product: { is_set: true } }] }), /takım/);
+  assert.equal(supportedOffline({ payment: 'cash', discount: 0, loyaltyCard: '', items: [koli] }), null);
+});

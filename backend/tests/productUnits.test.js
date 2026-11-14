@@ -149,3 +149,14 @@ test('adet stoklu vida kiloyla satılır: 0,4 kg = 100 adet düşer, kilo fiyat�
   expect(ret.status).toBeLessThan(300);
   expect(await qty(vida.id)).toBe(before - 75);
 });
+
+test('kampanya koliye özel fiyatın üstüne binmez; özel fiyatsız koli ve tek adet kampanyalıdır', async () => {
+  const url = `/api/sector/hardware/products/${vida.id}/units`;
+  await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035', price: '360' }, { unit: 'paket', factor: 50, barcode: '8690000000049' }] });
+  await db.query("INSERT INTO retail_campaigns (tenant_id,name,kind,product_id,percent,starts_on,ends_on,requires_approval,active,created_by) VALUES ($1,'Vida %10','percent',$2,10,'2000-01-01','2099-12-31',0,1,1)", [owner.tenantId, vida.id]);
+  const quote = items => call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items });
+  expect((await quote([{ barcode: '8690000000035', count: 1 }])).body).toMatchObject({ gross: 360, campaign_discount: 0 });
+  expect((await quote([{ barcode: '8690000000049', count: 1 }])).body).toMatchObject({ gross: 100, campaign_discount: 10 });
+  expect((await quote([{ barcode: vida.barcode, count: 10 }])).body).toMatchObject({ gross: 20, campaign_discount: 2 });
+  await db.query('DELETE FROM retail_campaigns WHERE tenant_id=$1', [owner.tenantId]);
+});

@@ -41,6 +41,15 @@ test('takım barkodu: doğrulanır, çakışma reddedilir, liste fiyatı ve tak�
   expect(s).toMatchObject({ barcode: '8690001999999', sale_price: 249.9, list_price: 280 });
 });
 
+test('kasa barkod sorgusu takım barkodunu tanır: takım adı, takım fiyatı ve kaç takımlık stok', async () => {
+  const r = await call(owner, 'post', '/api/scanner/lookup', { barcode: '8690001999999', warehouse_id: w.id });
+  expect(r.status).toBe(200);
+  expect(r.body.product).toMatchObject({ name: '6 kişilik çay takımı', unit: 'takım', module_type: 'NORMAL' });
+  expect(r.body).toMatchObject({ unit_price: 249.9, line_total: 249.9, quantity: 1, stock: 10 }); // bardak 60/6, tabak 60/6, şekerlik 10/1: en az 10 takım
+  const none = await call(owner, 'post', '/api/scanner/lookup', { barcode: '0000000000000', warehouse_id: w.id });
+  expect(none.body.product).toBeNull();
+});
+
 test('kasada takım barkodu: parçalara açılır, stok her parçadan düşer, toplam takım fiyatıdır; iade parça bazında', async () => {
   const quote = await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: '8690001999999', count: 2 }, { barcode: bardak.barcode, count: 1 }] });
   expect(quote.status).toBe(200);
@@ -98,4 +107,25 @@ test('çeyiz listesi: liste, kalem, alındı işareti, fazla alım reddi, payla�
   expect(list.find(r => r.id === id)).toMatchObject({ items: 1, completed: 0 });
   await call(owner, 'put', `/api/sector/tableware/registries/${id}`, { title: 'Ayşe & Mehmet çeyiz', status: 'closed' });
   expect((await call(cashier, 'post', `/api/sector/tableware/registries/${id}/items/${it1.id}/bought`, { quantity: 1 })).status).toBe(409);
+});
+
+test('kampanya takım fiyatının üstüne binmez: takım parçaları muaf, aynı ürünün tek satışı kampanyalı', async () => {
+  await db.query("INSERT INTO retail_campaigns (tenant_id,name,kind,product_id,percent,starts_on,ends_on,requires_approval,active,created_by) VALUES ($1,'Tabak %50','percent',$2,50,'2000-01-01','2099-12-31',0,1,1)", [owner.tenantId, tabak.id]);
+  const quote = body => call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: body });
+  const set = await quote([{ barcode: '8690001999999', count: 1 }]);
+  expect(set.body).toMatchObject({ gross: 249.9, campaign_discount: 0, total: 249.9 });
+  const single = await quote([{ barcode: tabak.barcode, count: 2 }]);
+  expect(single.body).toMatchObject({ gross: 30, campaign_discount: 15, total: 15 });
+  await db.query('DELETE FROM retail_campaigns WHERE tenant_id=$1', [owner.tenantId]);
+});
+
+test('toplu zam takım fiyatını değiştirmez ama etkilenen takımı uyarı olarak döner', async () => {
+  await db.query("INSERT INTO sector_packs (tenant_id,pack) VALUES ($1,'hardware')", [owner.tenantId]);
+  const r = await call(owner, 'post', '/api/sector/hardware/prices/bulk', { category: 'Züccaciye', percent: 10, rounding: 0.5 });
+  expect(r.status).toBe(200);
+  expect(r.body.sets_to_review).toEqual([{ id: setId, name: '6 kişilik çay takımı', set_price: 249.9, parts_total_after: 308 }]);
+  const applied = await call(owner, 'post', '/api/sector/hardware/prices/bulk', { category: 'Züccaciye', percent: 10, rounding: 0.5, apply: true, expected_count: r.body.changed });
+  expect(applied.body.sets_to_review).toHaveLength(1);
+  const s = (await call(owner, 'get', '/api/sector/tableware/sets')).body.sets.find(x => x.id === setId);
+  expect(s.sale_price).toBe(249.9);
 });

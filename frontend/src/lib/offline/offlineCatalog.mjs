@@ -1,6 +1,6 @@
 // Çevrimdışı ürün listesi: tüm katalog sayfa sayfa indirilir (eski 250 ürünlük önbellek yetmez), barkod ve SKU ile aranır.
 // Yalnız birebir eşleşme aranır; tartı etiketi ve GS1 çözümleme çevrimdışı yoktur.
-const FIELDS = ['id', 'name', 'barcode', 'sku', 'category', 'unit', 'sale_price', 'kdv_orani'];
+const FIELDS = ['id', 'name', 'barcode', 'sku', 'category', 'unit', 'sale_price', 'kdv_orani', 'packs', 'measure_unit'];
 export const slim = p => Object.fromEntries(FIELDS.map(k => [k, p[k] ?? null]));
 
 // fetchPage(after) -> {items, next}; sınır: 50 sayfa. Yarıda kalırsa çağıran mevcut önbelleği değiştirmez.
@@ -19,6 +19,8 @@ export async function downloadCatalog(fetchPage, { maxPages = 50 } = {}) {
 export function buildIndex(items) {
   const index = new Map();
   for (const p of items) for (const code of [p.barcode, p.sku]) if (code) { const key = String(code); if (!index.has(key)) index.set(key, p); }
+  // Koli/paket barkodu: ürünle birlikte kaç adet olduğu ve (varsa) özel fiyatı döner; satış sunucuya barkodla gider, güncel fiyat orada uygulanır.
+  for (const p of items) for (const u of p.packs || []) { const key = String(u.barcode); if (key && !index.has(key)) index.set(key, { ...p, pack: { unit: u.unit, factor: Number(u.factor), price: u.price == null ? null : Number(u.price) } }); }
   return index;
 }
 export function findProduct(index, code) { return index.get(String(code || '').trim()) || null; }

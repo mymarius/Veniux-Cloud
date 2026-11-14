@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { ciLike } = require('../services/sqlSearch');
 // Minimum stok için makul üst sınır: eskiden 1 milyara kadar kabul ediliyordu, test verisinde 10.000.000 gibi anlamsız eşikler girilebiliyordu.
 const MAX_MIN_STOCK = 1000000;
 
@@ -33,7 +34,7 @@ const getAllProducts = async (req, res) => {
     }
 
     if (search) {
-      query += ` AND (p.name LIKE '%' || $${paramIndex} || '%' OR p.sku LIKE '%' || $${paramIndex} || '%' OR p.barcode LIKE '%' || $${paramIndex} || '%')`;
+      query += ` AND (${ciLike('p.name', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.sku', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.barcode', `'%' || $${paramIndex} || '%'`)})`;
       params.push(search);
       paramIndex++;
     }

@@ -8,6 +8,8 @@ export function supportedOffline({ payment, discount, loyaltyCard, items }) {
   if (Number(discount) > 0) return 'Çevrimdışıyken indirim yapılamaz.';
   if (loyaltyCard) return 'Çevrimdışıyken sadakat kartı kullanılamaz.';
   if (items.some(i => i.override !== undefined)) return 'Çevrimdışıyken fiyat değiştirilemez.';
+  if (items.some(i => i.sell_unit)) return 'Çevrimdışıyken kiloyla/metreyle (ölçüyle) satış yapılamaz; ürünü çevrimiçiyken satın.';
+  if (items.some(i => i.product?.is_set)) return 'Çevrimdışıyken takım satışı yapılamaz.';
   return null;
 }
 
@@ -16,6 +18,11 @@ export function offlineTotals(items) {
   const lines = items.map(i => {
     const quantity = i.manual_quantity ? Number(i.quantity) : Number(i.count);
     if (!Number.isFinite(quantity) || quantity <= 0) throw new Error('Miktar geçersiz.');
+    // Koli/paket: bir koli = çarpan kadar birim; özel fiyat varsa koli fiyatı, yoksa birim fiyat x çarpan.
+    if (i.pack && !i.manual_quantity) {
+      const each = i.pack.price != null ? cents(i.pack.price) : Math.round(cents(i.unit_price) * Number(i.pack.factor));
+      return { barcode: i.barcode, name: i.product?.name || i.barcode, quantity, unit_price: each / 100, total_cents: each * quantity, pack: i.pack };
+    }
     return { barcode: i.barcode, name: i.product?.name || i.barcode, quantity, unit_price: Number(i.unit_price), total_cents: lineCents(i.unit_price, quantity) };
   });
   return { lines, total_cents: lines.reduce((sum, l) => sum + l.total_cents, 0) };

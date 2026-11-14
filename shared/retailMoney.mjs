@@ -4,6 +4,8 @@ export function lineCents(price,quantity){
  return Number((BigInt(p)*BigInt(q)+500000n)/1000000n);
 }
 export function cartLineCents(item){
+ // Koli/paket barkodu ve o birime özel fiyat: satır tutarı koli fiyatıdır (sunucu satışta aynısını uygular).
+ if(item.override===undefined&&item.pack&&item.pack.price!=null&&!item.manual_quantity)return Math.round(Number(item.pack.price)*100)*item.count;
  if(item.override!==undefined)return lineCents(item.override,item.quantity*item.count);
  if(item.weighted&&Math.abs(item.line_total-item.quantity*item.unit_price)>0.0000001)return Math.round(item.line_total*100)*item.count;
  return lineCents(item.unit_price,item.quantity*item.count);
