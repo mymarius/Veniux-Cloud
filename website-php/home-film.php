@@ -46,10 +46,14 @@ $filmImages = [
   </div>
   <div class="hx-wrap">
     <h3 class="hx-film-gal-title">Adım adım görseller</h3>
+    <div class="hx-film-gal-wrap">
+    <button type="button" class="hx-gal-btn hx-gal-prev" aria-label="Önceki görsel" data-gal="-1">&#8249;</button>
+    <button type="button" class="hx-gal-btn hx-gal-next" aria-label="Sonraki görsel" data-gal="1">&#8250;</button>
     <ul class="hx-film-gallery" tabindex="0" aria-label="Adım adım görseller, yatay kaydırılır">
       <?php foreach ($filmImages as $n => $alt): ?>
       <li><img src="/assets/tanitim-adim-<?= $n ?>-v1.webp" width="540" height="675" loading="lazy" decoding="async" alt="<?= e($alt) ?>"></li>
       <?php endforeach; ?>
     </ul>
+    </div>
   </div>
 </section>

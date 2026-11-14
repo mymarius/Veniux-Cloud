@@ -217,3 +217,23 @@
   // Güvenlik: gözlemci hiç tetiklenmezse içerik gizli kalmasın.
   setTimeout(() => items.forEach(item => item.classList.add('pr-in')), 4000);
 })();
+
+// Adım adım görseller: ileri/geri düğmeleri ve uçlarda düğmeyi pasifleştirme.
+(() => {
+  const list = document.querySelector('.hx-film-gallery');
+  if (!list) return;
+  const prev = document.querySelector('.hx-gal-prev'), next = document.querySelector('.hx-gal-next');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sync = () => {
+    if (prev) prev.disabled = list.scrollLeft < 4;
+    if (next) next.disabled = list.scrollLeft + list.clientWidth >= list.scrollWidth - 4;
+  };
+  document.querySelectorAll('[data-gal]').forEach(btn => btn.addEventListener('click', () => {
+    const card = list.querySelector('li');
+    const step = (card ? card.getBoundingClientRect().width : 300) + 20;
+    list.scrollBy({ left: Number(btn.dataset.gal) * step, behavior: calm ? 'auto' : 'smooth' });
+  }));
+  list.addEventListener('scroll', sync, { passive: true });
+  addEventListener('resize', sync);
+  sync();
+})();
