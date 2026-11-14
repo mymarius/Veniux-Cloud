@@ -1,8 +1,19 @@
 {
-  "version": "2.4.73",
+  "version": "2.4.74",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.74",
+      "date": "14 Kasım 2026",
+      "title": "Ürün aktarma ve sektör demo aracı",
+      "items": [
+        "- Excel dosyasındaki sayı olarak kayıtlı barkodlar ve barkodsuz ürünler artık doğru aktarılıyor",
+        "- İsteğe bağlı başlangıç stoğu sütunu ve mağaza seçimi eklendi",
+        "- Müşteri dosyalarındaki başlıklar otomatik tanınıyor",
+        "- Sektör demo verisi hazırlama aracı eklendi"
+      ]
+    },
     {
       "version": "2.4.73",
       "date": "14 Kasım 2026",
