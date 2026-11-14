@@ -11,7 +11,7 @@ import InvoicePhotoReceive from '../components/InvoicePhotoReceive';
 import './RetailQuickAdd.css';
 
 const initial = { name: '', unit: 'adet', purchase_price: '', sale_price: '', quantity: '1' };
-const UNITS = ['adet', 'paket', 'kutu', 'kg', 'litre'];
+const UNITS = ['adet', 'paket', 'kutu', 'kg', 'litre', 'metre'];
 const QUICK = [1, 5, 10, 12, 24, 50];
 const money = v => Number(v || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
 const num = v => Number(v || 0).toLocaleString('tr-TR');
@@ -19,6 +19,7 @@ const num = v => Number(v || 0).toLocaleString('tr-TR');
 export default function RetailQuickAdd() {
   const [code, setCode] = useState('');
   const [product, setProduct] = useState(null);
+  const [pack, setPack] = useState(null);
   const [looked, setLooked] = useState(false);
   const [manual, setManual] = useState(false);
   const [fields, setFields] = useState(initial);
@@ -50,7 +51,7 @@ export default function RetailQuickAdd() {
     return () => { active = false; };
   }, [product, warehouse]);
 
-  const reset = () => { setProduct(null); setLooked(false); setManual(false); setCode(''); setFields(initial); setError(''); key.current = null; input.current?.focus(); };
+  const reset = () => { setProduct(null); setPack(null); setLooked(false); setManual(false); setCode(''); setFields(initial); setError(''); key.current = null; input.current?.focus(); };
   const edit = (name, value) => { key.current = null; setFields(p => ({ ...p, [name]: value })); };
   const lookup = async (value = code, preview = null) => {
     const clean = value.trim();
@@ -60,7 +61,7 @@ export default function RetailQuickAdd() {
     try {
       const r = preview ? {data:{product:preview.product}} : await api.get('/retail/lookup', { params: { barcode: clean } });
       if (seq !== request.current) return;
-      setProduct(r.data.product); setLooked(true); setFields(initial);
+      setProduct(r.data.product); setPack(r.data.pack || null); setLooked(true); setFields(initial);
     } catch (e) { if (seq === request.current) setError(e.response?.data?.error || 'Barkod sorgulanamadı.'); }
     finally { if (seq === request.current) setBusy(false); }
   };
@@ -143,6 +144,7 @@ export default function RetailQuickAdd() {
               <span className="rq-badge" data-tone="green">Kayıtlı ürün</span>
               <h2>{product.name}</h2>
               <p>{[product.sku, code && `Barkod ${code}`].filter(Boolean).join(' · ')}</p>
+              {pack && <span className="rq-badge" data-tone="blue">{`Koli barkodu · 1 ${pack.unit} = ${num(pack.factor)} ${product.unit}`}</span>}
             </div>
             <dl>
               <div><dt>Satış fiyatı</dt><dd>{money(product.sale_price)}</dd></div>
@@ -168,7 +170,7 @@ export default function RetailQuickAdd() {
           </>}
 
           <div className="rq-qty">
-            <div className="vx-field">Eklenecek miktar ({unit})
+            <div className="vx-field">Eklenecek miktar ({pack ? pack.unit : unit})
               <div className="vx-stepper rq-stepper">
                 <button type="button" aria-label="Azalt" onClick={() => edit('quantity', String(Math.max(1, qty - 1)))}><Minus size={18} /></button>
                 <input required type="number" min="1" max="1000000" step="1" inputMode="numeric" disabled={busy} value={fields.quantity} onChange={e => edit('quantity', e.target.value)} aria-label="Miktar" />
@@ -176,7 +178,8 @@ export default function RetailQuickAdd() {
               </div>
             </div>
             <div className="vx-chips">{QUICK.map(n => <button key={n} type="button" onClick={() => edit('quantity', String(n))}>{n}</button>)}</div>
-            {product && stock !== null && qty > 0 && <p className="rq-after">Ekleme sonrası mağaza stoğu <b>{num(stock + qty)} {unit}</b></p>}
+            {product && pack && qty > 0 && <p className="rq-after">{qty} {pack.unit} = <b>{num(qty * pack.factor)} {product.unit}</b></p>}
+            {product && stock !== null && qty > 0 && <p className="rq-after">Ekleme sonrası mağaza stoğu <b>{num(stock + qty * (pack ? pack.factor : 1))} {product.unit || unit}</b></p>}
           </div>
 
           <div className="rq-submit">

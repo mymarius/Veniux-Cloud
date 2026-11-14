@@ -22,6 +22,8 @@ const hw = express.Router(); hw.use(packs.require('hardware'), staff);
 hw.get('/search', run(req => hardware.search(req.user, req.query)));
 hw.get('/facets', run(req => hardware.facets(req.user, req.query)));
 hw.get('/critical', run(req => hardware.critical(req.user)));
+hw.get('/products/:id/units', run(req => require('../services/productUnits').list(req.user, req.params.id)));
+hw.put('/products/:id/units', boss, run(req => require('../services/productUnits').save(req.user, req.params.id, req.body)));
 hw.put('/products/:id/attributes', run(req => hardware.setAttributes(req.user, req.params.id, req.body)));
 router.use('/hardware', hw);
 

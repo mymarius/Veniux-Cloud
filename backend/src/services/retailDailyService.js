@@ -74,7 +74,7 @@ async function price(tx,user,body,rights,settings,date){
       const scan=await scanner.lookup(user.tenantId,item.barcode,body.warehouse_id,tx,settings);
       if(!scan.product||scan.product.module_type!=='NORMAL')fail('Market ürünü bulunamadı.',404);
       let qty=Number((scan.quantity*item.count).toFixed(6));
-      if(item.quantity!==undefined){if(!['kg','litre'].includes(scan.product.unit)||scan.weighted||item.count!==1)fail('Elle tartı miktarı yalnız normal barkodlu kg/litre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
+      if(item.quantity!==undefined){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
       let price=cents(scan.unit_price,'Ürün birim fiyatı')/100,lineCents=scan.weighted&&Math.abs(scan.line_total-scan.quantity*price)>0.0000001?cents(scan.line_total,'Tartı tutarı')*item.count:ratio(cents(price),Math.round(qty*1000000),1000000);
       if(item.price_override!==undefined){assertPermission(rights,'price_override');price=cents(item.price_override,'Birim fiyat')/100;lineCents=ratio(cents(price),Math.round(qty*1000000),1000000);}
       const priceBasis=item.price_tax_basis??'inclusive';
@@ -85,7 +85,7 @@ async function price(tx,user,body,rights,settings,date){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||null,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||['kg','litre'].includes(scan.product.unit)});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||null,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||['kg','litre','metre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');
@@ -180,7 +180,7 @@ async function reverse(user,id,kind,body,key){
     let refund=0;const seen=new Set(),restored=[];
     for(const request of requests){const line=snapshot.items.find(i=>i.id===Number(request.id)),qty=Number(request.quantity);if(!line||seen.has(line.id)||!['number','string'].includes(typeof request.quantity)||!Number.isFinite(qty)||qty<=0||Math.abs(qty*1000000-Math.round(qty*1000000))>0.0001)fail('İade miktarı veya kalem geçersiz.');seen.add(line.id);
       const totalQty=Number((line.returned_quantity+qty).toFixed(6));if(totalQty>line.quantity+0.0000001)fail('İade miktarı kalan satış miktarını aşamaz.',409);
-      if(!['kg','litre'].includes(line.unit)&&!Number.isInteger(qty))fail('Bu ürün tam birim olarak iade edilmelidir.');
+      if(!['kg','litre','metre'].includes(line.unit)&&!Number.isInteger(qty))fail('Bu ürün tam birim olarak iade edilmelidir.');
       const cumulative=Math.min(line.net_cents,ratio(line.net_cents,Math.round(totalQty*1000000),Math.round(line.quantity*1000000))),lineRefund=cumulative-line.refunded_cents;
       const disposition=kind==='cancel'?'saleable':request.disposition||'saleable';
       const finance=require('./retailCostService').reversal(line,qty,totalQty);

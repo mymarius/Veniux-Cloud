@@ -50,12 +50,16 @@ async function search(user, query = {}) {
   const tags = locIds.length ? (await db.query(`SELECT location_id,tag FROM location_tags WHERE tenant_id=$1 AND location_id IN (${locIds.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...locIds])).rows : [];
   const tagMap = new Map();
   for (const t of tags) tagMap.set(Number(t.location_id), [...(tagMap.get(Number(t.location_id)) || []), t.tag]);
+  const units = require('./productUnits');
+  const unitMap = await units.unitsFor(user.tenantId, ids);
   return {
     total: rows.length,
     items: page.map(p => {
       const perWarehouse = stock.filter(s => Number(s.product_id) === p.id && (!warehouse || Number(s.warehouse_id) === warehouse)).map(s => ({ warehouse_id: Number(s.warehouse_id), warehouse_name: s.warehouse_name, quantity: Number(s.quantity) }));
       const locations = bins.filter(b => Number(b.product_id) === p.id && (!warehouse || Number(b.warehouse_id) === warehouse)).map(b => ({ location_id: Number(b.location_id), location_code: b.location_code, zone: b.zone_name, aisle: b.aisle_code, rack: Number(b.rack_number), shelf: Number(b.shelf_tier), bin: Number(b.bin_position), quantity: Number(b.quantity), tags: tagMap.get(Number(b.location_id)) || [] }));
-      return { id: p.id, name: p.name, sku: p.sku, barcode: p.barcode, category: p.category, unit: p.unit, sale_price: Number(p.sale_price), size: p.attributes.size || null, fragile: p.attributes.fragile === '1', stock_total: perWarehouse.reduce((s, x) => s + x.quantity, 0), stock: perWarehouse, locations };
+      const own = (unitMap.get(p.id) || []).sort((a, b) => a.factor - b.factor).map(u => ({ ...u, price: Math.round(Number(p.sale_price) * u.factor * 100) / 100 }));
+      const stockTotal = perWarehouse.reduce((s, x) => s + x.quantity, 0);
+      return { id: p.id, name: p.name, sku: p.sku, barcode: p.barcode, category: p.category, unit: p.unit, sale_price: Number(p.sale_price), size: p.attributes.size || null, fragile: p.attributes.fragile === '1', stock_total: stockTotal, stock_text: units.breakdown(stockTotal, p.unit, own), units: own, stock: perWarehouse.map(w => ({ ...w, text: units.breakdown(w.quantity, p.unit, own) })), locations };
     })
   };
 }
@@ -95,10 +99,11 @@ async function critical(user) {
   const suppliers = new Map();
   const ids = [...new Set(low.map(r => r.supplier_id).filter(Boolean).map(Number))];
   if (ids.length) for (const s of (await db.query(`SELECT id,name,phone FROM suppliers WHERE tenant_id=$1 AND id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...ids])).rows) suppliers.set(Number(s.id), s);
+  const unitMap = await require('./productUnits').unitsFor(user.tenantId, low.map(r => Number(r.id)));
   const items = low.map(r => {
     const total = Number(r.total), min = Number(r.min_stock_level), supplier = r.supplier_id ? suppliers.get(Number(r.supplier_id)) : null;
     return { id: Number(r.id), name: r.name, unit: r.unit, stock: total, minimum: min, empty: total <= 0, supplier: supplier ? { name: supplier.name, phone: supplier.phone || null } : null,
-      message: r.name + (total <= 0 ? ' bitti' : ' bitiyor (' + total + ' ' + (r.unit || 'adet') + ' kaldı)') + ', toptancıya yaz.' };
+      message: r.name + (total <= 0 ? ' bitti' : ' bitiyor (' + (require('./productUnits').breakdown(total, r.unit, unitMap.get(Number(r.id)) || []) || total + ' ' + (r.unit || 'adet')) + ' kaldı)') + ', toptancıya yaz.' };
   }).sort((a, b) => Number(b.empty) - Number(a.empty) || a.name.localeCompare(b.name, 'tr'));
   return { items, count: items.length, empty: items.filter(i => i.empty).length };
 }

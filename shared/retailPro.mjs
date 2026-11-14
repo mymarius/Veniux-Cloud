@@ -1,6 +1,6 @@
 // Quantities enter as decimal strings and are converted through integer micros.
 export function quantity(value,unit='kg'){
- if(!['string','number'].includes(typeof value)||!['kg','g','litre'].includes(unit))throw Error('Tartı miktarı veya birimi geçersiz.');
+ if(!['string','number'].includes(typeof value)||!['kg','g','litre','metre'].includes(unit))throw Error('Tartı miktarı veya birimi geçersiz.');
  const text=String(value).replace(',','.');
  if(!/^\d{1,7}(?:\.\d{1,6})?$/.test(text))throw Error('Miktar en fazla altı ondalık basamaklı olmalıdır.');
  const [whole,part='']=text.split('.');let micros=BigInt(whole)*1000000n+BigInt(part.padEnd(6,'0'));
