@@ -1272,3 +1272,8 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-qacards>div:last-child:nth-child(odd){grid-column:1/-1}
 .hx-sector-limit{margin:28px 0 0;padding:16px 20px;border-left:5px solid var(--orange);background:var(--white);border-radius:0 10px 10px 0;color:var(--ink);font-size:17px;line-height:1.55}
 .hx-sector-limit b{color:var(--orange-text)}
+.hx-faq-top .hx-qa{gap:18px;align-items:stretch}
+.hx-faq-top .hx-qa>div{padding:20px 24px 22px;border:1px solid #c9bda6;border-top:4px solid var(--orange);background:var(--white)}
+.hx-faq-top .hx-qa>div h3{margin:0 0 8px}
+.hx-faq-top .hx-qa>div p{margin:0}
+.hx-faq-top .hx-qa>div:last-child:nth-child(odd){grid-column:1/-1}

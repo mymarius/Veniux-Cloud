@@ -140,6 +140,8 @@ return [
   ],
   'related'=>['/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/kafe-hizli-satis-programi'=>'Kafe ve büfe','/fiyatlandirma'=>'Fiyatlar'],
   'solution'=>'kasa',
+  'image'=>'sector-pide-v1.jpg','alt'=>'Veniux mutfak ekranı: üç masanın siparişleri, adetler ve her kalem için Hazır düğmesi',
+  'caption'=>'Gerçek Veniux arayüzü; işletme ve ürünler sentetik deneme kayıtlarıdır, müşteri verisi içermez. 14 Kasım 2026.',
   'title'=>'Pide ve Restoran Programı: Masa, Adisyon, Reçete | Veniux',
   'description'=>'Pideci, lokanta ve restoran için masa ve adisyon takibi, reçeteye göre malzeme düşme, menü seçenekleri, paket servis ve iade. Stok ve kasa tek yerde.',
   'headline'=>'Pidecide masa, adisyon ve malzeme tek ekranda.',
