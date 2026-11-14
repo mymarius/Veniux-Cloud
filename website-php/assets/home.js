@@ -237,3 +237,37 @@
   addEventListener('resize', sync);
   sync();
 })();
+
+// Görseller: girişte belirme, otomatik ilerleme (üzerine gelince/dokununca durur), nokta göstergesi.
+(() => {
+  const list = document.querySelector('.hx-film-gallery');
+  if (!list || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cards = [...list.querySelectorAll('li')];
+  const dots = document.querySelector('.hx-gal-dots');
+  if (dots) cards.forEach(() => dots.appendChild(document.createElement('span')));
+  const mark = () => {
+    if (!dots) return;
+    const w = cards[0].getBoundingClientRect().width + 20;
+    const i = Math.min(cards.length - 1, Math.round(list.scrollLeft / w));
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+  };
+  list.addEventListener('scroll', mark, { passive: true });
+  mark();
+  list.classList.add('hx-anim');
+  let timer = null, paused = false;
+  const step = () => {
+    const rc = list.getBoundingClientRect();
+    if (paused || rc.bottom < 0 || rc.top > innerHeight) return;
+    const w = cards[0].getBoundingClientRect().width + 20;
+    const end = list.scrollLeft + list.clientWidth >= list.scrollWidth - 4;
+    list.scrollTo({ left: end ? 0 : list.scrollLeft + w, behavior: 'smooth' });
+  };
+  const stop = () => { paused = true; };
+  ['mouseenter', 'focusin', 'touchstart', 'pointerdown', 'wheel'].forEach(e => list.addEventListener(e, stop, { passive: true }));
+  list.parentElement.addEventListener('mouseleave', () => { paused = false; });
+  new IntersectionObserver(es => {
+    if (es[0].isIntersecting) list.classList.add('hx-in');
+  }, { threshold: 0.35 }).observe(list);
+  timer = setInterval(step, 3600);
+  setTimeout(() => list.classList.add('hx-in'), 4000);
+})();

@@ -1258,3 +1258,12 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 @media (max-width:520px){.wa-float{right:12px;bottom:76px;padding:13px}.wa-float span{display:none}}
 .dp-contact .wa-num{color:#fff;opacity:.92}
 .ac-after-note{margin:-8px 0 20px;padding:10px 12px;border-left:3px solid #cf4b06;background:#fffdf8;font-size:14px;color:var(--ink-soft)}
+.hx-film-gallery li{transition:transform .35s ease,opacity .6s ease}
+.hx-film-gallery li img{transition:box-shadow .35s ease}
+.hx-film-gallery.hx-anim li{opacity:0;transform:translateY(22px)}
+.hx-film-gallery.hx-anim.hx-in li{opacity:1;transform:none}
+.hx-film-gallery.hx-anim.hx-in li:nth-child(2){transition-delay:.08s}.hx-film-gallery.hx-anim.hx-in li:nth-child(3){transition-delay:.16s}.hx-film-gallery.hx-anim.hx-in li:nth-child(4){transition-delay:.24s}
+@media (hover:hover){.hx-film-gallery li:hover{transform:translateY(-6px)}.hx-film-gallery li:hover img{box-shadow:0 18px 30px -14px rgba(23,38,58,.55)}}
+.hx-gal-dots{display:flex;justify-content:center;gap:8px;margin:4px 0 0;padding:0}
+.hx-gal-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s ease,background .3s ease}
+.hx-gal-dots span.on{width:24px;background:var(--orange)}

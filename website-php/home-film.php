@@ -54,6 +54,7 @@ $filmImages = [
       <li><img src="/assets/tanitim-adim-<?= $n ?>-v1.webp" width="540" height="675" loading="lazy" decoding="async" alt="<?= e($alt) ?>"></li>
       <?php endforeach; ?>
     </ul>
+    <div class="hx-gal-dots" aria-hidden="true"></div>
     </div>
   </div>
 </section>
