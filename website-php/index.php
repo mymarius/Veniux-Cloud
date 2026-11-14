@@ -72,7 +72,7 @@ $assetGroup=['/program-indir'=>'program','/fiyatlandirma'=>'pricing','/guncellem
 header_remove('X-Powered-By');
 if(($_SERVER['HTTPS']??'')==='on')header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
-header('X-Content-Type-Options: nosniff');header('Vary: User-Agent');
+header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 $analyticsIds=require __DIR__.'/analytics-config.php';
 $cspScript=$cspConnect=$cspImg='';
@@ -195,7 +195,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <?=siteSeoHead($config,$page,$path,$indexable)?>
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
-    <?php if(stripos((string)($_SERVER['HTTP_USER_AGENT']??''),'Discordbot')===false):?><meta name="theme-color" content="#f4eee2"><?php endif;?>
+    <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
     <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261114e"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
