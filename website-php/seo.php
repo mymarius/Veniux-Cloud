@@ -30,6 +30,30 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
     $og=['type'=>'website','locale'=>'tr_TR','site_name'=>'Veniux Cloud','title'=>$page['title'],'description'=>$page['description'],'url'=>$url,'image'=>$image,'image:secure_url'=>$image,'image:type'=>$screenshot?'image/jpeg':'image/webp','image:width'=>$screenshot?(string)($page['image_width']??1280):'420','image:height'=>$screenshot?(string)($page['image_height']??800):'420','image:alt'=>$imageAlt];
     foreach($og as $name=>$value)$html.='<meta property="og:'.$name.'" content="'.$escape($value).'">';
     if($path==='/')$html.='<meta name="google-site-verification" content="1VEoKi2e_dQVEQ5sQtNMvYgeEXWGkENrJW_KT--Rjl4">';
+        if($discord){
+        // Discord "Link Component Embeds": bileşenli kart (docs.discord.com/developers/link-previews/component-embeds). Sınır: 3000 bayt; yalnız link düğmeleri.
+        $base=rtrim($config['url'],'/');
+        $media=isset($page['image'])&&preg_match('/^(?:product|sector)-[a-z]+-v[0-9]+\.(?:jpg|webp)$/D',$page['image'])?$page['image']:'product-retail-v1.jpg';
+        $title=preg_replace('/\s*\|\s*Veniux(?: Cloud)?$/u','',(string)$page['title']);
+        $build=static function(int $max) use($base,$url,$title,$page,$media):string{
+            $desc=(string)$page['description'];if(mb_strlen($desc)>$max)$desc=rtrim(mb_substr($desc,0,$max-1)).'…';
+            $payload=['component'=>['type'=>17,'accent_color'=>0xCF4B06,'components'=>[
+                ['type'=>9,'components'=>[['type'=>10,'content'=>'# **['.$title.']('.$url.')**'."
+".$desc]],'accessory'=>['type'=>11,'media'=>['url'=>$base.'/assets/logo-hero-420-v2.webp']]],
+                ['type'=>12,'items'=>[['media'=>['url'=>$base.'/assets/'.$media],'description'=>'Veniux ürün ekranı, sentetik örnek kayıtlar']]],
+                ['type'=>14,'spacing'=>1],
+                ['type'=>1,'components'=>[
+                    ['type'=>2,'style'=>5,'label'=>'Demo isteyin','url'=>$base.'/?request_type=demo#iletisim'],
+                    ['type'=>2,'style'=>5,'label'=>'Fiyatlar','url'=>$base.'/fiyatlandirma'],
+                    ['type'=>2,'style'=>5,'label'=>'Programı indir','url'=>$base.'/program-indir'],
+                ]],
+            ]]];
+            return json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP);
+        };
+        $json=$build(260);
+        for($max=260;strlen($json)>2900&&$max>60;$max-=40)$json=$build($max);
+        if(strlen($json)<=3000)$html.='<script id="discord:component-embed" type="application/json">'.$json.'</script>';
+    }
     return $html;
 }
 function siteRobots(array $config):string {
