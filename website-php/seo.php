@@ -20,7 +20,11 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
     $screenshot=isset($page['image'])&&preg_match('/^product-[a-z]+-v[0-9]+\.jpg$/D',$page['image']);
     $image=rtrim($config['url'],'/').'/assets/'.($screenshot?$page['image']:'logo-hero-420-v2.webp');
     $imageAlt=$screenshot?($page['alt']??'Veniux ürün ekranı, sentetik örnek kayıtlar'):'Veniux Cloud logosu';
+    // Discord bağlantı önizlemesi: yalnız Discord botuna özel kart (turuncu şerit, küçük logo). Diğer platformlar aynı kalır.
+    $discord=stripos((string)($_SERVER['HTTP_USER_AGENT']??''),'Discordbot')!==false;
+    if($discord){$screenshot=false;$image=rtrim($config['url'],'/').'/assets/logo-hero-420-v2.webp';$imageAlt='Veniux Cloud logosu';}
     $html='<title>'.$escape($page['title']).'</title><link rel="canonical" href="'.$escape($url).'">';
+    if($discord)$html.='<meta name="theme-color" content="#cf4b06">';
     $meta=['description'=>$page['description'],'robots'=>$indexable?'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1':'noindex, nofollow','twitter:card'=>$screenshot?'summary_large_image':'summary','twitter:title'=>$page['title'],'twitter:description'=>$page['description'],'twitter:image'=>$image,'twitter:image:alt'=>$imageAlt];
     foreach($meta as $name=>$value)$html.='<meta name="'.$name.'" content="'.$escape($value).'">';
     $og=['type'=>'website','locale'=>'tr_TR','site_name'=>'Veniux Cloud','title'=>$page['title'],'description'=>$page['description'],'url'=>$url,'image'=>$image,'image:secure_url'=>$image,'image:type'=>$screenshot?'image/jpeg':'image/webp','image:width'=>$screenshot?(string)($page['image_width']??1280):'420','image:height'=>$screenshot?(string)($page['image_height']??800):'420','image:alt'=>$imageAlt];

@@ -1269,3 +1269,6 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-gal-dots span.on{width:24px;background:var(--orange)}
 
 @media(min-width:941px){.vf-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}}
+.hx-qacards>div:last-child:nth-child(odd){grid-column:1/-1}
+.hx-sector-limit{margin:28px 0 0;padding:16px 20px;border-left:5px solid var(--orange);background:var(--white);border-radius:0 10px 10px 0;color:var(--ink);font-size:17px;line-height:1.55}
+.hx-sector-limit b{color:var(--orange-text)}
