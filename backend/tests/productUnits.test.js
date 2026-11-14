@@ -34,6 +34,7 @@ test('stok gösterimi en büyük birimden başlar; küsurat ve birimsiz durum', 
   expect(breakdown(30, 'adet', units)).toBeNull();
   expect(breakdown(230.5, 'metre', [{ unit: 'makara', factor: 100 }])).toBe('2 makara + 30,5 metre');
   expect(breakdown(0, 'adet', units)).toBeNull();
+  expect(breakdown(1270, 'adet', [...units, { unit: 'kg', factor: 250 }])).toBe('6 koli + 1 paket + 20 adet');
   expect(breakdown(-5, 'adet', units)).toBeNull();
 });
 

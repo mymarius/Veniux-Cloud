@@ -7,6 +7,7 @@ const fail = (message, status = 400) => { throw Object.assign(new Error(message)
 const round = (v, d = 6) => Math.round(Number(v) * 10 ** d) / 10 ** d;
 const SUGGESTED = ['koli', 'paket', 'kutu', 'düzine', 'deste', 'makara', 'top', 'rulo', 'çuval', 'kova', 'set', 'kg', 'metre'];
 const MAX_UNITS = 6;
+const MEASURES = ['kg', 'gram', 'g', 'litre', 'lt', 'metre', 'm'];
 
 async function productOf(tx, user, productId) {
   const id = Number(productId);
@@ -89,7 +90,8 @@ function breakdown(quantity, baseUnit, units) {
   if (!(q > 0) || !units || !units.length) return null;
   const parts = [];
   let rest = q;
-  for (const u of [...units].filter(x => x.factor > 1).sort((a, b) => b.factor - a.factor)) {
+  // Ölçü birimleri (kg, litre, metre) ambalaj değildir; "7 kg + 2 paket" yanlış okunur. Yalnız ambalajlarla bölünür.
+  for (const u of [...units].filter(x => x.factor > 1 && !MEASURES.includes(x.unit)).sort((a, b) => b.factor - a.factor)) {
     const n = Math.floor(rest / u.factor + 1e-9);
     if (n > 0) { parts.push(`${n} ${u.unit}`); rest = round(rest - n * u.factor); }
   }
