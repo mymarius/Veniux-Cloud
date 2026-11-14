@@ -74,8 +74,21 @@ async function price(tx,user,body,rights,settings,date){
       const scan=await scanner.lookup(user.tenantId,item.barcode,body.warehouse_id,tx,settings);
       if(!scan.product||scan.product.module_type!=='NORMAL')fail('Market ürünü bulunamadı.',404);
       let qty=Number((scan.quantity*item.count).toFixed(6));
-      if(item.quantity!==undefined){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
+      // Adet stoklu ürünü kiloyla (veya metre/litre) satmak: üründe "1 kg = 250 adet" birimi tanımlıysa girilen kilo adede çevrilir.
+      let sellUnit=null;
+      if(item.sell_unit!==undefined){
+        if(typeof item.sell_unit!=='string'||!['kg','litre','metre'].includes(item.sell_unit))fail('Satış birimi geçersiz.');
+        if(scan.weighted||scan.product.uom_code||item.count!==1||item.quantity===undefined||item.price_override!==undefined)fail('Ölçüyle satış yalnız ürünün kendi barkoduyla, tek satır ve elle miktarla yapılır.');
+        const u=(await tx.query('SELECT u.conversion_factor,pr.sale_price AS pack_price FROM product_uoms u LEFT JOIN product_unit_prices pr ON pr.tenant_id=u.tenant_id AND pr.product_id=u.product_id AND pr.uom_code=u.uom_code WHERE u.tenant_id=$1 AND u.product_id=$2 AND u.uom_code=$3',[user.tenantId,scan.product.id,item.sell_unit])).rows[0];
+        if(!u)fail(`Bu üründe ${item.sell_unit} birimi tanımlı değil.`,404);
+        let amount;try{amount=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity,item.sell_unit);}catch(e){fail(e.message);}
+        const factor=Number(u.conversion_factor);
+        sellUnit={unit:item.sell_unit,amount,factor,price:u.pack_price!=null?Number(u.pack_price):Math.round(Number(scan.product.sale_price)*factor*100)/100};
+        qty=Number((amount*factor).toFixed(6));
+      }
+      if(item.quantity!==undefined&&!sellUnit){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
       let price=cents(scan.unit_price,'Ürün birim fiyatı')/100,lineCents=scan.weighted&&Math.abs(scan.line_total-scan.quantity*price)>0.0000001?cents(scan.line_total,'Tartı tutarı')*item.count:ratio(cents(price),Math.round(qty*1000000),1000000);
+      if(sellUnit){lineCents=Math.round(sellUnit.amount*sellUnit.price*100);price=Math.round(sellUnit.price/sellUnit.factor*100)/100;}
       // Koli/paket barkodu ve o birime özel fiyat: satır tutarı koli fiyatıdır; birim fiyat yalnız gösterim için kuruşa yuvarlanır.
       if(scan.pack&&scan.pack.price!=null&&!scan.weighted&&item.quantity===undefined){lineCents=cents(scan.pack.price,'Koli fiyatı')*item.count;price=Math.round(scan.pack.price/scan.pack.factor*100)/100;}
       if(item.price_override!==undefined){assertPermission(rights,'price_override');price=cents(item.price_override,'Birim fiyat')/100;lineCents=ratio(cents(price),Math.round(qty*1000000),1000000);}
@@ -87,7 +100,7 @@ async function price(tx,user,body,rights,settings,date){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||null,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||['kg','litre','metre'].includes(scan.product.unit)});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');
@@ -182,7 +195,7 @@ async function reverse(user,id,kind,body,key){
     let refund=0;const seen=new Set(),restored=[];
     for(const request of requests){const line=snapshot.items.find(i=>i.id===Number(request.id)),qty=Number(request.quantity);if(!line||seen.has(line.id)||!['number','string'].includes(typeof request.quantity)||!Number.isFinite(qty)||qty<=0||Math.abs(qty*1000000-Math.round(qty*1000000))>0.0001)fail('İade miktarı veya kalem geçersiz.');seen.add(line.id);
       const totalQty=Number((line.returned_quantity+qty).toFixed(6));if(totalQty>line.quantity+0.0000001)fail('İade miktarı kalan satış miktarını aşamaz.',409);
-      if(!['kg','litre','metre'].includes(line.unit)&&!Number.isInteger(qty))fail('Bu ürün tam birim olarak iade edilmelidir.');
+      if(!['kg','litre','metre'].includes(line.unit)&&!['kg','litre','metre'].includes(line.variant)&&!Number.isInteger(qty))fail('Bu ürün tam birim olarak iade edilmelidir.');
       const cumulative=Math.min(line.net_cents,ratio(line.net_cents,Math.round(totalQty*1000000),Math.round(line.quantity*1000000))),lineRefund=cumulative-line.refunded_cents;
       const disposition=kind==='cancel'?'saleable':request.disposition||'saleable';
       const finance=require('./retailCostService').reversal(line,qty,totalQty);

@@ -125,3 +125,26 @@ test('koliye özel fiyat: doğrulanır, aramada görünür, kasada satır tutar�
   expect(back.body.gross).toBe(400);
 });
 
+
+test('adet stoklu vida kiloyla satılır: 0,4 kg = 100 adet düşer, kilo fiyatıyla; katalog ölçü birimini bildirir; iade küsuratlı yapılır', async () => {
+  const url = `/api/sector/hardware/products/${vida.id}/units`;
+  expect((await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035' }, { unit: 'kg', factor: 250, price: '420' }] })).status).toBe(200);
+  const cat = await call(owner, 'get', '/api/scanner/pro/catalog?q=Vida');
+  expect(cat.body.items.find(i => i.id === vida.id).measure_unit).toEqual({ unit: 'kg', factor: 250, price: 420 });
+  const quote = await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: vida.barcode, count: 1, quantity: '0,4', sell_unit: 'kg' }] });
+  expect(quote.status).toBe(200); expect(quote.body.gross).toBe(168);
+  const before = await qty(vida.id);
+  const sale = await call(owner, 'post', '/api/scanner/sale', { warehouse_id: w.id, payment_method: 'cash', items: [{ barcode: vida.barcode, count: 1, quantity: '0,4', sell_unit: 'kg' }] }, 'unit-kg-sale-1');
+  expect(sale.status).toBe(201);
+  expect(await qty(vida.id)).toBe(before - 100);
+  // Tanımsız birim, koli barkoduyla ölçü ve fiyat değiştirerek satış reddedilir.
+  expect((await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: vida.barcode, count: 1, quantity: '1', sell_unit: 'metre' }] })).status).toBe(404);
+  expect((await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: '8690000000035', count: 1, quantity: '1', sell_unit: 'kg' }] })).status).toBe(400);
+  expect((await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: vida.barcode, count: 1, quantity: '1', sell_unit: 'kg', price_override: 1 }] })).status).toBe(400);
+  // Kısmi iade: 0,1 kg'lık kısmı yani 25 adet geri alınır.
+  expect(JSON.stringify((await call(owner, 'get', '/api/scanner/sales/' + sale.body.sale_id)).body)).toContain('"variant":"kg"');
+  expect((await call(owner, 'post', '/api/scanner/sales/' + sale.body.sale_id + '/return', { reason: 'Küsurat', items: [{ id: 1, quantity: 0.5 }] }, 'unit-kg-return-0')).status).toBeLessThan(300);
+  const ret = await call(owner, 'post', '/api/scanner/sales/' + sale.body.sale_id + '/return', { reason: 'Fazla tartıldı', items: [{ id: 1, quantity: 24.5 }] }, 'unit-kg-return-1');
+  expect(ret.status).toBeLessThan(300);
+  expect(await qty(vida.id)).toBe(before - 75);
+});

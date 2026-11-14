@@ -27,7 +27,9 @@ async function catalog(user,query){
  }
  if(category){params.push(category);where+=' AND p.category=$'+params.length;}
  const rows=(await db.query('SELECT p.id,p.name,p.barcode,p.sku,p.category,p.unit,p.sale_price,p.kdv_orani,CASE WHEN m.image_path IS NOT NULL THEN 1 ELSE 0 END AS image_available,m.brand FROM products p LEFT JOIN retail_product_media m ON m.product_id=p.id AND m.tenant_id=p.tenant_id WHERE '+where+' ORDER BY p.id LIMIT '+(limit+1),params)).rows;
- return {items:rows.slice(0,limit),next:rows.length>limit?Number(rows[limit-1].id):null,source:'tenant_catalog',global_catalog_available:false};
+ // Kiloyla/metreyle satılabilen adet ürünleri: "1 kg = 250 adet" birimi olan ürün kasada tartı penceresiyle satılır.
+ const page=rows.slice(0,limit),units=await require('./productUnits').unitsFor(user.tenantId,page.map(r=>Number(r.id)));
+ return {items:page.map(r=>{const m=(units.get(Number(r.id))||[]).find(u=>['kg','litre','metre'].includes(u.unit)&&u.unit!==r.unit);return m?{...r,measure_unit:{unit:m.unit,factor:m.factor,price:m.custom_price??Math.round(Number(r.sale_price)*m.factor*100)/100}}:r;}),next:rows.length>limit?Number(rows[limit-1].id):null,source:'tenant_catalog',global_catalog_available:false};
 }
 // Çok satanlar: son N günde net adedi en yüksek ürünler. Kasiyerin "sık kullanılanlar" şeridi için; kısıtlı kullanıcı yalnız atanmış depoların satışını görür.
 async function topProducts(user,query={}){
