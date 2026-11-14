@@ -32,3 +32,16 @@ exec -- node --env-file=../cloud-private/install.env backend/scripts/create_demo
 4. İlk girişte anahtar o işletmeye **bağlanır** (bir anahtar bir işletme). Anahtarı başka kişiyle paylaşmayın.
 
 Lisans bitiş günü, merkezde girişi kapatan tarihtir; uygulamadaki yerel lisans kaydı bu modda kullanılmaz (modül türü merkezi lisanstaki plandan gelir).
+
+## Sektör örnek verisi (müşteri demosu)
+
+Müşterinin sektörüne göre demo hesabını gerçek veriye benzer ürünlerle doldurur: hırdavat (koli/paket/kg birimleri, muadil, ayrıntılı ölçü), züccaciye (takımlar, takım barkodu, çeyiz listesi), pide (menü seçenekleri, çok katlı reçete, masalar). Sektör paketi de o işletme için açılır.
+
+```
+exec -- node --env-file=../cloud-private/install.env backend/scripts/seed_sector_demo.js --tenant <işletme no> --sector hirdavat|zuccaciye|pide|hepsi
+```
+
+- İşletme no: demo hesabı açılırken çıktıdaki `tenant_id` (veya panelde işletme listesi).
+- Yalnız adı `Veniux Demo – ` ile başlayan işletmede çalışır; gerçek müşteri verisine yazmayı reddeder.
+- Aynı komut tekrar çalıştırılırsa mevcut örnek veriye dokunmaz (idempotent).
+- Birkaç ürün bilerek kritik stokta bırakılır: "Kritik Stok", muadil önerisi ve sipariş taslağı gösterilebilsin diye.
