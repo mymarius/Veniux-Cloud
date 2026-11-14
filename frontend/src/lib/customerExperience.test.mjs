@@ -18,9 +18,11 @@ test('customer error messages do not expose SQL, file paths or remote stack trac
  assert.match(errorMessage({response:{status:409}}),/Son durumu/);assert.match(errorMessage({response:{status:403}}),/yetkisi/);
 });
 test('automatic column matching uses Turkish aliases and leaves ambiguous/missing choices for user confirmation',()=>{
- assert.deepEqual(mapImportColumns(['Ürün adı','EAN-13','Alış Fiyatı','KDV oranı'],{name:1,barcode:1,purchase_price:1,kdv_orani:1,unit:1}),{name:0,barcode:1,purchase_price:2,kdv_orani:3,unit:-1});
+ assert.deepEqual(mapImportColumns(['Ürün adı','EAN-13','Alış Fiyatı','KDV oranı'],{name:1,barcode:1,purchase_price:1,kdv_orani:1,unit:1}),{name:0,barcode:1,purchase_price:2,kdv_orani:3,unit:-1,stock:-1});
  assert.equal(mapImportColumns(['Barkod','Barcode'],{barcode:1}).barcode,-1);
- assert.deepEqual(intakeOnlyColumns(['Barkod','Stok miktarı','Lot','Son Kullanma Tarihi']),['Stok miktarı','Lot','Son Kullanma Tarihi']);
+ assert.deepEqual(intakeOnlyColumns(['Barkod','Stok miktarı','Lot','Son Kullanma Tarihi']),['Lot','Son Kullanma Tarihi']);
+// Müşteri dosyalarında sık görülen başlıklar ve isteğe bağlı stok sütunu
+assert.deepEqual(mapImportColumns(['Stok Kodu','Stok Adı','Barkodu','Grubu','Birimi','Mevcut Stok','Alış Fiyatı','Satış Fiyatı','KDV %'],{name:1,barcode:1,category:1,unit:1,purchase_price:1,sale_price:1,kdv_orani:1}),{name:1,barcode:2,category:3,unit:4,purchase_price:6,sale_price:7,kdv_orani:8,stock:5});
 });
 test('profile quick actions favor market checkout and warehouse intake without enabling hidden workflows',()=>{
  assert.equal(profileActions({profile:'market',modules:['stock','pos']})[0][1],'/magaza/kasa');

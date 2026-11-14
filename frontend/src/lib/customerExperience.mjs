@@ -13,11 +13,13 @@ export function profileActions(setup){
  return order.filter(id=>setup.modules.includes(id)).flatMap(id=>tasks[id]).slice(0,4);
 }
 const normalizeColumn=s=>String(s).toLocaleLowerCase('tr-TR').replace(/[^a-z0-9çğıöşü]/g,'');
-const aliases={name:['ürünadı','urunadi','name','ürün','productname'],barcode:['barkod','barcode','ean','ean13','gtin'],category:['kategori','category'],unit:['birim','unit'],purchase_price:['alışfiyatı','alisfiyati','purchaseprice'],sale_price:['satışfiyatı','satisfiyati','saleprice'],kdv_orani:['kdvoranı','kdvorani','kdv','vat','vatrate']};
+// Müşteri dosyalarında sık görülen başlıklar da tanınır (stok programlarının dışa aktarımları: "Stok Adı", "Grubu", "Birimi"...).
+const aliases={name:['ürünadı','urunadi','name','ürün','productname','stokadı','stokadi','ürünismi','malzemeadı','malzemeadi','açıklama','aciklama','ürünaçıklaması','mal','malınadı'],barcode:['barkod','barcode','ean','ean13','gtin','barkodu','barkodno','barkodnumarası','barkodnumarasi'],category:['kategori','category','grubu','grup','ürüngrubu','urungrubu','anagrup','kategorisi','cinsi','tür'],unit:['birim','unit','birimi','ölçübirimi','olcubirimi','ölçü'],purchase_price:['alışfiyatı','alisfiyati','purchaseprice','alış','alis','alışfiyat','alisfiyat','maliyet','maliyetfiyatı','alışbedeli'],sale_price:['satışfiyatı','satisfiyati','saleprice','satış','satis','satışfiyat','satisfiyat','fiyat','listefiyatı','perakendefiyat','perakendesatışfiyatı'],kdv_orani:['kdvoranı','kdvorani','kdv','vat','vatrate','kdv%','kdvyüzde','kdvyuzde'],stock:['stok','stokmiktarı','stokmiktari','mevcutstok','mevcut','miktar','quantity','stock','eldekistok','bakiye']};
 export function mapImportColumns(headers,fields){
- return Object.fromEntries(Object.keys(fields).map(key=>{const matches=headers.map((h,i)=>aliases[key]?.includes(normalizeColumn(h))?i:-1).filter(i=>i>=0);return [key,matches.length===1?matches[0]:-1];}));
+ // Stok sütunu isteğe bağlıdır; bulunursa önerilir.
+ return Object.fromEntries([...Object.keys(fields),'stock'].map(key=>{const matches=headers.map((h,i)=>aliases[key]?.includes(normalizeColumn(h))?i:-1).filter(i=>i>=0);return [key,matches.length===1?matches[0]:-1];}));
 }
-export function intakeOnlyColumns(headers){return headers.filter(h=>['stok','stokmiktarı','stokmiktari','miktar','quantity','stock','lot','lotno','lotnumarası','lotnumarasi','skt','sonkullanmatarihi','expiry','expirydate'].includes(normalizeColumn(h)));}
+export function intakeOnlyColumns(headers){return headers.filter(h=>['lot','lotno','lotnumarası','lotnumarasi','skt','sonkullanmatarihi','expiry','expirydate'].includes(normalizeColumn(h)));}
 export function errorMessage(error,fallback='İşlem tamamlanamadı. Bağlantınızı kontrol edip tekrar deneyin.'){
  const status=error?.response?.status;
  return ({401:'Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.',403:'Bu işlem için yönetici yetkisi gerekiyor.',409:'Kayıt başka bir ekranda değişti. Son durumu yükleyip tekrar deneyin.',413:'Dosya çok büyük. Daha küçük bir dosya seçin.',429:'Çok sık deneme yapıldı. Biraz bekleyip tekrar deneyin.',503:'Sistem bakımda veya bağlantı hazır değil. Biraz sonra tekrar deneyin.'})[status]||fallback;

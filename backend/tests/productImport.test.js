@@ -13,7 +13,7 @@ test('dosyadaki tüm mükerrer barkodlar, hatalı fiyat ve KDV reddedilir; rapor
 test('sistemde aynı barkodlu iki ürün belirsiz olarak işaretlenir',async()=>{await db.query("INSERT INTO products (tenant_id,sku,name,barcode,module_type) VALUES ($1,$2,'Çakışan',$3,'NORMAL')",[owner.tenantId,crypto.randomUUID(),code]);const {preview}=await prepare([row()]);expect(preview.rows[0].errors.join()).toContain('Sistemde mükerrer');});
 test('aynı aktarım eşzamanlı veya yenileme sonrası tekrar kaydedilince tek ürün ve tek audit oluşur',async()=>{const fresh='0000IDEM-'+crypto.randomUUID(),{id}=await prepare([row(fresh)]);const replies=await Promise.all([post('/'+id+'/commit',{}),post('/'+id+'/commit',{})]);expect(replies.every(r=>r.status===200)).toBe(true);expect(replies[0].body).toEqual(replies[1].body);expect((await post('/'+id+'/commit',{})).body).toEqual(replies[0].body);expect((await db.query('SELECT id FROM products WHERE tenant_id=$1 AND barcode=$2',[owner.tenantId,fresh])).rows).toHaveLength(1);expect((await db.query("SELECT details FROM audit_logs WHERE tenant_id=$1 AND action='products.bulk_import'",[owner.tenantId])).rows.filter(r=>JSON.parse(r.details).batch_id===id)).toHaveLength(1);});
 test('önizleme sonrası fiyat değişmişse üzerine yazılmaz; stoklu üründe birim değişikliği engellenir',async()=>{const {id}=await prepare([row()]);await db.query('UPDATE products SET sale_price=7 WHERE id=$1',[existing.id]);const r=await post('/'+id+'/commit',{});expect(r.body.errors).toBe(1);expect((await db.query('SELECT sale_price FROM products WHERE id=$1',[existing.id])).rows[0].sale_price).toBe(7);const second=await prepare([row(code,{unit:'kg'})]);expect(second.preview.rows[0].errors.join()).toContain('Stoklu ürünün birimi');});
-test('Excel metin barkodunda sıfırlar kalır; sayısal barkod ve formül hücresi reddedilir',async()=>{const book=XLSX.utils.book_new(),sheet=XLSX.utils.aoa_to_sheet([Object.values(require('../src/services/productImportService').fields),row('000001234'),row(1234),row('EXCEL-FORMULA')]);sheet.F4={t:'n',v:9,f:'1+8'};XLSX.utils.book_append_sheet(book,sheet,'Ürünler');const bytes=XLSX.write(book,{type:'buffer',bookType:'xlsx'});const u=await post('/parse',{filename:'urunler.xlsx',base64:bytes.toString('base64')});expect(u.status).toBe(201);const p=await post('/'+u.body.id+'/preview',{mapping,policy:'update'});expect(p.body.rows[0].values.barcode).toBe('000001234');expect(p.body.rows[0].action).toBe('add');expect(p.body.rows[1].errors.join()).toContain('metin olmalıdır');expect(p.body.rows[2].errors.join()).toContain('formül');});
+test('Excel metin barkodunda sıfırlar kalır; sayısal barkod ve formül hücresi reddedilir',async()=>{const book=XLSX.utils.book_new(),sheet=XLSX.utils.aoa_to_sheet([Object.values(require('../src/services/productImportService').fields),row('000001234'),row(1234),row('EXCEL-FORMULA')]);sheet.F4={t:'n',v:9,f:'1+8'};XLSX.utils.book_append_sheet(book,sheet,'Ürünler');const bytes=XLSX.write(book,{type:'buffer',bookType:'xlsx'});const u=await post('/parse',{filename:'urunler.xlsx',base64:bytes.toString('base64')});expect(u.status).toBe(201);const p=await post('/'+u.body.id+'/preview',{mapping,policy:'update'});expect(p.body.rows[0].values.barcode).toBe('000001234');expect(p.body.rows[0].action).toBe('add');expect(p.body.rows[1].errors.join()).toContain('sayı olarak kayıtlı');expect(p.body.rows[2].errors.join()).toContain('formül');});
 test('yetkisiz kullanıcı aktarım yapamaz; başka kullanıcının/işletmenin aktarımına erişilemez',async()=>{const viewer=await createUser(owner.tenantId,'viewer'),login=await request(app).post('/api/auth/login').send({email:viewer.email,password:'password123'});expect((await post('/parse',{filename:'x.csv',base64:'eA=='},login.body.token)).status).toBe(403);const {id}=await prepare([row()]);const other=await createTenant();expect((await get('/'+id,other.token)).status).toBe(404);expect((await post('/'+id+'/commit',{},other.token)).status).toBe(404);});
 test('eksik/çifte sütun eşleştirmesi ve önizlemesiz kayıt reddedilir; şablonlar gerçek dosya döndürür',async()=>{const id=await upload([row()]);expect((await post('/'+id+'/commit',{})).status).toBe(400);expect((await post('/'+id+'/preview',{mapping:{...mapping,barcode:0},policy:'update'})).status).toBe(400);const csv=await get('/template?format=csv');expect(csv.status).toBe(200);expect(csv.text).toContain('0001234567890');expect((await get('/template')).status).toBe(200);});
 
@@ -21,3 +21,50 @@ test('özgün dosya başlıkları farklı sıradaysa kullanıcı eşleştirmesi 
 test('Excel şablonunun barkod örneği gerçek dosyada metindir ve sıfırları korur',()=>{const book=XLSX.readFile(require('path').join(__dirname,'../assets/product-import-template.xlsx'));const cell=book.Sheets[book.SheetNames[0]].B2;expect(cell.t).toBe('s');expect(cell.v).toBe('0001234567890');});
 test('alternatif barkod başka ürünle çakışıyorsa ve farklı modülse sessiz güncelleme yapılmaz',async()=>{const p=(await db.query("INSERT INTO products (tenant_id,sku,name,barcode,module_type) VALUES ($1,$2,'Alternatif ürün',$3,'NORMAL') RETURNING id",[owner.tenantId,crypto.randomUUID(),'OTHER-'+crypto.randomUUID()])).rows[0];await db.query('INSERT INTO product_uoms (tenant_id,product_id,uom_code,conversion_factor,barcode) VALUES ($1,$2,$3,1,$4)',[owner.tenantId,p.id,'ALT',code]);expect((await prepare([row()])).preview.rows[0].errors.join()).toContain('Sistemde mükerrer');await db.query("UPDATE products SET module_type='PHARMACY' WHERE id=$1",[existing.id]);expect((await prepare([row()])).preview.rows[0].errors.join()).toContain('başka ürün modülünde');});
 test('rapor CSV formül başlatan ürün adını güvenli dışa aktarır; bozuk dosya ve aşırı satır sınırı reddedilir',async()=>{const {id}=await prepare([row('SAFE-'+crypto.randomUUID(),{name:'=HYPERLINK("x")'})]);const report=await get('/'+id+'/report');expect(report.text).toContain("'=HYPERLINK");expect((await post('/parse',{filename:'bad.csv',base64:Buffer.from('a;b\n"bitmeyen').toString('base64')})).status).toBe(400);const csv=Papa.unparse([Object.keys(mapping),...Array.from({length:1001},()=>row())],{delimiter:';'});expect((await post('/parse',{filename:'big.csv',base64:Buffer.from(csv).toString('base64')})).status).toBe(400);});
+
+const ean13=body12=>{const d=body12.split('').map(Number);let sum=0;d.forEach((n,i)=>{sum+=n*(i%2===0?1:3);});return body12+((10-(sum%10))%10);};
+async function uploadXlsx(rows,header=['Ürün adı','Barkod','Kategori','Birim','Alış fiyatı','Satış fiyatı','KDV oranı','Mevcut stok']){const book=XLSX.utils.book_new(),sheet=XLSX.utils.aoa_to_sheet([header,...rows]);XLSX.utils.book_append_sheet(book,sheet,'Ürünler');const u=await post('/parse',{filename:'musteri.xlsx',base64:XLSX.write(book,{type:'buffer',bookType:'xlsx'}).toString('base64')});expect(u.status).toBe(201);return u.body.id;}
+const withStock={...mapping,stock:7};
+test("Excel'de sayı olarak kayıtlı barkod: geçerli EAN-13 sağlama toplamı kabul edilir; baştaki sıfırı kaybolmuş olabilecek sayı reddedilir",async()=>{
+ const good=ean13('869011100'+String(Date.now()).slice(-3)),lost=Number('0'+ean13('69011100'+String(Date.now()).slice(-4)).slice(0,12));
+ const id=await uploadXlsx([['Sayı barkodlu',Number(good),'Genel','adet','1,50','3,00',20,5],['Sıfırı kaybolmuş',lost,'Genel','adet','1,50','3,00',20,5],['Yanlış sağlama',Number(good)+1,'Genel','adet','1,50','3,00',20,5]]);
+ const p=await post('/'+id+'/preview',{mapping,policy:'update'});
+ expect(p.body.rows[0]).toMatchObject({action:'add',errors:[]});expect(p.body.rows[0].values.barcode).toBe(good);
+ expect(p.body.rows[1].action).toBe('error');expect(p.body.rows[1].errors.join()).toContain('sayı olarak kayıtlı');
+ expect(p.body.rows[2].action).toBe('error');
+});
+test('barkodsuz ürün eklenir; aynı ad tekrar aktarımda mevcut sayılır; dosyada aynı ad iki kez reddedilir',async()=>{
+ const name='Kıymalı pide '+crypto.randomUUID();
+ const id=await uploadXlsx([[name,'','Pide','porsiyon','','180,00',10,'']]);
+ const p=await post('/'+id+'/preview',{mapping,policy:'update'});expect(p.body.rows[0]).toMatchObject({action:'add',errors:[]});
+ expect((await post('/'+id+'/commit',{})).body).toMatchObject({added:1});
+ const saved=(await db.query('SELECT barcode,module_type FROM products WHERE tenant_id=$1 AND name=$2',[owner.tenantId,name])).rows;expect(saved).toHaveLength(1);expect(saved[0].barcode).toBeNull();
+ const again=await uploadXlsx([[name,'','Pide','porsiyon','','190,00',10,'']]);
+ expect((await post('/'+again+'/preview',{mapping,policy:'skip'})).body.rows[0].action).toBe('skip');
+ const upd=await post('/'+again+'/preview',{mapping,policy:'update'});expect(upd.body.rows[0].action).toBe('update');
+ const dup=await uploadXlsx([['Aynı ad','', 'Pide','porsiyon','','10,00',10,''],['aynı AD','', 'Pide','porsiyon','','12,00',10,'']]);
+ expect((await post('/'+dup+'/preview',{mapping,policy:'update'})).body.rows.map(r=>r.action)).toEqual(['error','error']);
+});
+test('başlangıç stoğu: depo zorunlu, yalnız yeni ürüne yazılır, mevcut ürünün stoğu değişmez, hareket kaydı oluşur, başka işletmenin deposu reddedilir',async()=>{
+ const fresh='8690-NEW-'+crypto.randomUUID();
+ const rows=[['Stoklu yeni ürün',fresh,'Genel','adet','1,50','3,00',20,'12,5'],['Mevcut ürün',code,'Genel','adet','2','5',10,999]];
+ const id=await uploadXlsx(rows);
+ expect((await post('/'+id+'/preview',{mapping:withStock,policy:'update'})).status).toBe(400);
+ const other=await createTenant(),otherWh=await createWarehouse(other.tenantId);
+ expect((await post('/'+id+'/preview',{mapping:withStock,policy:'update',warehouse_id:otherWh.id})).status).toBe(404);
+ const before=Number((await db.query('SELECT COALESCE(SUM(quantity),0) q FROM stock_records WHERE product_id=$1',[existing.id])).rows[0].q);
+ const p=await post('/'+id+'/preview',{mapping:withStock,policy:'update',warehouse_id:wh.id});expect(p.status).toBe(200);expect(p.body.summary).toMatchObject({added:1,updated:1,stock_rows:1});
+ const done=await post('/'+id+'/commit',{});expect(done.status).toBe(200);
+ const product=(await db.query('SELECT id FROM products WHERE tenant_id=$1 AND barcode=$2',[owner.tenantId,fresh])).rows[0];
+ expect(Number((await db.query('SELECT quantity FROM stock_records WHERE product_id=$1 AND warehouse_id=$2',[product.id,wh.id])).rows[0].quantity)).toBe(12.5);
+ expect(Number((await db.query('SELECT COALESCE(SUM(quantity),0) q FROM stock_records WHERE product_id=$1',[existing.id])).rows[0].q)).toBe(before);
+ const move=(await db.query("SELECT change_amount,source FROM stock_movements WHERE product_id=$1",[product.id])).rows;expect(move).toHaveLength(1);expect(Number(move[0].change_amount)).toBe(12.5);expect(move[0].source).toBe('product_import');
+ // Aynı aktarım tekrar kaydedilince stok ikiye katlanmaz.
+ await post('/'+id+'/commit',{});
+ expect(Number((await db.query('SELECT quantity FROM stock_records WHERE product_id=$1 AND warehouse_id=$2',[product.id,wh.id])).rows[0].quantity)).toBe(12.5);
+});
+test('stok sütunu bozuk değerleri satır hatası yapar',async()=>{
+ const id=await uploadXlsx([['Eksi stoklu','NEG-'+crypto.randomUUID(),'Genel','adet','1','2',20,'-5'],['Metin stoklu','TXT-'+crypto.randomUUID(),'Genel','adet','1','2',20,'çok']]);
+ const p=await post('/'+id+'/preview',{mapping:withStock,policy:'update',warehouse_id:wh.id});
+ expect(p.body.rows.map(r=>r.action)).toEqual(['error','error']);expect(p.body.rows[0].errors.join()).toContain('Stok');
+});
