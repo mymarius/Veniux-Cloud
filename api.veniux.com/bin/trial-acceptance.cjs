@@ -18,7 +18,13 @@ const post=async(p,body)=>{const r=await fetch(base+p,{method:'POST',headers:{'C
  assert.equal(first.status,200);assert.equal(first.data.ok,true);assert.match(first.data.license_key,/^VNX-[A-F0-9]{48}$/);assert.equal(first.data.seats,2);
  const act=await post('/v1/activate',{license_key:first.data.license_key,device_fingerprint:'HW-'+'C'.repeat(32),device_name:'DENEME'});
  assert.equal(act.status,200,'deneme anahtarı etkinleşmeli');
- for(let i=1;i<20;i++)assert.equal((await post('/v1/trial',{service_key:key,company:'M'+i})).data.ok,true);
+ // Bitişi 30 günden eski deneme, sonraki istekte kalıcı sonlandırılır; yeni deneme ve müşteri lisansı etkilenmez.
+ const sqlRun=q=>{const r=spawnSync(php,['-r',`require '${path.join(root,'api.veniux.com/src/core.php').split(path.sep).join('/')}';echo json_encode(sql(${JSON.stringify(q)})->fetchAll());`],{env,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout||'[]');};
+ sqlRun("UPDATE licenses SET expires_at='2020-01-01 23:59:59' WHERE id=1");
+ assert.equal((await post('/v1/trial',{service_key:key,company:'Temizlik'})).data.ok,true);
+ assert.equal(sqlRun('SELECT status FROM licenses WHERE id=1')[0].status,'REVOKED','eski deneme sonlandırılmalı');
+ assert.equal(sqlRun('SELECT status FROM licenses WHERE id=2')[0].status,'ACTIVE','yeni deneme açık kalmalı');
+ for(let i=2;i<20;i++)assert.equal((await post('/v1/trial',{service_key:key,company:'M'+i})).data.ok,true);
  const over=await post('/v1/trial',{service_key:key,company:'Fazla'});
  assert.deepEqual(over.data,{ok:false,code:'DAILY_QUOTA'});
  console.log('DENEME LİSANSI KABUL TESTİ GEÇTİ');

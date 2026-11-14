@@ -80,6 +80,7 @@ try{
     if($path==='/account'){$page='account';require dirname(__DIR__).'/src/accountView.php';exit;}
     if(!in_array($path,['/','/terminals','/activity','/server','/systems'],true)){http_response_code(404);exit('Bulunamadı.');}
     $page=['/'=>'licenses','/terminals'=>'terminals','/activity'=>'activity','/server'=>'server','/systems'=>'systems'][$path];
+    require_once dirname(__DIR__).'/src/trial.php';try{revokeExpiredTrials();}catch(Throwable $e){}
     $licenses=sql('SELECT l.*, (SELECT COUNT(*) FROM devices d WHERE d.license_id=l.id AND d.enabled=1) AS used FROM licenses l ORDER BY l.id DESC')->fetchAll();
     $devices=sql('SELECT d.*,l.company,l.status AS license_status FROM devices d JOIN licenses l ON l.id=d.license_id ORDER BY d.last_seen DESC')->fetchAll();
     $events=sql('SELECT action,subject,created_at FROM audit ORDER BY id DESC LIMIT 60')->fetchAll();
