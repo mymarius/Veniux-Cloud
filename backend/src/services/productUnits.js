@@ -16,15 +16,17 @@ async function productOf(tx, user, productId) {
   return p;
 }
 
+// Birim fiyatı: özel fiyat girilmişse o, yoksa adet fiyatı x çarpan. "custom" ekranda indirimli koliyi işaretler.
+const money = v => Math.round(Number(v) * 100) / 100;
 const shape = (p, rows) => {
   const base = Number(p.sale_price);
-  return rows.map(u => ({ unit: u.uom_code, factor: round(u.conversion_factor), barcode: u.barcode || null, price: Math.round(base * Number(u.conversion_factor) * 100) / 100 }))
+  return rows.map(u => { const own = u.pack_price == null ? null : money(u.pack_price); return { unit: u.uom_code, factor: round(u.conversion_factor), barcode: u.barcode || null, price: own ?? money(base * Number(u.conversion_factor)), custom_price: own, list_price: money(base * Number(u.conversion_factor)) }; })
     .sort((a, b) => a.factor - b.factor);
 };
 
 async function list(user, productId, tx = db) {
   const p = await productOf(tx, user, productId);
-  const rows = (await tx.query('SELECT uom_code,conversion_factor,barcode FROM product_uoms WHERE tenant_id=$1 AND product_id=$2 AND COALESCE(is_base_uom,0)=0', [user.tenantId, p.id])).rows;
+  const rows = (await tx.query('SELECT u.uom_code,u.conversion_factor,u.barcode,pr.sale_price AS pack_price FROM product_uoms u LEFT JOIN product_unit_prices pr ON pr.tenant_id=u.tenant_id AND pr.product_id=u.product_id AND pr.uom_code=u.uom_code WHERE u.tenant_id=$1 AND u.product_id=$2 AND COALESCE(u.is_base_uom,0)=0', [user.tenantId, p.id])).rows;
   return { product_id: Number(p.id), base_unit: p.unit || 'adet', units: shape(p, rows), suggested: SUGGESTED };
 }
 
@@ -53,7 +55,12 @@ async function save(user, productId, body = {}) {
         if (seenCode.has(code)) fail(`${code} barkodu iki birimde kullanılmış.`);
         seenCode.add(code);
       }
-      return { unit, factor: round(factor), barcode: code };
+      let price = null;
+      if (u.price !== undefined && u.price !== null && String(u.price).trim() !== '') {
+        price = Number(String(u.price).replace(',', '.'));
+        if (!Number.isFinite(price) || price <= 0 || price > 100000000 || Math.abs(price * 100 - Math.round(price * 100)) > 1e-6) fail(`${unit} fiyatı en fazla iki ondalıklı, 0'dan büyük olmalı.`);
+      }
+      return { unit, factor: round(factor), barcode: code, price };
     });
     for (const u of clean.filter(x => x.barcode)) {
       const product = (await tx.query("SELECT id,name FROM products WHERE tenant_id=$1 AND (barcode=$2 OR gtin=$2 OR sku=$2)", [user.tenantId, u.barcode])).rows[0];
@@ -61,11 +68,15 @@ async function save(user, productId, body = {}) {
       const other = (await tx.query('SELECT u.product_id,p.name FROM product_uoms u JOIN products p ON p.id=u.product_id WHERE u.tenant_id=$1 AND u.barcode=$2 AND u.product_id<>$3', [user.tenantId, u.barcode, p.id])).rows[0];
       if (other) fail(`${u.barcode} barkodu "${other.name}" ürününün bir biriminde kullanılıyor.`, 409);
     }
-    const before = (await tx.query('SELECT uom_code,conversion_factor,barcode FROM product_uoms WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, p.id])).rows;
+    const before = (await tx.query('SELECT u.uom_code,u.conversion_factor,u.barcode,pr.sale_price AS pack_price FROM product_uoms u LEFT JOIN product_unit_prices pr ON pr.tenant_id=u.tenant_id AND pr.product_id=u.product_id AND pr.uom_code=u.uom_code WHERE u.tenant_id=$1 AND u.product_id=$2', [user.tenantId, p.id])).rows;
     await tx.query('DELETE FROM product_uoms WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, p.id]);
-    for (const u of clean) await tx.query('INSERT INTO product_uoms (tenant_id,product_id,uom_code,conversion_factor,is_base_uom,barcode) VALUES ($1,$2,$3,$4,0,$5)', [user.tenantId, p.id, u.unit, u.factor, u.barcode]);
+    await tx.query('DELETE FROM product_unit_prices WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, p.id]);
+    for (const u of clean) {
+      await tx.query('INSERT INTO product_uoms (tenant_id,product_id,uom_code,conversion_factor,is_base_uom,barcode) VALUES ($1,$2,$3,$4,0,$5)', [user.tenantId, p.id, u.unit, u.factor, u.barcode]);
+      if (u.price !== null) await tx.query('INSERT INTO product_unit_prices (tenant_id,product_id,uom_code,sale_price) VALUES ($1,$2,$3,$4)', [user.tenantId, p.id, u.unit, u.price]);
+    }
     await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'product.units_updated', 'product', p.id,
-      JSON.stringify({ before: before.map(b => ({ unit: b.uom_code, factor: Number(b.conversion_factor), barcode: b.barcode })), after: clean })]);
+      JSON.stringify({ before: before.map(b => ({ unit: b.uom_code, factor: Number(b.conversion_factor), barcode: b.barcode, price: b.pack_price == null ? null : Number(b.pack_price) })), after: clean })]);
     return list(user, p.id, tx);
   });
 }
@@ -90,8 +101,8 @@ function breakdown(quantity, baseUnit, units) {
 async function unitsFor(tenantId, productIds, tx = db) {
   const map = new Map();
   if (!productIds.length) return map;
-  const rows = (await tx.query(`SELECT product_id,uom_code,conversion_factor,barcode FROM product_uoms WHERE tenant_id=$1 AND COALESCE(is_base_uom,0)=0 AND product_id IN (${productIds.map((_, i) => '$' + (i + 2)).join(',')})`, [tenantId, ...productIds])).rows;
-  for (const r of rows) map.set(Number(r.product_id), [...(map.get(Number(r.product_id)) || []), { unit: r.uom_code, factor: round(r.conversion_factor), barcode: r.barcode || null }]);
+  const rows = (await tx.query(`SELECT u.product_id,u.uom_code,u.conversion_factor,u.barcode,pr.sale_price AS pack_price FROM product_uoms u LEFT JOIN product_unit_prices pr ON pr.tenant_id=u.tenant_id AND pr.product_id=u.product_id AND pr.uom_code=u.uom_code WHERE u.tenant_id=$1 AND COALESCE(u.is_base_uom,0)=0 AND u.product_id IN (${productIds.map((_, i) => '$' + (i + 2)).join(',')})`, [tenantId, ...productIds])).rows;
+  for (const r of rows) map.set(Number(r.product_id), [...(map.get(Number(r.product_id)) || []), { unit: r.uom_code, factor: round(r.conversion_factor), barcode: r.barcode || null, custom_price: r.pack_price == null ? null : money(r.pack_price) }]);
   return map;
 }
 

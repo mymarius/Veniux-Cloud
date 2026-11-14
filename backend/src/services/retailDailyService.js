@@ -76,6 +76,8 @@ async function price(tx,user,body,rights,settings,date){
       let qty=Number((scan.quantity*item.count).toFixed(6));
       if(item.quantity!==undefined){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
       let price=cents(scan.unit_price,'Ürün birim fiyatı')/100,lineCents=scan.weighted&&Math.abs(scan.line_total-scan.quantity*price)>0.0000001?cents(scan.line_total,'Tartı tutarı')*item.count:ratio(cents(price),Math.round(qty*1000000),1000000);
+      // Koli/paket barkodu ve o birime özel fiyat: satır tutarı koli fiyatıdır; birim fiyat yalnız gösterim için kuruşa yuvarlanır.
+      if(scan.pack&&scan.pack.price!=null&&!scan.weighted&&item.quantity===undefined){lineCents=cents(scan.pack.price,'Koli fiyatı')*item.count;price=Math.round(scan.pack.price/scan.pack.factor*100)/100;}
       if(item.price_override!==undefined){assertPermission(rights,'price_override');price=cents(item.price_override,'Birim fiyat')/100;lineCents=ratio(cents(price),Math.round(qty*1000000),1000000);}
       const priceBasis=item.price_tax_basis??'inclusive';
       if(!['inclusive','exclusive'].includes(priceBasis)||item.price_tax_basis!==undefined&&item.price_override===undefined)fail('KDV fiyat temeli yalnızca açık bir fiyat değişikliğiyle belirtilebilir.');

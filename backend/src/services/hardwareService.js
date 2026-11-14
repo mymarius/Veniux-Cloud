@@ -57,7 +57,7 @@ async function search(user, query = {}) {
     items: page.map(p => {
       const perWarehouse = stock.filter(s => Number(s.product_id) === p.id && (!warehouse || Number(s.warehouse_id) === warehouse)).map(s => ({ warehouse_id: Number(s.warehouse_id), warehouse_name: s.warehouse_name, quantity: Number(s.quantity) }));
       const locations = bins.filter(b => Number(b.product_id) === p.id && (!warehouse || Number(b.warehouse_id) === warehouse)).map(b => ({ location_id: Number(b.location_id), location_code: b.location_code, zone: b.zone_name, aisle: b.aisle_code, rack: Number(b.rack_number), shelf: Number(b.shelf_tier), bin: Number(b.bin_position), quantity: Number(b.quantity), tags: tagMap.get(Number(b.location_id)) || [] }));
-      const own = (unitMap.get(p.id) || []).sort((a, b) => a.factor - b.factor).map(u => ({ ...u, price: Math.round(Number(p.sale_price) * u.factor * 100) / 100 }));
+      const own = (unitMap.get(p.id) || []).sort((a, b) => a.factor - b.factor).map(u => ({ ...u, list_price: Math.round(Number(p.sale_price) * u.factor * 100) / 100, price: u.custom_price ?? Math.round(Number(p.sale_price) * u.factor * 100) / 100 }));
       const stockTotal = perWarehouse.reduce((s, x) => s + x.quantity, 0);
       return { id: p.id, name: p.name, sku: p.sku, barcode: p.barcode, category: p.category, unit: p.unit, sale_price: Number(p.sale_price), size: p.attributes.size || null, fragile: p.attributes.fragile === '1', stock_total: stockTotal, stock_text: units.breakdown(stockTotal, p.unit, own), units: own, stock: perWarehouse.map(w => ({ ...w, text: units.breakdown(w.quantity, p.unit, own) })), locations };
     })

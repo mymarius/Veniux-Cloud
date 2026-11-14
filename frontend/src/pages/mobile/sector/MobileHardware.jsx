@@ -53,16 +53,16 @@ export function MobileProductSearch() {
 
 // Birimler: "1 koli = 200 adet" gibi. Koli barkodu verilirse kasada okutunca koli fiyatıyla satılır, stoktan 200 adet düşer.
 function UnitEditor({ item, onSaved }) {
-  const [rows, setRows] = useState((item.units || []).map(u => ({ unit: u.unit, factor: String(u.factor), barcode: u.barcode || '' }))), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [camera, setCamera] = useState(null);
+  const [rows, setRows] = useState((item.units || []).map(u => ({ unit: u.unit, factor: String(u.factor), barcode: u.barcode || '', price: u.custom_price != null ? String(u.custom_price) : '' }))), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [camera, setCamera] = useState(null);
   const base = item.unit || 'adet';
   const set = (i, k, v) => setRows(list => list.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const save = async () => {
     setBusy(true); setMessage('');
-    try { const r = await api.put(`/sector/hardware/products/${item.id}/units`, { units: rows.filter(r => r.unit.trim()).map(r => ({ unit: r.unit, factor: r.factor, barcode: r.barcode.trim() || null })) }); onSaved(r.data.units); setMessage('Birimler kaydedildi.'); }
+    try { const r = await api.put(`/sector/hardware/products/${item.id}/units`, { units: rows.filter(r => r.unit.trim()).map(r => ({ unit: r.unit, factor: r.factor, barcode: r.barcode.trim() || null, price: r.price.trim() || null })) }); onSaved(r.data.units); setMessage('Birimler kaydedildi.'); }
     catch (e) { setMessage(errorText(e, 'Birimler kaydedilemedi.')); } finally { setBusy(false); }
   };
   return <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 8 }}>
-    <p className="vm-note">Temel birim: <b>{base}</b>. Her satır için "1 birim kaç {base}" yazın. Koli barkodu kasada okutulunca o birim fiyatıyla satılır.</p>
+    <p className="vm-note">Temel birim: <b>{base}</b>. Her satır için "1 birim kaç {base}" yazın. Koli barkodu kasada okutulunca o birim fiyatıyla satılır; özel fiyat boşsa adet fiyatı x adet kullanılır.</p>
     <datalist id={'units-' + item.id}>{['koli', 'paket', 'kutu', 'düzine', 'deste', 'makara', 'top', 'rulo', 'çuval', 'set'].map(u => <option key={u} value={u} />)}</datalist>
     {rows.map((r, i) => <div key={i} style={{ display: 'grid', gap: 6, padding: 8, border: '1px dashed var(--vm-line)' }}>
       <div className="vm-price-in"><input list={'units-' + item.id} aria-label="Birim adı" placeholder="koli" maxLength={20} value={r.unit} onChange={e => set(i, 'unit', e.target.value)} />
@@ -70,10 +70,11 @@ function UnitEditor({ item, onSaved }) {
         <button type="button" className="vm-iconbtn" style={{ background: 'none', color: 'var(--vm-muted)' }} aria-label="Birimi çıkar" onClick={() => setRows(list => list.filter((_, j) => j !== i))}><X size={18} /></button></div>
       <div className="vm-price-in"><input aria-label={(r.unit || 'Birim') + ' barkodu'} placeholder="Koli barkodu (isteğe bağlı)" maxLength={64} value={r.barcode} onChange={e => set(i, 'barcode', e.target.value)} />
         <button type="button" className="vm-iconbtn" style={{ background: 'var(--vm-brand)' }} aria-label="Barkodu kamerayla oku" onClick={() => setCamera(i)}><Camera size={16} /></button></div>
-      {r.unit && Number(String(r.factor).replace(',', '.')) > 0 && <span className="vm-note">1 {r.unit} = {String(r.factor).replace('.', ',')} {base} · {money(item.sale_price * Number(String(r.factor).replace(',', '.')))}</span>}
+      <div className="vm-price-in"><input aria-label={(r.unit || 'Birim') + ' özel fiyatı'} inputMode="decimal" placeholder={'Özel fiyat (boşsa ' + money(item.sale_price * (Number(String(r.factor).replace(',', '.')) || 0)) + ')'} value={r.price} onChange={e => set(i, 'price', e.target.value)} /></div>
+      {r.unit && Number(String(r.factor).replace(',', '.')) > 0 && <span className="vm-note">1 {r.unit} = {String(r.factor).replace('.', ',')} {base} · {r.price.trim() ? money(Number(r.price.replace(',', '.'))) + ' (liste ' + money(item.sale_price * Number(String(r.factor).replace(',', '.'))) + ')' : money(item.sale_price * Number(String(r.factor).replace(',', '.')))}</span>}
       {camera === i && <BarcodeCamera onCode={code => { set(i, 'barcode', code); setCamera(null); }} onClose={() => setCamera(null)} />}
     </div>)}
-    {rows.length < 6 && <button type="button" className="vm-btn ghost" onClick={() => setRows(list => [...list, { unit: '', factor: '', barcode: '' }])}>+ Birim ekle</button>}
+    {rows.length < 6 && <button type="button" className="vm-btn ghost" onClick={() => setRows(list => [...list, { unit: '', factor: '', barcode: '', price: '' }])}>+ Birim ekle</button>}
     {message && <p role="status" className="vm-note">{message}</p>}
     <button type="button" className="vm-btn" disabled={busy} onClick={save}>Birimleri kaydet</button>
   </div>;
@@ -91,7 +92,7 @@ function ProductCard({ item: initial }) {
       <div style={{ textAlign: 'right' }}><div style={{ fontSize: 24, fontWeight: 800, color: empty ? 'var(--vm-bad)' : 'var(--vm-text)' }}>{qtyText(item.stock_total)}</div><div className="vm-note">{item.unit || 'adet'} · {money(item.sale_price)}</div></div>
     </div>
     {item.stock_text && <p style={{ margin: '6px 0 0', fontWeight: 700 }}>{item.stock_text}</p>}
-    {item.units?.length > 0 && <p className="vm-note" style={{ marginTop: 4 }}>{item.units.map(u => `1 ${u.unit} = ${qtyText(u.factor)} ${item.unit || 'adet'} · ${money(u.price)}`).join('  |  ')}</p>}
+    {item.units?.length > 0 && <p className="vm-note" style={{ marginTop: 4 }}>{item.units.map(u => `1 ${u.unit} = ${qtyText(u.factor)} ${item.unit || 'adet'} · ${money(u.price)}${u.custom_price != null && u.custom_price !== u.list_price ? ' (liste ' + money(u.list_price) + ')' : ''}`).join('  |  ')}</p>}
     {item.locations.length > 0
       ? <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>{item.locations.map(l => <div key={l.location_id} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}><MapPin size={16} style={{ flex: 'none', color: 'var(--vm-brand)' }} />
         <span><b>Koridor {l.aisle}</b> · Raf {l.rack} · Kat {l.shelf} <span className="vm-note">({l.zone}) {l.quantity} {item.unit || 'adet'}</span>{l.tags.map(t => <em key={t} style={{ marginLeft: 6, fontStyle: 'normal', fontSize: 11, background: '#165da41a', color: 'var(--vm-brand)', borderRadius: 6, padding: '2px 6px' }}>{t}</em>)}</span></div>)}</div>

@@ -48,7 +48,7 @@ test('birim tanımı: yalnız yönetici; temel birim, tekrar, 1 çarpanı ve ça
   expect(clash.status).toBe(409); expect(clash.body.error).toMatch(/NYA kablo/);
   const ok = await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035' }, { unit: 'paket', factor: '50' }] });
   expect(ok.status).toBe(200);
-  expect(ok.body.units).toEqual([{ unit: 'paket', factor: 50, barcode: null, price: 100 }, { unit: 'koli', factor: 200, barcode: '8690000000035', price: 400 }]);
+  expect(ok.body.units).toEqual([{ unit: 'paket', factor: 50, barcode: null, price: 100, custom_price: null, list_price: 100 }, { unit: 'koli', factor: 200, barcode: '8690000000035', price: 400, custom_price: null, list_price: 400 }]);
   // Başka ürünün birimi aynı barkodu alamaz.
   expect((await call(owner, 'put', `/api/sector/hardware/products/${kablo.id}/units`, { units: [{ unit: 'makara', factor: 100, barcode: '8690000000035' }] })).status).toBe(409);
   expect((await call(owner, 'put', `/api/sector/hardware/products/${kablo.id}/units`, { units: [{ unit: 'makara', factor: 100, barcode: '8690000000042' }] })).status).toBe(200);
@@ -100,3 +100,28 @@ test('kasa: koli barkodu 200 adet düşer ve 200 x birim fiyatla satılır; metr
   }
   expect((await call(owner, 'post', '/api/scanner/sale', { warehouse_id: w.id, payment_method: 'cash', items: [{ barcode: '8690000000035', count: 1, quantity: '1,5' }] }, 'unit-sale-2')).status).toBe(400);
 });
+
+test('koliye özel fiyat: doğrulanır, aramada görünür, kasada satır tutarı koli fiyatıdır', async () => {
+  const url = `/api/sector/hardware/products/${vida.id}/units`;
+  expect((await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035', price: '0' }] })).status).toBe(400);
+  expect((await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035', price: '360,555' }] })).status).toBe(400);
+  const set = await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035', price: '360' }, { unit: 'paket', factor: 50 }] });
+  expect(set.status).toBe(200);
+  expect(set.body.units.find(u => u.unit === 'koli')).toMatchObject({ price: 360, custom_price: 360, list_price: 400 });
+  const item = (await call(owner, 'get', '/api/sector/hardware/search?q=M4')).body.items.find(i => i.id === vida.id);
+  expect(item.units.find(u => u.unit === 'koli').price).toBe(360);
+  const quote = await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: '8690000000035', count: 2 }, { barcode: vida.barcode, count: 3 }] });
+  expect(quote.status).toBe(200);
+  expect(quote.body.gross).toBe(726); // 2 koli x 360 + 3 adet x 2
+  const before = await qty(vida.id);
+  const sale = await call(owner, 'post', '/api/scanner/sale', { warehouse_id: w.id, payment_method: 'cash', items: [{ barcode: '8690000000035', count: 1 }] }, 'unit-sale-price-1');
+  expect(sale.status).toBe(201);
+  expect(await qty(vida.id)).toBe(before - 200);
+  const detail = JSON.stringify((await call(owner, 'get', '/api/scanner/sales/' + sale.body.sale_id)).body);
+  expect(detail).toContain('"gross_cents":36000');
+  // Özel fiyat kaldırılınca liste fiyatına döner.
+  await call(owner, 'put', url, { units: [{ unit: 'koli', factor: 200, barcode: '8690000000035' }] });
+  const back = await call(owner, 'post', '/api/scanner/sale-quote', { warehouse_id: w.id, items: [{ barcode: '8690000000035', count: 1 }] });
+  expect(back.body.gross).toBe(400);
+});
+
