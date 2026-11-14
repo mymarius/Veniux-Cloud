@@ -1,8 +1,20 @@
 {
-  "version": "2.4.71",
+  "version": "2.4.72",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.72",
+      "date": "14 Kasım 2026",
+      "title": "Pide ve restoran paketi derinleşti",
+      "items": [
+        "Pide ve restoranda ürün seçenekleri (kaşarlı, acılı gibi) ve ek fiyatları",
+        "İkram, indirim ve servis ücreti (yönetici onaylı, açıklamalı)",
+        "Masa taşıma, masa birleştirme ve hesabı kalem kalem bölme",
+        "Paket ve motor siparişinde müşteri, adres ve kurye takibi",
+        "Çok katlı reçete ve 58 mm mutfak fişi"
+      ]
+    },
     {
       "version": "2.4.71",
       "date": "13 Kasım 2026",
