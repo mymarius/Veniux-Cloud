@@ -2,7 +2,7 @@ const pool = require('../config/database');
 const policies = require('./settingsPolicyService');
 // A tenant-scoped manual invocation and a system-wide scheduled invocation share the same atomic path.
 const runAlertRuleEngine = async (tenantId = null) => pool.transaction(async client => {
-  const items=(await client.query(`SELECT sr.tenant_id,sr.product_id,sr.warehouse_id,SUM(sr.quantity) AS quantity,p.min_stock_level,p.name AS product_name,w.name AS warehouse_name FROM stock_records sr JOIN products p ON p.id=sr.product_id AND p.tenant_id=sr.tenant_id JOIN warehouses w ON w.id=sr.warehouse_id AND w.tenant_id=sr.tenant_id WHERE 1=1 ${tenantId==null?'':'AND sr.tenant_id=$1'} GROUP BY sr.tenant_id,sr.product_id,sr.warehouse_id,p.min_stock_level,p.name,w.name`,tenantId==null?[]:[tenantId])).rows;
+  const items=(await client.query(`SELECT sr.tenant_id,sr.product_id,sr.warehouse_id,SUM(sr.quantity) AS quantity,p.min_stock_level,p.unit,p.name AS product_name,w.name AS warehouse_name FROM stock_records sr JOIN products p ON p.id=sr.product_id AND p.tenant_id=sr.tenant_id JOIN warehouses w ON w.id=sr.warehouse_id AND w.tenant_id=sr.tenant_id WHERE 1=1 ${tenantId==null?'':'AND sr.tenant_id=$1'} GROUP BY sr.tenant_id,sr.product_id,sr.warehouse_id,p.min_stock_level,p.unit,p.name,w.name`,tenantId==null?[]:[tenantId])).rows;
   let created=0;
   const settings=new Map();
   const preferences=async id=>{if(!settings.has(id))settings.set(id,await policies.read(id,'notifications',client));return settings.get(id);};

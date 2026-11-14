@@ -26,7 +26,7 @@ const createMovement = async (req, res) => {
 
     // Check if product exists
     const productCheck = await client.query(
-      'SELECT id, name, sku, min_stock_level FROM products WHERE id = $1 AND tenant_id = $2',
+      'SELECT id, name, sku, unit, min_stock_level FROM products WHERE id = $1 AND tenant_id = $2',
       [product_id, req.user.tenantId]
     );
 
@@ -86,7 +86,7 @@ const createMovement = async (req, res) => {
     }
 
     await ledger.recordProjectedEntry(client,{tenant_id:req.user.tenantId,warehouse_id,product_id,transaction_type:amount>0?'RECEIVE':'SHIP',quantity:amount,reference_type:'stock_movement',reference_id:movementResult.rows[0].id,user_id:req.user.userId,reason_code:movement_type,notes:note||null});
-    await require('../services/stockAlertSync').syncStockAlert(client,{tenant_id:req.user.tenantId,product_id,warehouse_id,quantity:newQuantity,min_stock_level:productCheck.rows[0].min_stock_level,product_name:productCheck.rows[0].name,warehouse_name:warehouseCheck.rows[0].name});
+    await require('../services/stockAlertSync').syncStockAlert(client,{tenant_id:req.user.tenantId,product_id,warehouse_id,quantity:newQuantity,min_stock_level:productCheck.rows[0].min_stock_level,product_name:productCheck.rows[0].name,unit:productCheck.rows[0].unit,warehouse_name:warehouseCheck.rows[0].name});
 
     await recordOperation(client, req, 'stock.movement', {product_id,warehouse_id,amount,movement_type});
     await client.query('COMMIT');
