@@ -69,7 +69,16 @@ function discountAllocation(lines,discount,total){
 }
 async function price(tx,user,body,rights,settings,date){
     const lines=[],needed=new Map();let gross=0;
-    for(const item of body.items){
+    // Takım barkodu: parçalara açılır; her parça normal satırdır, tutarı takım fiyatından payıdır.
+    const items=[];
+    for(const raw of body.items){
+      const set=raw&&typeof raw.barcode==='string'?await require('./tablewareService').expandSetBarcode(tx,user.tenantId,raw.barcode):null;
+      if(!set){items.push(raw);continue;}
+      if(!Number.isSafeInteger(raw.count)||raw.count<1||raw.count>1000)fail('Tekrar sayısı geçersiz.');
+      if(raw.quantity!==undefined||raw.price_override!==undefined||raw.sell_unit!==undefined)fail('Takım satırında miktar veya fiyat değiştirilemez.');
+      for(const part of set.lines)items.push({barcode:part.barcode,count:part.quantity*raw.count,_set:{id:set.id,name:set.name,barcode:raw.barcode},_cents:part.cents*raw.count});
+    }
+    for(const item of items){
       if(!Number.isSafeInteger(item.count)||item.count<1||item.count>100000)fail('Tekrar sayısı geçersiz.');
       const scan=await scanner.lookup(user.tenantId,item.barcode,body.warehouse_id,tx,settings);
       if(!scan.product||scan.product.module_type!=='NORMAL')fail('Market ürünü bulunamadı.',404);
@@ -88,6 +97,7 @@ async function price(tx,user,body,rights,settings,date){
       }
       if(item.quantity!==undefined&&!sellUnit){if(!['kg','litre','metre'].includes(scan.product.unit)||scan.weighted||item.count!==1||scan.product.uom_code)fail('Elle miktar yalnız normal barkodlu kg/litre/metre ürünü için girilebilir.');try{qty=(await import('../../../shared/retailPro.mjs')).quantity(item.quantity);}catch(e){fail(e.message);}}if(!Number.isFinite(qty)||qty<=0||qty>1000000)fail('Miktar sınırı aşıldı.');
       let price=cents(scan.unit_price,'Ürün birim fiyatı')/100,lineCents=scan.weighted&&Math.abs(scan.line_total-scan.quantity*price)>0.0000001?cents(scan.line_total,'Tartı tutarı')*item.count:ratio(cents(price),Math.round(qty*1000000),1000000);
+      if(item._set){if(scan.product.uom_code)fail('Takım parçası koli barkoduyla tanımlanamaz.');lineCents=item._cents;price=Math.round(item._cents/item.count)/100;}
       if(sellUnit){lineCents=Math.round(sellUnit.amount*sellUnit.price*100);price=Math.round(sellUnit.price/sellUnit.factor*100)/100;}
       // Koli/paket barkodu ve o birime özel fiyat: satır tutarı koli fiyatıdır; birim fiyat yalnız gösterim için kuruşa yuvarlanır.
       if(scan.pack&&scan.pack.price!=null&&!scan.weighted&&item.quantity===undefined){lineCents=cents(scan.pack.price,'Koli fiyatı')*item.count;price=Math.round(scan.pack.price/scan.pack.factor*100)/100;}
@@ -100,7 +110,7 @@ async function price(tx,user,body,rights,settings,date){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),set_name:item._set?item._set.name:undefined,sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined,weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');

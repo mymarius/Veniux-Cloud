@@ -22,6 +22,9 @@ async function listSets(user, query = {}) {
   const sets = (await db.query('SELECT id,name,target_sets,note FROM product_sets WHERE tenant_id=$1 ORDER BY name', [user.tenantId])).rows;
   const items = (await db.query('SELECT i.set_id,i.product_id,i.quantity,p.name,p.unit FROM product_set_items i JOIN products p ON p.id=i.product_id AND p.tenant_id=i.tenant_id WHERE i.tenant_id=$1 ORDER BY p.name', [user.tenantId])).rows;
   const stock = await stockByProduct(user, [...new Set(items.map(i => Number(i.product_id)))], warehouse);
+  const codes = new Map((await db.query('SELECT set_id,barcode,sale_price FROM product_set_codes WHERE tenant_id=$1', [user.tenantId])).rows.map(r => [Number(r.set_id), r]));
+  const pids = [...new Set(items.map(i => Number(i.product_id)))];
+  const prices = new Map(pids.length ? (await db.query(`SELECT id,sale_price FROM products WHERE tenant_id=$1 AND id IN (${pids.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...pids])).rows.map(r => [Number(r.id), Number(r.sale_price)]) : []);
   const alerts = [];
   const result = sets.map(s => {
     const parts = items.filter(i => Number(i.set_id) === Number(s.id)).map(i => {
@@ -30,7 +33,9 @@ async function listSets(user, query = {}) {
     });
     const complete = parts.length ? Math.min(...parts.map(p => p.complete_sets)) : 0;
     for (const p of parts.filter(x => x.missing > 0)) alerts.push({ set_id: Number(s.id), set_name: s.name, product_id: p.product_id, missing: p.missing, message: `${s.name} için ${p.name} ${p.missing} ${p.unit || 'adet'} eksik (hedef ${s.target_sets} takım): tekli sat veya takviye yap.` });
-    return { id: Number(s.id), name: s.name, target_sets: Number(s.target_sets), note: s.note, complete_sets: complete, ok: complete >= Number(s.target_sets), parts };
+    const code = codes.get(Number(s.id));
+    const list = Math.round(parts.reduce((t, p) => t + p.per_set * (prices.get(p.product_id) || 0), 0) * 100) / 100;
+    return { id: Number(s.id), name: s.name, target_sets: Number(s.target_sets), note: s.note, complete_sets: complete, ok: complete >= Number(s.target_sets), parts, barcode: code ? code.barcode : null, sale_price: code ? Number(code.sale_price) : null, list_price: list };
   });
   return { sets: result, alerts };
 }
@@ -63,6 +68,7 @@ async function saveSet(user, id, body = {}) {
 async function deleteSet(user, id) {
   const setId = Number(id);
   return db.transaction(async tx => {
+    await tx.query('DELETE FROM product_set_codes WHERE set_id=$1 AND tenant_id=$2', [setId, user.tenantId]);
     const done = await tx.query('DELETE FROM product_sets WHERE id=$1 AND tenant_id=$2', [setId, user.tenantId]);
     if (done.rowCount !== 1) fail('Takım bulunamadı.', 404);
     await tx.query('DELETE FROM product_set_items WHERE set_id=$1 AND tenant_id=$2', [setId, user.tenantId]);
@@ -129,4 +135,54 @@ async function priceLabel(user, body = {}, key) {
   });
 }
 
-module.exports = { PRESET_TAGS, listSets, saveSet, deleteSet, locations, setTags, placementCheck, priceLabel };
+
+// Takımı kasada tek barkodla satmak: takıma barkod ve takım fiyatı verilir. Kasada okutulunca takım parçalarına açılır,
+// her parça normal satış satırıdır (stok, lot, maliyet, iade değişmez); takım fiyatı parçalara liste fiyatı oranında dağıtılır.
+async function setSale(user, setId, body = {}) {
+  if (!['admin', 'manager'].includes(user.role)) fail('Takım barkodunu yalnız yönetici ve müdür tanımlar.', 403);
+  const id = Number(setId);
+  if (!Number.isSafeInteger(id) || id < 1) fail('Takım geçersiz.');
+  return db.transaction(async tx => {
+    const set = (await tx.query('SELECT id,name FROM product_sets WHERE id=$1 AND tenant_id=$2', [id, user.tenantId])).rows[0];
+    if (!set) fail('Takım bulunamadı.', 404);
+    if (body.barcode === null || body.barcode === '') { await tx.query('DELETE FROM product_set_codes WHERE tenant_id=$1 AND set_id=$2', [user.tenantId, id]); return { set_id: id, barcode: null, sale_price: null }; }
+    const code = typeof body.barcode === 'string' ? body.barcode.trim() : '';
+    if (!code || code.length > 64 || /[\x00-\x1f\s]/.test(code)) fail('Takım barkodu geçersiz.');
+    const price = Number(String(body.price ?? '').replace(',', '.'));
+    if (!Number.isFinite(price) || price <= 0 || price > 100000000 || Math.abs(price * 100 - Math.round(price * 100)) > 1e-6) fail('Takım fiyatı en fazla iki ondalıklı, 0\'dan büyük olmalı.');
+    const parts = (await tx.query('SELECT i.product_id,i.quantity,p.barcode,p.sku FROM product_set_items i JOIN products p ON p.id=i.product_id AND p.tenant_id=i.tenant_id WHERE i.tenant_id=$1 AND i.set_id=$2', [user.tenantId, id])).rows;
+    if (!parts.length) fail('Takımda parça yok.');
+    if (parts.some(p => !Number.isInteger(Number(p.quantity)))) fail('Kasada satılacak takımda parça adetleri tam sayı olmalı.');
+    if (parts.some(p => !p.barcode && !p.sku)) fail('Takımın her parçasının barkodu veya stok kodu olmalı.');
+    const product = (await tx.query('SELECT name FROM products WHERE tenant_id=$1 AND (barcode=$2 OR gtin=$2 OR sku=$2)', [user.tenantId, code])).rows[0];
+    if (product) fail(`${code} barkodu "${product.name}" ürününe ait.`, 409);
+    const uom = (await tx.query('SELECT p.name FROM product_uoms u JOIN products p ON p.id=u.product_id WHERE u.tenant_id=$1 AND u.barcode=$2', [user.tenantId, code])).rows[0];
+    if (uom) fail(`${code} barkodu "${uom.name}" ürününün koli barkodu.`, 409);
+    const other = (await tx.query('SELECT s.name FROM product_set_codes c JOIN product_sets s ON s.id=c.set_id WHERE c.tenant_id=$1 AND c.barcode=$2 AND c.set_id<>$3', [user.tenantId, code, id])).rows[0];
+    if (other) fail(`${code} barkodu "${other.name}" takımında kullanılıyor.`, 409);
+    await tx.query('DELETE FROM product_set_codes WHERE tenant_id=$1 AND set_id=$2', [user.tenantId, id]);
+    await tx.query('INSERT INTO product_set_codes (tenant_id,set_id,barcode,sale_price) VALUES ($1,$2,$3,$4)', [user.tenantId, id, code, Math.round(price * 100) / 100]);
+    await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'tableware.set_sale', 'product_set', id, JSON.stringify({ barcode: code, price })]);
+    return { set_id: id, barcode: code, sale_price: Math.round(price * 100) / 100 };
+  });
+}
+
+// Kasa için: okutulan barkod bir takımsa parçalar ve kuruş dağılımı (toplam = takım fiyatı). Değilse null.
+async function expandSetBarcode(tx, tenantId, barcode) {
+  const code = (await tx.query('SELECT c.set_id,c.sale_price,s.name FROM product_set_codes c JOIN product_sets s ON s.id=c.set_id AND s.tenant_id=c.tenant_id WHERE c.tenant_id=$1 AND c.barcode=$2', [tenantId, String(barcode || '').trim()])).rows[0];
+  if (!code) return null;
+  const parts = (await tx.query("SELECT i.product_id,i.quantity,p.barcode,p.sku,p.sale_price FROM product_set_items i JOIN products p ON p.id=i.product_id AND p.tenant_id=i.tenant_id WHERE i.tenant_id=$1 AND i.set_id=$2 AND p.module_type='NORMAL' ORDER BY i.product_id", [tenantId, Number(code.set_id)])).rows;
+  if (!parts.length) fail('Takımın parçaları bulunamadı.', 409);
+  const total = Math.round(Number(code.sale_price) * 100);
+  const weights = parts.map(p => Number(p.quantity) * Number(p.sale_price));
+  const sum = weights.reduce((t, w) => t + w, 0);
+  let left = total;
+  const lines = parts.map((p, i) => {
+    const cents = i === parts.length - 1 ? left : Math.floor(total * (sum > 0 ? weights[i] / sum : 1 / parts.length));
+    left -= cents;
+    return { barcode: p.barcode || p.sku, product_id: Number(p.product_id), quantity: Number(p.quantity), cents };
+  });
+  return { set_id: Number(code.set_id), name: code.name, price_cents: total, lines };
+}
+
+module.exports = { PRESET_TAGS, listSets, saveSet, deleteSet, locations, setTags, placementCheck, priceLabel, setSale, expandSetBarcode };

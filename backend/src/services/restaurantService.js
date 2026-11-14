@@ -324,7 +324,9 @@ async function closeOrderTx(tx, user, orderId, body = {}) {
 async function dayTotals(tx, tenantId, warehouse, date) {
   try {
     const r = (await tx.query("SELECT COUNT(*) AS n,COALESCE(SUM(total_amount),0) AS total,COALESCE(SUM(cash_cents),0) AS cash,COALESCE(SUM(card_cents),0) AS card FROM restaurant_orders WHERE tenant_id=$1 AND warehouse_id=$2 AND business_day=$3 AND status='closed'", [tenantId, warehouse, date])).rows[0];
-    return Number(r.n) ? { orders: Number(r.n), total_cents: Math.round(Number(r.total) * 100), cash_cents: Number(r.cash), card_cents: Number(r.card) } : null;
+    const f = (await tx.query("SELECT COALESCE(SUM(CASE WHEN f.method='cash' THEN f.amount_cents ELSE 0 END),0) AS cash,COALESCE(SUM(CASE WHEN f.method='card' THEN f.amount_cents ELSE 0 END),0) AS card FROM restaurant_refunds f JOIN restaurant_orders o ON o.id=f.order_id AND o.tenant_id=f.tenant_id WHERE f.tenant_id=$1 AND o.warehouse_id=$2 AND f.business_day=$3", [tenantId, warehouse, date])).rows[0];
+    const refundCash = Number(f.cash), refundCard = Number(f.card);
+    return Number(r.n) ? { orders: Number(r.n), total_cents: Math.round(Number(r.total) * 100) - refundCash - refundCard, cash_cents: Number(r.cash) - refundCash, card_cents: Number(r.card) - refundCard, ...(refundCash + refundCard ? { refund_cents: refundCash + refundCard } : {}) } : null;
   } catch { return null; }
 }
 
@@ -345,7 +347,8 @@ async function summary(user, query = {}) {
   const byType = (await db.query("SELECT order_type,COUNT(*) AS n,SUM(total_amount) AS revenue FROM restaurant_orders WHERE tenant_id=$1 AND business_day=$2 AND status<>'cancelled' GROUP BY order_type", [user.tenantId, day])).rows;
   const open = Number((await db.query("SELECT COUNT(*) AS n FROM restaurant_orders WHERE tenant_id=$1 AND business_day=$2 AND status='open'", [user.tenantId, day])).rows[0].n);
   const orders = byType.reduce((s, r) => s + Number(r.n), 0), revenue = byType.reduce((s, r) => s + Number(r.revenue || 0), 0);
-  return { date: day, orders, open_orders: open, revenue: round(revenue),
+  const refundCents = Number((await db.query('SELECT COALESCE(SUM(amount_cents),0) AS c FROM restaurant_refunds WHERE tenant_id=$1 AND business_day=$2', [user.tenantId, day])).rows[0].c);
+  return { date: day, orders, open_orders: open, revenue: round(revenue - refundCents / 100), gross_revenue: round(revenue), refunds: refundCents / 100,
     by_type: TYPES.map(t => { const r = byType.find(x => x.order_type === t); return { type: t, orders: r ? Number(r.n) : 0, revenue: r ? round(r.revenue) : 0 }; }),
     products: products.map(p => ({ product_id: Number(p.product_id), name: p.product_name, quantity: round(p.qty, 3), revenue: round(p.revenue) })) };
 }
@@ -482,4 +485,67 @@ async function deliveries(user) {
   return { items: list.sort((a, b) => rank(a) - rank(b) || a.id - b.id) };
 }
 
-module.exports = { setMenuOptions, moveOrder, mergeOrders, payItems, addAdjustment, removeAdjustment, setDelivery, deliveries, totals, dayTotals, tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };
+// ---------- Kapanmış adisyonda iade ----------
+// Yalnız yönetici/müdür; sebep zorunlu. Tutar seçilen kalemlerden (ikram düşülmüş) ya da elle gelir; önceki iadelerle adisyonu aşamaz.
+// Nakit iade, iadeyi yapanın (yoksa mağazadaki) açık vardiyasından "para çıkışı"dır; vardiya yoksa iade yine yazılır, uyarı döner.
+// return_stock: kalemlerin reçete malzemesi stoğa geri döner (hiç hazırlanmamış/geri alınan ürün için).
+async function refundOrder(user, orderId, body = {}) {
+  if (!['admin', 'manager'].includes(user.role)) fail('İadeyi yalnız yönetici ve müdür yapar.', 403);
+  const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 200) : '';
+  if (reason.length < 3) fail('İade sebebini yazın.');
+  const method = body.method === 'card' ? 'card' : body.method === 'cash' ? 'cash' : null;
+  if (!method) fail('İade yolu seçin: nakit veya kart.');
+  return db.transaction(async tx => {
+    const o = (await tx.query('SELECT id,status,warehouse_id,total_amount FROM restaurant_orders WHERE id=$1 AND tenant_id=$2' + lock(), [Number(orderId), user.tenantId])).rows[0];
+    if (!o) fail('Sipariş bulunamadı.', 404);
+    if (o.status !== 'closed') fail('Yalnız kapanmış adisyon iade edilir; açık adisyonda kalemi iptal edin.', 409);
+    const scope = allowedWarehouses(user);
+    if (scope && !scope.has(Number(o.warehouse_id))) fail('Bu mağaza için yetkiniz yok.', 403);
+    const prior = (await tx.query('SELECT amount_cents,items_json FROM restaurant_refunds WHERE tenant_id=$1 AND order_id=$2', [user.tenantId, Number(o.id)])).rows;
+    const refunded = prior.reduce((t, r) => t + Number(r.amount_cents), 0);
+    const refundedItems = new Set(prior.flatMap(r => { try { return JSON.parse(r.items_json || '[]'); } catch { return []; } }));
+    const totalCents = Math.round(Number(o.total_amount) * 100);
+    let cents, itemIds = [];
+    if (Array.isArray(body.item_ids) && body.item_ids.length) {
+      itemIds = [...new Set(body.item_ids.map(Number))];
+      const t = await totals(tx, user, Number(o.id));
+      const comped = new Set((await tx.query("SELECT item_id FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND kind='comp'", [user.tenantId, Number(o.id)])).rows.map(r => Number(r.item_id)));
+      for (const id of itemIds) { if (!t.lines.has(id)) fail('Kalem bu adisyonda yok veya iptal edilmiş: ' + id); if (refundedItems.has(id)) fail('Bu kalem zaten iade edilmiş: ' + id, 409); }
+      // İndirim ve servis kalemlere oranla yansıtılır: kalem payı = kalem tutarı x (adisyon toplamı / ikramsız brüt).
+      const base = t.gross - t.comp;
+      const share = base > 0 ? t.total / base : 0;
+      cents = Math.round(itemIds.filter(id => !comped.has(id)).reduce((s, id) => s + t.lines.get(id), 0) * share * 100);
+    } else {
+      cents = Math.round(Number(String(body.amount ?? '').replace(',', '.')) * 100);
+      if (!Number.isSafeInteger(cents) || cents <= 0) fail('İade tutarı geçersiz.');
+    }
+    if (cents <= 0) fail('Seçilen kalemlerin iade edilecek tutarı yok (ikram olabilir).', 409);
+    if (refunded + cents > totalCents) fail(`İade, adisyon tutarını aşamaz. İade edilebilecek en fazla ${((totalCents - refunded) / 100).toFixed(2)} ₺.`, 409);
+    let shift = null, warning = null;
+    if (method === 'cash') {
+      shift = (await tx.query("SELECT id FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open' AND user_id=$3 ORDER BY id DESC LIMIT 1", [user.tenantId, Number(o.warehouse_id), user.userId])).rows[0]
+        || (await tx.query("SELECT id FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open' ORDER BY id LIMIT 1", [user.tenantId, Number(o.warehouse_id)])).rows[0] || null;
+      if (shift) await tx.query("INSERT INTO retail_cash_movements (id,tenant_id,shift_id,user_id,user_email,direction,amount_cents,reason) VALUES ($1,$2,$3,$4,$5,'out',$6,$7)", [crypto.randomUUID(), user.tenantId, Number(shift.id), user.userId, user.email || 'restoran', cents, 'Restoran iade #' + Number(o.id) + ': ' + reason]);
+      else warning = 'Açık vardiya yok: nakit iade vardiya sayımından düşülmedi.';
+    }
+    if (body.return_stock && itemIds.length) {
+      for (const id of itemIds) {
+        const item = (await tx.query('SELECT product_id,quantity FROM restaurant_order_items WHERE id=$1 AND tenant_id=$2', [id, user.tenantId])).rows[0];
+        for (const c of await consumption(tx, user, Number(item.product_id), Number(item.quantity))) await returnStock(tx, user, Number(o.warehouse_id), c.product_id, c.quantity, Number(o.id));
+        for (const op of (await tx.query('SELECT ingredient_id,ingredient_qty FROM restaurant_item_options WHERE tenant_id=$1 AND item_id=$2 AND ingredient_id IS NOT NULL', [user.tenantId, id])).rows) await returnStock(tx, user, Number(o.warehouse_id), Number(op.ingredient_id), round(Number(op.ingredient_qty) * Number(item.quantity), 6), Number(o.id));
+      }
+    }
+    const row = (await tx.query('INSERT INTO restaurant_refunds (tenant_id,order_id,amount_cents,method,reason,items_json,shift_id,user_id,business_day) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id', [user.tenantId, Number(o.id), cents, method, reason, JSON.stringify(itemIds), shift ? Number(shift.id) : null, user.userId, businessDay()])).rows[0];
+    await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'restaurant.refund', 'restaurant_order', Number(o.id), JSON.stringify({ refund_id: Number(row.id), amount_cents: cents, method, reason, items: itemIds, return_stock: Boolean(body.return_stock) })]);
+    return { refund_id: Number(row.id), order_id: Number(o.id), amount: cents / 100, method, refunded_total: (refunded + cents) / 100, remaining: (totalCents - refunded - cents) / 100, warning };
+  });
+}
+// Bugün kapanmış adisyonlar (iade için): iade edilmiş tutarla.
+async function closedToday(user) {
+  const list = await loadOrders(user, "AND o.business_day=$2 AND o.status='closed'", [businessDay()]);
+  if (!list.length) return { items: [] };
+  const refunds = (await db.query(`SELECT order_id,SUM(amount_cents) AS c FROM restaurant_refunds WHERE tenant_id=$1 AND order_id IN (${list.map((_, i) => '$' + (i + 2)).join(',')}) GROUP BY order_id`, [user.tenantId, ...list.map(o => o.id)])).rows;
+  return { items: list.map(o => ({ ...o, refunded: Number(refunds.find(r => Number(r.order_id) === o.id)?.c || 0) / 100 })) };
+}
+
+module.exports = { refundOrder, closedToday, setMenuOptions, moveOrder, mergeOrders, payItems, addAdjustment, removeAdjustment, setDelivery, deliveries, totals, dayTotals, tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };

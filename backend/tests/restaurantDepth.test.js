@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../src/index');
 const db = require('../src/config/database');
 const { JWT_SECRET } = require('../src/middlewares/authMiddleware');
-const { createTenant, createWarehouse, createUser } = require('./factories');
+const { createTenant, createWarehouse, createUser, openTestShift } = require('./factories');
 
 // Pide/restoran derinleştirme: ürün seçenekleri, çok katlı reçete, ikram/indirim/servis, masa taşıma/birleştirme,
 // hesap bölme ve paket servis bilgisi.
@@ -159,4 +159,36 @@ test('gün sonu ürün cirosu seçenek fiyatlarını içerir, ikram kalemi adett
   expect(pideNow.revenue - pideWas.revenue).toBe(120);
   expect(ayranNow.quantity - ayranWas.quantity).toBe(1);
   expect(ayranNow.revenue - ayranWas.revenue).toBe(0);
+});
+
+test('kapanmış adisyonda iade: kalem bazlı, indirim/servis oranlı, aşırı iade reddi, nakit vardiyadan çıkar, stok geri döner, gün sonu düşer', async () => {
+  const shift = await openTestShift(owner, w.id, 0);
+  const t9 = (await as(manager).post('/tables', { name: 'D9' })).body;
+  const r = await order(t9, [{ product_id: pide.id, quantity: 1 }, { product_id: ayran.id, quantity: 2 }]); // 100 + 40
+  const id = r.body.order_id, [pItem] = r.body.items;
+  await as(manager).post(`/orders/${id}/adjustments`, { kind: 'service', percent: 10 }); // 154
+  expect((await as(manager).post(`/orders/${id}/refund`, { method: 'cash', reason: 'Soğuk geldi', item_ids: [pItem.id] })).status).toBe(409); // açık
+  await as(waiter).post(`/orders/${id}/close`, { payment_method: 'cash' });
+  expect((await as(waiter).post(`/orders/${id}/refund`, { method: 'cash', reason: 'Soğuk geldi', item_ids: [pItem.id] })).status).toBe(403);
+  expect((await as(manager).post(`/orders/${id}/refund`, { method: 'cash', item_ids: [pItem.id] })).status).toBe(400);
+  const sumBefore = (await as(manager).get('/summary')).body;
+  const unBefore = await qty(un.id);
+  const cashOut = async () => Number((await db.query("SELECT COALESCE(SUM(amount_cents),0) c FROM retail_cash_movements WHERE shift_id=$1 AND direction='out'", [shift.shift_id])).rows[0].c);
+  const out0 = await cashOut();
+  const one = await as(manager).post(`/orders/${id}/refund`, { method: 'cash', reason: 'Pide soğuk geldi', item_ids: [pItem.id], return_stock: true });
+  expect(one.status).toBe(201);
+  expect(one.body).toMatchObject({ amount: 110, refunded_total: 110, remaining: 44 }); // 100 + %10 servis payı
+  expect(await cashOut()).toBe(out0 + 11000);
+  expect(await qty(un.id)).toBeCloseTo(unBefore + 0.2, 6); // pide -> hamur -> un geri döndü
+  expect((await as(manager).post(`/orders/${id}/refund`, { method: 'card', reason: 'tekrar', item_ids: [pItem.id] })).status).toBe(409);
+  expect((await as(manager).post(`/orders/${id}/refund`, { method: 'card', reason: 'Fazla iade', amount: 50 })).status).toBe(409);
+  expect((await as(manager).post(`/orders/${id}/refund`, { method: 'card', reason: 'Ayran bozuk', amount: '44' })).body).toMatchObject({ amount: 44, remaining: 0 });
+  const sumAfter = (await as(manager).get('/summary')).body;
+  expect(sumAfter.refunds - sumBefore.refunds).toBe(154);
+  expect(Math.round((sumAfter.gross_revenue - sumBefore.gross_revenue) * 100) / 100).toBe(0);
+  expect(Math.round((sumAfter.revenue - sumBefore.revenue) * 100) / 100).toBe(-154);
+  const closed = (await as(manager).get('/closed-today')).body.items.find(o => o.id === id);
+  expect(closed.refunded).toBe(154);
+  const audit = (await db.query("SELECT COUNT(*) n FROM audit_logs WHERE action='restaurant.refund' AND entity_id=$1", [id])).rows[0];
+  expect(Number(audit.n)).toBe(2);
 });

@@ -40,6 +40,17 @@ tw.get('/locations', run(req => tableware.locations(req.user, req.query)));
 tw.put('/locations/:id/tags', boss, run(req => tableware.setTags(req.user, req.params.id, req.body && req.body.tags)));
 tw.get('/placement-check', run(req => tableware.placementCheck(req.user, req.query)));
 tw.post('/price-label', boss, run(req => tableware.priceLabel(req.user, req.body, req.get('Idempotency-Key'))));
+tw.put('/sets/:id/sale', boss, run(req => tableware.setSale(req.user, req.params.id, req.body)));
+const twx = require('../services/tablewareExtras');
+tw.post('/breakage', created(req => twx.breakage(req.user, req.body)));
+tw.get('/breakage', boss, run(req => twx.breakageReport(req.user, req.query)));
+tw.get('/registries', run(req => twx.registries(req.user, req.query)));
+tw.post('/registries', boss, created(req => twx.saveRegistry(req.user, null, req.body)));
+tw.get('/registries/:id', run(req => twx.registry(req.user, req.params.id)));
+tw.put('/registries/:id', boss, run(req => twx.saveRegistry(req.user, req.params.id, req.body)));
+tw.post('/registries/:id/items', boss, created(req => twx.addRegistryItem(req.user, req.params.id, req.body)));
+tw.post('/registries/:id/items/:itemId/bought', run(req => twx.markBought(req.user, req.params.id, req.params.itemId, req.body)));
+tw.delete('/registries/:id/items/:itemId', boss, run(req => twx.removeRegistryItem(req.user, req.params.id, req.params.itemId)));
 router.use('/tableware', tw);
 
 // Pide / restoran
@@ -62,6 +73,8 @@ rs.post('/orders/:id/pay-items', run(req => restaurant.payItems(req.user, req.pa
 rs.post('/orders/:id/adjustments', boss, created(req => restaurant.addAdjustment(req.user, req.params.id, req.body)));
 rs.delete('/orders/:id/adjustments/:adjustmentId', boss, run(req => restaurant.removeAdjustment(req.user, req.params.id, req.params.adjustmentId)));
 rs.put('/orders/:id/delivery', run(req => restaurant.setDelivery(req.user, req.params.id, req.body)));
+rs.post('/orders/:id/refund', boss, created(req => restaurant.refundOrder(req.user, req.params.id, req.body)));
+rs.get('/closed-today', boss, run(req => restaurant.closedToday(req.user)));
 rs.get('/deliveries', run(req => restaurant.deliveries(req.user)));
 rs.get('/feed', run(req => restaurant.feed(req.user, req.query)));
 rs.get('/summary', boss, run(req => restaurant.summary(req.user, req.query)));
