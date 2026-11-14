@@ -20,9 +20,13 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
     $screenshot=isset($page['image'])&&preg_match('/^product-[a-z]+-v[0-9]+\.jpg$/D',$page['image']);
     $image=rtrim($config['url'],'/').'/assets/'.($screenshot?$page['image']:'logo-hero-420-v2.webp');
     $imageAlt=$screenshot?($page['alt']??'Veniux ürün ekranı, sentetik örnek kayıtlar'):'Veniux Cloud logosu';
+    // Tasarlanmış paylaşım görseli (1200x630): WhatsApp, X, Google ve diğer önizlemeler için büyük kart.
+    $embedFile='embed-'.($path==='/'?'home':trim($path,'/')).'-v1.jpg';
+    $hasEmbed=is_file(__DIR__.'/assets/'.$embedFile);
+    if($hasEmbed){$screenshot=true;$image=rtrim($config['url'],'/').'/assets/'.$embedFile;$imageAlt='Veniux: '.$page['title'];$page['image_width']=1200;$page['image_height']=630;}
     // Discord bağlantı önizlemesi: yalnız Discord botuna özel kart (turuncu şerit, küçük logo). Diğer platformlar aynı kalır.
     $discord=stripos((string)($_SERVER['HTTP_USER_AGENT']??''),'Discordbot')!==false;
-    if($discord){$screenshot=false;$image=rtrim($config['url'],'/').'/assets/logo-hero-420-v2.webp';$imageAlt='Veniux Cloud logosu';}
+    if($discord&&!$hasEmbed){$screenshot=false;$image=rtrim($config['url'],'/').'/assets/logo-hero-420-v2.webp';$imageAlt='Veniux Cloud logosu';}
     $html='<title>'.$escape($page['title']).'</title><link rel="canonical" href="'.$escape($url).'">';
     if($discord)$html.='<meta name="theme-color" content="#cf4b06">';
     $meta=['description'=>$page['description'],'robots'=>$indexable?'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1':'noindex, nofollow','twitter:card'=>$screenshot?'summary_large_image':'summary','twitter:title'=>$page['title'],'twitter:description'=>$page['description'],'twitter:image'=>$image,'twitter:image:alt'=>$imageAlt];
