@@ -206,11 +206,12 @@ export function MobileOwner() {
       {banner && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-accent)', background: '#dc6d2c14' }}><b><Bell size={16} /> {banner}</b> <button type="button" className="vm-btn ghost" style={{ minHeight: 34, marginTop: 6 }} onClick={() => setBanner('')}>Tamam</button></section>}
       {summary.error && <p role="alert" className="vm-err">{summary.error}</p>}
       {data && <>
-        <section className="vm-card"><div className="vm-note">Bugün ({data.date})</div><div className="vm-money">{money(data.revenue)}</div><div className="vm-note">{data.orders} sipariş · {data.open_orders} açık</div>
+        <section className="vm-card"><div className="vm-note">Bugün ({data.date})</div><div className="vm-money">{money(data.revenue)}</div><div className="vm-note">{data.orders} sipariş · {data.open_orders} açık{data.refunds > 0 ? ' · iade ' + money(data.refunds) : ''}</div>
           <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>{data.by_type.map(t => <div key={t.type} style={{ flex: 1, background: 'var(--vm-bg)', borderRadius: 8, padding: 8, textAlign: 'center' }}><b style={{ fontSize: 20 }}>{t.orders}</b><div className="vm-note">{TYPE_LABELS[t.type]}</div><div className="vm-note">{money(t.revenue)}</div></div>)}</div></section>
         <div className="vm-label"><span>Bugün ne gitti?</span></div>
         {data.products.length === 0 ? <p className="vm-note">Henüz sipariş yok.</p> : <div className="vm-list">{data.products.map(p => <div key={p.product_id} className="vm-row"><span className="grow">{p.name}</span><b>{p.quantity}</b><span className="vm-note" style={{ minWidth: 80, textAlign: 'right' }}>{money(p.revenue)}</span></div>)}</div>}</>}
       <Deliveries />
+      {isBoss() && <ClosedOrders onRefund={() => summary.reload()} />}
       {feed.length > 0 && <><div className="vm-label"><span>Gelen siparişler</span></div><div className="vm-list">{feed.map(f => <div key={f.order_id} className="vm-row"><span className="grow">{f.table || TYPE_LABELS[f.type]}<small>{f.text}</small></span><b>{money(f.total)}</b></div>)}</div></>}
       <div style={{ marginTop: 14 }}><NotifyButton /></div>
       <Link to={sectorPath(desktop, '/m/restoran-ayar')} className="vm-btn ghost" style={{ marginTop: 10 }}>Masa, menü ve reçete ayarları</Link>
@@ -235,6 +236,36 @@ function Deliveries() {
       {o.delivery && next[o.delivery.status] ? <button type="button" className="vm-btn soft" style={{ width: 'auto', minHeight: 34, padding: '0 10px' }} onClick={() => advance(o)}>{o.delivery.status === 'waiting' ? 'Yola çıktı' : 'Teslim edildi'}</button> : <span className="vm-note">{o.delivery ? DELIVERY_LABELS[o.delivery.status] : 'Bilgi yok'}</span>}</div>)}</div></>;
 }
 
+// Bugün kapanan adisyonlar ve iade: kalem seçilerek (indirim/servis oranlı) ya da tutar yazılarak; nakit iade vardiyadan çıkar.
+function ClosedOrders({ onRefund }) {
+  const list = useAsync(async () => (await api.get('/sector/restaurant/closed-today')).data.items, []);
+  const [open, setOpen] = useState(null), [picked, setPicked] = useState([]), [form, setForm] = useState({ method: 'cash', reason: '', amount: '', return_stock: false }), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const items = list.data || [];
+  if (!items.length) return null;
+  const start = o => { setOpen(o); setPicked([]); setForm({ method: o.payment_method === 'card' ? 'card' : 'cash', reason: '', amount: '', return_stock: false }); setMessage(''); };
+  const refund = async () => {
+    setBusy(true); setMessage('');
+    try {
+      const body = { method: form.method, reason: form.reason, ...(picked.length ? { item_ids: picked, return_stock: form.return_stock } : { amount: form.amount }) };
+      const r = (await api.post(`/sector/restaurant/orders/${open.id}/refund`, body)).data;
+      setMessage(`İade edildi: ${money(r.amount)} (${r.method === 'cash' ? 'nakit' : 'kart'}). Kalan iade edilebilir: ${money(r.remaining)}.${r.warning ? ' ' + r.warning : ''}`);
+      setOpen(null); list.reload(); onRefund();
+    } catch (e) { setMessage(errorText(e, 'İade yapılamadı.')); } finally { setBusy(false); }
+  };
+  return <><div className="vm-label"><span>Bugün kapanan adisyonlar</span></div>
+    {message && <p role="status" className="vm-note">{message}</p>}
+    <div className="vm-list">{items.slice(0, 30).map(o => <div key={o.id} className="vm-row" style={{ alignItems: 'flex-start' }}><span className="grow"><b>#{o.id} · {o.table || TYPE_LABELS[o.type]}</b><small>{o.items.filter(i => i.status !== 'cancelled').map(i => i.quantity + '× ' + i.name).join(', ')}</small>{o.refunded > 0 && <small style={{ color: 'var(--vm-bad)' }}>İade: {money(o.refunded)}</small>}</span>
+      <b>{money(o.total)}</b>{o.refunded < o.total && <button type="button" className="vm-btn ghost" style={{ width: 'auto', minHeight: 32, padding: '0 10px' }} onClick={() => start(o)}>İade</button>}</div>)}</div>
+    {open && <section className="vm-card" aria-label="İade" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 8 }}><b>Adisyon #{open.id} iadesi · {money(open.total - open.refunded)} iade edilebilir</b>
+      <p className="vm-note">İade edilecek kalemleri seçin (indirim ve servis oranında hesaplanır) ya da kalem seçmeden tutar yazın.</p>
+      <div className="vm-list">{open.items.filter(i => i.status !== 'cancelled').map(i => <label key={i.id} className="vm-row"><input type="checkbox" checked={picked.includes(i.id)} onChange={e => setPicked(list => e.target.checked ? [...list, i.id] : list.filter(x => x !== i.id))} /><span className="grow">{i.quantity}× {i.name}{(open.comped || []).includes(i.id) && <small>İkram (iade tutarı yok)</small>}</span><b>{money(itemAmount(i))}</b></label>)}</div>
+      {!picked.length && <input className="vm-input" inputMode="decimal" aria-label="İade tutarı" placeholder="İade tutarı (₺)" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />}
+      {picked.length > 0 && <label className="vm-note" style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="checkbox" checked={form.return_stock} onChange={e => setForm(f => ({ ...f, return_stock: e.target.checked }))} /> Malzemeler stoğa geri dönsün (hiç hazırlanmadıysa)</label>}
+      <div role="group" aria-label="İade yolu" style={{ display: 'flex', gap: 8 }}>{[['cash', 'Nakit'], ['card', 'Kart']].map(([k, l]) => <button key={k} type="button" aria-pressed={form.method === k} className={'vm-btn ' + (form.method === k ? '' : 'ghost')} style={{ width: 'auto', minHeight: 36, padding: '0 14px' }} onClick={() => setForm(f => ({ ...f, method: k }))}>{l}</button>)}</div>
+      <input className="vm-input" aria-label="İade sebebi" placeholder="Sebep (zorunlu): soğuk geldi, yanlış sipariş…" maxLength={200} value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} />
+      <div style={{ display: 'flex', gap: 8 }}><button type="button" className="vm-btn ghost" onClick={() => setOpen(null)}>Vazgeç</button><button type="button" className="vm-btn" disabled={busy || form.reason.trim().length < 3 || (!picked.length && !form.amount.trim())} onClick={refund}>İade et</button></div></section>}
+  </>;
+}
 // Ürün seçenekleri düzenleyicisi: "Kaşarlı +20 ₺" gibi; istenirse seçenek bir malzemeyi stoktan düşer.
 function OptionEditor({ product, onDone }) {
   const [rows, setRows] = useState((product.options || []).map(o => ({ name: o.name, price: String(o.price) }))), [message, setMessage] = useState('');

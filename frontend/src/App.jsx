@@ -53,6 +53,8 @@ const MobileProductSearch = lazy(() => import('./pages/mobile/sector/MobileHardw
 const MobileCritical = lazy(() => import('./pages/mobile/sector/MobileHardware').then(m => ({ default: m.MobileCritical })));
 const MobileBulkPrice = lazy(() => import('./pages/mobile/sector/MobileHardware').then(m => ({ default: m.MobileBulkPrice })));
 const MobileSets = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileSets })));
+const MobileBreakage = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileBreakage })));
+const MobileRegistries = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileRegistries })));
 const MobileShelfTags = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobileShelfTags })));
 const MobilePriceLabel = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobilePriceLabel })));
 const MobileWaiter = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileWaiter })));
@@ -195,6 +197,8 @@ function AppContent() {
             <Route path="/m/kritik" element={<ProtectedRoute><MobileCritical /></ProtectedRoute>} />
             <Route path="/m/toplu-fiyat" element={<ProtectedRoute><MobileBulkPrice /></ProtectedRoute>} />
             <Route path="/m/setler" element={<ProtectedRoute><MobileSets /></ProtectedRoute>} />
+            <Route path="/m/kirik" element={<ProtectedRoute><MobileBreakage /></ProtectedRoute>} />
+            <Route path="/m/ceyiz" element={<ProtectedRoute><MobileRegistries /></ProtectedRoute>} />
             <Route path="/m/raf-etiket" element={<ProtectedRoute><MobileShelfTags /></ProtectedRoute>} />
             <Route path="/m/fiyat-etiket" element={<ProtectedRoute><MobilePriceLabel /></ProtectedRoute>} />
             <Route path="/m/garson" element={<ProtectedRoute><MobileWaiter /></ProtectedRoute>} />
@@ -204,6 +208,8 @@ function AppContent() {
             <Route path="/sektor/kritik" element={<ProtectedRoute><DesktopSurface><MobileCritical /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/toplu-fiyat" element={<ProtectedRoute><DesktopSurface><MobileBulkPrice /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/setler" element={<ProtectedRoute><DesktopSurface><MobileSets /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/kirik" element={<ProtectedRoute><DesktopSurface><MobileBreakage /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/ceyiz" element={<ProtectedRoute><DesktopSurface><MobileRegistries /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/raf-etiket" element={<ProtectedRoute><DesktopSurface><MobileShelfTags /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/fiyat-etiket" element={<ProtectedRoute><DesktopSurface><MobilePriceLabel /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/garson" element={<ProtectedRoute><DesktopSurface><MobileWaiter /></DesktopSurface></ProtectedRoute>} />

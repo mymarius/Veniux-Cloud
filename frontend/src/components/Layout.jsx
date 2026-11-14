@@ -2,13 +2,7 @@ import { readSessionUser } from '../lib/sessionUser';
 import veniuxLogo from '../assets/veniux-logo.webp';
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
-import {
-  Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock,
-  ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers,
-  ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings,
-  ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard,
-  Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen
-, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon} from 'lucide-react';
+import { Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift } from 'lucide-react';
 import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
@@ -96,9 +90,12 @@ const NAVIGATION = [
 const SECTOR_NAV = [
   { name: 'Ürün Ara', path: '/sektor/urun-ara', icon: SearchIcon, pack: 'hardware' },
   { name: 'Kritik Stok', path: '/sektor/kritik', icon: AlertTriangleIcon, pack: 'hardware' },
+  { name: 'Toplu Fiyat', path: '/sektor/toplu-fiyat', icon: Percent, pack: 'hardware' },
   { name: 'Takımlar', path: '/sektor/setler', icon: Layers, pack: 'tableware' },
   { name: 'Raf Etiketleri', path: '/sektor/raf-etiket', icon: Grid3x3, pack: 'tableware' },
   { name: 'Fiyat Etiketi', path: '/sektor/fiyat-etiket', icon: PrinterIcon, pack: 'tableware' },
+  { name: 'Kırık / Fire', path: '/sektor/kirik', icon: PackageX, pack: 'tableware' },
+  { name: 'Çeyiz Listesi', path: '/sektor/ceyiz', icon: Gift, pack: 'tableware' },
   { name: 'Garson', path: '/sektor/garson', icon: Utensils, pack: 'restaurant' },
   { name: 'Mutfak', path: '/sektor/mutfak', icon: ChefHat, pack: 'restaurant' },
   { name: 'Esnaf Paneli', path: '/sektor/esnaf', icon: ClipboardCheck, pack: 'restaurant' }
