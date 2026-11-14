@@ -1267,3 +1267,5 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-gal-dots{display:flex;justify-content:center;gap:8px;margin:4px 0 0;padding:0}
 .hx-gal-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s ease,background .3s ease}
 .hx-gal-dots span.on{width:24px;background:var(--orange)}
+
+@media(min-width:941px){.vf-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}}

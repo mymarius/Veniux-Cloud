@@ -80,8 +80,8 @@ return [
  '/kafe-hizli-satis-programi'=>[
   'status'=>'published',
   'faq'=>[
-   ['Masa ve adisyon takibi var mı?','Hayır. Veniux tezgâhtan satış yapan işletmeler içindir; masaya servis için uygun değildir.'],
-   ['Reçeteye göre malzeme stoktan düşer mi?','Hayır, şimdilik yok. Paketli ürünlerin (içecek, atıştırmalık) stoğu barkodla izlenir.'],
+   ['Masa ve adisyon takibi var mı?','Kafe sayfasındaki hızlı satış tezgâh içindir. Masaya servis için Pide ve restoran paketi vardır: masa, adisyon ve reçeteli stok içerir.'],
+   ['Reçeteye göre malzeme stoktan düşer mi?','Pide ve restoran paketinde düşer. Hızlı satış ekranında paketli ürünlerin (içecek, atıştırmalık) stoğu barkodla izlenir.'],
    ['Sadakat kartı nasıl çalışır?','Her 10 TL alışverişe 1 puan; 1 puan 10 kuruş indirim olarak kullanılır. İşletme ve Kurumsal paketlerde.'],
   ],
   'related'=>['/market-pos'=>'Kasa ve satış','/yapay-zeka'=>'Asistan','/fiyatlandirma'=>'Fiyatlar'],
@@ -100,7 +100,7 @@ return [
    'Paketli ürün (içecek, atıştırmalık) stoğu barkodla takip edilir.',
   ],
   // Dürüstlük notu: Masa/adisyon takibi ve reçeteden malzeme düşme YOK. Sayfa masa servisi vaat etmemeli.
-  'limits'=>'Masaya servis (adisyon, masa takibi) ve reçeteye göre malzeme düşme şu an yoktur. Tezgâhtan satış yapan işletmeler için uygundur.',
+  'limits'=>'Masaya servis ve reçeteli malzeme düşme ek paket olan Pide ve restoran paketindedir. Kafe hızlı satış ekranı tezgâhtan satış içindir.',
   'keywords'=>['kafe kasa programı','büfe satış programı','kafe hızlı satış','kafe stok takibi','büfe programı','kahve dükkanı kasa programı'],
  ],
  '/zuccaciye-barkod-programi'=>[
@@ -128,6 +128,31 @@ return [
   ],
   'limits'=>'Takım eşleme ve hassas raf etiketi, Züccaciye paketine dahildir. Yazarkasa (ÖKC) ve e-fatura entegrasyonu şu an yoktur.',
   'keywords'=>['züccaciye programı','züccaciye barkodlu satış programı','züccaciye stok takibi','mağaza barkod programı','takım set stok takibi','raf etiketi basma programı'],
+ ],
+ '/pide-restoran-programi'=>[
+  'status'=>'published',
+  'faq'=>[
+   ['Masa ve adisyon takibi var mı?','Evet, Pide ve restoran paketinde. Masaya sipariş açılır, masa taşınır, birleştirilir ve hesap kalem kalem ya da toplu ödenir.'],
+   ['Porsiyona göre malzeme stoktan düşer mi?','Evet. Ürünün reçetesini tanımlarsınız; porsiyon satılınca malzeme stoktan düşer. Hamur gibi yarı mamuller de reçetede başka bir reçeteye bağlanabilir.'],
+   ['Menü seçenekleri (acılı, kaşarlı, ekstra) yapılabilir mi?','Evet. Ürüne seçenek ve ek ücret tanımlarsınız; sipariş notu ve fiyata yansıması adisyonda görünür.'],
+   ['Paket servis ve iade var mı?','Paket servis siparişi ve iade kaydı var. Yemeksepeti, Getir gibi platform entegrasyonu şu an yoktur.'],
+   ['Yazarkasa (ÖKC) ve e-adisyon ile çalışır mı?','Henüz hayır. Yasal fiş ve e-adisyon yükümlülüğünüzü mali müşavirinizle netleştirin.'],
+  ],
+  'related'=>['/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/kafe-hizli-satis-programi'=>'Kafe ve büfe','/fiyatlandirma'=>'Fiyatlar'],
+  'solution'=>'kasa',
+  'title'=>'Pide ve Restoran Programı: Masa, Adisyon, Reçete | Veniux',
+  'description'=>'Pideci, lokanta ve restoran için masa ve adisyon takibi, reçeteye göre malzeme düşme, menü seçenekleri, paket servis ve iade. Stok ve kasa tek yerde.',
+  'headline'=>'Pidecide masa, adisyon ve malzeme tek ekranda.',
+  'subtitle'=>'Siparişi masaya açın, porsiyon satılınca malzeme stoktan düşsün, gün sonunda neyin ne kadar gittiğini görün.',
+  'benefits'=>[
+   'Masa ve adisyon: masa taşıma, birleştirme, kalem kalem ya da toplu ödeme.',
+   'Reçeteli stok: porsiyon satılınca hamur, peynir, kıyma gibi malzemeler otomatik düşer.',
+   'Menü seçenekleri: acılı, kaşarlı, ekstra malzeme ve fiyat farkı.',
+   'Paket servis siparişi ve iade kaydı.',
+   'Kritik malzeme uyarısı ve tedarikçiye sipariş belgesi.',
+  ],
+  'limits'=>'Pide ve restoran paketi ek pakettir (yıllık 35.856 ₺). Yazarkasa (ÖKC), e-adisyon ve Yemeksepeti/Getir gibi platform entegrasyonu şu an yoktur.',
+  'keywords'=>['pide salonu programı','restoran adisyon programı','lokanta stok programı','pideci kasa programı','restoran stok takibi','reçeteli stok programı'],
  ],
  '/eczane-yan-urun-stok'=>[
   'status'=>'draft-needs-decision',

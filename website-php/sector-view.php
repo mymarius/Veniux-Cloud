@@ -13,8 +13,8 @@ $sector=$sectorPages[$path];
   <div class="hx-qa hx-qacards"><?php foreach($sector['benefits'] as $benefit):?><div><p><?=e($benefit)?></p></div><?php endforeach;?></div>
   <?php if(!empty($sector['limits'])):?><p class="hx-sector-limit"><b>Sınır:</b> <?=e($sector['limits'])?></p><?php endif;?>
 </div></section>
-<?=pageFrame($sector['image'],$sector['alt'],1366,800)?>
-<p class="hx-wrap hx-caption"><?=e($sector['caption'])?></p>
+<?php if(!empty($sector['image'])):?><?=pageFrame($sector['image'],$sector['alt'],1366,800)?>
+<p class="hx-wrap hx-caption"><?=e($sector['caption'])?></p><?php endif;?>
 <?php if(!empty($sector['faq'])):?>
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa"><?php foreach($sector['faq'] as [$question,$answer]):?><div><h3><?=e($question)?></h3><p><?=e($answer)?></p></div><?php endforeach;?></div></div></section>
 <?php endif;?>
