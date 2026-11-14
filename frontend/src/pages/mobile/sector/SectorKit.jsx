@@ -98,7 +98,7 @@ export function usePolling(fn, ms, enabled = true) {
 export function useAsync(load, deps) {
   const [state, setState] = useState({ loading: true, data: null, error: '' });
   const reload = useCallback(async () => {
-    try { setState(s => ({ ...s, loading: true, error: '' })); setState({ loading: false, data: await load(), error: '' }); }
+    try { setState(s => ({ ...s, loading: true, error: '' })); const data = await load(); setState({ loading: false, data, error: '' }); return data; }
     catch (e) { setState({ loading: false, data: null, error: errorText(e, 'Yüklenemedi.') }); }
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { reload(); }, [reload]);

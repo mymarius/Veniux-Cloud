@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newItems, idsOf, criticalKey, wholesalerText, whatsappLink, cartAdd, cartNote, cartTotal, cartCount, cartPayload, kitchenNew, waitMinutes, waitLevel, feedMessage, pickPrinter } from './sectorHub.mjs';
+import { newItems, idsOf, criticalKey, wholesalerText, whatsappLink, cartAdd, cartRemoveOne, productQty, itemAmount, kitchenTicket, cartNote, cartTotal, cartCount, cartPayload, kitchenNew, waitMinutes, waitLevel, feedMessage, pickPrinter } from './sectorHub.mjs';
 
 test('bildirim farkı: yalnız daha önce görülmeyenler yeni; biten ürün ayrıca yeni sayılır', () => {
   const items = [{ id: 1, empty: false }, { id: 2, empty: false }];
@@ -26,11 +26,11 @@ test('garson sepeti: ekle, artır, azalt, sıfırlanınca çıkar, not, toplam v
   let cart = new Map();
   cart = cartAdd(cart, pide); cart = cartAdd(cart, pide); cart = cartAdd(cart, ayran);
   assert.equal(cartCount(cart), 3); assert.equal(cartTotal(cart), 265);
-  cart = cartNote(cart, 1, 'bol kaşarlı');
+  cart = cartNote(cart, '1|', 'bol kaşarlı');
   assert.deepEqual(cartPayload(cart), [{ product_id: 1, quantity: 2, note: 'bol kaşarlı' }, { product_id: 2, quantity: 1 }]);
   cart = cartAdd(cart, ayran, -1);
-  assert.equal(cart.has(2), false); assert.equal(cartTotal(cart), 240);
-  assert.equal(cartAdd(new Map(), pide, 500).get(1).quantity, 100);
+  assert.equal(cart.has('2|'), false); assert.equal(cartTotal(cart), 240);
+  assert.equal(cartAdd(new Map(), pide, 500).get('1|').quantity, 100);
   assert.equal(cartAdd(new Map(), pide, -1).size, 0);
   const original = new Map(); cartAdd(original, pide); assert.equal(original.size, 0); // değişmez
 });
@@ -53,4 +53,21 @@ test('esnaf bildirimi ve yazıcı seçimi', () => {
   assert.equal(feedMessage([{ type: 'motor', text: 'x' }, { type: 'masa', table: 'M1', text: 'y' }]), '2 yeni sipariş geldi (son: Motor)');
   assert.deepEqual(pickPrinter([{ station_id: 's1', printers: [] }, { station_id: 's2', printers: [{ name: 'A' }, { name: 'B', is_default: true }] }]), { station_id: 's2', printer_name: 'B' });
   assert.equal(pickPrinter([]), null);
+});
+
+test('seçenekli sepet: aynı ürün farklı seçenekle ayrı satır, fiyat seçeneklerle, eksi en son satırdan düşer', () => {
+  const pide = { id: 1, name: 'Pide', price: 100 };
+  let cart = new Map();
+  cart = cartAdd(cart, pide); cart = cartAdd(cart, pide, 1, [{ name: 'Kaşarlı', price: 20 }, { name: 'Acılı', price: 0 }]);
+  cart = cartAdd(cart, pide, 1, [{ name: 'Acılı', price: 0 }, { name: 'Kaşarlı', price: 20 }]);
+  assert.equal(cart.size, 2); assert.equal(productQty(cart, 1), 3); assert.equal(cartTotal(cart), 340);
+  assert.deepEqual(cartPayload(cart)[1], { product_id: 1, quantity: 2, options: ['Kaşarlı', 'Acılı'] });
+  cart = cartRemoveOne(cart, 1); assert.equal(productQty(cart, 1), 2);
+  cart = cartRemoveOne(cart, 1); cart = cartRemoveOne(cart, 1); assert.equal(cart.size, 0);
+  assert.equal(itemAmount({ quantity: 2, price: 100, options: [{ name: 'Kaşarlı', price: 20 }] }), 240);
+});
+test('mutfak fişi: fiyat yazmaz, seçenek ve notu gösterir, iptal kalemi ve HTML enjeksiyonunu dışarıda bırakır', () => {
+  const html = kitchenTicket({ id: 7, table: 'Masa <3>', type: 'masa', items: [{ quantity: 2, name: 'Pide', options: [{ name: 'Kaşarlı', price: 20 }], note: 'az pişmiş', status: 'new' }, { quantity: 1, name: 'İptal', status: 'cancelled' }] });
+  assert.match(html, /Masa &lt;3&gt;/); assert.match(html, /\+ Kaşarlı/); assert.match(html, /az pişmiş/);
+  assert.doesNotMatch(html, /İptal/); assert.doesNotMatch(html, /₺|20,00/);
 });

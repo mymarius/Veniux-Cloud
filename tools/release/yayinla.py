@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """Tek adımda yeni sürüm: notu sorar, sürümü artırır, test eder, derler, yükler ve canlıda doğrular.
 
 Çift tıkla: proje kökündeki Veniux-Yayinla.cmd
@@ -111,7 +111,7 @@ def backend_changed():
 
 # Masaüstü yalnız yeni tablo ekleyen şema adımlarını kendisi uygular (local-server upgradeSchema). Yeni şema,
 # eski bir kurulumu yeni sürümle açarak denenmeden buraya yazılmamalı.
-SHIPPABLE_MYSQL_SCHEMA = '019-web-push'
+SHIPPABLE_MYSQL_SCHEMA = '020-restaurant-depth'
 
 
 def schema_guard():

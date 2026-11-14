@@ -1,3 +1,4 @@
+process.env.TRIAL_RATE_LIMIT_MAX = '100000';
 // Firma ayrımı taraması: A firmasının her tabloya işaretli verisi yazılır, B firması kendi geçerli verisiyle
 // her uca istek atar ve her istekte tek bir alana A'nın kimliğini koyar. Yanıtta A'nın işareti görünmemeli,
 // A'nın satırları değişmemeli, B'nin hiçbir satırı A'nın kaydına bağlanmamalı. Kendi kimlikleriyle aynı istek

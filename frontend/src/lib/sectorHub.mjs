@@ -24,21 +24,41 @@ export function whatsappLink(phone, text) {
 }
 
 // ---------- Garson sepeti ----------
-export function cartAdd(cart, product, delta = 1) {
-  const next = new Map(cart);
-  const have = next.get(product.id);
+// Sepet satırı ürün + seçilen seçeneklerle ayrışır ("Kıymalı pide · Kaşarlı" ile sade pide ayrı satırdır).
+export const lineKey = (productId, options = []) => productId + '|' + options.map(o => o.name).sort().join('+');
+export function cartAdd(cart, product, delta = 1, options = []) {
+  const next = new Map(cart), key = lineKey(product.id, options);
+  const have = next.get(key);
   const quantity = Math.round(((have ? have.quantity : 0) + delta) * 1000) / 1000;
-  if (quantity <= 0) next.delete(product.id);
-  else next.set(product.id, { product_id: product.id, name: product.name, price: Number(product.price), quantity: Math.min(quantity, 100), note: have?.note || '' });
+  const price = Math.round((Number(product.price) + options.reduce((s, o) => s + Number(o.price || 0), 0)) * 100) / 100;
+  if (quantity <= 0) next.delete(key);
+  else next.set(key, { key, product_id: product.id, name: product.name, options: have ? have.options : options.map(o => o.name), price, quantity: Math.min(quantity, 100), note: have?.note || '' });
   return next;
 }
-export const cartNote = (cart, id, note) => { const next = new Map(cart); const l = next.get(id); if (l) next.set(id, { ...l, note: String(note || '').slice(0, 120) }); return next; };
+// Ürün kutusundaki eksi: o ürünün en son eklenen satırından bir azaltır.
+export function cartRemoveOne(cart, productId) {
+  const lines = [...cart.values()].filter(l => l.product_id === productId);
+  if (!lines.length) return cart;
+  const l = lines[lines.length - 1], next = new Map(cart);
+  if (l.quantity <= 1) next.delete(l.key); else next.set(l.key, { ...l, quantity: Math.round((l.quantity - 1) * 1000) / 1000 });
+  return next;
+}
+export const productQty = (cart, productId) => [...cart.values()].filter(l => l.product_id === productId).reduce((s, l) => s + l.quantity, 0);
+export const cartNote = (cart, key, note) => { const next = new Map(cart); const l = next.get(key); if (l) next.set(key, { ...l, note: String(note || '').slice(0, 120) }); return next; };
 export const cartTotal = cart => Math.round([...cart.values()].reduce((s, l) => s + l.quantity * l.price, 0) * 100) / 100;
 export const cartCount = cart => [...cart.values()].reduce((s, l) => s + l.quantity, 0);
-export const cartPayload = cart => [...cart.values()].map(l => ({ product_id: l.product_id, quantity: l.quantity, ...(l.note ? { note: l.note } : {}) }));
-
-// ---------- Mutfak ----------
-// Mutfak ekranında yeni kalem geldi mi (ötsün mü): kalem kimlikleri önceki yoklamada yoksa evet.
+export const cartPayload = cart => [...cart.values()].map(l => ({ product_id: l.product_id, quantity: l.quantity, ...(l.options?.length ? { options: l.options } : {}), ...(l.note ? { note: l.note } : {}) }));
+// Adisyon kalemi tutarı: adet x (birim + seçenekler).
+export const itemAmount = i => Math.round(i.quantity * (i.price + (i.options || []).reduce((s, o) => s + o.price, 0)) * 100) / 100;
+export const DELIVERY_LABELS = { waiting: 'Hazırlanıyor', on_way: 'Yolda', delivered: 'Teslim edildi' };
+// Mutfak fişi (58 mm): masa/paket, saat, kalemler, seçenekler ve notlar. Fiyat yazmaz.
+export function kitchenTicket(order, now = new Date()) {
+  const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const head = order.table || TYPE_LABELS[order.type] || 'Sipariş';
+  const time = new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }).format(now);
+  const rows = (order.items || []).filter(i => i.status !== 'cancelled').map(i => `<div class="l"><b>${esc(i.quantity)}×</b> ${esc(i.name)}${(i.options || []).length ? `<div class="o">+ ${i.options.map(o => esc(o.name)).join(', ')}</div>` : ''}${i.note ? `<div class="n">Not: ${esc(i.note)}</div>` : ''}</div>`).join('');
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Mutfak fişi #${esc(order.id)}</title><style>@page{size:58mm auto;margin:2mm}body{font:14px/1.35 monospace;width:54mm;margin:0;color:#000}h1{font-size:20px;margin:0 0 2px}.m{font-size:12px;border-bottom:1px dashed #000;padding-bottom:4px;margin-bottom:4px}.l{padding:3px 0;border-bottom:1px dotted #999;font-size:15px}.o{font-size:13px;padding-left:12px}.n{font-size:13px;padding-left:12px;font-weight:bold}</style></head><body><h1>${esc(head)}</h1><div class="m">Sipariş #${esc(order.id)} · ${time}${order.note ? '<br>' + esc(order.note) : ''}</div>${rows}</body></html>`;
+}
 export function kitchenNew(prevItemIds, orders) {
   const ids = (orders || []).flatMap(o => o.items.map(i => i.id));
   const fresh = ids.filter(id => !(prevItemIds || []).includes(id));

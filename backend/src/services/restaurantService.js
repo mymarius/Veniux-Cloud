@@ -36,8 +36,45 @@ async function saveTable(user, id, body = {}) {
 async function menu(user) {
   const flagged = (await db.query("SELECT product_id FROM product_attributes WHERE tenant_id=$1 AND attr_key='menu' AND attr_value='1'", [user.tenantId])).rows.map(r => Number(r.product_id));
   const all = (await db.query("SELECT id,name,category,unit,sale_price FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND sale_price>0 ORDER BY category,name LIMIT 500", [user.tenantId])).rows;
-  const items = (flagged.length ? all.filter(p => flagged.includes(Number(p.id))) : all).map(p => ({ id: Number(p.id), name: p.name, category: p.category || 'Diğer', unit: p.unit, price: round(p.sale_price) }));
+  const optionRows = (await db.query('SELECT product_id,name,price FROM restaurant_menu_options WHERE tenant_id=$1 ORDER BY product_id,position', [user.tenantId])).rows;
+  const optionMap = new Map();
+  for (const r of optionRows) optionMap.set(Number(r.product_id), [...(optionMap.get(Number(r.product_id)) || []), { name: r.name, price: round(r.price) }]);
+  const items = (flagged.length ? all.filter(p => flagged.includes(Number(p.id))) : all).map(p => ({ id: Number(p.id), name: p.name, category: p.category || 'Diğer', unit: p.unit, price: round(p.sale_price), options: (optionMap.get(Number(p.id)) || []).map(o => ({ name: o.name, price: o.price })) }));
   return { items, configured: flagged.length > 0 };
+}
+
+// Ürün seçenekleri ("Kaşarlı +20 ₺", "Acılı"): restaurant_menu_options tablosunda sıralı tutulur. İsteğe bağlı malzeme stoktan düşer.
+async function setMenuOptions(user, productId, body = {}) {
+  const id = Number(productId), list = Array.isArray(body.options) ? body.options : null;
+  if (!Number.isSafeInteger(id) || id < 1) fail('Ürün geçersiz.');
+  if (!list || list.length > 20) fail('Bir üründe en çok 20 seçenek olur.');
+  const seen = new Set();
+  const clean = list.map(o => {
+    const name = typeof o?.name === 'string' ? o.name.trim().replace(/\s+/g, ' ') : '';
+    const price = Number(o?.price ?? 0);
+    if (name.length < 1 || name.length > 40 || /[<>]/.test(name) || seen.has(name.toLocaleLowerCase('tr-TR'))) fail('Seçenek adı 1-40 karakter olmalı ve tekrar etmemeli.');
+    if (!Number.isFinite(price) || price < 0 || price > 100000) fail('Seçenek fiyatı geçersiz: ' + name);
+    seen.add(name.toLocaleLowerCase('tr-TR'));
+    const ingredient = o.ingredient_id == null || o.ingredient_id === '' ? null : Number(o.ingredient_id), qty = ingredient ? Number(o.ingredient_qty) : null;
+    if (ingredient !== null && (!Number.isSafeInteger(ingredient) || ingredient < 1 || ingredient === id || !Number.isFinite(qty) || qty <= 0 || qty > 100000)) fail('Seçenek malzemesi geçersiz: ' + name);
+    return { name, price: round(price), ingredient_id: ingredient, ingredient_qty: qty };
+  });
+  return db.transaction(async tx => {
+    if (!(await tx.query('SELECT id FROM products WHERE id=$1 AND tenant_id=$2', [id, user.tenantId])).rows[0]) fail('Ürün bulunamadı.', 404);
+    for (const o of clean.filter(x => x.ingredient_id)) if (!(await tx.query('SELECT id FROM products WHERE id=$1 AND tenant_id=$2', [o.ingredient_id, user.tenantId])).rows[0]) fail('Malzeme bulunamadı: ' + o.ingredient_id, 404);
+    await tx.query('DELETE FROM restaurant_menu_options WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, id]);
+    for (const [position, o] of clean.entries()) await tx.query('INSERT INTO restaurant_menu_options (tenant_id,product_id,position,name,price,ingredient_id,ingredient_qty) VALUES ($1,$2,$3,$4,$5,$6,$7)', [user.tenantId, id, position, o.name, o.price, o.ingredient_id, o.ingredient_qty]);
+    return { product_id: id, options: clean };
+  });
+}
+// Siparişte seçilen seçenekler adla gelir; yalnız tanımlı olanlar kabul edilir, fiyat sunucudan alınır.
+async function pickOptions(tx, user, productId, names) {
+  if (names == null) return [];
+  if (!Array.isArray(names) || names.length > 10) fail('Bir kalemde en çok 10 seçenek seçilir.');
+  const defined = (await tx.query('SELECT name,price,ingredient_id,ingredient_qty FROM restaurant_menu_options WHERE tenant_id=$1 AND product_id=$2 ORDER BY position', [user.tenantId, productId])).rows
+    .map(o => ({ name: o.name, price: round(o.price), ingredient_id: o.ingredient_id == null ? null : Number(o.ingredient_id), ingredient_qty: o.ingredient_qty == null ? null : Number(o.ingredient_qty) }));
+  const picked = [...new Set(names.map(n => String(n ?? '').trim()))].filter(Boolean);
+  return picked.map(n => { const o = defined.find(d => d.name === n); if (!o) fail('Bu üründe böyle bir seçenek yok: ' + n); return o; });
 }
 
 async function setMenu(user, productId, body = {}) {
@@ -100,15 +137,36 @@ async function returnStock(tx, user, warehouse, productId, quantity, orderId) {
   await require('./inventoryTransactionService').recordProjectedEntry(tx, { tenant_id: user.tenantId, warehouse_id: warehouse, product_id: productId, transaction_type: 'RECEIVE', quantity, reference_type: 'restaurant_order', reference_id: orderId, user_id: user.userId });
 }
 
-async function consumption(tx, user, productId, quantity) {
+// Reçete çok katlı olabilir (pide -> hamur -> un/maya). Alt reçetesi olan malzeme açılır; en çok 4 kat, döngü reddedilir.
+async function consumption(tx, user, productId, quantity, depth = 0, path = new Set()) {
+  if (depth > 4 || path.has(productId)) fail('Reçete döngüsü veya çok derin reçete: ürün ' + productId + '.', 409);
   const recipe = (await tx.query('SELECT ingredient_id,quantity FROM product_recipes WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, productId])).rows;
-  return recipe.length ? recipe.map(r => ({ product_id: Number(r.ingredient_id), quantity: round(Number(r.quantity) * quantity, 6) })) : [{ product_id: productId, quantity }];
+  if (!recipe.length) return [{ product_id: productId, quantity }];
+  const next = new Set(path).add(productId), out = [];
+  for (const r of recipe) for (const c of await consumption(tx, user, Number(r.ingredient_id), round(Number(r.quantity) * quantity, 6), depth + 1, next)) out.push(c);
+  return out;
+}
+
+// Adisyon toplamı: kalem (adet x (birim + seçenekler)) - ikram kalemler - indirim + servis ücreti. İptal kalemler sayılmaz.
+async function totals(tx, user, orderId) {
+  const items = (await tx.query("SELECT id,quantity,unit_price FROM restaurant_order_items WHERE tenant_id=$1 AND order_id=$2 AND status<>'cancelled'", [user.tenantId, orderId])).rows;
+  const opts = (await tx.query('SELECT item_id,price FROM restaurant_item_options WHERE tenant_id=$1 AND order_id=$2', [user.tenantId, orderId])).rows;
+  const adj = (await tx.query('SELECT id,item_id,kind,percent,amount FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [user.tenantId, orderId])).rows;
+  const line = new Map(items.map(i => [Number(i.id), round(Number(i.quantity) * (Number(i.unit_price) + opts.filter(o => Number(o.item_id) === Number(i.id)).reduce((t, o) => t + Number(o.price), 0)))]));
+  const gross = round([...line.values()].reduce((t, v) => t + v, 0));
+  const comp = round(adj.filter(a => a.kind === 'comp' && line.has(Number(a.item_id))).reduce((t, a) => t + line.get(Number(a.item_id)), 0));
+  const base = round(gross - comp);
+  let discount = 0;
+  for (const a of adj.filter(x => x.kind === 'discount')) discount += a.percent != null ? round((base - discount) * Number(a.percent) / 100) : Number(a.amount);
+  discount = round(Math.min(discount, base));
+  const service = round(adj.filter(a => a.kind === 'service').reduce((t, a) => t + (base - discount) * Number(a.percent) / 100, 0));
+  return { gross, comp, discount, service, total: round(base - discount + service), lines: line };
 }
 
 async function recalc(tx, user, orderId) {
-  const total = Number((await tx.query("SELECT COALESCE(SUM(quantity*unit_price),0) AS t FROM restaurant_order_items WHERE tenant_id=$1 AND order_id=$2 AND status<>'cancelled'", [user.tenantId, orderId])).rows[0].t);
-  await tx.query('UPDATE restaurant_orders SET total_amount=$1 WHERE id=$2 AND tenant_id=$3', [round(total), orderId, user.tenantId]);
-  return round(total);
+  const t = await totals(tx, user, orderId);
+  await tx.query('UPDATE restaurant_orders SET total_amount=$1 WHERE id=$2 AND tenant_id=$3', [t.total, orderId, user.tenantId]);
+  return t.total;
 }
 
 // ---------- Sipariş ----------
@@ -150,11 +208,17 @@ async function createOrderTx(user, body = {}) {
     else orderId = Number((await tx.query('INSERT INTO restaurant_orders (tenant_id,table_id,order_type,status,warehouse_id,waiter_user_id,note,business_day) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id', [user.tenantId, tableId, type, 'open', warehouse, user.userId, note, businessDay()])).rows[0].id);
     const wh = Number((await tx.query('SELECT warehouse_id FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [orderId, user.tenantId])).rows[0].warehouse_id);
     const shortages = [], created = [];
-    for (const l of clean) {
+    for (const [index, l] of clean.entries()) {
       const p = (await tx.query("SELECT id,name,sale_price FROM products WHERE id=$1 AND tenant_id=$2 AND module_type='NORMAL'", [l.pid, user.tenantId])).rows[0];
       if (!p) fail('Ürün bulunamadı: ' + l.pid, 404);
       const itemId = Number((await tx.query('INSERT INTO restaurant_order_items (tenant_id,order_id,product_id,product_name,quantity,unit_price,note,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id', [user.tenantId, orderId, l.pid, p.name, l.q, round(p.sale_price), l.note, 'new'])).rows[0].id);
+      const chosen = await pickOptions(tx, user, l.pid, lines[index] && lines[index].options);
+      for (const o of chosen) await tx.query('INSERT INTO restaurant_item_options (tenant_id,order_id,item_id,name,price,ingredient_id,ingredient_qty) VALUES ($1,$2,$3,$4,$5,$6,$7)', [user.tenantId, orderId, itemId, o.name, o.price, o.ingredient_id, o.ingredient_qty]);
       const missing = [];
+      for (const o of chosen.filter(x => x.ingredient_id)) {
+        const short = await exitStock(tx, user, wh, o.ingredient_id, round(o.ingredient_qty * l.q, 6), orderId);
+        if (short > 0) { const n = (await tx.query('SELECT name FROM products WHERE id=$1 AND tenant_id=$2', [o.ingredient_id, user.tenantId])).rows[0]?.name || String(o.ingredient_id); missing.push({ product_id: o.ingredient_id, name: n, missing: short }); }
+      }
       for (const c of await consumption(tx, user, l.pid, l.q)) {
         const short = await exitStock(tx, user, wh, c.product_id, c.quantity, orderId);
         if (short > 0) { const n = (await tx.query('SELECT name FROM products WHERE id=$1 AND tenant_id=$2', [c.product_id, user.tenantId])).rows[0]?.name || String(c.product_id); missing.push({ product_id: c.product_id, name: n, missing: short }); }
@@ -172,8 +236,19 @@ async function loadOrders(user, where, params) {
   if (!orders.length) return [];
   const ids = orders.map(o => Number(o.id));
   const items = (await db.query(`SELECT id,order_id,product_id,product_name,quantity,unit_price,note,status,shortfall,created_at FROM restaurant_order_items WHERE tenant_id=$1 AND order_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')}) ORDER BY id`, [user.tenantId, ...ids])).rows;
+  const options = (await db.query(`SELECT item_id,name,price FROM restaurant_item_options WHERE tenant_id=$1 AND order_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')}) ORDER BY id`, [user.tenantId, ...ids])).rows;
+  const adjustments = (await db.query(`SELECT id,order_id,item_id,kind,percent,amount,reason FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')}) ORDER BY id`, [user.tenantId, ...ids])).rows;
+  const deliveries = (await db.query(`SELECT order_id,customer_name,phone,address,note,courier,status FROM restaurant_deliveries WHERE tenant_id=$1 AND order_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...ids])).rows;
+  const optionsOf = id => options.filter(x => Number(x.item_id) === id).map(x => ({ name: x.name, price: round(x.price) }));
+  const extra = o => {
+    const own = adjustments.filter(a => Number(a.order_id) === Number(o.id));
+    const d = deliveries.find(x => Number(x.order_id) === Number(o.id));
+    return { adjustments: own.map(a => ({ id: Number(a.id), item_id: a.item_id == null ? null : Number(a.item_id), kind: a.kind, percent: a.percent == null ? null : Number(a.percent), amount: a.amount == null ? null : round(a.amount), reason: a.reason })),
+      delivery: d ? { customer_name: d.customer_name, phone: d.phone, address: d.address, note: d.note, courier: d.courier, status: d.status } : null,
+      comped: own.filter(a => a.kind === 'comp').map(a => Number(a.item_id)) };
+  };
   return orders.map(o => ({ id: Number(o.id), table_id: o.table_id == null ? null : Number(o.table_id), table: o.table_name || null, type: o.order_type, status: o.status, total: round(o.total_amount), note: o.note, payment_method: o.payment_method, created_at: o.created_at,
-    items: items.filter(i => Number(i.order_id) === Number(o.id)).map(i => ({ id: Number(i.id), product_id: Number(i.product_id), name: i.product_name, quantity: Number(i.quantity), price: round(i.unit_price), note: i.note, status: i.status, shortfall: i.shortfall ? JSON.parse(i.shortfall) : null })) }));
+    items: items.filter(i => Number(i.order_id) === Number(o.id)).map(i => ({ id: Number(i.id), product_id: Number(i.product_id), name: i.product_name, quantity: Number(i.quantity), price: round(i.unit_price), note: i.note, status: i.status, shortfall: i.shortfall ? JSON.parse(i.shortfall) : null, options: optionsOf(Number(i.id)) })), ...extra(o) }));
 }
 
 // status=kitchen: hazırlanacak kalemi olan açık siparişler (mutfak ekranı); open: tüm açık; today: bugünkü tüm siparişler.
@@ -199,6 +274,8 @@ async function setItemStatus(user, orderId, itemId, body = {}) {
     if (status === 'cancelled') {
       if (!['new', 'preparing'].includes(item.status)) fail('Hazırlanmış kalem iptal edilemez.', 409);
       for (const c of await consumption(tx, user, Number(item.product_id), Number(item.quantity))) await returnStock(tx, user, Number(order.warehouse_id), c.product_id, c.quantity, Number(orderId));
+      for (const o of (await tx.query('SELECT ingredient_id,ingredient_qty FROM restaurant_item_options WHERE tenant_id=$1 AND item_id=$2 AND ingredient_id IS NOT NULL', [user.tenantId, Number(itemId)])).rows) await returnStock(tx, user, Number(order.warehouse_id), Number(o.ingredient_id), round(Number(o.ingredient_qty) * Number(item.quantity), 6), Number(orderId));
+      await tx.query("DELETE FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND item_id=$3 AND kind='comp'", [user.tenantId, Number(orderId), Number(itemId)]);
     }
     await tx.query('UPDATE restaurant_order_items SET status=$1' + (status === 'ready' ? ',ready_at=CURRENT_TIMESTAMP' : '') + ' WHERE id=$2 AND tenant_id=$3', [status, Number(itemId), user.tenantId]);
     if (status === 'cancelled') await recalc(tx, user, Number(orderId));
@@ -210,7 +287,10 @@ async function setItemStatus(user, orderId, itemId, body = {}) {
 // olarak işlenir; böylece vardiya kapanışındaki beklenen nakit restoran tahsilatını da içerir. Açık vardiya yoksa adisyon yine kapanır,
 // ama nakit sayıma eklenmediği uyarı olarak döner. Stok zaten sipariş anında düşmüştür; perakende satışı oluşturulmaz (çifte düşüm olmaz).
 async function closeOrder(user, orderId, body = {}) {
-  return db.transaction(async tx => {
+  return db.transaction(tx => closeOrderTx(tx, user, orderId, body));
+}
+async function closeOrderTx(tx, user, orderId, body = {}) {
+  {
     const order = (await tx.query('SELECT id,status,warehouse_id FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [Number(orderId), user.tenantId])).rows[0];
     if (!order) fail('Sipariş bulunamadı.', 404);
     if (order.status !== 'open') fail('Sipariş zaten kapatılmış.', 409);
@@ -237,7 +317,7 @@ async function closeOrder(user, orderId, body = {}) {
     }
     await tx.query("UPDATE restaurant_orders SET status='closed',payment_method=$1,cash_cents=$2,card_cents=$3,shift_id=$4,register_id=$5,closed_at=CURRENT_TIMESTAMP WHERE id=$6 AND tenant_id=$7", [method, cashCents, cardCents, shift ? Number(shift.id) : null, shift ? Number(shift.register_id) : null, Number(orderId), user.tenantId]);
     return { order_id: Number(orderId), total, payment_method: method, cash: cashCents / 100, card: cardCents / 100, shift_id: shift ? Number(shift.id) : null, warning };
-  });
+  }
 }
 
 // Gün raporuna eklenen restoran toplamı (perakende toplamlarına karışmaz).
@@ -257,10 +337,11 @@ async function feed(user, query = {}) {
   return { latest_id: Math.max(latest, after), items: list.reverse().map(o => ({ order_id: o.id, table: o.table, type: o.type, total: o.total, text: o.items.map(i => i.quantity + '× ' + i.name).join(', '), at: o.created_at })) };
 }
 
-// Gün sonu: kaç pide, kaç motor, ciro. İptal kalemler sayılmaz.
+// Gün sonu: kaç pide, kaç motor, ciro. İptal kalemler sayılmaz; ikram kalem adette görünür, ciroya girmez.
+// Ürün satırları indirim ve servis öncesi tutardır; günün toplam cirosu adisyon toplamlarından gelir.
 async function summary(user, query = {}) {
   const day = typeof query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : businessDay();
-  const products = (await db.query(`SELECT i.product_id,i.product_name,SUM(i.quantity) AS qty,SUM(i.quantity*i.unit_price) AS revenue FROM restaurant_order_items i JOIN restaurant_orders o ON o.id=i.order_id AND o.tenant_id=i.tenant_id WHERE i.tenant_id=$1 AND o.business_day=$2 AND i.status<>'cancelled' AND o.status<>'cancelled' GROUP BY i.product_id,i.product_name ORDER BY qty DESC`, [user.tenantId, day])).rows;
+  const products = (await db.query(`SELECT i.product_id,i.product_name,SUM(i.quantity) AS qty,SUM(CASE WHEN EXISTS (SELECT 1 FROM restaurant_order_adjustments a WHERE a.tenant_id=i.tenant_id AND a.item_id=i.id AND a.kind='comp') THEN 0 ELSE i.quantity*(i.unit_price+COALESCE((SELECT SUM(x.price) FROM restaurant_item_options x WHERE x.tenant_id=i.tenant_id AND x.item_id=i.id),0)) END) AS revenue FROM restaurant_order_items i JOIN restaurant_orders o ON o.id=i.order_id AND o.tenant_id=i.tenant_id WHERE i.tenant_id=$1 AND o.business_day=$2 AND i.status<>'cancelled' AND o.status<>'cancelled' GROUP BY i.product_id,i.product_name ORDER BY qty DESC`, [user.tenantId, day])).rows;
   const byType = (await db.query("SELECT order_type,COUNT(*) AS n,SUM(total_amount) AS revenue FROM restaurant_orders WHERE tenant_id=$1 AND business_day=$2 AND status<>'cancelled' GROUP BY order_type", [user.tenantId, day])).rows;
   const open = Number((await db.query("SELECT COUNT(*) AS n FROM restaurant_orders WHERE tenant_id=$1 AND business_day=$2 AND status='open'", [user.tenantId, day])).rows[0].n);
   const orders = byType.reduce((s, r) => s + Number(r.n), 0), revenue = byType.reduce((s, r) => s + Number(r.revenue || 0), 0);
@@ -269,4 +350,136 @@ async function summary(user, query = {}) {
     products: products.map(p => ({ product_id: Number(p.product_id), name: p.product_name, quantity: round(p.qty, 3), revenue: round(p.revenue) })) };
 }
 
-module.exports = { dayTotals, tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };
+
+// ---------- Masa işlemleri ----------
+async function openOrder(tx, user, orderId) {
+  const o = (await tx.query('SELECT id,status,table_id,warehouse_id,order_type,business_day FROM restaurant_orders WHERE id=$1 AND tenant_id=$2' + lock(), [Number(orderId), user.tenantId])).rows[0];
+  if (!o) fail('Sipariş bulunamadı.', 404);
+  if (o.status !== 'open') fail('Sipariş kapanmış.', 409);
+  const scope = allowedWarehouses(user);
+  if (scope && !scope.has(Number(o.warehouse_id))) fail('Bu mağaza için yetkiniz yok.', 403);
+  return o;
+}
+async function activeTable(tx, user, tableId) {
+  const t = Number.isSafeInteger(Number(tableId)) ? (await tx.query('SELECT id,name,active FROM restaurant_tables WHERE id=$1 AND tenant_id=$2', [Number(tableId), user.tenantId])).rows[0] : null;
+  if (!t || Number(t.active) !== 1) fail('Masa bulunamadı.', 404);
+  return t;
+}
+const openOn = async (tx, user, tableId) => (await tx.query("SELECT id FROM restaurant_orders WHERE tenant_id=$1 AND table_id=$2 AND status='open' LIMIT 1", [user.tenantId, Number(tableId)])).rows[0];
+
+// Masa taşıma: adisyon boş masaya geçer. Dolu masaya taşımak için birleştirme kullanılır.
+async function moveOrder(user, orderId, body = {}) {
+  return db.transaction(async tx => {
+    const o = await openOrder(tx, user, orderId);
+    if (o.order_type !== 'masa') fail('Yalnız masa siparişi taşınır.');
+    const t = await activeTable(tx, user, body.table_id);
+    if (Number(o.table_id) === Number(t.id)) fail('Sipariş zaten bu masada.');
+    if (await openOn(tx, user, t.id)) fail(t.name + ' dolu. Hesapları birleştirmek için "Masa birleştir" kullanın.', 409);
+    await tx.query('UPDATE restaurant_orders SET table_id=$1 WHERE id=$2 AND tenant_id=$3', [Number(t.id), Number(o.id), user.tenantId]);
+    return { order_id: Number(o.id), table_id: Number(t.id), table: t.name };
+  });
+}
+
+// Masa birleştirme: kaynak adisyonun kalemleri, seçenekleri ve ikramları hedefe geçer; kaynak kapanmadan silinir (iptal olarak kalır).
+async function mergeOrders(user, sourceId, body = {}) {
+  return db.transaction(async tx => {
+    const src = await openOrder(tx, user, sourceId), dst = await openOrder(tx, user, body.target_order_id);
+    if (Number(src.id) === Number(dst.id)) fail('Aynı adisyon birleştirilemez.');
+    if (Number(src.warehouse_id) !== Number(dst.warehouse_id)) fail('Farklı mağazaların adisyonu birleştirilemez.');
+    if ((await tx.query("SELECT id FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND kind<>'comp' LIMIT 1", [user.tenantId, Number(src.id)])).rows[0]) fail('Taşınan adisyonda indirim veya servis ücreti var; önce kaldırın.', 409);
+    for (const table of ['restaurant_order_items', 'restaurant_item_options', 'restaurant_order_adjustments']) await tx.query(`UPDATE ${table} SET order_id=$1 WHERE tenant_id=$2 AND order_id=$3`, [Number(dst.id), user.tenantId, Number(src.id)]);
+    await tx.query("UPDATE restaurant_orders SET status='cancelled',total_amount=0,note=$1,closed_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3", ['Adisyon #' + Number(dst.id) + ' ile birleştirildi', Number(src.id), user.tenantId]);
+    const total = await recalc(tx, user, Number(dst.id));
+    return { order_id: Number(dst.id), merged_from: Number(src.id), total };
+  });
+}
+
+// Hesap bölme: seçilen kalemler ayrı bir adisyona alınır ve hemen ödenir; kalanlar masada açık kalır.
+async function payItems(user, orderId, body = {}) {
+  const ids = Array.isArray(body.item_ids) ? [...new Set(body.item_ids.map(Number))] : [];
+  if (!ids.length || ids.length > 40 || ids.some(i => !Number.isSafeInteger(i) || i < 1)) fail('Ödenecek kalemleri seçin.');
+  return db.transaction(async tx => {
+    const o = await openOrder(tx, user, orderId);
+    if ((await tx.query("SELECT id FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND kind<>'comp' LIMIT 1", [user.tenantId, Number(o.id)])).rows[0]) fail('Bu adisyonda indirim veya servis ücreti var; hesabı bölmeden önce kaldırın ya da tümünü birlikte kapatın.', 409);
+    const items = (await tx.query("SELECT id FROM restaurant_order_items WHERE tenant_id=$1 AND order_id=$2 AND status<>'cancelled'", [user.tenantId, Number(o.id)])).rows.map(r => Number(r.id));
+    if (ids.some(i => !items.includes(i))) fail('Seçilen kalem bu adisyonda yok veya iptal edilmiş.');
+    if (ids.length === items.length) fail('Tüm kalemler seçildi; hesabı normal kapatın.');
+    const split = Number((await tx.query('INSERT INTO restaurant_orders (tenant_id,table_id,order_type,status,warehouse_id,waiter_user_id,note,business_day) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id', [user.tenantId, o.table_id, o.order_type, 'open', Number(o.warehouse_id), user.userId, 'Adisyon #' + Number(o.id) + ' bölündü', o.business_day])).rows[0].id);
+    const marks = ids.map((_, i) => '$' + (i + 4)).join(',');
+    await tx.query(`UPDATE restaurant_order_items SET order_id=$1 WHERE tenant_id=$2 AND order_id=$3 AND id IN (${marks})`, [split, user.tenantId, Number(o.id), ...ids]);
+    await tx.query(`UPDATE restaurant_item_options SET order_id=$1 WHERE tenant_id=$2 AND order_id=$3 AND item_id IN (${marks})`, [split, user.tenantId, Number(o.id), ...ids]);
+    await tx.query(`UPDATE restaurant_order_adjustments SET order_id=$1 WHERE tenant_id=$2 AND order_id=$3 AND item_id IN (${marks})`, [split, user.tenantId, Number(o.id), ...ids]);
+    await recalc(tx, user, Number(o.id));
+    const paid = await closeOrderTx(tx, user, split, body);
+    return { ...paid, split_from: Number(o.id), remaining_total: round((await tx.query('SELECT total_amount FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [Number(o.id), user.tenantId])).rows[0].total_amount) };
+  });
+}
+
+// ---------- İkram, indirim, servis ücreti ----------
+const ADJUST_KINDS = ['comp', 'discount', 'service'];
+async function addAdjustment(user, orderId, body = {}) {
+  const kind = body.kind;
+  if (!ADJUST_KINDS.includes(kind)) fail('Düzeltme türü geçersiz.');
+  const reason = typeof body.reason === 'string' ? body.reason.trim().slice(0, 120) : '';
+  return db.transaction(async tx => {
+    const o = await openOrder(tx, user, orderId);
+    let item = null, percent = null, amount = null;
+    if (kind === 'comp') {
+      item = Number(body.item_id);
+      const row = Number.isSafeInteger(item) ? (await tx.query("SELECT id FROM restaurant_order_items WHERE id=$1 AND order_id=$2 AND tenant_id=$3 AND status<>'cancelled'", [item, Number(o.id), user.tenantId])).rows[0] : null;
+      if (!row) fail('İkram edilecek kalem bulunamadı.', 404);
+      if ((await tx.query("SELECT id FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND item_id=$3 AND kind='comp'", [user.tenantId, Number(o.id), item])).rows[0]) fail('Bu kalem zaten ikram.', 409);
+      if (!reason) fail('İkram için kısa bir açıklama yazın.');
+    } else if (kind === 'discount') {
+      if (body.percent != null) { percent = Number(body.percent); if (!Number.isFinite(percent) || percent <= 0 || percent > 100) fail('İndirim yüzdesi 0-100 arasında olmalı.'); }
+      else { amount = Number(body.amount); if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) fail('İndirim tutarı geçersiz.'); amount = round(amount); }
+      if (!reason) fail('İndirim için kısa bir açıklama yazın.');
+    } else {
+      percent = Number(body.percent);
+      if (!Number.isFinite(percent) || percent <= 0 || percent > 30) fail('Servis ücreti yüzde 0-30 arasında olmalı.');
+      if ((await tx.query("SELECT id FROM restaurant_order_adjustments WHERE tenant_id=$1 AND order_id=$2 AND kind='service'", [user.tenantId, Number(o.id)])).rows[0]) fail('Bu adisyonda zaten servis ücreti var.', 409);
+    }
+    const id = Number((await tx.query('INSERT INTO restaurant_order_adjustments (tenant_id,order_id,item_id,kind,percent,amount,reason,user_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id', [user.tenantId, Number(o.id), item, kind, percent, amount, reason || null, user.userId])).rows[0].id);
+    await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'restaurant.' + kind, 'restaurant_order', Number(o.id), JSON.stringify({ item_id: item, percent, amount, reason })]);
+    const t = await totals(tx, user, Number(o.id));
+    await tx.query('UPDATE restaurant_orders SET total_amount=$1 WHERE id=$2 AND tenant_id=$3', [t.total, Number(o.id), user.tenantId]);
+    return { id, order_id: Number(o.id), kind, gross: t.gross, comp: t.comp, discount: t.discount, service: t.service, total: t.total };
+  });
+}
+async function removeAdjustment(user, orderId, adjustmentId) {
+  return db.transaction(async tx => {
+    const o = await openOrder(tx, user, orderId);
+    const done = await tx.query('DELETE FROM restaurant_order_adjustments WHERE id=$1 AND order_id=$2 AND tenant_id=$3', [Number(adjustmentId), Number(o.id), user.tenantId]);
+    if (done.rowCount !== 1) fail('Düzeltme bulunamadı.', 404);
+    await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email, 'restaurant.adjustment_removed', 'restaurant_order', Number(o.id), JSON.stringify({ adjustment_id: Number(adjustmentId) })]);
+    return { order_id: Number(o.id), total: await recalc(tx, user, Number(o.id)) };
+  });
+}
+
+// ---------- Paket servis ----------
+const DELIVERY_STATUSES = ['waiting', 'on_way', 'delivered'];
+const text = (v, max) => (typeof v === 'string' ? v.trim().replace(/[\x00-\x1f<>]/g, '').slice(0, max) : null) || null;
+async function setDelivery(user, orderId, body = {}) {
+  return db.transaction(async tx => {
+    const o = (await tx.query('SELECT id,order_type FROM restaurant_orders WHERE id=$1 AND tenant_id=$2', [Number(orderId), user.tenantId])).rows[0];
+    if (!o) fail('Sipariş bulunamadı.', 404);
+    if (!['paket', 'motor'].includes(o.order_type)) fail('Teslimat bilgisi yalnız paket ve motor siparişine yazılır.');
+    const phone = text(body.phone, 20);
+    if (phone && !/^[0-9 +()-]{7,20}$/.test(phone)) fail('Telefon numarası geçersiz.');
+    const status = body.status == null ? 'waiting' : body.status;
+    if (!DELIVERY_STATUSES.includes(status)) fail('Teslimat durumu geçersiz.');
+    const row = { customer_name: text(body.customer_name, 80), phone, address: text(body.address, 300), note: text(body.note, 200), courier: text(body.courier, 60), status };
+    if (o.order_type === 'motor' && !row.address) fail('Motorlu teslimat için adres gerekli.');
+    await tx.query('DELETE FROM restaurant_deliveries WHERE tenant_id=$1 AND order_id=$2', [user.tenantId, Number(o.id)]);
+    await tx.query('INSERT INTO restaurant_deliveries (order_id,tenant_id,customer_name,phone,address,note,courier,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [Number(o.id), user.tenantId, row.customer_name, row.phone, row.address, row.note, row.courier, row.status]);
+    return { order_id: Number(o.id), ...row };
+  });
+}
+// Bugünkü paket ve motor siparişleri, teslim edilmeyenler önce.
+async function deliveries(user) {
+  const list = await loadOrders(user, "AND o.business_day=$2 AND o.order_type IN ('paket','motor') AND o.status<>'cancelled'", [businessDay()]);
+  const rank = o => (o.delivery ? DELIVERY_STATUSES.indexOf(o.delivery.status) : 0);
+  return { items: list.sort((a, b) => rank(a) - rank(b) || a.id - b.id) };
+}
+
+module.exports = { setMenuOptions, moveOrder, mergeOrders, payItems, addAdjustment, removeAdjustment, setDelivery, deliveries, totals, dayTotals, tables, saveTable, menu, setMenu, recipes, setRecipe, createOrder, orders, setItemStatus, closeOrder, feed, summary, businessDay };
