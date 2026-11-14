@@ -33,14 +33,15 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
         if($discord){
         // Discord "Link Component Embeds": bileşenli kart (docs.discord.com/developers/link-previews/component-embeds). Sınır: 3000 bayt; yalnız link düğmeleri.
         $base=rtrim($config['url'],'/');
-        $media=isset($page['image'])&&preg_match('/^(?:product|sector)-[a-z]+-v[0-9]+\.(?:jpg|webp)$/D',$page['image'])?$page['image']:'product-retail-v1.jpg';
+        $embedFile='embed-'.($path==='/'?'home':trim($path,'/')).'-v1.jpg';
+        $media=is_file(__DIR__.'/assets/'.$embedFile)?$embedFile:'product-retail-v1.jpg';
         $title=preg_replace('/\s*\|\s*Veniux(?: Cloud)?$/u','',(string)$page['title']);
         $build=static function(int $max) use($base,$url,$title,$page,$media):string{
             $desc=(string)$page['description'];if(mb_strlen($desc)>$max)$desc=rtrim(mb_substr($desc,0,$max-1)).'…';
             $payload=['component'=>['type'=>17,'accent_color'=>0xCF4B06,'components'=>[
                 ['type'=>9,'components'=>[['type'=>10,'content'=>'# **['.$title.']('.$url.')**'."
 ".$desc]],'accessory'=>['type'=>11,'media'=>['url'=>$base.'/assets/logo-hero-420-v2.webp']]],
-                ['type'=>12,'items'=>[['media'=>['url'=>$base.'/assets/'.$media],'description'=>'Veniux ürün ekranı, sentetik örnek kayıtlar']]],
+                ['type'=>12,'items'=>[['media'=>['url'=>$base.'/assets/'.$media],'description'=>'Veniux: '.$title]]],
                 ['type'=>14,'spacing'=>1],
                 ['type'=>1,'components'=>[
                     ['type'=>2,'style'=>5,'label'=>'Demo isteyin','url'=>$base.'/?request_type=demo#iletisim'],
