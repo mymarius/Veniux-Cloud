@@ -553,7 +553,7 @@ async function summary(user) {
   const rows = (await db.query('SELECT status,COUNT(*) AS n,SUM(total) AS t FROM online_orders WHERE tenant_id=$1 GROUP BY status', [user.tenantId])).rows;
   const by = Object.fromEntries(STATUSES.map(s => [s, 0]));
   for (const r of rows) by[r.status] = Number(r.n);
-  const today = (await db.query("SELECT COUNT(*) AS n,SUM(total) AS t FROM online_orders WHERE tenant_id=$1 AND status<>'cancelled' AND created_at>=$2", [user.tenantId, day + ' 00:00:00'])).rows[0];
+  const today = (await db.query("SELECT COUNT(*) AS n,SUM(total) AS t FROM online_orders WHERE tenant_id=$1 AND status<>'cancelled' AND created_at>=$2", [user.tenantId, new Date(day + 'T00:00:00+03:00').toISOString().slice(0, 19).replace('T', ' ')])).rows[0];
   return { by_status: by, open: OPEN_STATUSES.reduce((s, k) => s + by[k], 0), today_orders: Number(today.n || 0), today_total: round(today.t || 0) };
 }
 

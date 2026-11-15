@@ -4,7 +4,7 @@ const rateLimit = require('express-rate-limit');
 const auth = require('../middlewares/ownerConsoleAuth');
 const service = require('../services/ownerConsoleService');
 const router = express.Router();
-router.use(rateLimit({ windowMs: 60000, limit: 60, standardHeaders: false, legacyHeaders: false, message: { code: 'RATE_LIMIT', error: 'Çok fazla istek.' } }));
+router.use(rateLimit({ windowMs: 60000, limit: process.env.NODE_ENV === 'test' ? 100000 : 60, standardHeaders: false, legacyHeaders: false, message: { code: 'RATE_LIMIT', error: 'Çok fazla istek.' } }));
 router.use(auth.middleware);
 const run = fn => async (req, res, next) => { try { res.set('Cache-Control', 'no-store').json(await fn(req)); } catch (e) { next(e); } };
 router.get('/ping', run(() => ({ ok: true })));
