@@ -1,8 +1,18 @@
 {
-  "version": "2.4.74",
+  "version": "2.4.75",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.75",
+      "date": "15 Kasım 2026",
+      "title": "Çevrimdışı satış ve hırdavat arama düzeltmeleri",
+      "items": [
+        "- Çevrimdışı yapılan satışlar bağlantı gelince sunucuya sorunsuz gönderilir",
+        "- Hırdavat ürün aramada kamera düğmesinin simgesi görünür",
+        "- Arama kutusundaki yönlendirme yazısı kısaldı"
+      ]
+    },
     {
       "version": "2.4.74",
       "date": "14 Kasım 2026",

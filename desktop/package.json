@@ -1,6 +1,6 @@
 {
   "name": "veniux-enterprise-wms",
-  "version": "2.4.74",
+  "version": "2.4.75",
   "description": "Veniux Cloud — Standalone Desktop Fulfillment & Logistics Platform",
   "main": "main.js",
   "scripts": {
