@@ -117,7 +117,7 @@ $steps=[
         <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th></tr></thead>
         <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=e(sitePrice($plan,true))?></td><td><?=e(sitePrice($plan,false))?></td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
         <tbody class="hx-ratepacks"><tr><th scope="rowgroup" colspan="5">Sektör paketleri · genel pakete ek, yıllık</th></tr>
-        <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran','online'=>'Online mağaza'] as $key=>$label):?><tr><th scope="row"><?=e($label)?></th><td colspan="4"><?=e(siteMoney(siteSectorPrices()[$key]))?> <small>· aylık <?=number_format(siteSectorPrices()[$key]/12,0,',','.')?> ₺</small></td></tr><?php endforeach;?></tbody>
+        <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):?><tr><th scope="row"><?=e($label)?></th><td colspan="4"><?=e(siteMoney(siteSectorPrices()[$key]))?> <small>· aylık <?=number_format(siteSectorPrices()[$key]/12,0,',','.')?> ₺</small></td></tr><?php endforeach;?></tbody>
       </table></div>
       <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları ve sektör paketleri</a></p>
       <?=homeBarcode('fiyat-etiketi',26)?>

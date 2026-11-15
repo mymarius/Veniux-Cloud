@@ -10,7 +10,7 @@ function sitePlans(): array {
     ];
 }
 function sitePlanSelection($value): ?array {
-    if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide|online):yillik$/D',$value,$pack)) {
+    if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide):yillik$/D',$value,$pack)) {
         $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)','online'=>'Online mağaza paketi (ek)'];
         return ['code'=>$value,'name'=>$names[$pack[1]],'period'=>'Yıllık (12 ay)','amount_try'=>siteSectorPrices()[$pack[1]],'tax'=>'%20 KDV dahil'];
     }

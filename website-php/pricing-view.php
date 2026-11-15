@@ -86,6 +86,18 @@ $compare=[
     </article>
 <?php endforeach;?>
   </div>
+  <article class="pr-pack" aria-labelledby="online-baslik" style="max-width:720px;margin:24px auto 0">
+    <div class="pr-tag-top"><span>ONLİNE MAĞAZA</span><span>PLANLI ÇALIŞMADA</span></div>
+    <h3 id="online-baslik">Online mağaza paketi</h3>
+    <p class="pr-pack-lead">Stok ve kasanızla aynı yerde çalışan kendi online mağazanız. Sipariş geldiğinde stok kendiliğinden düşer, iki yerde giriş yapmazsınız.</p>
+    <ul><li>Ürünlerinizi seçip tek adreste yayınlayın (QR kod ve bağlantı)</li><li>Kapıda ödeme, havale/EFT ve kartla ödeme</li><li>İndirim kodları, ile göre kargo ücreti, takip numarası</li><li>Kiloyla satış, müşteri kaydı ve vitrin teması</li><li>Kendi alan adınız (sonraki sürümde)</li></ul>
+    <div class="pr-pack-foot">
+      <span class="pr-sector-badge">Şu an satışta değil · hazırlık sürüyor</span>
+      <div class="pr-pack-price"><span><?=number_format(siteSectorPrices()['online'],0,',','.')?></span><small> ₺ / yıl</small></div>
+      <em>Tek paket, ek ücret yok · KDV dahil · çıkış tarihinde geçerli olacak fiyat</em>
+      <a class="hx-btn" href="/#iletisim">Çıkınca haber verin</a>
+    </div>
+  </article>
   <p class="pr-sector-cta" data-pr>Birden fazla sektör paketi alırsanız birlikte teklif hazırlarız. <a href="/#iletisim">Bize yazın</a>.</p>
 </div></section>
 
@@ -97,7 +109,7 @@ $compare=[
       <?php $firstPlan=true; foreach($plans as $key=>$plan):?><label class="pr-calc-opt"><input type="radio" name="plan" value="<?=e($key)?>" data-price="<?=(int)$plan['annual']?>"<?=!empty($plan['from'])?' data-from="1"':''?><?=$firstPlan?' checked':''?>><span><b><?=e($plan['name'])?></b><small><?=$plan['warehouses']?> depo · <?=$plan['users']?> kullanıcı · <?=$plan['devices']?> cihaz</small></span><em><?=number_format((int)$plan['annual'],0,',','.')?> ₺<?=!empty($plan['from'])?'’den':''?></em></label><?php $firstPlan=false; endforeach;?>
     </fieldset>
     <fieldset><legend>Sektör paketleri (isteğe bağlı)</legend>
-      <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran','online'=>'Online mağaza'] as $key=>$label):$price=siteSectorPrices()[$key];?><label class="pr-calc-opt"><input type="checkbox" name="sector" value="<?=e($key)?>" data-price="<?=(int)$price?>"><span><b><?=e($label)?></b><small>Genel pakete ek</small></span><em><?=number_format($price,0,',','.')?> ₺</em></label><?php endforeach;?>
+      <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):$price=siteSectorPrices()[$key];?><label class="pr-calc-opt"><input type="checkbox" name="sector" value="<?=e($key)?>" data-price="<?=(int)$price?>"><span><b><?=e($label)?></b><small>Genel pakete ek</small></span><em><?=number_format($price,0,',','.')?> ₺</em></label><?php endforeach;?>
     </fieldset>
     <div class="pr-calc-out" role="status" aria-live="polite">
       <small>Yıllık toplam (KDV dahil)</small>
