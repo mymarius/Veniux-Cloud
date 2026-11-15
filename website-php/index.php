@@ -46,7 +46,7 @@ foreach($growthPages as $route=>$guide){
     $pages[$route]['image_width']=1914;
     $pages[$route]['image_height']=860;
 }
-$pages['/stok-programlari-karsilastirma']=['title'=>'Stok ve Kasa Programları Karşılaştırması | Veniux','description'=>'BenimPOS, AysimaPOS, BarkodSis, Hesapbilir ve ön muhasebe programlarının fiyat ve özellikleri, kaynaklı ve tarihli olarak Veniux ile yan yana. Eksiklerimiz de yazılı.','label'=>'Karşılaştırma','headline'=>'Stok ve kasa programlarını yan yana görün.','intro'=>'Rakiplerin kendi sitelerinde yazan fiyat ve özellikler, kaynağıyla ve tarihiyle.','image'=>'','alt'=>''];
+$pages['/stok-programlari-karsilastirma']=['title'=>'Stok ve Kasa Programı Seçerken Ne Sormalı? | Veniux','description'=>'Stok ve kasa programı seçerken satıcıya sorulacak sorular, program türlerinin yaklaşık fiyat aralıkları ve Veniux’un cevapları. Eksiklerimiz de yazılı.','label'=>'Program seçerken','headline'=>'Doğru programı seçmek için ne sormalı?','intro'=>'Program türlerinin yaklaşık fiyatları ve satıcıya sorulacak sorular.','image'=>'','alt'=>''];
 $pages['/depo-yonetimi']['image']='product-warehouse-v4.jpg';
 $pages['/depo-yonetimi']['image_width']=1920;
 $pages['/depo-yonetimi']['image_height']=863;

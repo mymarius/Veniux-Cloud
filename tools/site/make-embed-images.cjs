@@ -38,7 +38,7 @@ const auto = [
   ['fiyatlandirma', 'FİYATLAR'], ['program-indir', 'PROGRAMI İNDİR'], ['stok-yonetimi', 'STOK YÖNETİMİ'], ['depo-yonetimi', 'DEPO YÖNETİMİ'],
   ['lot-miat-takibi', 'LOT VE MİAT'], ['market-pos', 'MARKET VE POS'], ['yapay-zeka', 'OPERASYON ASİSTANI'], ['barkodlu-stok-takibi', 'BARKODLU TAKİP'],
   ['son-kullanma-tarihi-takibi', 'SON KULLANMA TARİHİ'], ['el-terminali-depo-yonetimi', 'EL TERMİNALİ'], ['sayim-farki-nasil-bulunur', 'REHBER'],
-  ['telefonu-barkod-okuyucu-olarak-kullanma', 'REHBER'], ['barkodlu-stoga-gecis-kontrol-listesi', 'REHBER'], ['sunucu-kurulumu', 'KURULUM'], ['demo', 'DEMO'], ['stok-programlari-karsilastirma', 'KARŞILAŞTIRMA'],
+  ['telefonu-barkod-okuyucu-olarak-kullanma', 'REHBER'], ['barkodlu-stoga-gecis-kontrol-listesi', 'REHBER'], ['sunucu-kurulumu', 'KURULUM'], ['demo', 'DEMO'], ['stok-programlari-karsilastirma', 'PROGRAM SEÇERKEN'],
 ];
 const clip = (t, n) => (t.length <= n ? t : t.slice(0, n - 1).replace(/[\s,;.]+\S*$/, '') + '…');
 // Elle yazılmış kısa başlıklar ve sayfaya uygun ekran görüntüsü (yoksa sayfanın kendi başlığı/açıklaması kullanılır).
@@ -50,7 +50,7 @@ const manual = {
   'lot-miat-takibi': ['Son kullanma tarihi kaçmasın.', 'Lot bazlı takip, yaklaşan ürünler için uyarı.', 'product-lot-v4.jpg'],
   'market-pos': ['Barkodu okutun, satış tamam.', 'Hızlı kasa; stok her satışta kendiliğinden düşer.', 'sector-market-v1.jpg'],
   'yapay-zeka': ['Sorunuzu yazın, asistan cevaplasın.', 'Stok, satış ve sipariş sorularını konuşur gibi sorun.', 'sector-market-v1.jpg'],
-  'stok-programlari-karsilastirma': ['Programları yan yana görün.', 'Fiyat ve özellikler, kaynağıyla ve tarihiyle. Eksiklerimiz de yazılı.', 'sector-market-v1.jpg'],
+  'stok-programlari-karsilastirma': ['Doğru programı nasıl seçersiniz?', 'Satıcıya sorulacak sorular ve yaklaşık fiyat aralıkları. Eksiklerimiz de yazılı.', 'sector-market-v1.jpg'],
   'demo': ['Demoyu birlikte deneyelim.', 'Kendi ürünlerinizle, sizin işletmenize göre.', 'sector-market-v1.jpg'],
 };
 async function fromSite() {
