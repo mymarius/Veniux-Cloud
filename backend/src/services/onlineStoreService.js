@@ -321,7 +321,7 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     if (wanted.get(id) > 50) fail('Bir üründen en çok 50 adet sipariş verilebilir.');
   }
   const expected = new Map(lines.filter(l => l && l.expected_price !== undefined).map(l => [Number(l.product_id), Number(l.expected_price)]));
-  return db.transaction(async tx => {
+  const result = await db.transaction(async tx => {
     // Tekrar gönderim: aynı anahtar aynı siparişi döner.
     const dup = (await tx.query('SELECT * FROM online_orders WHERE tenant_id=$1 AND idempotency_key=$2', [tenantId, idempotencyKey])).rows[0];
     if (dup) { const its = (await tx.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [tenantId, dup.id])).rows; return { ...shapeOrder(dup, its), repeated: true }; }
@@ -364,6 +364,24 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     const its = (await tx.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [tenantId, orderId])).rows;
     return shapeOrder(order, its);
   });
+  if (!result.repeated) announce(store, result, { name, phone, address: delivery === 'delivery' ? address : '', note, email }).catch(() => {});
+  return result;
+}
+// Yeni sipariş bildirimi (en iyi çaba): işletmenin yönetici ve müdürlerine mobil bildirim, iletişim e-postasına ayrıntılı e-posta.
+// Bildirim hatası siparişi asla bozmaz.
+async function announce(store, order, customer) {
+  const tenantId = Number(store.tenant_id);
+  const tl = n => Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+  const lines = order.items.map(i => `${i.quantity}× ${i.name} (${tl(i.line_total)})`);
+  const how = (order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim') + ' · ' + (order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme');
+  try {
+    await require('./pushNotifier').notifyTenant(tenantId, { title: 'Yeni online sipariş ' + order.number, body: `${customer.name} · ${tl(order.total)} · ${order.items.length} kalem`, url: '/sektor/online-magaza', tag: 'online-order-' + order.number });
+  } catch { /* bildirim en iyi çaba */ }
+  if (!store.contact_email) return;
+  const text = [`Yeni online sipariş: ${order.number}`, '', `Müşteri: ${customer.name}`, `Telefon: ${customer.phone}`, customer.email ? `E-posta: ${customer.email}` : '', customer.address ? `Adres: ${customer.address}` : '', customer.note ? `Not: ${customer.note}` : '', '', how, '', ...lines, '', `Ara toplam: ${tl(order.subtotal)}`, `Teslimat: ${tl(order.delivery_fee)}`, `Toplam: ${tl(order.total)}`, '', 'Siparişi yönetmek için Veniux > Online Mağaza > Siparişler sayfasını açın.'].filter((v, i, a) => v !== '' || (i > 0 && a[i - 1] !== '')).join('\n');
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const html = '<p><b>Yeni online sipariş: ' + esc(order.number) + '</b></p><p>' + esc(customer.name) + ' · ' + esc(customer.phone) + (customer.address ? '<br>' + esc(customer.address) : '') + (customer.note ? '<br><i>' + esc(customer.note) + '</i>' : '') + '</p><p>' + esc(how) + '</p><ul>' + lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul><p><b>Toplam: ' + esc(tl(order.total)) + '</b></p>';
+  try { await require('./notificationService').sendEmail(store.contact_email, 'Yeni online sipariş ' + order.number, text, html); } catch { /* e-posta en iyi çaba */ }
 }
 async function publicOrder(slug, code) {
   const store = await openStore(slug) || notFound();
