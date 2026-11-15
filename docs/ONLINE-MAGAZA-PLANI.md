@@ -6,6 +6,14 @@ Başka bir e-ticaret yazılımıyla bağlantı kurulmaz; benzer özellikler Veni
 
 Bu belge Faz 1'in ince ayrıntısıdır. Kararlar aksi söylenmedikçe aşağıdaki varsayılanlarla ilerlenir.
 
+## İlerleme (15 Kasım 2026)
+- **Tamam (sunucu, commit `005eeda`):** paket anahtarı `online_store` (sunucu, lisans merkezi `LICENSE_ADDONS`), şema SQLite 052, mağaza ayarı ve adres kuralları, ürün yayını/açıklaması, herkese açık vitrin uçları, sipariş oluşturma (fiyat, stok, tekrar gönderim, bal küpü, istek sınırı), durum makinesi ve iptalde stok iadesi, yönetici uçları. 28 yeni test; firma ayrımı taraması bu uçları da kapsıyor.
+- **Sıradaki:** görsel yükleme, yönetici paneli, vitrin (müşteri sayfaları), bildirimler, MySQL manifesti 022 ve MySQL provası, dağıtım.
+- **Plan değişiklikleri:**
+  1. **Görsel işleme sunucuda yapılmaz** (`sharp` gibi yerel kütüphane yok; bulutta derleme riski). Tarayıcı görseli küçültüp WebP/JPEG'e çevirir (EXIF kendiliğinden silinir); sunucu bayt imzasını, boyutu ve en/boy sınırını doğrular, olduğu gibi saklar.
+  2. **Paket kapanması:** vitrin yalnızca işletmenin lisansı süresi bitince durur. Paket tek başına kaldırılırsa mağaza, yöneticinin ilk girişine/panel isteğine kadar açık kalabilir (lisans merkezi cihazsız ziyaretçi isteğinde sorgulanamaz). Faz 2'de merkezi paket doğrulaması eklenecek.
+  3. **Müşteri kaydı** (siparişten otomatik CRM müşterisi) Faz 2'ye alındı.
+
 ## 0. Varsayılan kararlar
 1. Adres: `app.veniux.com/magaza/<mağaza-adı>`. Özel alan adı Faz 2.
 2. Ödeme: **kapıda ödeme, havale/EFT, mağazadan teslim**. Online kart ödemesi yok (Faz 3, şirket gerekir).
