@@ -1,0 +1,117 @@
+<?php
+declare(strict_types=1);
+// Bulut veritabanından SALT OKUNUR raporlar. Bağlantı, yalnızca SELECT yetkili ayrı bir veritabanı kullanıcısıyla yapılır (özel klasördeki db.json).
+// Parola özeti, lisans anahtarı ve kimlik doğrulama alanları hiçbir sorguda seçilmez.
+
+function consoleDb(): PDO {
+    static $pdo = null;
+    if ($pdo) return $pdo;
+    $cfg = privateJson('db.json');
+    if (!$cfg || empty($cfg['dsn'])) throw new RuntimeException('Veritabanı ayarı (db.json) yok.');
+    $pdo = new PDO((string) $cfg['dsn'], (string) ($cfg['user'] ?? ''), (string) ($cfg['password'] ?? ''), [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+    return $pdo;
+}
+function rows(string $sql, array $params = []): array { $st = consoleDb()->prepare($sql); $st->execute($params); return $st->fetchAll(); }
+function one(string $sql, array $params = []): array { return rows($sql, $params)[0] ?? []; }
+function scalar(string $sql, array $params = []) { $r = one($sql, $params); return $r ? array_values($r)[0] : null; }
+const SALE_OK = "('completed','partially_returned')";
+
+function dashboard(): array {
+    $now = gmdate('Y-m-d H:i:s'); $d30 = gmdate('Y-m-d H:i:s', time() - 30 * 86400); $d7 = gmdate('Y-m-d H:i:s', time() - 7 * 86400);
+    $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400); $today = gmdate('Y-m-d') . ' 00:00:00';
+    $t = one('SELECT COUNT(*) AS n, COALESCE(SUM(is_active=1),0) AS active, COALESCE(SUM(created_at>=?),0) AS fresh FROM tenants', [$d30]);
+    $lic = one("SELECT COALESCE(SUM(status='ACTIVE' AND (expires_at IS NULL OR expires_at>?)),0) AS active, COALESCE(SUM(status='ACTIVE' AND expires_at>? AND expires_at<=?),0) AS expiring, COALESCE(SUM(status='ACTIVE' AND expires_at<=?),0) AS lapsed FROM licenses", [$now, $now, $in30, $now]);
+    $u = one('SELECT COUNT(*) AS n, COALESCE(SUM(status=\'active\'),0) AS active, COALESCE(SUM(last_login>=?),0) AS recent FROM users', [$d7]);
+    $dev = one("SELECT COUNT(*) AS n, COALESCE(SUM(last_seen_at>=?),0) AS recent FROM pos_devices", [$d7]);
+    $s30 = one('SELECT COUNT(*) AS n, COALESCE(SUM(net_amount),0) AS total FROM pos_sales WHERE status IN ' . SALE_OK . ' AND created_at>=?', [$d30]);
+    $sToday = one('SELECT COUNT(*) AS n, COALESCE(SUM(net_amount),0) AS total FROM pos_sales WHERE status IN ' . SALE_OK . ' AND created_at>=?', [$today]);
+    $o30 = one("SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS total FROM online_orders WHERE status<>'cancelled' AND created_at>=?", [$d30]);
+    $stores = one('SELECT COUNT(*) AS n, COALESCE(SUM(published=1),0) AS live FROM online_stores');
+    $daily = rows('SELECT DATE(created_at) AS day, COUNT(*) AS n, COALESCE(SUM(net_amount),0) AS total FROM pos_sales WHERE status IN ' . SALE_OK . ' AND created_at>=? GROUP BY DATE(created_at) ORDER BY day DESC LIMIT 14', [gmdate('Y-m-d H:i:s', time() - 14 * 86400)]);
+    $expiring = rows("SELECT t.id, t.company_name, l.plan_id, l.expires_at FROM licenses l JOIN tenants t ON t.id=l.tenant_id WHERE l.status='ACTIVE' AND l.expires_at>? AND l.expires_at<=? ORDER BY l.expires_at LIMIT 15", [$now, $in30]);
+    $recent = rows('SELECT id, company_name, industry, created_at, is_active FROM tenants ORDER BY id DESC LIMIT 8');
+    return compact('t', 'lic', 'u', 'dev', 's30', 'sToday', 'o30', 'stores', 'daily', 'expiring', 'recent');
+}
+
+function planName(?string $featuresJson, ?string $planId): string {
+    $f = $featuresJson ? json_decode($featuresJson, true) : null;
+    if (is_array($f) && isset($f['product_package']['name'])) return (string) $f['product_package']['name'];
+    return (string) ($planId ?: '—');
+}
+
+function customers(string $q = '', string $filter = ''): array {
+    $now = gmdate('Y-m-d H:i:s'); $d30 = gmdate('Y-m-d H:i:s', time() - 30 * 86400); $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400);
+    $where = ['1=1']; $params = [];
+    if ($q !== '') { $where[] = '(t.company_name LIKE ? OR t.email LIKE ? OR t.tenant_code LIKE ? OR t.phone LIKE ?)'; $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%'; array_push($params, $like, $like, $like, $like); }
+    if ($filter === 'pasif') $where[] = 't.is_active=0';
+    if ($filter === 'aktif') $where[] = 't.is_active=1';
+    $sql = "SELECT t.id, t.company_name, t.tenant_code, t.email, t.phone, t.industry, t.is_active, t.created_at,
+      (SELECT COUNT(*) FROM users u WHERE u.tenant_id=t.id) AS users,
+      (SELECT COUNT(*) FROM pos_devices d WHERE d.tenant_id=t.id) AS devices,
+      (SELECT MAX(u.last_login) FROM users u WHERE u.tenant_id=t.id) AS last_login,
+      (SELECT l.plan_id FROM licenses l WHERE l.tenant_id=t.id ORDER BY l.id DESC LIMIT 1) AS plan_id,
+      (SELECT l.enabled_features_json FROM licenses l WHERE l.tenant_id=t.id ORDER BY l.id DESC LIMIT 1) AS features,
+      (SELECT l.status FROM licenses l WHERE l.tenant_id=t.id ORDER BY l.id DESC LIMIT 1) AS license_status,
+      (SELECT l.expires_at FROM licenses l WHERE l.tenant_id=t.id ORDER BY l.id DESC LIMIT 1) AS expires_at,
+      (SELECT GROUP_CONCAT(p.pack ORDER BY p.pack SEPARATOR ',') FROM sector_packs p WHERE p.tenant_id=t.id) AS packs,
+      (SELECT COALESCE(SUM(s.net_amount),0) FROM pos_sales s WHERE s.tenant_id=t.id AND s.status IN " . SALE_OK . " AND s.created_at>=?) AS sales30
+      FROM tenants t WHERE " . implode(' AND ', $where) . ' ORDER BY t.id DESC LIMIT 500';
+    $list = rows($sql, array_merge([$d30], $params));
+    if ($filter === 'bitecek') $list = array_values(array_filter($list, fn($r) => $r['expires_at'] && $r['expires_at'] > $now && $r['expires_at'] <= $in30));
+    if ($filter === 'suresi-doldu') $list = array_values(array_filter($list, fn($r) => $r['expires_at'] && $r['expires_at'] <= $now));
+    return $list;
+}
+
+function customerDetail(int $id): ?array {
+    $t = one('SELECT id, company_name, tenant_code, email, phone, tax_number, tax_office, address, is_active, created_at, industry, currency, timezone FROM tenants WHERE id=?', [$id]);
+    if (!$t) return null;
+    $d30 = gmdate('Y-m-d H:i:s', time() - 30 * 86400);
+    $licenses = rows('SELECT id, plan_id, status, max_users, max_warehouses, max_devices, enabled_features_json, issued_at, activated_at, expires_at, last_validation_at FROM licenses WHERE tenant_id=? ORDER BY id DESC LIMIT 20', [$id]);
+    foreach ($licenses as &$l) $l['plan_name'] = planName($l['enabled_features_json'], $l['plan_id']);
+    unset($l);
+    return [
+        'tenant' => $t, 'licenses' => $licenses,
+        'users' => rows('SELECT id, email, full_name, role, status, last_login, created_at FROM users WHERE tenant_id=? ORDER BY id LIMIT 200', [$id]),
+        'devices' => rows('SELECT id, label, platform, status, created_at, last_seen_at FROM pos_devices WHERE tenant_id=? ORDER BY id LIMIT 100', [$id]),
+        'warehouses' => rows('SELECT id, name, warehouse_type, location FROM warehouses WHERE tenant_id=? ORDER BY id LIMIT 100', [$id]),
+        'packs' => rows('SELECT pack, granted_at FROM sector_packs WHERE tenant_id=? ORDER BY pack', [$id]),
+        'sales' => one('SELECT COUNT(*) AS n, COALESCE(SUM(net_amount),0) AS total FROM pos_sales WHERE tenant_id=? AND status IN ' . SALE_OK . ' AND created_at>=?', [$id, $d30]),
+        'salesAll' => one('SELECT COUNT(*) AS n, COALESCE(SUM(net_amount),0) AS total, MAX(created_at) AS last FROM pos_sales WHERE tenant_id=? AND status IN ' . SALE_OK, [$id]),
+        'store' => one('SELECT slug, name, published, accepting_orders, created_at FROM online_stores WHERE tenant_id=?', [$id]),
+        'orders' => one("SELECT COUNT(*) AS n, COALESCE(SUM(total),0) AS total FROM online_orders WHERE tenant_id=? AND status<>'cancelled'", [$id]),
+        'products' => (int) scalar('SELECT COUNT(*) FROM products WHERE tenant_id=?', [$id]),
+        'invoices' => rows('SELECT invoice_no, amount, currency, payment_method, status, paid_at, created_at FROM invoices WHERE tenant_id=? ORDER BY id DESC LIMIT 20', [$id]),
+        'audit' => rows('SELECT user_email, action, entity_type, created_at FROM audit_logs WHERE tenant_id=? ORDER BY id DESC LIMIT 20', [$id]),
+    ];
+}
+
+function salesByTenant(int $days = 30): array {
+    $from = gmdate('Y-m-d H:i:s', time() - $days * 86400);
+    return rows("SELECT t.id, t.company_name,
+      (SELECT COUNT(*) FROM pos_sales s WHERE s.tenant_id=t.id AND s.status IN " . SALE_OK . " AND s.created_at>=?) AS sales,
+      (SELECT COALESCE(SUM(s.net_amount),0) FROM pos_sales s WHERE s.tenant_id=t.id AND s.status IN " . SALE_OK . " AND s.created_at>=?) AS revenue,
+      (SELECT COUNT(*) FROM online_orders o WHERE o.tenant_id=t.id AND o.status<>'cancelled' AND o.created_at>=?) AS orders,
+      (SELECT COALESCE(SUM(o.total),0) FROM online_orders o WHERE o.tenant_id=t.id AND o.status<>'cancelled' AND o.created_at>=?) AS online_revenue
+      FROM tenants t ORDER BY revenue DESC, t.id DESC LIMIT 300", [$from, $from, $from, $from]);
+}
+
+function catalogue(): array {
+    $owner = one('SELECT u.tenant_id FROM platform_admins p JOIN users u ON u.id=p.user_id ORDER BY p.user_id LIMIT 1');
+    $payload = $owner ? one("SELECT payload, revision FROM workspace_collections WHERE tenant_id=? AND scope='settings' AND name='product_packages_v1'", [$owner['tenant_id']]) : [];
+    $plans = $payload ? (json_decode((string) $payload['payload'], true)['plans'] ?? []) : [];
+    $counts = rows("SELECT pack, COUNT(*) AS n FROM sector_packs GROUP BY pack");
+    return ['revision' => (int) ($payload['revision'] ?? 0), 'plans' => $plans, 'packCounts' => array_column($counts, 'n', 'pack')];
+}
+function systemInfo(): array {
+    $info = ['db_version' => (string) scalar('SELECT VERSION()'), 'migration' => (string) scalar('SELECT version FROM veniux_mysql_migrations ORDER BY version DESC LIMIT 1'), 'tables' => (int) scalar('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')];
+    $cfg = privateJson('app.json') ?? []; $url = (string) ($cfg['cloud_health_url'] ?? '');
+    $info['health'] = null;
+    if ($url !== '' && (str_starts_with($url, 'https://') || str_starts_with($url, 'http://127.0.0.1'))) {
+        $ctx = stream_context_create(['http' => ['timeout' => 6, 'ignore_errors' => true]]);
+        $body = @file_get_contents($url, false, $ctx);
+        $info['health'] = $body ? json_decode($body, true) : ['status' => 'ulaşılamadı'];
+    }
+    return $info;
+}

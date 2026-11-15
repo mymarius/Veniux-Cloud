@@ -1,0 +1,7 @@
+# Tüm istekler index.php'ye gider; gizli dosyalar sunulmaz.
+Options -Indexes
+RewriteEngine On
+RewriteRule ^\.|/\. - [F]
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+RewriteRule ^ index.php [L]
