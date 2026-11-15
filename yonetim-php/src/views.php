@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+// Stil dosyası değişince tarayıcı önbelleği otomatik yenilensin diye dosya zamanı adrese eklenir.
+function assetVersion(): string { return (string) (@filemtime(dirname(__DIR__) . '/public/assets/console.css') ?: 1); }
 function e($v): string { return htmlspecialchars((string) ($v ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function money($v): string { return number_format((float) $v, 2, ',', '.') . ' ₺'; }
 function num($v): string { return number_format((float) $v, 0, ',', '.'); }
@@ -23,7 +25,7 @@ function badge(string $text, string $kind = 'ok'): string { return '<span class=
 
 function layout(string $title, string $body, string $active = '', string $strip = ''): void {
     $nav = ['/' => 'Pano', '/musteriler' => 'Müşteriler', '/lisanslar' => 'Lisanslar', '/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
-    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/console.css"></head><body>';
+    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/console.css?v=' . assetVersion() . '"></head><body>';
     echo '<a class="skip" href="#icerik">İçeriğe geç</a><header class="top"><div class="wrap nav"><a class="brand" href="/" aria-label="Veniux yönetim ana sayfa"><img src="/assets/logo-40-v1.webp" srcset="/assets/logo-40-v1.webp 1x, /assets/logo-80-v1.webp 2x" alt="" width="28" height="28"><span>Veniux</span><em>yönetim</em></a><nav aria-label="Ana menü">';
     foreach ($nav as $href => $label) echo '<a href="' . $href . '"' . ($active === $href ? ' aria-current="page"' : '') . '>' . e($label) . '</a>';
     echo '</nav><form method="post" action="/cikis" class="out"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><button class="link" type="submit">Çıkış</button></form></div></header>' . $strip;
@@ -42,7 +44,7 @@ function pageLogin(string $error = ''): void {
         . '<label>Parola<input name="password" type="password" required autocomplete="current-password"></label>'
         . '<label>Doğrulama kodu (6 hane)<input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required autocomplete="one-time-code"></label>'
         . '<button class="btn" type="submit">Giriş yap</button></form></section>';
-    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Giriş | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css"></head><body><main class="wrap">' . $b . '</main></body></html>';
+    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Giriş | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css?v=' . assetVersion() . '"></head><body><main class="wrap">' . $b . '</main></body></html>';
 }
 
 function pageDashboard(array $d, array $c): string {
