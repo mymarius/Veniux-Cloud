@@ -1,5 +1,6 @@
 import { readSessionUser } from '../lib/sessionUser';
 import veniuxLogo from '../assets/veniux-logo.webp';
+import { useBranding } from '../lib/branding';
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import { ShoppingBag, Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift } from 'lucide-react';
@@ -105,6 +106,7 @@ const ALL_ITEMS = NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]);
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };
 
 export function Layout({ children }) {
+  const branding = useBranding();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => { try { return localStorage.getItem('veniux_sidebar_collapsed') === '1'; } catch { return false; } });
   const toggleSidebar = () => setSidebarCollapsed(current => {
@@ -229,8 +231,8 @@ export function Layout({ children }) {
       <aside aria-label="Ana menü" className={`sb fixed inset-y-0 left-0 z-40 flex h-screen w-[224px] flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 select-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="sb-brand">
           <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
-            <img src={veniuxLogo} alt="" />
-            <span><b>Veniux Cloud</b><small>İş Yönetim Platformu</small></span>
+            <img src={branding.logo || veniuxLogo} alt="" />
+            <span><b>{branding.brand_name || 'Veniux Cloud'}</b><small>{branding.brand_name ? 'Veniux ile' : 'İş Yönetim Platformu'}</small></span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} aria-label="Menüyü kapat" className="sb-icon-btn lg:hidden"><X size={16} /></button>
         </div>

@@ -120,6 +120,7 @@ app.use('/api/sector', require('./routes/sectorRoutes'));
 app.use('/api/push', require('./routes/pushRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
 app.use('/api/online-store', require('./routes/onlineStoreRoutes'));
+app.use('/api/branding', require('./routes/brandingRoutes'));
 // Token ÖKC adaptörü yalnız ayarları tamsa etkinleşir (Token geliştirici ekibinden gelen adres ve yollar).
 try { const tokenx = require('./services/tokenxAdapter'); if (tokenx.config()) require('./services/retailExternalService').register('tokenx', tokenx.adapter()); } catch (error) { console.error('[TokenX] Ayar geçersiz:', error.message); }
 app.use('/api/edocuments', require('./routes/edocumentRoutes'));

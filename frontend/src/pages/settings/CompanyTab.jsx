@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
 import { StatusBadge, Input, Select } from '../../components/ui';
+import BrandingCard from './BrandingCard';
 import { Building2, Save, Loader2, Globe, MapPin, Phone, Mail, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function CompanyTab({embedded=false}) {
@@ -71,6 +72,8 @@ export default function CompanyTab({embedded=false}) {
         </div>
         {!embedded&&<StatusBadge status="active" text={`İşletme kodu: ${company.tenantCode || 'Henüz tanımlanmadı'}`} />}
       </div>
+
+      <BrandingCard />
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Core Company Details */}

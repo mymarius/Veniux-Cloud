@@ -91,25 +91,39 @@ function pageCustomers(array $list, string $q, string $filter): string {
     return $b . '</tbody></table></div></section>';
 }
 
-function pageCustomer(array $c): string {
-    $t = $c['tenant'];
-    $b = '<p><a href="/musteriler">← Müşteriler</a></p><h1>' . e($t['company_name']) . '</h1><p class="lead">' . e($t['tenant_code']) . ' · ' . e($t['email']) . ' · ' . e($t['phone'] ?: 'telefon yok') . ($t['is_active'] ? '' : ' ' . badge('Hesap kapalı', 'bad')) . '</p><div class="stats">';
-    $b .= statBox('Satış (30 gün)', money($c['sales']['total']), num($c['sales']['n']) . ' satış');
+function pageCustomer(array $c, array $ch = []): string {
+    $t = $c['tenant']; $cl = $c['central'] ?? null;
+    $b = '<p><a href="/musteriler">← Müşteriler</a></p><h1>' . e($t['company_name']) . '</h1><p class="lead">' . e($t['tenant_code']) . ' · ' . e($t['email']) . ' · ' . e($t['phone'] ?: 'telefon yok') . ($t['is_active'] ? '' : ' ' . badge('Hesap kapalı', 'bad')) . '</p>';
+    $b .= '<div class="actionbar">' . ($cl ? '<a class="btn" href="/lisanslar/' . (int) $cl['id'] . '">Lisansı yönet</a><a class="btn ghost" href="/lisanslar/' . (int) $cl['id'] . '">Uzat / paket değiştir</a>' : '<span class="muted">Bu hesap bir merkezi lisansa bağlı değil.</span>') . '<a class="btn ghost" href="/satislar">Tüm satışlar</a></div>';
+    $b .= '<div class="tags">';
+    $b .= statBox('Satış (30 gün)', money($c['sales']['total']), num($c['sales']['n']) . ' kasa satışı');
     $b .= statBox('Toplam satış', money($c['salesAll']['total']), num($c['salesAll']['n']) . ' satış · son: ' . ($c['salesAll']['last'] ? substr((string) $c['salesAll']['last'], 0, 10) : '—'));
     $b .= statBox('Ürün', num($c['products']), num(count($c['warehouses'])) . ' depo/mağaza');
-    $b .= statBox('Online mağaza', $c['store'] ? ($c['store']['published'] ? 'Yayında' : 'Yayında değil') : 'Yok', $c['store'] ? '/magaza/' . $c['store']['slug'] . ' · ' . num($c['orders']['n']) . ' sipariş, ' . money($c['orders']['total']) : '');
-    $b .= '</div><h2>Bilgiler</h2><table class="kv"><tbody>';
-    foreach (['Sektör' => $t['industry'], 'Vergi no' => $t['tax_number'], 'Vergi dairesi' => $t['tax_office'], 'Adres' => $t['address'], 'Para birimi' => $t['currency'], 'Saat dilimi' => $t['timezone'], 'Açılış' => $t['created_at']] as $k => $v) $b .= '<tr><th>' . e($k) . '</th><td>' . e($v ?: '—') . '</td></tr>';
+    $b .= statBox('Online mağaza', $c['store'] ? ($c['store']['published'] ? 'Yayında' : 'Kapalı') : 'Yok', $c['store'] ? '/magaza/' . $c['store']['slug'] . ' · ' . num($c['orders']['n']) . ' sipariş, ' . money($c['orders']['total']) : '');
+    $b .= '</div>';
+    if ($ch) {
+        $b .= '<section class="panel"><h2>Günlük satış (son 30 gün)</h2>' . chartStacked($ch['days'], 'Kasa', 'Online', 'Müşterinin son 30 günlük kasa ve online cirosu') . '</section><div class="cols">';
+        $payNames = ['cash' => 'Nakit', 'credit_card' => 'Kredi kartı', 'card' => 'Kart', 'split' => 'Parçalı', 'credit' => 'Veresiye', 'mixed' => 'Karışık'];
+        $palette = [C_ORANGE, C_INK, C_GREEN, C_SOFT, C_KRAFT, C_RED]; $parts = []; foreach ($ch['pay'] as $i => $r) $parts[] = ['label' => $payNames[$r['m']] ?? (string) $r['m'], 'value' => (int) $r['n'], 'color' => $palette[$i % 6]];
+        $b .= '<section class="panel"><h2>Ödeme yöntemleri</h2>' . ($parts ? chartDonut($parts, 'Son 30 gün ödeme yöntemi dağılımı', 'satış') : '<p class="muted">Son 30 günde satış yok.</p>') . '</section>';
+        $b .= '<section class="panel"><h2>Lisans doluluğu</h2><ul class="hbars">';
+        foreach ($ch['use'] as $u) { $pct = $u['max'] > 0 ? min(100, 100 * $u['value'] / $u['max']) : 0; $b .= '<li><span class="hl">' . e($u['label']) . '</span><span class="hb"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect width="' . round($pct, 1) . '" height="10" fill="' . ($pct >= 90 ? C_RED : C_ORANGE) . '"/></svg></span><b>' . num($u['value']) . ' / ' . ($u['max'] ?: '—') . '</b></li>'; }
+        $b .= '</ul></section>';
+        $b .= '<section class="panel"><h2>Çok satan ürünler (30 gün)</h2>' . chartHBars(array_map(fn($r) => ['label' => $r['label'], 'value' => (int) $r['v']], $ch['top'])) . '</section></div>';
+        if ($ch['orders']) { $st = ['new' => 'Yeni', 'confirmed' => 'Onaylandı', 'preparing' => 'Hazırlanıyor', 'ready' => 'Hazır', 'delivered' => 'Teslim edildi', 'cancelled' => 'İptal']; $b .= '<section class="panel"><h2>Online sipariş durumları</h2>' . chartHBars(array_map(fn($r) => ['label' => $st[$r['s']] ?? $r['s'], 'value' => (int) $r['n']], $ch['orders'])) . '</section>'; }
+    }
+    $b .= '<h2>Bilgiler</h2><table class="kv"><tbody>';
+    foreach (['Sektör' => $t['industry'], 'Vergi no' => $t['tax_number'], 'Vergi dairesi' => $t['tax_office'], 'Adres' => $t['address'], 'Para birimi' => $t['currency'], 'Saat dilimi' => $t['timezone'], 'Açılış' => $t['created_at']] as $k => $val) $b .= '<tr><th>' . e($k) . '</th><td>' . e($val ?: '—') . '</td></tr>';
     $b .= '</tbody></table>';
-    if (!empty($c['central'])) { $cl = $c['central']; [$cs, $ck] = licenseState($cl['status'], $cl['expires_at']); $b .= '<h2>Merkezi lisans</h2><p>' . e($cl['company']) . ' · ' . e(AUTH_PLANS[$cl['plan']] ?? $cl['plan']) . ' · ' . badge($cs, $ck) . ' · bitiş ' . dayOf($cl['expires_at']) . ' · terminal sınırı ' . num($cl['seats']) . ' · <a href="/lisanslar/' . (int) $cl['id'] . '">Lisansı yönet</a></p>'; }
+    if ($cl) { [$cs, $ck] = licenseState($cl['status'], $cl['expires_at']); $b .= '<h2>Merkezi lisans</h2><p>' . e($cl['company']) . ' · ' . e(AUTH_PLANS[$cl['plan']] ?? $cl['plan']) . ' · ' . badge($cs, $ck) . ' · bitiş ' . dayOf($cl['expires_at']) . ' · terminal sınırı ' . num($cl['seats']) . '</p>'; }
     $b .= '<h2>Bulut lisans kaydı</h2>';
     if ($c['licenses']) { $b .= '<div class="scroll"><table><thead><tr><th>Paket</th><th>Durum</th><th>Bitiş</th><th class="r">Kullanıcı</th><th class="r">Depo</th><th class="r">Cihaz</th><th>Son doğrulama</th></tr></thead><tbody>'; foreach ($c['licenses'] as $l) { [$lb, $lk] = licenseState($l['status'], $l['expires_at']); $b .= '<tr><td>' . e($l['plan_name']) . '</td><td>' . badge($lb, $lk) . '</td><td>' . dayOf($l['expires_at']) . '</td><td class="r">' . num($l['max_users']) . '</td><td class="r">' . num($l['max_warehouses']) . '</td><td class="r">' . num($l['max_devices']) . '</td><td>' . when($l['last_validation_at']) . '</td></tr>'; } $b .= '</tbody></table></div>'; }
     else $b .= '<p class="muted">Lisans kaydı yok.</p>';
-    $b .= '<p>Sektör ve eklenti paketleri: <b>' . ($c['packs'] ? e(implode(', ', array_map(fn($p) => PACK_NAMES[$p['pack']] ?? $p['pack'], $c['packs']))) : 'yok') . '</b></p>';
+    $b .= '<p>Sektör ve eklenti paketleri: <b>' . ($c['packs'] ? e(implode(', ', array_map(fn($p2) => PACK_NAMES[$p2['pack']] ?? $p2['pack'], $c['packs']))) : 'yok') . '</b></p>';
     $b .= '<h2>Çalışanlar (' . num(count($c['users'])) . ')</h2><div class="scroll"><table><thead><tr><th>Ad</th><th>E-posta</th><th>Rol</th><th>Durum</th><th>Son giriş</th></tr></thead><tbody>';
     foreach ($c['users'] as $u) $b .= '<tr><td>' . e($u['full_name'] ?: '—') . '</td><td>' . e($u['email']) . '</td><td>' . e(ROLE_NAMES[$u['role']] ?? $u['role']) . '</td><td>' . badge($u['status'] === 'active' ? 'Aktif' : (string) $u['status'], $u['status'] === 'active' ? 'ok' : 'bad') . '</td><td>' . when($u['last_login']) . '</td></tr>';
     $b .= '</tbody></table></div><h2>Terminaller ve cihazlar (' . num(count($c['devices'])) . ')</h2>';
-    if ($c['devices']) { $b .= '<table><thead><tr><th>Ad</th><th>Platform</th><th>Durum</th><th>Son görülme</th></tr></thead><tbody>'; foreach ($c['devices'] as $d) $b .= '<tr><td>' . e($d['label'] ?: 'Adsız') . '</td><td>' . e($d['platform']) . '</td><td>' . e($d['status']) . '</td><td>' . when($d['last_seen_at']) . '</td></tr>'; $b .= '</tbody></table>'; }
+    if ($c['devices']) { $b .= '<table><thead><tr><th>Ad</th><th>Platform</th><th>Durum</th><th>Son görülme</th></tr></thead><tbody>'; foreach ($c['devices'] as $dv) $b .= '<tr><td>' . e($dv['label'] ?: 'Adsız') . '</td><td>' . e($dv['platform']) . '</td><td>' . e($dv['status']) . '</td><td>' . when($dv['last_seen_at']) . '</td></tr>'; $b .= '</tbody></table>'; }
     else $b .= '<p class="muted">Kayıtlı kasa cihazı yok.</p>';
     $b .= '<h2>Depolar ve mağazalar</h2><table><thead><tr><th>Ad</th><th>Tür</th><th>Konum</th></tr></thead><tbody>';
     foreach ($c['warehouses'] as $w) $b .= '<tr><td>' . e($w['name']) . '</td><td>' . e($w['warehouse_type']) . '</td><td>' . e($w['location'] ?: '—') . '</td></tr>';

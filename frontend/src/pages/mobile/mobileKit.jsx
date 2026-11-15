@@ -6,6 +6,7 @@ import { unregisterFcm } from './useFcmRegistration';
 import './mobile-hub.css';
 import { sectorPath, useSurface } from './sector/SectorSurface';
 import release from '../../data/programRelease.json';
+import { useBranding } from '../../lib/branding';
 import { readSessionUser } from '../../lib/sessionUser';
 import { initials, roleLabel } from '../../lib/mobileHub.mjs';
 
@@ -35,10 +36,11 @@ export function MobileTop({ title, back = '/m', right, children, flat = false, o
 }
 
 export function HomeTop({ unread = 0 }) {
+  const branding = useBranding();
   const [open, setOpen] = useState(false);
   return <>
     <header className="vm-top">
-      <Link to="/m" className="vm-brand" aria-label="Veniux ana ekran"><img src="/veniux-logo.png" alt="" width="30" height="30" />Veniux<small>Mağaza</small></Link>
+      <Link to="/m" className="vm-brand" aria-label={(branding.brand_name || 'Veniux') + ' ana ekran'}><img src={branding.logo || '/veniux-logo.png'} alt="" width="30" height="30" />{branding.brand_name || 'Veniux'}<small>{branding.brand_name ? 'Veniux ile' : 'Mağaza'}</small></Link>
       <div className="vm-top-actions">
         <AiButton />
         <Link to="/m/bildirimler" className="vm-iconbtn" aria-label={unread ? unread + ' bildirim' : 'Bildirimler'}><Bell size={20} />{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}</Link>

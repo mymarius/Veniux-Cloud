@@ -177,3 +177,23 @@ function salesRanking(int $days): array {
     $onl = rows("SELECT t.company_name AS label, t.id, COALESCE(SUM(o.total),0) AS v FROM tenants t JOIN online_orders o ON o.tenant_id=t.id WHERE o.status<>'cancelled' AND o.created_at>=? GROUP BY t.id, t.company_name ORDER BY v DESC LIMIT 10", [$from]);
     return ['kasa' => $kasa, 'online' => $onl];
 }
+
+
+// Müşteri ayrıntısı grafikleri: 30 günlük kasa+online satış, ödeme yöntemi dağılımı, kullanım doluluğu, online sipariş durumları.
+function customerCharts(int $id): array {
+    $n = 30; $startDay = gmdate('Y-m-d', time() - ($n - 1) * 86400) . ' 00:00:00';
+    $pos = array_column(rows('SELECT DATE(created_at) AS d, COALESCE(SUM(net_amount),0) AS t FROM pos_sales WHERE tenant_id=? AND status IN ' . SALE_OK . ' AND created_at>=? GROUP BY DATE(created_at)', [$id, $startDay]), 't', 'd');
+    $onl = array_column(rows("SELECT DATE(created_at) AS d, COALESCE(SUM(total),0) AS t FROM online_orders WHERE tenant_id=? AND status<>'cancelled' AND created_at>=? GROUP BY DATE(created_at)", [$id, $startDay]), 't', 'd');
+    $days = [];
+    for ($i = $n - 1; $i >= 0; $i--) { $ts = time() - $i * 86400; $dd = gmdate('Y-m-d', $ts); $days[] = ['label' => gmdate('d.m', $ts), 'a' => (float) ($pos[$dd] ?? 0), 'b' => (float) ($onl[$dd] ?? 0)]; }
+    $pay = rows('SELECT payment_method AS m, COUNT(*) AS n FROM pos_sales WHERE tenant_id=? AND status IN ' . SALE_OK . ' AND created_at>=? GROUP BY payment_method ORDER BY n DESC', [$id, $startDay]);
+    $orders = rows('SELECT status AS s, COUNT(*) AS n FROM online_orders WHERE tenant_id=? GROUP BY status ORDER BY n DESC', [$id]);
+    $lic = one('SELECT max_users, max_warehouses, max_devices FROM licenses WHERE tenant_id=? ORDER BY id DESC LIMIT 1', [$id]);
+    $use = [
+        ['label' => 'Kullanıcı', 'value' => (int) scalar('SELECT COUNT(*) FROM users WHERE tenant_id=?', [$id]), 'max' => (int) ($lic['max_users'] ?? 0)],
+        ['label' => 'Depo / mağaza', 'value' => (int) scalar('SELECT COUNT(*) FROM warehouses WHERE tenant_id=?', [$id]), 'max' => (int) ($lic['max_warehouses'] ?? 0)],
+        ['label' => 'Cihaz', 'value' => (int) scalar('SELECT COUNT(*) FROM pos_devices WHERE tenant_id=?', [$id]), 'max' => (int) ($lic['max_devices'] ?? 0)],
+    ];
+    $top = rows('SELECT p.name AS label, COUNT(*) AS v FROM stock_movements m JOIN products p ON p.id=m.product_id WHERE m.tenant_id=? AND m.movement_type=\'sale\' AND m.created_at>=? GROUP BY p.id, p.name ORDER BY v DESC LIMIT 6', [$id, $startDay]);
+    return compact('days', 'pay', 'orders', 'use', 'top');
+}
