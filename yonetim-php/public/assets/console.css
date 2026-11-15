@@ -85,3 +85,5 @@ h2{margin-top:30px}.panel h2,.cols h2{margin-top:0}
 .act.soon{border-top-color:var(--line);background:transparent;border-style:dashed}.act.soon h3{color:var(--ink-soft)}
 .brandwrap{display:flex;align-items:center;gap:10px}
 .actionbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}
+.edit{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}.edit summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--orange-text)}.edit .form{max-width:none;border:0;padding:8px 0 0;background:transparent}
+

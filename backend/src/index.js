@@ -43,7 +43,7 @@ app.use((req, res, next) => {
 });
 
 // Ödeme bildiriminin imzası sağlayıcının gönderdiği ham gövde üzerinden doğrulanır.
-app.use(express.json({ limit: '10mb', verify: (req, res, buffer) => { if ((req.originalUrl || '').startsWith('/api/license/webhooks/')) req.rawBody = buffer.toString('utf8'); } }));
+app.use(express.json({ limit: '10mb', verify: (req, res, buffer) => { if (/^\/api\/(license\/webhooks|owner-console)\//.test(req.originalUrl || '')) req.rawBody = buffer.toString('utf8'); } }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(require('./middlewares/requestFirewall').safeJson);
 app.use(require('./middlewares/backupMaintenance').barrier);
@@ -121,6 +121,7 @@ app.use('/api/push', require('./routes/pushRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
 app.use('/api/online-store', require('./routes/onlineStoreRoutes'));
 app.use('/api/branding', require('./routes/brandingRoutes'));
+app.use('/api/owner-console', require('./routes/ownerConsoleRoutes'));
 // Token ÖKC adaptörü yalnız ayarları tamsa etkinleşir (Token geliştirici ekibinden gelen adres ve yollar).
 try { const tokenx = require('./services/tokenxAdapter'); if (tokenx.config()) require('./services/retailExternalService').register('tokenx', tokenx.adapter()); } catch (error) { console.error('[TokenX] Ayar geçersiz:', error.message); }
 app.use('/api/edocuments', require('./routes/edocumentRoutes'));

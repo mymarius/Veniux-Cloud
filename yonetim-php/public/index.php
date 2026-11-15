@@ -6,6 +6,7 @@ require_once dirname(__DIR__) . '/src/security.php';
 require_once dirname(__DIR__) . '/src/data.php';
 require_once dirname(__DIR__) . '/src/views.php';
 require_once dirname(__DIR__) . '/src/charts.php';
+require_once dirname(__DIR__) . '/src/cloud.php';
 require_once dirname(__DIR__) . '/src/authority.php';
 require_once dirname(__DIR__) . '/src/views_licenses.php';
 
@@ -30,6 +31,25 @@ if ($path === '/giris') {
 }
 if (!isLoggedIn()) { header('Location: /giris'); exit; }
 if ($path === '/cikis' && $method === 'POST') { csrfCheck(); auditLine('cikis'); $_SESSION = []; session_destroy(); header('Location: /giris'); exit; }
+// ---------- Bulut işlemleri (yazma): imzalı istek, CSRF + gerekçe ----------
+if ($method === 'POST' && (preg_match('#^/musteriler/(\d{1,12})/erisim$#', $path, $m) || preg_match('#^/paketler/([A-Z]+_[A-Z0-9_]{2,40})$#', $path, $m))) {
+    csrfCheck();
+    $isTenant = str_starts_with($path, '/musteriler/');
+    try {
+        if ($isTenant) {
+            cloudCall('POST', '/api/owner-console/tenants/' . (int) $m[1] . '/access', ['active' => ($_POST['active'] ?? '') === '1', 'reason' => (string) ($_POST['reason'] ?? '')]);
+            auditLine('hesap-erisim #' . (int) $m[1] . ' ' . (($_POST['active'] ?? '') === '1' ? 'acildi' : 'kapatildi') . ' neden=' . preg_replace('/\s+/', ' ', mb_substr((string) ($_POST['reason'] ?? ''), 0, 200)));
+            flashSet('ok', ($_POST['active'] ?? '') === '1' ? 'Hesap yeniden açıldı.' : 'Hesap kapatıldı.'); header('Location: /musteriler/' . (int) $m[1]); exit;
+        }
+        $body = ['revision' => (int) ($_POST['revision'] ?? 0), 'reason' => (string) ($_POST['reason'] ?? ''), 'available' => ($_POST['available'] ?? '') === '1'];
+        $raw = trim((string) ($_POST['price'] ?? ''));
+        if ($raw === '') $body['annual_cents'] = null; else { $cents = parseLira($raw); if ($cents === null) throw new RuntimeException('Fiyat geçersiz (örn. 14388,00).'); $body['annual_cents'] = $cents; }
+        cloudCall('PUT', '/api/owner-console/catalogue/plans/' . $m[1], $body);
+        auditLine('paket ' . $m[1] . ' guncellendi neden=' . preg_replace('/\s+/', ' ', mb_substr((string) ($_POST['reason'] ?? ''), 0, 200)));
+        flashSet('ok', $m[1] . ' güncellendi.');
+    } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); }
+    header('Location: ' . ($isTenant ? '/musteriler/' . (int) $m[1] : '/paketler')); exit;
+}
 // ---------- Lisans işlemleri (yazma): CSRF + gerekçe zorunlu; hata iletisi forma geri döner ----------
 if ($method === 'POST' && (str_starts_with($path, '/lisanslar'))) {
     csrfCheck();

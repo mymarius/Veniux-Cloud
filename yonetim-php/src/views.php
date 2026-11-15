@@ -112,6 +112,7 @@ function pageCustomer(array $c, array $ch = []): string {
         $b .= '<section class="panel"><h2>Çok satan ürünler (30 gün)</h2>' . chartHBars(array_map(fn($r) => ['label' => $r['label'], 'value' => (int) $r['v']], $ch['top'])) . '</section></div>';
         if ($ch['orders']) { $st = ['new' => 'Yeni', 'confirmed' => 'Onaylandı', 'preparing' => 'Hazırlanıyor', 'ready' => 'Hazır', 'delivered' => 'Teslim edildi', 'cancelled' => 'İptal']; $b .= '<section class="panel"><h2>Online sipariş durumları</h2>' . chartHBars(array_map(fn($r) => ['label' => $st[$r['s']] ?? $r['s'], 'value' => (int) $r['n']], $ch['orders'])) . '</section>'; }
     }
+    $b .= accessPanel($t);
     $b .= '<h2>Bilgiler</h2><table class="kv"><tbody>';
     foreach (['Sektör' => $t['industry'], 'Vergi no' => $t['tax_number'], 'Vergi dairesi' => $t['tax_office'], 'Adres' => $t['address'], 'Para birimi' => $t['currency'], 'Saat dilimi' => $t['timezone'], 'Açılış' => $t['created_at']] as $k => $val) $b .= '<tr><th>' . e($k) . '</th><td>' . e($val ?: '—') . '</td></tr>';
     $b .= '</tbody></table>';
@@ -150,12 +151,18 @@ function pageSales(array $rows, int $days, array $rank = [], array $series = [])
 
 function pagePackages(array $c): string {
     $isSector = fn($p) => (bool) array_intersect($p['modules'] ?? [], ['hardware', 'tableware', 'restaurant', 'online_store']);
-    $card = function (array $p, string $usage = '') {
+    $canEdit = cloudConfigured();
+    $card = function (array $p, string $usage = '') use ($c, $canEdit) {
         $price = !empty($p['annual_cents']) ? money($p['annual_cents'] / 100) : 'Teklifle';
         $mods = ''; foreach ($p['modules'] ?? [] as $m) $mods .= '<span class="chip2">' . e($m) . '</span>';
-        return '<article class="tag' . (empty($p['available']) ? ' tag-bad' : '') . '"><span class="k">' . e($p['code']) . '</span><h3>' . e($p['name']) . '</h3><b>' . $price . '</b><small>' . (!empty($p['annual_cents']) ? 'yıllık · KDV dahil' : 'Fiyat, web sitesindeki tekliften belirlenir') . '</small><div class="chips">' . $mods . '</div><div class="foot2">' . (!empty($p['available']) ? badge('Satışta', 'ok') : badge('Kapalı', 'bad')) . ($usage !== '' ? '<span>' . e($usage) . '</span>' : '') . '</div></article>';
+        $form = '';
+        if ($canEdit) $form = '<details class="edit"><summary>Fiyatı / durumu düzenle</summary><form class="form" method="post" action="/paketler/' . e($p['code']) . '">' . csrfField() . '<input type="hidden" name="revision" value="' . (int) $c['revision'] . '">'
+            . '<label>Yıllık fiyat (₺, KDV dahil; boş = teklifle)<input name="price" inputmode="decimal" value="' . (!empty($p['annual_cents']) ? e(number_format($p['annual_cents'] / 100, 2, ',', '')) : '') . '" placeholder="14388,00"></label>'
+            . '<label class="chk"><input type="checkbox" name="available" value="1"' . (!empty($p['available']) ? ' checked' : '') . '> Satışta</label>'
+            . '<label>Gerekçe<input name="reason" required minlength="5" maxlength="300" placeholder="Neden değiştiriyorsun?"></label><button class="btn" type="submit">Kaydet</button></form></details>';
+        return '<article class="tag' . (empty($p['available']) ? ' tag-bad' : '') . '"><span class="k">' . e($p['code']) . '</span><h3>' . e($p['name']) . '</h3><b>' . $price . '</b><small>' . (!empty($p['annual_cents']) ? 'yıllık · KDV dahil' : 'Fiyat, web sitesindeki tekliften belirlenir') . '</small><div class="chips">' . $mods . '</div><div class="foot2">' . (!empty($p['available']) ? badge('Satışta', 'ok') : badge('Kapalı', 'bad')) . ($usage !== '' ? '<span>' . e($usage) . '</span>' : '') . '</div>' . $form . '</article>';
     };
-    $b = '<h1>Paketler</h1><p class="lead">Katalog revizyonu ' . num($c['revision']) . ' · ' . num(count($c['plans'])) . ' paket. Fiyatlar yıllık ve KDV dahildir.</p><h2>Sektör ve eklenti paketleri</h2><div class="tags">';
+    $b = '<h1>Paketler</h1><p class="lead">Katalog revizyonu ' . num($c['revision']) . ' · ' . num(count($c['plans'])) . ' paket. Fiyatlar yıllık ve KDV dahildir.' . ($canEdit ? '' : ' (Düzenleme için bulut bağlantısı kurulmalı.)') . '</p>' . flashHtml() . '<h2>Sektör ve eklenti paketleri</h2><div class="tags">';
     foreach ($c['plans'] as $p) if ($isSector($p)) { $key = array_intersect($p['modules'], array_keys(PACK_NAMES)); $k = $key ? reset($key) : ''; $b .= $card($p, $k ? num($c['packCounts'][$k] ?? 0) . ' müşteri' : ''); }
     $b .= '</div><h2>Genel paketler</h2><div class="tags">';
     foreach ($c['plans'] as $p) if (!$isSector($p)) $b .= $card($p);
@@ -186,8 +193,8 @@ function pageManage(array $due, array $stuck, bool $authority): string {
         . actionCard('Yeni lisans oluştur', 'Yeni müşteriye anahtar üret: paket, terminal sınırı, bitiş günü ve sektör paketleri.', '/lisanslar/yeni', 'Lisans oluştur')
         . actionCard('Tüm lisanslar', 'Paket değiştir, terminal sınırını ayarla, askıya al ya da sonlandır.', '/lisanslar', 'Lisansları aç')
         . actionCard('Satışlar ve müşteriler', 'Müşteri bazında kasa ve online ciro, çalışan ve terminal sayıları.', '/satislar', 'Satışlara git')
-        . actionCard('Hesap açma / kapatma', 'Bir müşterinin bulut hesabına erişimi kapatıp açma.', '', '', true)
-        . actionCard('Paket fiyatları', 'Katalogdaki yıllık fiyatları ve satışa açık/kapalı durumunu düzenleme.', '', '', true)
+        . (cloudConfigured() ? actionCard('Hesap açma / kapatma', 'Bir müşterinin bulut hesabına erişimi kapatıp açma. Müşteri sayfasından yapılır.', '/musteriler', 'Müşterilere git') : actionCard('Hesap açma / kapatma', 'Bulut bağlantısı kurulunca açılır.', '', '', true))
+        . (cloudConfigured() ? actionCard('Paket fiyatları', 'Katalogdaki yıllık fiyatları ve satışa açık/kapalı durumunu düzenleme.', '/paketler', 'Paketlere git') : actionCard('Paket fiyatları', 'Bulut bağlantısı kurulunca açılır.', '', '', true))
         . actionCard('Sürüm yayınlama', 'Windows ve Android sürümlerini yayınlama ve geri alma.', '', '', true) . '</div>';
     $b .= '<section class="panel"><h2>Yenileme bekleyenler</h2><p class="muted">Süresi 30 gün içinde bitecek ya da bitmiş etkin lisanslar. Hızlı uzatma için gerekçe yaz ve süreyi seç.</p>';
     if (!$due) $b .= '<p class="muted">Şu an yenileme bekleyen lisans yok.</p>';
@@ -200,4 +207,12 @@ function pageManage(array $due, array $stuck, bool $authority): string {
     $b .= '</section>';
     if ($stuck) { $b .= '<section class="panel"><h2>Askıdaki lisanslar</h2><table><thead><tr><th>Firma</th><th>Paket</th><th>Bitiş</th><th></th></tr></thead><tbody>'; foreach ($stuck as $l) $b .= '<tr><td>' . e($l['company']) . '</td><td>' . e(AUTH_PLANS[$l['plan']] ?? $l['plan']) . '</td><td>' . dayOf($l['expires_at']) . '</td><td><a class="btn ghost" href="/lisanslar/' . (int) $l['id'] . '">Aç</a></td></tr>'; $b .= '</tbody></table></section>'; }
     return $b;
+}
+
+// Müşteri sayfası: hesaba erişimi kapat/aç (bulut uygulaması üzerinden, gerekçeli).
+function accessPanel(array $t): string {
+    $active = (bool) $t['is_active'];
+    $b = '<h2>Hesap erişimi</h2><p>Hesap şu an ' . ($active ? badge('Açık', 'ok') : badge('Kapalı', 'bad')) . '. Kapalı hesaba kullanıcılar giriş yapamaz; veriler silinmez.</p>' . flashHtml();
+    if (!cloudConfigured()) return $b . '<p class="muted">Bulut bağlantısı tanımlı olmadığı için bu işlem şu an yapılamıyor.</p>';
+    return $b . '<form class="inline" method="post" action="/musteriler/' . (int) $t['id'] . '/erisim">' . csrfField() . '<input type="hidden" name="active" value="' . ($active ? '0' : '1') . '"><input name="reason" placeholder="Gerekçe (örn. ödeme gecikti)" required minlength="5" maxlength="300"><button class="btn ' . ($active ? 'danger' : '') . '" type="submit">' . ($active ? 'Hesabı kapat' : 'Hesabı yeniden aç') . '</button></form>';
 }

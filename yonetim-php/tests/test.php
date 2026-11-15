@@ -92,4 +92,19 @@ check('işlemler denetim tablosuna yazıldı', (int) aOne('SELECT COUNT(*) AS n 
 check('gerekçeler özel günlüğe yazıldı', str_contains((string) @file_get_contents(privateDir() . '/console-audit.log'), 'neden=sözleşme sona erdi'));
 check('liste ve ayrıntı okunur', count(authorityLicenses()) === 1 && count(authorityLicense($id)['devices']) === 3);
 @unlink($sqlite);
+
+// ---------- Bulut imzası ve para girdisi ----------
+require_once dirname(__DIR__) . '/src/cloud.php';
+$secretT = 'test-console-secret-0123456789abcdef-0123456789'; $nonceT = 'aabbccddeeff00112233445566778899';
+check('imza, Node tarafıyla aynı (POST)', cloudSignature($secretT, 'POST', '/api/owner-console/tenants/5/access', 1800000000, $nonceT, '{"active":false,"reason":"deneme"}') === 'bbd1510b7ba640f318fe52a6616e94c5a91e4c48ae25ea765a2065c6abe3c76e');
+check('imza, Node tarafıyla aynı (GET, boş gövde)', cloudSignature($secretT, 'get', '/api/owner-console/ping', 1800000000, $nonceT, '') === '67b0b2a041968851c4dc242fe17d54b32b85b088d8be47a539046158c76dda39');
+check('fiyat girdisi: 14.388,00 / 14388 / 14388,5 / 1.000', parseLira('14.388,00') === 1438800 && parseLira('14388') === 1438800 && parseLira('14388,5') === 1438850 && parseLira('1.000') === 100000 && parseLira(' 99,99 ₺ ') === 9999);
+check('fiyat girdisi: geçersizler reddedilir', parseLira('') === null && parseLira('abc') === null && parseLira('12,345') === null && parseLira('-5') === null);
+$tmp3 = sys_get_temp_dir() . '/yonetim-test3-' . bin2hex(random_bytes(4)); putenv('YONETIM_PRIVATE_DIR=' . $tmp3);
+privateWrite('app.json', ['cloud_api_url' => 'http://evil.example.com', 'console_secret' => $secretT]);
+check('https olmayan (127.0.0.1 dışı) bulut adresi kabul edilmez', !cloudConfigured());
+privateWrite('app.json', ['cloud_api_url' => 'https://app.veniux.com', 'console_secret' => 'kisa']);
+check('kısa gizli anahtar kabul edilmez', !cloudConfigured());
+privateWrite('app.json', ['cloud_api_url' => 'https://app.veniux.com', 'console_secret' => $secretT]);
+check('doğru ayar kabul edilir', cloudConfigured());
 echo $fail ? "\n$fail test başarısız\n" : "\nTüm testler geçti\n"; exit($fail ? 1 : 0);

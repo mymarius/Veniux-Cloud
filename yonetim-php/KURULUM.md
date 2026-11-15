@@ -40,3 +40,17 @@ GRANT INSERT ON veniu8e1_authority.audit TO 'veniu8e1_yonetim'@'localhost';
 
 ## Güvenlik özeti
 Parola Argon2id, TOTP tek kullanımlık (aynı kod iki kez geçmez), oturum 30 dk boşta / 8 saat mutlak, çerez Secure+HttpOnly+SameSite=Strict, CSRF, katı CSP (betik yok), arama motoru ve önbellek kapalı. İsteğe bağlı IP kısıtı: `owner.json` içine `"allowed_ips": ["1.2.3.4"]`.
+
+## 6. Bulut yazma işlemleri (hesap açma/kapatma, paket fiyatı) için imzalı bağlantı
+Yönetim sitesi bulut veritabanına doğrudan yazmaz; bulut uygulamasının `/api/owner-console/*` uçlarını **imzalı istekle** çağırır. Bunun için aynı gizli anahtar iki yerde bulunur:
+
+1. **Anahtar üret** (kendi bilgisayarında; ekrana yazmadan panoya kopyalar):
+   ```bash
+   C:/xampp/php/php.exe -r "echo bin2hex(random_bytes(32));" | clip
+   ```
+2. **Bulutta:** Plesk > Files > `cloud-private/install.env` dosyasına yeni satır ekle: `VENIUX_OWNER_CONSOLE_SECRET="<panodaki anahtar>"`. Kaydet, Node.js sayfasında **Restart App**.
+3. **Yönetim sitesinde:** Plesk > Files > `yonetim-private/app.json` içine iki alan ekle: `"cloud_api_url": "https://app.veniux.com"` ve `"console_secret": "<aynı anahtar>"`. Kaydet.
+4. Anahtarı başka yere yazma, paylaşma. Anahtar tanımlı değilse bulut uçları kapalı kalır (503); yönetim sitesinde ilgili düğmeler "bulut bağlantısı kurulunca açılır" der.
+
+Güvenlik: her istek yöntem + yol + zaman + tek kullanımlık nonce + gövde özetiyle HMAC-SHA256 imzalanır; ±60 saniye dışındaki, tekrar edilen ya da değiştirilmiş istek reddedilir. Hesaba erişim ve fiyat değişiklikleri gerekçe ister ve denetim kaydına yazılır.
+
