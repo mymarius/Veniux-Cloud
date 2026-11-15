@@ -37,14 +37,18 @@ function statBox(string $label, string $value, string $note = '', string $tone =
 }
 
 function pageLogin(string $error = ''): void {
-    $b = '<section class="login"><h1>Yönetim girişi</h1><p class="lead">Yalnızca Veniux sahibi için.</p>';
-    if ($error !== '') $b .= '<p class="err" role="alert">' . e($error) . '</p>';
-    $b .= '<form method="post" action="/giris" autocomplete="off"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '">'
-        . '<label>E-posta<input name="email" type="email" required autocomplete="username"></label>'
-        . '<label>Parola<input name="password" type="password" required autocomplete="current-password"></label>'
-        . '<label>Doğrulama kodu (6 hane)<input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required autocomplete="one-time-code"></label>'
-        . '<button class="btn" type="submit">Giriş yap</button></form></section>';
-    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Giriş | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css?v=' . assetVersion() . '"></head><body><main class="wrap">' . $b . '</main></body></html>';
+    $form = '<form method="post" action="/giris" autocomplete="off"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '">'
+        . '<label for="f-mail">E-posta</label><input id="f-mail" name="email" type="email" required autocomplete="username" autofocus>'
+        . '<label for="f-pass">Parola</label><input id="f-pass" name="password" type="password" required autocomplete="current-password">'
+        . '<label for="f-code">Doğrulama kodu</label><input id="f-code" name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required autocomplete="one-time-code" placeholder="6 haneli kod" aria-describedby="f-help">'
+        . '<p id="f-help" class="help">Authenticator uygulamasındaki 6 haneli kod. Kod 30 saniyede bir değişir.</p>'
+        . '<button class="btn wide" type="submit">Giriş yap</button></form>';
+    $b = '<div class="gate"><aside class="gate-brand" aria-hidden="false"><div class="gate-top"><img src="/assets/logo-hero-240-v2.webp" srcset="/assets/logo-hero-240-v2.webp 1x, /assets/logo-hero-420-v2.webp 2x" alt="Veniux" width="120" height="120"><span class="gate-name">Veniux</span></div>'
+        . '<h1>Yönetim<br>merkezi.</h1><p class="gate-lead">Müşteriler, lisanslar, paketler ve satışlar tek yerde. Yalnızca Veniux sahibi içindir.</p>'
+        . '<div class="gate-label" role="img" aria-label="Raf etiketi: Veniux yönetim, erişim kısıtlı"><span>VENIUX · YÖNETİM</span><b>Erişim kısıtlı</b><small>Parola + doğrulama kodu</small>' . barcodeSvg('yonetim-giris', 30) . '</div></aside>'
+        . '<section class="gate-card"><h2>Giriş yap</h2>' . ($error !== '' ? '<p class="err" role="alert">' . e($error) . '</p>' : '') . $form
+        . '<ul class="gate-notes"><li>Her giriş denemesi kaydedilir.</li><li>5 hatalı denemeden sonra 15 dakika engellenirsin.</li><li>Oturum 30 dakika işlem yapılmazsa kapanır.</li></ul></section></div>';
+    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Giriş | Veniux Yönetim</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/console.css?v=' . assetVersion() . '"></head><body class="gate-page"><main>' . $b . '</main></body></html>';
 }
 
 function pageDashboard(array $d, array $c): string {
