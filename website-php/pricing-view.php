@@ -89,6 +89,26 @@ $compare=[
   <p class="pr-sector-cta" data-pr>Birden fazla sektör paketi alırsanız birlikte teklif hazırlarız. <a href="/#iletisim">Bize yazın</a>.</p>
 </div></section>
 
+<section class="pr-calc" id="hesapla" aria-label="Toplam maliyet hesaplayıcı"><div class="hx-wrap">
+  <h2>Toplam maliyetinizi hesaplayın</h2>
+  <p class="pr-sector-lead">Genel paketi seçin, ihtiyacınız olan sektör paketlerini ekleyin. Tutarlar yıllık ve KDV dahildir.</p>
+  <form class="pr-calc-form" data-calc onsubmit="return false">
+    <fieldset><legend>Genel paket</legend>
+      <?php $firstPlan=true; foreach($plans as $key=>$plan):?><label class="pr-calc-opt"><input type="radio" name="plan" value="<?=e($key)?>" data-price="<?=(int)$plan['annual']?>"<?=!empty($plan['from'])?' data-from="1"':''?><?=$firstPlan?' checked':''?>><span><b><?=e($plan['name'])?></b><small><?=$plan['warehouses']?> depo · <?=$plan['users']?> kullanıcı · <?=$plan['devices']?> cihaz</small></span><em><?=number_format((int)$plan['annual'],0,',','.')?> ₺<?=!empty($plan['from'])?'’den':''?></em></label><?php $firstPlan=false; endforeach;?>
+    </fieldset>
+    <fieldset><legend>Sektör paketleri (isteğe bağlı)</legend>
+      <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):$price=siteSectorPrices()[$key];?><label class="pr-calc-opt"><input type="checkbox" name="sector" value="<?=e($key)?>" data-price="<?=(int)$price?>"><span><b><?=e($label)?></b><small>Genel pakete ek</small></span><em><?=number_format($price,0,',','.')?> ₺</em></label><?php endforeach;?>
+    </fieldset>
+    <div class="pr-calc-out" role="status" aria-live="polite">
+      <small>Yıllık toplam (KDV dahil)</small>
+      <b data-calc-total><?=number_format((int)$plans['baslangic']['annual'],0,',','.')?> ₺</b>
+      <span data-calc-month>Aylık yaklaşık <?=number_format((int)$plans['baslangic']['annual']/12,0,',','.')?> ₺</span>
+      <p data-calc-note class="pr-calc-note"></p>
+      <a class="hx-btn" data-calc-link href="/?request_type=quote&amp;plan=baslangic%3Ayillik#iletisim">Bu seçimle teklif isteyin</a>
+    </div>
+  </form>
+</div></section>
+
 <section class="pr-finder" id="uygun-paket" data-pr>
   <div class="hx-wrap pr-finder-grid">
     <div>

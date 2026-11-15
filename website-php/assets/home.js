@@ -271,3 +271,25 @@
   timer = setInterval(step, 3600);
   setTimeout(() => list.classList.add('hx-in'), 4000);
 })();
+
+
+// Fiyat hesaplayıcı: genel paket + sektör paketleri; tutarlar sayfadaki fiyatlardan okunur (KDV dahil, yıllık).
+(() => {
+  const form = document.querySelector('[data-calc]');
+  if (!form) return;
+  const fmt = n => n.toLocaleString('tr-TR') + ' ₺';
+  const total = form.querySelector('[data-calc-total]'), month = form.querySelector('[data-calc-month]');
+  const note = form.querySelector('[data-calc-note]'), link = form.querySelector('[data-calc-link]');
+  const update = () => {
+    const plan = form.querySelector('input[name=plan]:checked');
+    const sectors = [...form.querySelectorAll('input[name=sector]:checked')];
+    const sum = Number(plan.dataset.price) + sectors.reduce((a, el) => a + Number(el.dataset.price), 0);
+    const from = plan.dataset.from === '1';
+    total.textContent = fmt(sum) + (from ? '’den' : '');
+    month.textContent = 'Aylık yaklaşık ' + fmt(Math.round(sum / 12));
+    note.textContent = (from ? 'Kurumsal paketin fiyatı kapsama göre teklifle netleşir. ' : '') + (sectors.length ? 'Teklif formunda seçtiğiniz sektör paketlerini yazın; birlikte teklif hazırlarız.' : '');
+    link.href = '/?request_type=quote&plan=' + encodeURIComponent(plan.value + ':yillik') + '#iletisim';
+  };
+  form.addEventListener('change', update);
+  update();
+})();

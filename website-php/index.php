@@ -46,6 +46,7 @@ foreach($growthPages as $route=>$guide){
     $pages[$route]['image_width']=1914;
     $pages[$route]['image_height']=860;
 }
+$pages['/stok-programlari-karsilastirma']=['title'=>'Stok ve Kasa Programları Karşılaştırması | Veniux','description'=>'BenimPOS, AysimaPOS, BarkodSis, Hesapbilir ve ön muhasebe programlarının fiyat ve özellikleri, kaynaklı ve tarihli olarak Veniux ile yan yana. Eksiklerimiz de yazılı.','label'=>'Karşılaştırma','headline'=>'Stok ve kasa programlarını yan yana görün.','intro'=>'Rakiplerin kendi sitelerinde yazan fiyat ve özellikler, kaynağıyla ve tarihiyle.','image'=>'','alt'=>''];
 $pages['/depo-yonetimi']['image']='product-warehouse-v4.jpg';
 $pages['/depo-yonetimi']['image_width']=1920;
 $pages['/depo-yonetimi']['image_height']=863;
@@ -204,9 +205,9 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
-    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
+    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||$path==="/stok-programlari-karsilastirma"||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261115a"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261115b"><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
@@ -233,6 +234,8 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <?php require __DIR__."/release-notes-view.php"; ?>
 <?php elseif($path==="/sunucu-kurulumu"): ?>
     <?php require __DIR__."/hosting-guide.php"; ?>
+<?php elseif($path==="/stok-programlari-karsilastirma"): ?>
+    <?php require __DIR__."/compare-view.php"; ?>
 <?php elseif(isset($sectorPages[$path])): ?>
     <?php require __DIR__."/sector-view.php"; ?>
 <?php elseif(isset($growthPages[$path])): ?>
