@@ -238,7 +238,7 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="stylesheet" href="/assets/home.css?v=20261114e"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="stylesheet" href="/assets/home.css?v=20261115a"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
 </head>
 <body>
 <?php if(!$account): $path=$register?'/kayit':'/giris'; require __DIR__.'/components/navbar.php'; else:?>

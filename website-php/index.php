@@ -29,8 +29,16 @@ $pages = [
 ];
 
 $sectorPages = array_filter(require __DIR__.'/sector-pages.php', fn($p) => ($p['status'] ?? '') === 'published');
+// Her sektör sayfasında sorulan ortak sorular (arama niyetini karşılar; yalnız bugün gerçekten olan özellikler).
+$commonFaq=[
+    ['Veniux’u denemek için ne yapmalıyım?','/deneme sayfasından e-posta adresinizle 14 günlük deneme hesabı açabilirsiniz; kendi ürünlerinizi ekleyip kasayı ve stoku deneyin.'],
+    ['Ürünlerimi Excel’den aktarabilir miyim?','Evet. Excel veya CSV dosyanızı yüklersiniz, sütunları eşleştirir ve önizlemeyi görürsünüz. Barkodu olmayan ürünler ve başlangıç stoğu da aktarılabilir.'],
+    ['İnternet kesilirse satış yapabilir miyim?','Evet. Bağlantı yokken nakit ve kart satışı cihazda saklanır, bağlantı gelince kendiliğinden gönderilir. Bu sırada indirim, iade, veresiye ve sadakat puanı kapalıdır.'],
+    ['Telefonumu barkod okuyucu olarak kullanabilir miyim?','Evet. Android uygulamasında telefon kamerasıyla barkod okuyup fiyat ve stok görebilir, sayım yapabilirsiniz.'],
+];
+foreach($sectorPages as $route=>$sector){$have=array_map(fn($q)=>$q[0],$sector['faq']??[]);$sectorPages[$route]['faq']=array_merge($sector['faq']??[],array_values(array_filter($commonFaq,fn($q)=>!in_array($q[0],$have,true))));}
 foreach($sectorPages as $route=>$sector){
-    $pages[$route]=['title'=>$sector['title'],'description'=>$sector['description'],'label'=>$sector['headline'],'headline'=>$sector['headline'],'intro'=>$sector['subtitle'],'image'=>$sector['image']??'','alt'=>$sector['alt']??'','image_width'=>1366,'image_height'=>800];
+    $pages[$route]=['title'=>$sector['title'],'description'=>$sector['description'],'label'=>$sector['headline'],'headline'=>$sector['headline'],'intro'=>$sector['subtitle'],'image'=>$sector['image']??'','alt'=>$sector['alt']??'','image_width'=>1366,'image_height'=>800,'faq'=>$sector['faq']??[]];
 }
 $growthPages = require __DIR__.'/growth-pages.php';
 foreach($growthPages as $route=>$guide){
@@ -198,7 +206,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261114e"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261115a"><script src="/assets/home.js?v=20261114b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
