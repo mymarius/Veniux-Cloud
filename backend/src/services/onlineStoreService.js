@@ -40,7 +40,7 @@ function normalizePhone(value) {
   return /^05\d{9}$/.test(local) ? local : null;
 }
 const maskPhone = phone => (phone ? phone.slice(0, 4) + ' *** ** ' + phone.slice(-2) : '');
-const audit = (tx, user, action, id, details) => tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email || null, action, 'online_store', id == null ? null : String(id), JSON.stringify(details || {})]);
+const audit = (tx, user, action, id, details) => tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, user.email || null, action, 'online_store', Number.isSafeInteger(Number(id)) && id !== null && id !== '' ? Number(id) : null, JSON.stringify(details || {})]);
 
 // ---------- Mağaza ayarı ----------
 const storeRow = async (tenantId, runner = db) => (await runner.query('SELECT * FROM online_stores WHERE tenant_id=$1', [tenantId])).rows[0] || null;
@@ -108,7 +108,7 @@ async function saveSettings(user, body = {}) {
     const params = [user.tenantId, slug, name, tagline, about, email, publicPhone, cod, transfer, pickup, transferNote, deliveryFee, freeOver, minOrder, warehouse, published, accepting, terms];
     if (current) await tx.query('UPDATE online_stores SET slug=$2,name=$3,tagline=$4,about=$5,contact_email=$6,public_phone=$7,cod_enabled=$8,transfer_enabled=$9,pickup_enabled=$10,transfer_note=$11,delivery_fee=$12,free_delivery_over=$13,min_order=$14,warehouse_id=$15,published=$16,accepting_orders=$17,terms_text=$18,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$1', params);
     else await tx.query('INSERT INTO online_stores (tenant_id,slug,name,tagline,about,contact_email,public_phone,cod_enabled,transfer_enabled,pickup_enabled,transfer_note,delivery_fee,free_delivery_over,min_order,warehouse_id,published,accepting_orders,terms_text) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)', params);
-    await audit(tx, user, 'online_store.settings', slug, { published, accepting_orders: accepting });
+    await audit(tx, user, 'online_store.settings', user.tenantId, { slug, published, accepting_orders: accepting });
   });
   return (await getSettings(user));
 }

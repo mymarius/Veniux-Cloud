@@ -29,7 +29,7 @@ export function cartAdd(cart, product, quantity = 1) {
   const current = cart[product.id] ? cart[product.id].quantity : 0;
   const next = Math.min(limit, current + quantity);
   if (next <= 0) { const { [product.id]: _removed, ...rest } = cart; return rest; }
-  return { ...cart, [product.id]: { id: product.id, name: product.name, price: product.price, quantity: next, max: limit } };
+  return { ...cart, [product.id]: { id: product.id, name: product.name, price: product.price, quantity: next, max: limit, image: (product.images && product.images[0] && product.images[0].url) || '' } };
 }
 export function cartSet(cart, id, quantity) {
   const line = cart[id]; if (!line) return cart;

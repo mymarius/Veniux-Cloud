@@ -154,7 +154,7 @@ export function StoreCart() {
   return <>
     <h1>Sepetiniz</h1>
     <div className="sf-lines">{lines.map(l => <div className="sf-line" key={l.id}>
-      <div className="sf-thumb" aria-hidden="true" /><div><b>{l.name}</b><div>{tl(l.price)}</div></div>
+      {l.image ? <img className="sf-thumb" src={l.image} alt="" width={64} height={64} /> : <div className="sf-thumb" aria-hidden="true" />}<div><b>{l.name}</b><div>{tl(l.price)}</div></div>
       <div className="sf-qty" role="group" aria-label={l.name + ' adedi'}><button type="button" aria-label="Azalt" onClick={() => setCart(c => cartSet(c, l.id, l.quantity - 1))}>−</button><span aria-live="polite">{l.quantity}</span><button type="button" aria-label="Artır" onClick={() => setCart(c => cartSet(c, l.id, l.quantity + 1))}>+</button></div></div>)}</div>
     <form className="sf-form" onSubmit={submit} noValidate>
       <fieldset><legend>Teslimat</legend>

@@ -42,6 +42,8 @@ const LicenseActivation = lazy(() => import('./pages/LicenseActivation'));
 
 // Core Veniux ERP & Stock Management Pages
 const Login = lazy(() => import('./pages/Login'));
+// Online mağaza vitrininde (müşteri sayfaları) Veniux asistanı gösterilmez: o sayfa işletmenin kendi mağazasıdır.
+function ShopAwareLauncher() { const location = useLocation(); return location.pathname.startsWith('/magaza/') ? null : <AssistantLauncher />; }
 const Trial = lazy(() => import('./pages/Trial'));
 const StoreLayout = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreLayout })));
 const StoreHome = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreHome })));
@@ -270,7 +272,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </main>
-      {!terminal&&<AssistantLauncher />}
+      {!terminal&&<ShopAwareLauncher />}
       <ConnectionStatus />
       {!terminal&&<BackupHealth />}
     </div>
