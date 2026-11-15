@@ -147,6 +147,26 @@ async function releaseCode(tx, tenantId, codeId) {
   if (codeId) await tx.query('UPDATE online_discount_codes SET used_count=CASE WHEN used_count>0 THEN used_count-1 ELSE 0 END WHERE id=$1 AND tenant_id=$2', [codeId, tenantId]);
 }
 
+// ---------- Kargo firmaları ve takip bağlantıları ----------
+// Takip bağlantısı olan firmalar müşteriye "Kargom nerede" düğmesi verir; diğerlerinde yalnız takip numarası gösterilir.
+// Firma anlaşması ya da etiket üretimi (API) bu sürümde yoktur; işletme kargoyu kendi anlaşmasıyla gönderir, numarayı girer.
+const CARRIERS = [
+  { key: 'yurtici', name: 'Yurtiçi Kargo', url: 'https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code={no}' },
+  { key: 'aras', name: 'Aras Kargo', url: 'https://kargotakip.araskargo.com.tr/mainpage.aspx?code={no}' },
+  { key: 'surat', name: 'Sürat Kargo', url: 'https://www.suratkargo.com.tr/KargoTakip/?kargotakipno={no}' },
+  { key: 'ups', name: 'UPS', url: 'https://www.ups.com/track?tracknum={no}' },
+  { key: 'ptt', name: 'PTT Kargo', url: 'https://gonderitakip.ptt.gov.tr/' },
+  { key: 'mng', name: 'MNG Kargo', url: null },
+  { key: 'trendyol', name: 'Trendyol Express', url: null },
+  { key: 'hepsijet', name: 'HepsiJet', url: null },
+  { key: 'kolaygelsin', name: 'Kolay Gelsin', url: null }
+];
+function trackingUrl(carrier, number) {
+  const c = CARRIERS.find(x => x.name.toLowerCase() === String(carrier || '').trim().toLowerCase() || x.key === String(carrier || '').trim().toLowerCase());
+  if (!c || !c.url || !number) return '';
+  return c.url.replace('{no}', encodeURIComponent(number));
+}
+
 // ---------- Kargo takibi ----------
 async function setShipping(user, orderId, body = {}) {
   const order = (await db.query('SELECT id,status,warehouse_id FROM online_orders WHERE id=$1 AND tenant_id=$2', [Number(orderId), user.tenantId])).rows[0];
@@ -163,8 +183,8 @@ async function setShipping(user, orderId, body = {}) {
 }
 async function extrasFor(runner, tenantId, orderId) {
   const r = (await runner.query('SELECT * FROM online_order_extras WHERE order_id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
-  return r ? { city: r.city || '', discount_code: r.discount_code || '', discount_amount: round(r.discount_amount), shipping_rule: r.shipping_rule || '', carrier: r.carrier || '', tracking_no: r.tracking_no || '', shipped_at: r.shipped_at || null, discount_code_id: r.discount_code_id == null ? null : Number(r.discount_code_id) }
-    : { city: '', discount_code: '', discount_amount: 0, shipping_rule: '', carrier: '', tracking_no: '', shipped_at: null, discount_code_id: null };
+  return r ? { tracking_url: trackingUrl(r.carrier, r.tracking_no), city: r.city || '', discount_code: r.discount_code || '', discount_amount: round(r.discount_amount), shipping_rule: r.shipping_rule || '', carrier: r.carrier || '', tracking_no: r.tracking_no || '', shipped_at: r.shipped_at || null, discount_code_id: r.discount_code_id == null ? null : Number(r.discount_code_id) }
+    : { tracking_url: '', city: '', discount_code: '', discount_amount: 0, shipping_rule: '', carrier: '', tracking_no: '', shipped_at: null, discount_code_id: null };
 }
 
-module.exports = { PROVINCES, provinceOf, listCodes, saveCode, deleteCode, listRules, saveRule, deleteRule, priceCart, consumeCode, releaseCode, setShipping, extrasFor, normCode };
+module.exports = { CARRIERS, trackingUrl, PROVINCES, provinceOf, listCodes, saveCode, deleteCode, listRules, saveRule, deleteRule, priceCart, consumeCode, releaseCode, setShipping, extrasFor, normCode };

@@ -52,7 +52,7 @@ async function gate(req,res,next) {
   // Herkese açık, salt okunur fiyat özeti (web sitesi ve lisans merkezi okur); işletme verisi içermez.
   if(req.method==='GET'&&req.path==='/public/prices')return next();
   // Online mağaza vitrini: müşteri cihazsız gelir; mağazanın açık olup olmadığı ve işletmenin lisansı sunucuda ayrıca denetlenir.
-  if(/^\/public\/shop\/[a-z0-9-]{3,40}(\/|$)/.test(req.path)&&(req.method==='GET'||(req.method==='POST'&&/\/orders$/.test(req.path))))return next();
+  if(/^\/public\/shop\/[a-z0-9-]{3,40}(\/|$)/.test(req.path)&&(req.method==='GET'||(req.method==='POST'&&/\/(orders|quote|payment\/callback|orders\/[A-Za-z0-9_-]{20}\/pay)$/.test(req.path))))return next();
   if((req.method==='GET'&&req.path==='/trial/status')||(req.method==='POST'&&['/trial/request','/trial/confirm'].includes(req.path)))return next();
   // Mağaza satış yüklemesi kendi cihaz anahtarıyla (iptal edilebilir) doğrulanır; mağaza bilgisayarının lisans belirteci taşımaz.
   if((req.method==='POST'&&req.path==='/store-sync/sales')||(req.method==='GET'&&req.path==='/store-sync/products'))return next();

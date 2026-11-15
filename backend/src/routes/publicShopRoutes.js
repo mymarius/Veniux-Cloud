@@ -12,6 +12,7 @@ const readLimit = limiter(60000, num('SHOP_READ_MAX', 120), 'Çok fazla istek. B
 const quoteLimit = limiter(60000, num('SHOP_QUOTE_MAX', 40), 'Çok fazla istek. Biraz bekleyin.');
 const orderMinute = limiter(60000, num('SHOP_ORDER_MINUTE_MAX', 5), 'Çok sık sipariş denemesi. Bir dakika sonra tekrar deneyin.');
 const orderHour = limiter(3600000, num('SHOP_ORDER_HOUR_MAX', 30), 'Sipariş sınırına ulaşıldı. Daha sonra tekrar deneyin.');
+const originOf = req => `${req.get('x-forwarded-proto') || req.protocol}://${req.get('host')}`;
 const run = (fn, cache) => async (req, res, next) => { try { const body = await fn(req); res.set('Cache-Control', cache || 'no-store'); res.json(body); } catch (e) { next(e); } };
 
 router.get('/:slug', readLimit, run(req => store.publicStore(req.params.slug), 'public, max-age=30'));
@@ -22,12 +23,20 @@ router.post('/:slug/quote', quoteLimit, express.json({ limit: '32kb' }), run(req
 router.post('/:slug/orders', orderMinute, orderHour, express.json({ limit: '32kb' }), async (req, res, next) => {
   try {
     const ipHash = crypto.createHash('sha256').update(String(keyOf(req))).digest('hex').slice(0, 16);
-    const result = await store.createOrder(req.params.slug, req.body || {}, req.get('Idempotency-Key'), ipHash);
+    const result = await store.createOrder(req.params.slug, req.body || {}, req.get('Idempotency-Key'), ipHash, { origin: originOf(req) });
     res.set('Cache-Control', 'no-store').status(result.repeated ? 200 : 201).json(result);
   } catch (e) { next(e); }
 });
 
 // Görsel: dosya işleme (sonraki adım) hazır olana dek yalnız kaydı doğrular.
+// Kartla ödeme: iyzico müşteriyi ödeme sonrası buraya form olarak (token) gönderir. Sonuç sunucudan sunucuya doğrulanır.
+router.post('/:slug/payment/callback', orderMinute, express.urlencoded({ extended: false, limit: '8kb' }), async (req, res, next) => {
+  try {
+    const r = await require('../services/onlineStorePayments').complete(req.body && req.body.token);
+    res.redirect(303, `/magaza/${req.params.slug}/siparis/${r.code}`);
+  } catch (e) { next(e); }
+});
+router.post('/:slug/orders/:code/pay', orderMinute, run(req => store.payAgain(req.params.slug, req.params.code, { origin: originOf(req) })));
 router.get('/:slug/media/:key', readLimit, async (req, res, next) => {
   try {
     const row = await store.publicMedia(req.params.slug, req.params.key);

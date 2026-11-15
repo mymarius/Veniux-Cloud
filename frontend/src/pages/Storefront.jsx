@@ -38,7 +38,9 @@ export function StoreLayout() {
   const count = cartCount(cart);
   if (error) return <div className="sf"><div className="sf-wrap"><div className="sf-empty"><h1>Mağaza bulunamadı</h1><p>{error}</p></div></div></div>;
   if (!store) return <div className="sf"><div className="sf-wrap"><p className="sf-empty" role="status">Yükleniyor…</p></div></div>;
-  return <div className="sf">
+  const th = store.theme || {};
+  return <div className={`sf sf-font-${th.font || 'modern'} sf-layout-${th.layout || 'grid'} sf-hero-${th.hero || 'plain'}`} style={th.color ? { '--sf-accent': th.color, '--sf-accent-ink': th.ink || '#fff' } : undefined}>
+    {th.banner && <div className="sf-banner-strip" role="note">{th.banner}</div>}
     <header className="sf-head"><div className="sf-wrap">
       <Link className="sf-brand" to={`/magaza/${slug}`}>{store.name}</Link>
       <Link className="sf-cartlink" to={`/magaza/${slug}/sepet`} aria-label={`Sepet, ${count} ürün`}><ShoppingBag size={20} aria-hidden="true" /> Sepet {count > 0 && <b>{count}</b>}</Link>
@@ -127,6 +129,7 @@ export function StoreCart() {
     const list = [];
     if (delivery === 'delivery') { if (store.payment.cod) list.push(['cod', 'Kapıda ödeme', 'Teslimatta nakit veya kartla ödersiniz.']); if (store.payment.transfer) list.push(['transfer', 'Havale / EFT', 'Siparişten sonra IBAN bilgisi gösterilir.']); }
     else { list.push(['pickup', 'Mağazada ödeme', 'Siparişinizi teslim alırken ödersiniz.']); if (store.payment.transfer) list.push(['transfer', 'Havale / EFT', 'Siparişten sonra IBAN bilgisi gösterilir.']); }
+    if (store.payment.card) list.push(['card', 'Kartla öde', 'Güvenli ödeme sayfasında kartınızla ödersiniz. Kart bilgisi mağazaya iletilmez.']);
     return list;
   }, [delivery, store]);
   const [payment, setPayment] = useState(''), [form, setForm] = useState({ customer_name: '', phone: '', email: '', address: '', note: '', consent: false, website: '' });
@@ -157,12 +160,14 @@ export function StoreCart() {
       const body = { delivery_method: delivery, payment_method: payment, customer_name: form.customer_name, phone: form.phone, email: form.email || undefined, address: delivery === 'delivery' ? form.address : undefined, note: form.note || undefined, consent: form.consent, website: form.website, city: needCity ? city : undefined, discount_code: applied || undefined, items: cartPayload(cart) };
       const r = await api.post(`${shopApi(slug)}/orders`, body, { headers: { 'Idempotency-Key': key.current } });
       setCart({}); key.current = null;
+      if (r.data.payment_url) { window.location.assign(r.data.payment_url); return; }
       navigate(`/magaza/${slug}/siparis/${r.data.code}`, { replace: true });
     } catch (err) {
       const data = err?.response?.data || {};
       if (data.code === 'PRICE_CHANGED') { setCart(c => { const next = { ...c }; for (const ch of data.changed || []) if (next[ch.product_id]) next[ch.product_id] = { ...next[ch.product_id], price: ch.price }; return next; }); setNotice('Bazı ürünlerin fiyatı değişti. Güncel tutarları kontrol edip tekrar onaylayın.'); key.current = null; }
       else if (data.code === 'OUT_OF_STOCK') { setCart(c => { const next = { ...c }; for (const s of data.shortages || []) { if (s.available <= 0) delete next[s.product_id]; else if (next[s.product_id]) { const fixed = cartSet({ [s.product_id]: next[s.product_id] }, s.product_id, s.available); if (fixed[s.product_id]) next[s.product_id] = fixed[s.product_id]; else delete next[s.product_id]; } } return next; }); setError('Bazı ürünlerin stoğu yetersiz; sepetiniz mevcut stoğa göre güncellendi. Kontrol edip tekrar deneyin.'); key.current = null; }
       else if (/^(BAD_CODE|CODE_)/.test(data.code || '')) { setError(data.error); setApplied(''); setCodeMsg(data.error); key.current = null; }
+      else if (data.code === 'PAYMENT_UNAVAILABLE') { setError(data.error); key.current = null; }
       else if (data.code === 'PRODUCT_UNAVAILABLE') { setError(data.error + ' Sepeti yenilemek için ürün sayfalarını kontrol edin.'); key.current = null; }
       else setError(apiError(err, 'Sipariş gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.'));
     } finally { setBusy(false); }
@@ -181,7 +186,7 @@ export function StoreCart() {
       <fieldset><legend>Bilgileriniz</legend>
         <div className="sf-field"><label htmlFor="sf-name">Ad soyad</label><input id="sf-name" autoComplete="name" required value={form.customer_name} onChange={e => set('customer_name', e.target.value)} /></div>
         <div className="sf-field"><label htmlFor="sf-phone">Telefon</label><input id="sf-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="05xx xxx xx xx" required value={form.phone} onChange={e => set('phone', e.target.value)} /></div>
-        <div className="sf-field"><label htmlFor="sf-email">E-posta (isteğe bağlı)</label><input id="sf-email" type="email" autoComplete="email" value={form.email} onChange={e => set('email', e.target.value)} /></div>
+        <div className="sf-field"><label htmlFor="sf-email">{payment === 'card' ? 'E-posta (kartla ödeme için gerekli)' : 'E-posta (isteğe bağlı)'}</label><input id="sf-email" type="email" autoComplete="email" required={payment === 'card'} value={form.email} onChange={e => set('email', e.target.value)} /></div>
         {needCity && <div className="sf-field"><label htmlFor="sf-city">İl</label><select id="sf-city" required value={city} onChange={e => setCity(e.target.value)}><option value="">İl seçin</option>{store.provinces.map(p => <option key={p} value={p}>{p}</option>)}</select></div>}
         {delivery === 'delivery' && <div className="sf-field"><label htmlFor="sf-address">Açık adres</label><textarea id="sf-address" rows={3} autoComplete="street-address" required value={form.address} onChange={e => set('address', e.target.value)} /></div>}
         <div className="sf-field"><label htmlFor="sf-note">Sipariş notu (isteğe bağlı)</label><textarea id="sf-note" rows={2} maxLength={300} value={form.note} onChange={e => set('note', e.target.value)} /></div>
@@ -202,7 +207,8 @@ export function StoreCart() {
 export function StoreOrder() {
   const { slug, store } = useOutletContext();
   const { code } = useParams();
-  const [order, setOrder] = useState(null), [error, setError] = useState('');
+  const [order, setOrder] = useState(null), [error, setError] = useState(''), [payError, setPayError] = useState(''), [paying, setPaying] = useState(false);
+  const payNow = async () => { setPaying(true); setPayError(''); try { const r = await api.post(`${shopApi(slug)}/orders/${code}/pay`); window.location.assign(r.data.payment_url); } catch (e) { setPayError(apiError(e, 'Ödeme sayfası açılamadı.')); setPaying(false); } };
   useEffect(() => {
     let live = true;
     const load = () => api.get(`${shopApi(slug)}/orders/${code}`).then(r => { if (live) setOrder(r.data); }).catch(e => { if (live) setError(e?.response?.status === 404 ? 'Sipariş bulunamadı. Bağlantıyı kontrol edin.' : apiError(e, 'Sipariş yüklenemedi.')); });
@@ -212,13 +218,16 @@ export function StoreOrder() {
   if (error) return <div className="sf-empty"><p>{error}</p><Link className="sf-btn" to={`/magaza/${slug}`}>Mağazaya dön</Link></div>;
   if (!order) return <p className="sf-empty" role="status">Yükleniyor…</p>;
   return <section style={{ padding: '16px 0' }}>
-    <p className="sf-ok" role="status">Siparişiniz alındı. Teşekkürler {order.customer_name}!</p>
+    {order.payment && order.payment.status === 'pending' && order.status === 'new'
+      ? <div className="sf-banner" role="status"><b>Ödeme bekleniyor</b><p style={{ margin: '6px 0' }}>Siparişiniz, ödeme tamamlanınca işleme alınır. Ödeme sayfasını kapattıysanız aşağıdan devam edebilirsiniz. Ödeme 30 dakika içinde tamamlanmazsa sipariş iptal olur.</p>{payError && <p className="sf-error" role="alert">{payError}</p>}<button type="button" className="sf-btn" disabled={paying} onClick={payNow}>Ödemeyi tamamla</button></div>
+      : order.status === 'cancelled' ? <p className="sf-error" role="status">Bu sipariş iptal edildi{order.payment && order.payment.status === 'failed' ? ' (ödeme alınamadı)' : ''}.</p>
+      : <p className="sf-ok" role="status">{order.payment_method === 'card' ? 'Ödemeniz alındı, siparişiniz işleme alındı.' : 'Siparişiniz alındı.'} Teşekkürler {order.customer_name}!</p>}
     <h1>Sipariş {order.number}</h1>
     <p><span className="sf-status">{statusLabel(order.status)}</span> <small style={{ color: 'var(--sf-muted)' }}>Bu sayfa durumu kendiliğinden günceller. Bağlantıyı saklayın.</small></p>
     <div className="sf-lines">{order.items.map(i => <div className="sf-line" key={i.product_id} style={{ gridTemplateColumns: '1fr auto' }}><div><b>{i.name}</b><div>{i.quantity} × {tl(i.unit_price)}</div></div><b>{tl(i.line_total)}</b></div>)}</div>
     <div className="sf-totals"><div><span>Ara toplam</span><span>{tl(order.subtotal)}</span></div>{order.discount > 0 && <div><span>İndirim{order.discount_code ? ` (${order.discount_code})` : ''}</span><span>−{tl(order.discount)}</span></div>}<div><span>Teslimat</span><span>{order.delivery_fee ? tl(order.delivery_fee) : 'Ücretsiz'}</span></div><div className="grand"><span>Toplam</span><span>{tl(order.total)}</span></div></div>
-    <p>{order.delivery_method === 'pickup' ? 'Mağazadan teslim alacaksınız.' : 'Adresinize teslim edilecek.'} Ödeme: {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale / EFT' : 'Mağazada ödeme'}.</p>
-    {order.tracking_no && <div className="sf-banner"><b>Kargo takibi</b><p style={{ margin: '6px 0 0' }}>{order.carrier ? order.carrier + ' · ' : ''}Takip no: {order.tracking_no}</p></div>}
+    <p>{order.delivery_method === 'pickup' ? 'Mağazadan teslim alacaksınız.' : 'Adresinize teslim edilecek.'} Ödeme: {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale / EFT' : order.payment_method === 'card' ? 'Kartla ödeme' : 'Mağazada ödeme'}.</p>
+    {order.tracking_no && <div className="sf-banner"><b>Kargo takibi</b><p style={{ margin: '6px 0 0' }}>{order.carrier ? order.carrier + ' · ' : ''}Takip no: {order.tracking_no}</p>{order.tracking_url && <p style={{ margin: '8px 0 0' }}><a className="sf-btn ghost" href={order.tracking_url} target="_blank" rel="noopener noreferrer">Kargom nerede?</a></p>}</div>}
     {order.transfer_note && order.status !== 'cancelled' && <div className="sf-banner"><b>Havale / EFT bilgileri</b><p style={{ whiteSpace: 'pre-line', margin: '6px 0 0' }}>{order.transfer_note}</p><p style={{ margin: '6px 0 0' }}>Açıklamaya sipariş numaranızı ({order.number}) yazın.</p></div>}
     <p>Telefon: {order.phone}</p>
     <p><Link className="sf-btn ghost" to={`/magaza/${slug}`}>{store.name} mağazasına dön</Link></p>

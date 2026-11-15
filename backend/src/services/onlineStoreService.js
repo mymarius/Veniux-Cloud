@@ -7,6 +7,8 @@ const { ciLike } = require('./sqlSearch');
 const extras = require('./onlineStoreExtras');
 const mq = require('./onlineStoreMeasure');
 const customers = require('./onlineStoreCustomers');
+const payments = require('./onlineStorePayments');
+const themes = require('./onlineStoreTheme');
 
 const fail = (message, status = 400, code) => { throw Object.assign(new Error(message), { status, ...(code ? { code } : {}) }); };
 const lock = () => (db.getEngine() === 'mysql' ? ' FOR UPDATE' : '');
@@ -236,7 +238,7 @@ const imageUrl = (slug, key) => `/api/public/shop/${slug}/media/${key}`;
 function shapePublicStore(row, extra = {}) {
   return {
     slug: row.slug, name: row.name, tagline: row.tagline || '', about: row.about || '', contact_email: row.contact_email || '', phone: row.public_phone || '',
-    accepting_orders: Boolean(Number(row.accepting_orders)), payment: { cod: Boolean(Number(row.cod_enabled)), transfer: Boolean(Number(row.transfer_enabled)), transfer_note: Number(row.transfer_enabled) ? row.transfer_note || '' : '' },
+    accepting_orders: Boolean(Number(row.accepting_orders)), payment: { card: Boolean(extra.card), cod: Boolean(Number(row.cod_enabled)), transfer: Boolean(Number(row.transfer_enabled)), transfer_note: Number(row.transfer_enabled) ? row.transfer_note || '' : '' },
     pickup: Boolean(Number(row.pickup_enabled)), delivery_fee: round(row.delivery_fee), free_delivery_over: row.free_delivery_over == null ? null : round(row.free_delivery_over), min_order: round(row.min_order),
     terms_text: row.terms_text || '', ...extra
   };
@@ -254,7 +256,7 @@ async function publicStore(slug) {
   const categories = (await db.query("SELECT p.category AS name,COUNT(*) AS n FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 AND p.category IS NOT NULL AND p.category<>'' GROUP BY p.category ORDER BY p.category", [row.tenant_id])).rows;
   const ruleCount = Number((await db.query('SELECT COUNT(*) AS n FROM online_shipping_rules WHERE tenant_id=$1 AND active=1', [row.tenant_id])).rows[0].n);
   const codeCount = Number((await db.query('SELECT COUNT(*) AS n FROM online_discount_codes WHERE tenant_id=$1 AND active=1', [row.tenant_id])).rows[0].n);
-  return shapePublicStore(row, { categories: categories.map(c => ({ name: c.name, count: Number(c.n) })), provinces: ruleCount ? extras.PROVINCES : [], has_codes: codeCount > 0 });
+  return shapePublicStore(row, { categories: categories.map(c => ({ name: c.name, count: Number(c.n) })), provinces: ruleCount ? extras.PROVINCES : [], has_codes: codeCount > 0, card: await payments.cardEnabled(Number(row.tenant_id)), theme: await themes.forTenant(Number(row.tenant_id)) });
 }
 async function shapePublicProducts(row, rows) {
   const ids = rows.map(r => Number(r.id));
@@ -297,7 +299,7 @@ function shapeOrder(order, items) {
     items: items.map(i => ({ product_id: Number(i.product_id), name: i.name, unit: i.unit, unit_price: round(i.unit_price), quantity: Number(i.quantity), line_total: round(i.line_total) }))
   };
 }
-async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
+async function createOrder(slug, body = {}, idempotencyKey, ipHash, ctx = {}) {
   const store = await openStore(slug) || notFound();
   if (!Number(store.accepting_orders)) fail('Mağaza şu anda sipariş almıyor.', 409, 'NOT_ACCEPTING');
   if (typeof idempotencyKey !== 'string' || !/^[A-Za-z0-9_.:-]{8,80}$/.test(idempotencyKey)) fail('İstek anahtarı (Idempotency-Key) gerekli.', 400, 'NO_KEY');
@@ -308,17 +310,19 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
   const delivery = body.delivery_method === 'pickup' ? 'pickup' : body.delivery_method === 'delivery' ? 'delivery' : null;
   if (!delivery) fail('Teslimat yöntemi seçin.');
   if (delivery === 'pickup' && !Number(store.pickup_enabled)) fail('Mağazadan teslim bu mağazada kapalı.');
-  const payment = ['cod', 'transfer', 'pickup'].includes(body.payment_method) ? body.payment_method : null;
+  const payment = ['cod', 'transfer', 'pickup', 'card'].includes(body.payment_method) ? body.payment_method : null;
   if (!payment) fail('Ödeme yöntemini seçin.');
   if (payment === 'cod' && (!Number(store.cod_enabled) || delivery === 'pickup')) fail('Kapıda ödeme bu teslimat yöntemiyle kullanılamaz.');
   if (payment === 'transfer' && !Number(store.transfer_enabled)) fail('Havale/EFT bu mağazada kapalı.');
   if (payment === 'pickup' && delivery !== 'pickup') fail('Mağazada ödeme yalnız mağazadan teslimde seçilebilir.');
+  if (payment === 'card' && !(await payments.cardEnabled(tenantId))) fail('Kartla ödeme bu mağazada kapalı.', 400, 'CARD_DISABLED');
   const name = text(body.customer_name, 80);
   if (name.length < 2) fail('Ad soyad yazın.');
   const phone = normalizePhone(body.phone);
   if (!phone) fail('Telefon numarası geçersiz (örn. 0532 123 45 67).');
   const email = text(body.email, 120) || null;
   if (email && !EMAIL.test(email)) fail('E-posta adresi geçersiz.');
+  if (payment === 'card' && !email) fail('Kartla ödeme için e-posta adresi gerekli.', 400, 'EMAIL_REQUIRED');
   const address = longText(body.address, 300);
   if (delivery === 'delivery' && address.length < 10) fail('Teslimat için açık adres yazın.');
   const note = longText(body.note, 300) || null;
@@ -377,9 +381,18 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,NULL,$3,$4)', [tenantId, orderId, 'new', ipHash ? 'Müşteri siparişi' : null]);
     const order = (await tx.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
     const its = (await tx.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [tenantId, orderId])).rows;
-    return { ...shapeOrder(order, its), discount: fromCents(price.discountC), discount_code: price.code ? price.code.code : '' };
+    return { ...shapeOrder(order, its), discount: fromCents(price.discountC), discount_code: price.code ? price.code.code : '', city: price.city };
   });
-  if (!result.repeated) announce(store, result, { name, phone, address: delivery === 'delivery' ? address : '', note, email }).catch(() => {});
+  if (result.repeated) return result;
+  if (payment === 'card') {
+    // Kartla ödemede sipariş, ödeme alınınca işletmeye bildirilir; ödeme sayfası açılamazsa sipariş iptal edilip stok geri verilir.
+    const orderRow = (await db.query('SELECT id,number,total FROM online_orders WHERE tenant_id=$1 AND public_code=$2', [tenantId, result.code])).rows[0];
+    try {
+      const started = await payments.start({ store, order: { id: orderRow.id, number: codeOf(orderRow.number), total: orderRow.total }, items: result.items, customer: { name, phone: '+90' + phone.slice(1), email, address: delivery === 'delivery' ? address : '', city: result.city }, discountC: cents(result.discount || 0), shippingC: cents(result.delivery_fee), origin: (ctx && ctx.origin) || '', ip: null });
+      return { ...result, payment_url: started.url };
+    } catch (e) { await systemCancel(tenantId, Number(orderRow.id), 'Ödeme başlatılamadı'); throw e; }
+  }
+  announce(store, result, { name, phone, address: delivery === 'delivery' ? address : '', note, email }).catch(() => {});
   return result;
 }
 // Sepet özeti: sipariş vermeden toplamları (indirim, kargo) hesaplar; sipariş oluştururken aynı hesap yapılır.
@@ -400,6 +413,29 @@ async function quote(slug, body = {}) {
   const subtotal = rows.reduce((s, r) => s + mq.lineCents(cents(r.sale_price), wanted.get(Number(r.id))), 0);
   const price = await extras.priceCart(db, store, { subtotalC: subtotal, delivery, cityInput: body.city, codeInput: body.discount_code, lenientCity: true });
   return { subtotal: fromCents(price.subtotalC), discount: fromCents(price.discountC), delivery_fee: fromCents(price.shippingC), total: fromCents(price.totalC), city: price.city, code: price.code ? price.code.code : '', shipping_rule: price.rule ? price.rule.name : '' };
+}
+// Sistem iptali (ödeme alınamadı / süresi doldu): stok, indirim kodu ve müşteri sayaçları geri alınır.
+async function systemCancel(tenantId, orderId, note) {
+  return db.transaction(async tx => {
+    const order = (await tx.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2' + lock(), [orderId, tenantId])).rows[0];
+    if (!order || order.status === 'cancelled') return false;
+    const items = (await tx.query('SELECT product_id,quantity FROM online_order_items WHERE tenant_id=$1 AND order_id=$2', [tenantId, orderId])).rows;
+    for (const item of items) await giveBackStock(tx, tenantId, Number(order.warehouse_id), Number(item.product_id), Number(item.quantity), codeOf(order.number), orderId, null);
+    const x = await extras.extrasFor(tx, tenantId, orderId);
+    await extras.releaseCode(tx, tenantId, x.discount_code_id);
+    await customers.reverseOrder(tx, tenantId, orderId, Number(order.total));
+    await tx.query("UPDATE online_orders SET status='cancelled',cancel_reason=$3,updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2", [orderId, tenantId, note]);
+    await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,$3,$4,$5)', [tenantId, orderId, order.status, 'cancelled', note]);
+    return true;
+  });
+}
+// Kartla ödemesi alınan sipariş için işletme bildirimi.
+async function announcePaid(tenantId, orderId) {
+  const store = (await db.query('SELECT * FROM online_stores WHERE tenant_id=$1', [tenantId])).rows[0];
+  const order = (await db.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
+  if (!store || !order) return;
+  const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [tenantId, orderId])).rows;
+  await announce(store, shapeOrder(order, items), { name: order.customer_name, phone: order.phone, address: order.address || '', note: order.note, email: order.email });
 }
 // Yeni sipariş bildirimi (en iyi çaba): işletmenin yönetici ve müdürlerine mobil bildirim, iletişim e-postasına ayrıntılı e-posta.
 // Bildirim hatası siparişi asla bozmaz.
@@ -423,7 +459,7 @@ async function publicOrder(slug, code) {
   const order = (await db.query('SELECT * FROM online_orders WHERE tenant_id=$1 AND public_code=$2', [store.tenant_id, code])).rows[0];
   if (!order) fail('Sipariş bulunamadı.', 404, 'NO_ORDER');
   const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [store.tenant_id, order.id])).rows;
-  return { ...shapeOrder(order, items), customer_name: order.customer_name.split(' ')[0], phone: maskPhone(order.phone), transfer_note: order.payment_method === 'transfer' ? store.transfer_note || '' : '', ...(await (async () => { const x = await extras.extrasFor(db, store.tenant_id, order.id); return { discount: x.discount_amount, discount_code: x.discount_code, carrier: x.carrier, tracking_no: x.tracking_no }; })()) };
+  return { ...shapeOrder(order, items), customer_name: order.customer_name.split(' ')[0], phone: maskPhone(order.phone), transfer_note: order.payment_method === 'transfer' ? store.transfer_note || '' : '', payment: order.payment_method === 'card' ? ((await payments.statusFor(Number(store.tenant_id), [Number(order.id)])).get(Number(order.id)) || { status: 'none' }) : null, ...(await (async () => { const x = await extras.extrasFor(db, store.tenant_id, order.id); return { discount: x.discount_amount, discount_code: x.discount_code, carrier: x.carrier, tracking_no: x.tracking_no, tracking_url: x.tracking_url }; })()) };
 }
 async function publicMedia(slug, key) {
   const store = await openStore(slug) || notFound();
@@ -442,6 +478,7 @@ async function closeIfNoPack(tenantId, packs) {
 // ---------- Siparişler (yönetici) ----------
 function visibleWarehouse(user) { const scope = allowedWarehouses(user); return scope ? [...scope] : null; }
 async function listOrders(user, query = {}) {
+  await payments.expirePending(user.tenantId).catch(() => {});
   const page = Math.max(0, Number.parseInt(query.page, 10) || 0), size = 50;
   const where = ['o.tenant_id=$1']; const params = [user.tenantId];
   if (STATUSES.includes(query.status)) { params.push(query.status); where.push('o.status=$' + params.length); }
@@ -453,7 +490,8 @@ async function listOrders(user, query = {}) {
   const base = `FROM online_orders o WHERE ${where.join(' AND ')}`;
   const total = Number((await db.query('SELECT COUNT(*) AS n ' + base, params)).rows[0].n);
   const rows = (await db.query(`SELECT o.* ${base} ORDER BY o.id DESC LIMIT ${size} OFFSET ${page * size}`, params)).rows;
-  return { total, page, page_size: size, items: rows.map(o => ({ id: Number(o.id), number: codeOf(o.number), status: o.status, customer_name: o.customer_name, phone: o.phone, delivery_method: o.delivery_method, payment_method: o.payment_method, total: round(o.total), created_at: o.created_at })) };
+  const pays = await payments.statusFor(user.tenantId, rows.filter(o => o.payment_method === 'card').map(o => Number(o.id)));
+  return { total, page, page_size: size, items: rows.map(o => ({ payment_status: pays.has(Number(o.id)) ? pays.get(Number(o.id)).status : null, id: Number(o.id), number: codeOf(o.number), status: o.status, customer_name: o.customer_name, phone: o.phone, delivery_method: o.delivery_method, payment_method: o.payment_method, total: round(o.total), created_at: o.created_at })) };
 }
 async function ownOrder(user, id, runner = db) {
   const orderId = Number(id);
@@ -467,13 +505,17 @@ async function getOrder(user, id) {
   const order = await ownOrder(user, id);
   const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [user.tenantId, order.id])).rows;
   const events = (await db.query('SELECT from_status,to_status,note,created_at FROM online_order_events WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [user.tenantId, order.id])).rows;
-  return { ...shapeOrder(order, items), id: Number(order.id), customer_name: order.customer_name, phone: order.phone, email: order.email || '', address: order.address || '', note: order.note || '', cancel_reason: order.cancel_reason || '', events, ...(({ discount_code_id, ...x }) => x)(await extras.extrasFor(db, user.tenantId, order.id)) };
+  return { ...shapeOrder(order, items), id: Number(order.id), customer_name: order.customer_name, phone: order.phone, email: order.email || '', address: order.address || '', note: order.note || '', cancel_reason: order.cancel_reason || '', events, payment: order.payment_method === 'card' ? ((await payments.statusFor(user.tenantId, [Number(order.id)])).get(Number(order.id)) || { status: 'none' }) : null, ...(({ discount_code_id, ...x }) => x)(await extras.extrasFor(db, user.tenantId, order.id)) };
 }
 async function setStatus(user, id, body = {}) {
   const to = body.status;
   if (!STATUSES.includes(to)) fail('Durum geçersiz.');
-  return db.transaction(async tx => {
+  const result = await db.transaction(async tx => {
     const order = await ownOrder(user, id, tx);
+    if (order.payment_method === 'card' && to !== 'cancelled') {
+      const pay = (await tx.query('SELECT status FROM online_payments WHERE order_id=$1 AND tenant_id=$2', [Number(order.id), user.tenantId])).rows[0];
+      if (!pay || pay.status !== 'paid') fail('Kartla ödeme henüz alınmadı; sipariş onaylanamaz.', 409, 'PAYMENT_PENDING');
+    }
     if (!(NEXT[order.status] || []).includes(to)) fail(`"${order.status}" durumundaki sipariş "${to}" olamaz.`, 409, 'BAD_TRANSITION');
     let reason = null;
     if (to === 'cancelled') {
@@ -485,10 +527,28 @@ async function setStatus(user, id, body = {}) {
     await tx.query('UPDATE online_orders SET status=$3,cancel_reason=$4,updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2', [order.id, user.tenantId, to, reason]);
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,user_id,note) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, order.id, order.status, to, user.userId || null, reason]);
     await audit(tx, user, 'online_store.order_status', order.id, { number: codeOf(order.number), from: order.status, to });
-    return { id: Number(order.id), number: codeOf(order.number), status: to };
+    return { id: Number(order.id), number: codeOf(order.number), status: to, card: order.payment_method === 'card' };
   });
+  // Ödenmiş kartlı sipariş iptal edilirse ücret iadesi denenir; olmazsa işletmeye elle iade uyarısı döner.
+  if (to === 'cancelled' && result.card) result.refund = await payments.refund(user.tenantId, Number(result.id)).catch(() => 'manual');
+  delete result.card;
+  return result;
+}
+// Müşteri ödeme sayfasını kapattıysa: bekleyen kartlı siparişte ödeme sayfası yeniden açılır.
+async function payAgain(slug, code, ctx = {}) {
+  const store = await openStore(slug) || notFound();
+  if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{20}$/.test(code)) fail('Sipariş bulunamadı.', 404, 'NO_ORDER');
+  const order = (await db.query('SELECT * FROM online_orders WHERE tenant_id=$1 AND public_code=$2', [store.tenant_id, code])).rows[0];
+  if (!order || order.payment_method !== 'card') fail('Sipariş bulunamadı.', 404, 'NO_ORDER');
+  const pay = (await db.query('SELECT status FROM online_payments WHERE order_id=$1 AND tenant_id=$2', [order.id, store.tenant_id])).rows[0];
+  if (order.status !== 'new' || !pay || pay.status !== 'pending') fail('Bu sipariş için ödeme artık alınamaz.', 409, 'NOT_PAYABLE');
+  const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [store.tenant_id, order.id])).rows;
+  const x = await extras.extrasFor(db, Number(store.tenant_id), Number(order.id));
+  const started = await payments.start({ store, order: { id: order.id, number: codeOf(order.number), total: order.total }, items: items.map(i => ({ product_id: Number(i.product_id), name: i.name, line_total: round(i.line_total) })), customer: { name: order.customer_name, phone: '+90' + String(order.phone).slice(1), email: order.email, address: order.address || '', city: x.city }, discountC: cents(x.discount_amount), shippingC: cents(order.delivery_fee), origin: ctx.origin || '', ip: null });
+  return { payment_url: started.url };
 }
 async function summary(user) {
+  await payments.expirePending(user.tenantId).catch(() => {});
   const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date());
   const rows = (await db.query('SELECT status,COUNT(*) AS n,SUM(total) AS t FROM online_orders WHERE tenant_id=$1 GROUP BY status', [user.tenantId])).rows;
   const by = Object.fromEntries(STATUSES.map(s => [s, 0]));
@@ -525,4 +585,4 @@ async function sitemapFor(slug) {
   return { slug: store.slug, ids: rows.map(r => Number(r.id)) };
 }
 
-module.exports = { quote, getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, closeIfNoPack, normalizePhone, STATUSES, NEXT, RESERVED };
+module.exports = { payAgain, systemCancel, announcePaid, codeOf, openStore, quote, getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, closeIfNoPack, normalizePhone, STATUSES, NEXT, RESERVED };

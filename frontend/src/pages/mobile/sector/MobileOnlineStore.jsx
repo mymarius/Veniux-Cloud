@@ -11,22 +11,24 @@ const isBoss = () => ['admin', 'manager'].includes(readSessionUser().role);
 const API = '/online-store';
 
 // ---------- Siparişler ----------
+const PAY_LABELS = { pending: 'ödeme bekliyor', paid: 'ödendi', failed: 'başarısız', expired: 'süresi doldu' };
 function OrderSheet({ id, onClose, onChanged }) {
   const detail = useAsync(async () => (await api.get(`${API}/orders/${id}`)).data, [id]);
+  const carriers = useAsync(async () => (await api.get(`${API}/carriers`)).data, []);
   const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [reason, setReason] = useState(''), [cancelling, setCancelling] = useState(false), [ship, setShip] = useState({ carrier: '', tracking_no: '' });
   const order = detail.data;
   useEffect(() => { if (order) setShip({ carrier: order.carrier || '', tracking_no: order.tracking_no || '' }); }, [order?.carrier, order?.tracking_no]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveShip = async () => { setBusy(true); setMessage(''); try { await api.put(`${API}/orders/${id}/shipping`, ship); await detail.reload(); setMessage('Kargo bilgisi kaydedildi.'); } catch (e) { setMessage(errorText(e, 'Kargo bilgisi kaydedilemedi.')); } finally { setBusy(false); } };
   const change = async (status, why) => {
     setBusy(true); setMessage('');
-    try { await api.patch(`${API}/orders/${id}/status`, { status, reason: why }); await detail.reload(); onChanged(); setCancelling(false); }
+    try { const r = (await api.patch(`${API}/orders/${id}/status`, { status, reason: why })).data; await detail.reload(); onChanged(); setCancelling(false); if (r.refund === 'done') setMessage('Kart ücreti müşteriye iade edildi.'); else if (r.refund === 'manual') setMessage('Dikkat: kart ücreti otomatik iade edilemedi. İadeyi iyzico panelinden elle yapın.'); }
     catch (e) { setMessage(errorText(e, 'Durum değiştirilemedi.')); } finally { setBusy(false); }
   };
   return <Sheet onClose={onClose} label="Sipariş ayrıntısı">
     {detail.error && <p role="alert" className="vm-err">{detail.error}</p>}
     {order && <>
       <h2 style={{ margin: '0 0 4px' }}>Sipariş {order.number}</h2>
-      <p className="vm-note">{statusLabel(order.status)} · {order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim'} · {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme'}</p>
+      <p className="vm-note">{statusLabel(order.status)}{order.payment ? ` · kart: ${PAY_LABELS[order.payment.status] || order.payment.status}` : ''} · {order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim'} · {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme'}</p>
       <div className="vm-list" style={{ margin: '10px 0' }}>{order.items.map(i => <div key={i.product_id} className="vm-row"><span className="grow"><b>{i.quantity}×</b> {i.name}</span><b>{money(i.line_total)}</b></div>)}</div>
       <p className="vm-note">Ara toplam {money(order.subtotal)}{order.discount_amount > 0 ? ` · İndirim −${money(order.discount_amount)} (${order.discount_code})` : ''} · Teslimat {money(order.delivery_fee)}{order.shipping_rule ? ` (${order.shipping_rule})` : ''}</p>
       <p style={{ fontWeight: 800, fontSize: 18 }}>Toplam {money(order.total)}</p>
@@ -38,10 +40,11 @@ function OrderSheet({ id, onClose, onChanged }) {
         {order.cancel_reason && <div className="vm-err">İptal nedeni: {order.cancel_reason}</div>}
       </div>
       {order.delivery_method === 'delivery' && ['confirmed', 'preparing', 'ready', 'delivered'].includes(order.status) && <div className="vm-card" style={{ margin: '10px 0' }}><b>Kargo takibi</b>
-        <label className="vm-field"><input aria-label="Kargo firması" placeholder="Kargo firması" maxLength={60} value={ship.carrier} onChange={e => setShip(x => ({ ...x, carrier: e.target.value }))} /></label>
+        <label className="vm-field"><input aria-label="Kargo firması" list="online-carriers" placeholder="Kargo firması (listeden seçin ya da yazın)" maxLength={60} value={ship.carrier} onChange={e => setShip(x => ({ ...x, carrier: e.target.value }))} /></label>
         <label className="vm-field"><input aria-label="Takip numarası" placeholder="Takip numarası" maxLength={60} value={ship.tracking_no} onChange={e => setShip(x => ({ ...x, tracking_no: e.target.value }))} /></label>
+        <datalist id="online-carriers">{(carriers.data?.items || []).map(c => <option key={c.key} value={c.name} />)}</datalist>
         <button type="button" className="vm-btn ghost" disabled={busy} onClick={saveShip}>Kargo bilgisini kaydet</button><div className="vm-note">Müşteri sipariş sayfasında görür.</div></div>}
-      {message && <p role="alert" className={/^Kargo bilgisi kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
+      {message && <p role="alert" className={/^(Kargo bilgisi kaydedildi|Kart ücreti müşteriye)/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
       {cancelling ? <div><label className="vm-field"><input autoFocus placeholder="İptal nedeni (isteğe bağlı)" maxLength={200} value={reason} onChange={e => setReason(e.target.value)} aria-label="İptal nedeni" /></label>
         <button type="button" className="vm-btn" disabled={busy} onClick={() => change('cancelled', reason)}>Siparişi iptal et, stok geri gelsin</button>
         <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setCancelling(false)}>Vazgeç</button></div>
@@ -72,7 +75,7 @@ function OrdersTab() {
     {orders.error && <p role="alert" className="vm-err">{orders.error}</p>}
     {orders.data && orders.data.items.length === 0 && <EmptyState title="Sipariş yok" text={status === 'open' ? 'Açık sipariş yok. Yeni sipariş gelince burada ve bildirimle görünür.' : 'Bu filtreyle sipariş bulunamadı.'} />}
     <div className="vm-list">{(orders.data?.items || []).map(o => <button key={o.id} type="button" className="vm-row" onClick={() => setSelected(o.id)}>
-      <span className="grow"><b>{o.number}</b> · {o.customer_name}<small>{statusLabel(o.status)} · {String(o.created_at).slice(0, 16).replace('T', ' ')}</small></span><b>{money(o.total)}</b></button>)}</div>
+      <span className="grow"><b>{o.number}</b> · {o.customer_name}<small>{statusLabel(o.status)}{o.payment_status ? ` · kart: ${PAY_LABELS[o.payment_status] || o.payment_status}` : ''} · {String(o.created_at).slice(0, 16).replace('T', ' ')}</small></span><b>{money(o.total)}</b></button>)}</div>
     {selected && <OrderSheet id={selected} onClose={() => setSelected(null)} onChanged={() => { orders.reload(); summary.reload(); }} />}
   </div>;
 }
@@ -228,6 +231,8 @@ function SettingsTab() {
     {field('Teslimat ücreti (TL)', 'delivery_fee', { inputMode: 'decimal' })}
     {field('Ücretsiz teslimat eşiği (TL, boş = yok)', 'free_delivery_over', { inputMode: 'decimal' })}
     {field('Minimum sipariş tutarı (TL)', 'min_order', { inputMode: 'decimal' })}
+    <ThemeCard />
+    <PaymentCard />
     <DomainCard />
     <div className="vm-label"><span>Sipariş koşulları (müşteriye gösterilir)</span></div>
     <label className="vm-field"><textarea aria-label="Sipariş koşulları" rows={5} maxLength={6000} placeholder="İade, cayma hakkı ve teslimat koşullarınızı yazın. Hukuki metin için avukat veya mali müşavirinize danışın." value={form.terms_text || ''} onChange={e => set('terms_text', e.target.value)} style={{ flex: 1, border: 0, background: 'none', font: 'inherit', color: 'var(--vm-ink)' }} /></label>
@@ -312,6 +317,46 @@ function CustomersTab() {
         {message && <p role="alert" className="vm-err">{message}</p>}
         {!d.anonymized && <button type="button" className="vm-btn ghost" style={{ marginTop: 10 }} onClick={erase}>Kişisel bilgileri sil (KVKK)</button>}</>}
       <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setSelected(null)}>Kapat</button></Sheet>}
+  </div>;
+}
+function ThemeCard() {
+  const data = useAsync(async () => (await api.get(`${API}/theme`)).data, []);
+  const [t, setT] = useState(null), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  useEffect(() => { if (data.data) setT({ ...data.data.theme }); }, [data.data]);
+  if (!t) return null;
+  const save = async () => { setBusy(true); setMessage(''); try { const r = (await api.put(`${API}/theme`, { color: t.color, layout: t.layout, font: t.font, hero: t.hero, banner: t.banner })).data; setT({ ...r.theme }); setMessage('Tema kaydedildi.'); } catch (e) { setMessage(errorText(e, 'Kaydedilemedi.')); } finally { setBusy(false); } };
+  const sel = (label, key, options) => <label className="vm-field"><span className="vm-note">{label}</span><select aria-label={label} value={t[key]} onChange={e => setT(x => ({ ...x, [key]: e.target.value }))} style={inner}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>;
+  return <div className="vm-card" style={{ marginTop: 14 }}>
+    <b>Vitrin teması</b>
+    <div role="group" aria-label="Ana renk" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '10px 0' }}>{data.data.presets.map(c => <button key={c} type="button" aria-label={'Renk ' + c} aria-pressed={t.color === c} onClick={() => setT(x => ({ ...x, color: c }))} style={{ width: 40, height: 40, borderRadius: 20, background: c, border: t.color === c ? '4px solid var(--vm-ink)' : '2px solid #fff', boxShadow: '0 0 0 1px #999' }} />)}</div>
+    <label className="vm-field"><span className="vm-note">Özel renk</span><input aria-label="Özel renk" type="color" value={t.color} onChange={e => setT(x => ({ ...x, color: e.target.value }))} /></label>
+    {sel('Ürün düzeni', 'layout', [['grid', 'Kartlar'], ['list', 'Liste'], ['compact', 'Sıkı kartlar']])}
+    {sel('Yazı tipi', 'font', [['modern', 'Modern'], ['classic', 'Klasik'], ['rounded', 'Yumuşak']])}
+    {sel('Üst alan', 'hero', [['plain', 'Sade'], ['soft', 'Açık renkli'], ['bold', 'Renkli']])}
+    <label className="vm-field"><input aria-label="Duyuru şeridi" placeholder="Duyuru şeridi (örn. 500 ₺ üzeri kargo bedava)" maxLength={160} value={t.banner || ''} onChange={e => setT(x => ({ ...x, banner: e.target.value }))} /></label>
+    {message && <p role="status" className={/kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
+    <button type="button" className="vm-btn" disabled={busy} onClick={save}>Temayı kaydet</button>
+  </div>;
+}
+function PaymentCard() {
+  const data = useAsync(async () => (await api.get(`${API}/payment`)).data, []);
+  const [form, setForm] = useState({ api_key: '', secret_key: '' }), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const d = data.data;
+  const run = async fn => { setBusy(true); setMessage(''); try { await fn(); await data.reload(); setForm({ api_key: '', secret_key: '' }); setMessage('Kaydedildi.'); } catch (e) { setMessage(errorText(e, 'Kaydedilemedi.')); } finally { setBusy(false); } };
+  if (!d) return null;
+  return <div className="vm-card" style={{ marginTop: 14 }}>
+    <b>Kartla ödeme (iyzico)</b>
+    <p className="vm-note">Müşteri kartını iyzico’nun güvenli sayfasında girer; kart bilgisi Veniux’a ve mağazaya gelmez. Para doğrudan kendi iyzico hesabınıza geçer, Veniux komisyon almaz. Önce iyzico’da üye işyeri hesabı açıp API anahtarlarını alın. Deneme için “sandbox” anahtarlarıyla başlayın.</p>
+    {d.has_keys && <p className="vm-note">Kayıtlı anahtar: …{d.key_hint} · {d.sandbox ? 'deneme (sandbox)' : 'canlı'} · {d.enabled ? 'açık' : 'kapalı'}</p>}
+    <label className="vm-field"><input aria-label="iyzico API anahtarı" autoComplete="off" placeholder={d.has_keys ? 'API anahtarı (değiştirmek için yazın)' : 'API anahtarı'} value={form.api_key} onChange={e => setForm(f => ({ ...f, api_key: e.target.value }))} /></label>
+    <label className="vm-field"><input aria-label="iyzico gizli anahtar" type="password" autoComplete="off" placeholder={d.has_keys ? 'Gizli anahtar (değiştirmek için yazın)' : 'Gizli anahtar'} value={form.secret_key} onChange={e => setForm(f => ({ ...f, secret_key: e.target.value }))} /></label>
+    <label className="vm-row" style={{ cursor: 'pointer' }}><input type="checkbox" checked={d.sandbox} onChange={e => run(() => api.put(`${API}/payment`, { ...form, sandbox: e.target.checked }))} style={{ width: 22, height: 22 }} disabled={!d.has_keys && !(form.api_key && form.secret_key)} /><span className="grow">Deneme modu (sandbox)</span></label>
+    {message && <p role="status" className={/^Kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <button type="button" className="vm-btn" disabled={busy || (!d.has_keys && !(form.api_key && form.secret_key))} onClick={() => run(() => api.put(`${API}/payment`, { ...form, enabled: d.has_keys ? d.enabled : false }))}>Anahtarları kaydet</button>
+      {d.has_keys && <button type="button" className="vm-btn ghost" disabled={busy} onClick={() => run(() => api.put(`${API}/payment`, { enabled: !d.enabled }))}>{d.enabled ? 'Kartla ödemeyi kapat' : 'Kartla ödemeyi aç'}</button>}
+      {d.has_keys && <button type="button" className="vm-btn ghost" disabled={busy} onClick={() => { if (window.confirm('Kayıtlı iyzico anahtarları silinsin mi? Kartla ödeme kapanır.')) run(() => api.delete(`${API}/payment`)); }}>Anahtarları sil</button>}
+    </div>
   </div>;
 }
 function DomainCard() {
