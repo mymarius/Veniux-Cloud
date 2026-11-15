@@ -43,7 +43,7 @@ Başvuru sonrası Trendyol belge isteyecek (vergi levhası, imza sirküleri veya
 
 Merhaba,
 
-[Ad Soyad / Şirket unvanı] olarak Veniux adlı bulut tabanlı stok, kasa ve restoran yönetim yazılımı geliştiriyoruz. Yazılımımızda masa ve paket servis siparişi, mutfak ekranı, reçeteye göre malzeme stoğu ve esnaf paneli bulunuyor. Pilot çalıştığımız restoranlarımızın Yemeksepeti siparişlerini aynı mutfak ekranında görmesini ve stoğa otomatik yansımasını istiyoruz.
+[UNVAN] (Veniux) olarak Veniux adlı bulut tabanlı stok, kasa ve restoran yönetim yazılımı geliştiriyoruz. Yazılımımızda masa ve paket servis siparişi, mutfak ekranı, reçeteye göre malzeme stoğu ve esnaf paneli bulunuyor. Pilot çalıştığımız restoranlarımızın Yemeksepeti siparişlerini aynı mutfak ekranında görmesini ve stoğa otomatik yansımasını istiyoruz.
 
 Şu konularda bilgi rica ederiz:
 1. Yazılım firmaları için entegrasyon (iş ortaklığı) programınız var mı, başvuru şartları nelerdir?
@@ -51,7 +51,7 @@ Merhaba,
 3. Entegrasyon için restoran bazında mı, yazılım firması bazında mı yetkilendirme yapılıyor?
 4. Sözleşme, komisyon veya teknik onay süreci var mı?
 
-İletişim: [Ad Soyad], [e-posta], [telefon]. Web: https://veniux.com
+İletişim: [AD SOYAD], [E-POSTA], [TELEFON]. Web: https://veniux.com
 
 Teşekkürler.
 
@@ -60,9 +60,9 @@ Teşekkürler.
 
 Merhaba,
 
-[Ad Soyad / Şirket unvanı] olarak geliştirdiğimiz Veniux restoran yönetim yazılımını kullanan restoranların Getir Yemek siparişlerini mutfak ekranında görmesini ve stoğa yansıtmasını planlıyoruz. Yazılım firmalarına açık bir entegrasyon programı veya API erişimi var mı? Varsa başvuru şartlarını, teknik dokümantasyonu ve test ortamı sürecini paylaşabilir misiniz?
+[UNVAN] (Veniux) olarak geliştirdiğimiz Veniux restoran yönetim yazılımını kullanan restoranların Getir Yemek siparişlerini mutfak ekranında görmesini ve stoğa yansıtmasını planlıyoruz. Yazılım firmalarına açık bir entegrasyon programı veya API erişimi var mı? Varsa başvuru şartlarını, teknik dokümantasyonu ve test ortamı sürecini paylaşabilir misiniz?
 
-İletişim: [Ad Soyad], [e-posta], [telefon]. Web: https://veniux.com
+İletişim: [AD SOYAD], [E-POSTA], [TELEFON]. Web: https://veniux.com
 
 Teşekkürler.
 
@@ -71,9 +71,9 @@ Teşekkürler.
 
 Merhaba,
 
-[Ad Soyad / Şirket unvanı] olarak Veniux adlı restoran yönetim yazılımını geliştiriyoruz (masa, paket servis, mutfak ekranı, reçeteli stok). Trendyol Go / Trendyol Yemek siparişlerini yazılımımıza almak için API erişimi ve entegrasyon süreci hakkında bilgi rica ederiz. Yazılım firması olarak başvuru yolu nedir, restoran bazlı API kullanıcı bilgileri mi yeterli, yoksa ayrıca onay gerekli mi?
+[UNVAN] (Veniux) olarak Veniux adlı restoran yönetim yazılımını geliştiriyoruz (masa, paket servis, mutfak ekranı, reçeteli stok). Trendyol Go / Trendyol Yemek siparişlerini yazılımımıza almak için API erişimi ve entegrasyon süreci hakkında bilgi rica ederiz. Yazılım firması olarak başvuru yolu nedir, restoran bazlı API kullanıcı bilgileri mi yeterli, yoksa ayrıca onay gerekli mi?
 
-İletişim: [Ad Soyad], [e-posta], [telefon]. Web: https://veniux.com
+İletişim: [AD SOYAD], [E-POSTA], [TELEFON]. Web: https://veniux.com
 
 Teşekkürler.
 
