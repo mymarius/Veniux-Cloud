@@ -9,7 +9,7 @@ import { SUPPORT_URL } from '../mobileKit';
 
 export const usePacks = useSectorPacks;
 
-export const PACK_TITLES = { hardware: 'Hırdavat paketi', tableware: 'Züccaciye paketi', restaurant: 'Pide ve restoran paketi' };
+export const PACK_TITLES = { hardware: 'Hırdavat paketi', tableware: 'Züccaciye paketi', restaurant: 'Pide ve restoran paketi', online_store: 'Online mağaza paketi' };
 
 // Paket yoksa ekran açılmaz; satın alma için iletişime yönlendirir.
 export function PackGate({ pack, children }) {

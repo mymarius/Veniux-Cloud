@@ -438,4 +438,32 @@ async function summary(user) {
   return { by_status: by, open: OPEN_STATUSES.reduce((s, k) => s + by[k], 0), today_orders: Number(today.n || 0), today_total: round(today.t || 0) };
 }
 
-module.exports = { getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, normalizePhone, STATUSES, NEXT, RESERVED };
+// ---------- Arama motoru ve paylaşım: sayfa üst bilgisi ve site haritası ----------
+// Vitrin tek sayfalı uygulama olduğundan başlık, açıklama ve yapılandırılmış veri sunucuda HTML'e eklenir (arama motorları ve paylaşım önizlemeleri JavaScript çalıştırmaz).
+async function seoFor(slug, productId) {
+  const store = await openStore(slug);
+  if (!store) return null;
+  const base = '/magaza/' + store.slug;
+  const out = { title: store.name, description: (store.tagline || store.about || store.name + ' online mağazası').replace(/\s+/g, ' ').slice(0, 160), canonical: base, image: null, jsonld: null, noindex: false };
+  if (productId != null) {
+    const item = await publicProduct(slug, productId).catch(() => null);
+    if (!item) return { ...out, notFound: true, noindex: true };
+    const first = item.images[0];
+    out.title = item.name + ' | ' + store.name;
+    out.description = (item.description || item.name + ' ' + store.name + ' mağazasında.').replace(/\s+/g, ' ').slice(0, 160);
+    out.canonical = base + '/urun/' + item.id;
+    out.image = first ? first.url : null;
+    out.jsonld = { '@context': 'https://schema.org', '@type': 'Product', name: item.name, description: out.description, category: item.category || undefined, image: first ? [first.url] : undefined, offers: { '@type': 'Offer', priceCurrency: 'TRY', price: item.price.toFixed(2), availability: item.stock_state === 'out' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: out.canonical } };
+  } else {
+    out.jsonld = { '@context': 'https://schema.org', '@type': 'Store', name: store.name, description: out.description, url: out.canonical, email: store.contact_email || undefined, telephone: store.public_phone || undefined };
+  }
+  return out;
+}
+async function sitemapFor(slug) {
+  const store = await openStore(slug);
+  if (!store) return null;
+  const rows = (await db.query("SELECT p.id FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 ORDER BY p.id LIMIT 2000", [store.tenant_id])).rows;
+  return { slug: store.slug, ids: rows.map(r => Number(r.id)) };
+}
+
+module.exports = { getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, normalizePhone, STATUSES, NEXT, RESERVED };

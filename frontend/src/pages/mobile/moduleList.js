@@ -1,4 +1,4 @@
-import { Store, ScanLine, Tag, BarChart3, PackagePlus, ShoppingCart, Package, Printer, Bell, Settings, FileText, Search, AlertTriangle, Layers, Grid3x3, Utensils, ChefHat, ClipboardList, Smartphone, Percent, Gift, PackageX } from 'lucide-react';
+import { ShoppingBag, Store, ScanLine, Tag, BarChart3, PackagePlus, ShoppingCart, Package, Printer, Bell, Settings, FileText, Search, AlertTriangle, Layers, Grid3x3, Utensils, ChefHat, ClipboardList, Smartphone, Percent, Gift, PackageX } from 'lucide-react';
 
 // Mobil uygulamadaki tüm modüller. İlk beşi ana ekranda gösterilir; "Tüm modüller" sayfası hepsini listeler.
 export const MOBILE_MODULES = [
@@ -27,7 +27,8 @@ export const SECTOR_MODULES = [
   { key: 't-registry', title: 'Çeyiz Listesi', to: '/m/ceyiz', Icon: Gift, tone: 'violet', pack: 'tableware' },
   { key: 'r-waiter', title: 'Garson', to: '/m/garson', Icon: Utensils, tone: 'orange', pack: 'restaurant' },
   { key: 'r-kitchen', title: 'Mutfak', to: '/m/mutfak', Icon: ChefHat, tone: 'rose', pack: 'restaurant' },
-  { key: 'r-owner', title: 'Esnaf Paneli', to: '/m/esnaf', Icon: ClipboardList, tone: 'blue', pack: 'restaurant' }
+  { key: 'r-owner', title: 'Esnaf Paneli', to: '/m/esnaf', Icon: ClipboardList, tone: 'blue', pack: 'restaurant' },
+  { key: 'o-store', title: 'Online Mağaza', to: '/m/online-magaza', Icon: ShoppingBag, tone: 'teal', pack: 'online_store' }
 ];
 export const HOME_TILES = 8;
 export const sectorFor = packs => SECTOR_MODULES.filter(m => packs && packs[m.pack]);

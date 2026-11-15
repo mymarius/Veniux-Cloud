@@ -2,7 +2,7 @@ import { readSessionUser } from '../lib/sessionUser';
 import veniuxLogo from '../assets/veniux-logo.webp';
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift } from 'lucide-react';
+import { ShoppingBag, Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift } from 'lucide-react';
 import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
@@ -98,7 +98,8 @@ const SECTOR_NAV = [
   { name: 'Çeyiz Listesi', path: '/sektor/ceyiz', icon: Gift, pack: 'tableware' },
   { name: 'Garson', path: '/sektor/garson', icon: Utensils, pack: 'restaurant' },
   { name: 'Mutfak', path: '/sektor/mutfak', icon: ChefHat, pack: 'restaurant' },
-  { name: 'Esnaf Paneli', path: '/sektor/esnaf', icon: ClipboardCheck, pack: 'restaurant' }
+  { name: 'Esnaf Paneli', path: '/sektor/esnaf', icon: ClipboardCheck, pack: 'restaurant' },
+  { name: 'Online Mağaza', path: '/sektor/online-magaza', icon: ShoppingBag, pack: 'online_store' }
 ];
 const ALL_ITEMS = NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]);
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };

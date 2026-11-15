@@ -43,6 +43,11 @@ const LicenseActivation = lazy(() => import('./pages/LicenseActivation'));
 // Core Veniux ERP & Stock Management Pages
 const Login = lazy(() => import('./pages/Login'));
 const Trial = lazy(() => import('./pages/Trial'));
+const StoreLayout = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreLayout })));
+const StoreHome = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreHome })));
+const StoreProduct = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreProduct })));
+const StoreCart = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreCart })));
+const StoreOrder = lazy(() => import('./pages/Storefront').then(m => ({ default: m.StoreOrder })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Register = lazy(() => import('./pages/Register'));
@@ -59,6 +64,7 @@ const MobileShelfTags = lazy(() => import('./pages/mobile/sector/MobileTableware
 const MobilePriceLabel = lazy(() => import('./pages/mobile/sector/MobileTableware').then(m => ({ default: m.MobilePriceLabel })));
 const MobileWaiter = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileWaiter })));
 const MobileKitchen = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileKitchen })));
+const MobileOnlineStore = lazy(() => import('./pages/mobile/sector/MobileOnlineStore').then(m => ({ default: m.MobileOnlineStore })));
 const MobileOwner = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileOwner })));
 const MobileRestaurantSetup = lazy(() => import('./pages/mobile/sector/MobileRestaurant').then(m => ({ default: m.MobileRestaurantSetup })));
 const DesktopSurface = lazy(() => import('./pages/mobile/sector/SectorSurface').then(m => ({ default: m.DesktopSurface })));
@@ -176,6 +182,12 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/admin/api" element={<ProtectedRoute><ApiManagement /></ProtectedRoute>} />
             <Route path="/activate" element={<LicenseActivation />} />
+            <Route path="/magaza/:slug" element={<StoreLayout />}>
+              <Route index element={<StoreHome />} />
+              <Route path="urun/:id" element={<StoreProduct />} />
+              <Route path="sepet" element={<StoreCart />} />
+              <Route path="siparis/:code" element={<StoreOrder />} />
+            </Route>
             <Route path="/deneme" element={<Trial />} />
             <Route path="/deneme/onay" element={<Trial />} />
             <Route path="/admin/master-key-generator" element={<Navigate to="/admin/api" replace />} />
@@ -204,6 +216,7 @@ function AppContent() {
             <Route path="/m/garson" element={<ProtectedRoute><MobileWaiter /></ProtectedRoute>} />
             <Route path="/m/mutfak" element={<ProtectedRoute><MobileKitchen /></ProtectedRoute>} />
             <Route path="/m/esnaf" element={<ProtectedRoute><MobileOwner /></ProtectedRoute>} />
+            <Route path="/m/online-magaza" element={<ProtectedRoute><MobileOnlineStore /></ProtectedRoute>} />
             <Route path="/sektor/urun-ara" element={<ProtectedRoute><DesktopSurface><MobileProductSearch /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/kritik" element={<ProtectedRoute><DesktopSurface><MobileCritical /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/toplu-fiyat" element={<ProtectedRoute><DesktopSurface><MobileBulkPrice /></DesktopSurface></ProtectedRoute>} />
@@ -215,6 +228,7 @@ function AppContent() {
             <Route path="/sektor/garson" element={<ProtectedRoute><DesktopSurface><MobileWaiter /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/mutfak" element={<ProtectedRoute><DesktopSurface><MobileKitchen /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/esnaf" element={<ProtectedRoute><DesktopSurface><MobileOwner /></DesktopSurface></ProtectedRoute>} />
+            <Route path="/sektor/online-magaza" element={<ProtectedRoute><DesktopSurface><MobileOnlineStore /></DesktopSurface></ProtectedRoute>} />
             <Route path="/sektor/restoran-ayar" element={<ProtectedRoute><DesktopSurface><MobileRestaurantSetup /></DesktopSurface></ProtectedRoute>} />
             <Route path="/m/cihaz-testi" element={<ProtectedRoute><MobileDeviceTest /></ProtectedRoute>} />
             <Route path="/m/restoran-ayar" element={<ProtectedRoute><MobileRestaurantSetup /></ProtectedRoute>} />

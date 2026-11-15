@@ -128,6 +128,7 @@ app.use('/api/accounting-exports', require('./routes/accountingExportRoutes'));
 const frontendDirectory=path.join(__dirname,'../../frontend/dist');
 if(process.env.VENIUX_API_ONLY!=='1'){
 app.use(express.static(frontendDirectory,{index:'index.html'}));
+app.use('/magaza', require('./routes/shopPages'));
 app.get(/^(?!\/api(?:\/|$)).*/, (req,res,next)=>{
  if(!require('fs').existsSync(path.join(frontendDirectory,'index.html')))return next();
  res.type('html').send(require('fs').readFileSync(path.join(frontendDirectory,'index.html'),'utf8').replace('<head>','<head><base href="/">'));

@@ -11,7 +11,7 @@ export function useSectorPacks() {
     if (packsCache?.token === token) { setPacks(packsCache.value); return undefined; }
     let live = true;
     api.get('/sector/packs/me').then(r => { packsCache = { token, value: r.data.packs }; if (live) setPacks(r.data.packs); })
-      .catch(() => { if (live) setPacks({ hardware: false, tableware: false, restaurant: false }); });
+      .catch(() => { if (live) setPacks({ hardware: false, tableware: false, restaurant: false, online_store: false }); });
     return () => { live = false; };
   }, [token]);
   return packs;
