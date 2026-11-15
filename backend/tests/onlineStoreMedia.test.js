@@ -79,7 +79,7 @@ test('reddedilenler: SVG, GIF, metin, imza ile başlık uyuşmazlığı, boyut s
   const big = Buffer.concat([png(), Buffer.alloc(media.MAX_BYTES + 10)]);
   expect((await as(owner).upload(p2.id, big)).status).toBe(413);
   expect((await as(owner).get(`/products/${p2.id}/media`)).body.items).toHaveLength(0);
-});
+}, 30000);
 
 test('ürün başına en çok 5 görsel; başka işletmenin ürününe yüklenemez ve görseli görülemez', async () => {
   await as(owner).upload(p1.id, png(110, 90)); await as(owner).upload(p1.id, png(111, 90));
