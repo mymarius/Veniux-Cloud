@@ -9,6 +9,7 @@ const num = (name, fallback) => Number(process.env[name]) || fallback;
 const keyOf = req => apiThrottle.clientAddress(req);
 const limiter = (windowMs, max, message) => rateLimit({ windowMs, max, keyGenerator: keyOf, standardHeaders: false, legacyHeaders: false, message: { error: message, code: 'RATE_LIMIT' } });
 const readLimit = limiter(60000, num('SHOP_READ_MAX', 120), 'Çok fazla istek. Biraz bekleyin.');
+const quoteLimit = limiter(60000, num('SHOP_QUOTE_MAX', 40), 'Çok fazla istek. Biraz bekleyin.');
 const orderMinute = limiter(60000, num('SHOP_ORDER_MINUTE_MAX', 5), 'Çok sık sipariş denemesi. Bir dakika sonra tekrar deneyin.');
 const orderHour = limiter(3600000, num('SHOP_ORDER_HOUR_MAX', 30), 'Sipariş sınırına ulaşıldı. Daha sonra tekrar deneyin.');
 const run = (fn, cache) => async (req, res, next) => { try { const body = await fn(req); res.set('Cache-Control', cache || 'no-store'); res.json(body); } catch (e) { next(e); } };
@@ -17,6 +18,7 @@ router.get('/:slug', readLimit, run(req => store.publicStore(req.params.slug), '
 router.get('/:slug/products', readLimit, run(req => store.publicProducts(req.params.slug, req.query), 'public, max-age=10'));
 router.get('/:slug/products/:id', readLimit, run(req => store.publicProduct(req.params.slug, req.params.id), 'public, max-age=10'));
 router.get('/:slug/orders/:code', readLimit, run(req => store.publicOrder(req.params.slug, req.params.code)));
+router.post('/:slug/quote', quoteLimit, express.json({ limit: '32kb' }), run(req => store.quote(req.params.slug, req.body || {})));
 router.post('/:slug/orders', orderMinute, orderHour, express.json({ limit: '32kb' }), async (req, res, next) => {
   try {
     const ipHash = crypto.createHash('sha256').update(String(keyOf(req))).digest('hex').slice(0, 16);

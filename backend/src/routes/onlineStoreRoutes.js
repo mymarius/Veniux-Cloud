@@ -4,6 +4,7 @@ const { authMiddleware, requireRole } = require('../middlewares/authMiddleware')
 const packs = require('../services/sectorPacks');
 const store = require('../services/onlineStoreService');
 const media = require('../services/onlineStoreMedia');
+const extras = require('../services/onlineStoreExtras');
 const router = express.Router();
 const run = fn => async (req, res, next) => { try { res.json(await fn(req)); } catch (e) { next(e); } };
 const staff = requireRole('admin', 'manager', 'cashier');
@@ -38,6 +39,15 @@ router.get('/media/:key', staff, async (req, res, next) => {
 router.get('/orders', staff, run(req => store.listOrders(req.user, req.query)));
 router.get('/orders/:id', staff, run(req => store.getOrder(req.user, req.params.id)));
 router.patch('/orders/:id/status', staff, run(req => store.setStatus(req.user, req.params.id, req.body)));
+router.get('/discount-codes', boss, run(req => extras.listCodes(req.user)));
+router.post('/discount-codes', boss, run(req => extras.saveCode(req.user, null, req.body)));
+router.put('/discount-codes/:id', boss, run(req => extras.saveCode(req.user, req.params.id, req.body)));
+router.delete('/discount-codes/:id', boss, run(req => extras.deleteCode(req.user, req.params.id)));
+router.get('/shipping-rules', boss, run(req => extras.listRules(req.user)));
+router.post('/shipping-rules', boss, run(req => extras.saveRule(req.user, null, req.body)));
+router.put('/shipping-rules/:id', boss, run(req => extras.saveRule(req.user, req.params.id, req.body)));
+router.delete('/shipping-rules/:id', boss, run(req => extras.deleteRule(req.user, req.params.id)));
+router.put('/orders/:id/shipping', staff, run(req => extras.setShipping(req.user, req.params.id, req.body)));
 router.get('/summary', staff, run(req => store.summary(req.user)));
 
 module.exports = router;

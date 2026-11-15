@@ -17,7 +17,7 @@ Bu belge Faz 1'in ince ayrıntısıdır. Kararlar aksi söylenmedikçe aşağıd
 ## Durum (15 Kasım 2026, son)
 - Faz 1 kodu tamam (görsel, panel, vitrin, SEO, bildirim, MySQL 022 provası). Tüm sunucu testleri geçiyor (1231).
 - Paket kalkınca mağaza, işletmenin bir sonraki paket sorgusunda kapanır (uygulandı).
-- Faz 2'ye bırakılanlar: siparişten müşteri (CRM) kaydı, kiloyla satış, indirim kodu, kargo kuralları, özel alan adı, merkezi paket doğrulaması.
+- Faz 2'ye bırakılanlar: siparişten müşteri (CRM) kaydı, kiloyla satış, özel alan adı, merkezi paket doğrulaması. (İndirim kodu ve kargo kuralları yapıldı: aşağıdaki bölüm 16.)
 - Dağıtım bekliyor: şema 022, lisans sunucusunda `online_store`, 2.4.78, fiyat kararı.
 
 ## 0. Varsayılan kararlar
@@ -149,3 +149,14 @@ yönetim panelinden işletmeye verilir. Pilot işletme: önce yalnız Veniux Tes
 ## 15. Faz 2 ve 3 (sonra)
 **Faz 2:** indirim kodu, kargo ücret kuralları ve takip no, varyant, müşteri hesabı, özel alan adı, vitrin teması, müşteriye SMS/e-posta, kiloyla satış, otomatik veri silme süresi.
 **Faz 3 (şirket gerekir):** kredi kartı ödemesi (iyzico, PayTR), kargo entegrasyonları, e-Arşiv, pazaryerleri.
+
+## 16. İndirim kodları ve kargo kuralları (yapıldı, canlıya alınmadı)
+- Şema: `053_online_store_extras.js` (MySQL manifest `023-online-store-extras`, yalnız yeni tablolar): `online_discount_codes`, `online_shipping_rules`, `online_order_extras` (il, uygulanan kod ve tutarı, kargo kuralı adı, kargo firması, takip no).
+- Kod türleri: yüzde, tutar, kargo bedava. Alanlar: minimum sepet, toplam kullanım sınırı, başlangıç/bitiş tarihi, aktif/pasif. Büyük/küçük harf fark etmez.
+- Kullanım hakkı sipariş işleminde tek SQL ile atomik tüketilir (aynı anda iki sipariş son hakkı alamaz); sipariş iptalinde hak geri verilir. Aynı Idempotency-Key tekrarı hakkı bir kez harcar.
+- Kargo kuralı: ad, il listesi (ya da `*`), ücret, ücretsiz eşik; sırayla bakılır, ilk eşleşen kazanır, eşleşme yoksa mağaza varsayılan ücreti. Kural tanımlıysa vitrin il seçtirir (81 il, Türkçe harf farkı yok sayılır).
+- Fiyat hesabı tek fonksiyonda (`onlineStoreExtras.priceCart`), kuruş cinsinden: sepet özeti ucu `POST /api/public/shop/:slug/quote` ile sipariş aynı hesabı kullanır. Minimum sipariş indirimden önceki tutara bakar. İndirim sepeti aşamaz.
+- Takip: onaylanmış adrese-teslim siparişe firma + takip no girilir (`PUT /api/online-store/orders/:id/shipping`), müşteri sipariş sayfasında görür.
+- Arayüz: yönetici panelinde "Kod & Kargo" sekmesi, sipariş ayrıntısında kargo kutusu; vitrinde il seçici, indirim kodu alanı, sunucudan gelen toplamlar.
+- Sınır: kod tahminine karşı `quote` ucu IP başına dakikada 40 (SHOP_QUOTE_MAX).
+- Canlıya alırken: `022` + `023` birlikte `upgradeAdditive` ile uygulanır; `SHIPPABLE_MYSQL_SCHEMA` = `023-online-store-extras`.

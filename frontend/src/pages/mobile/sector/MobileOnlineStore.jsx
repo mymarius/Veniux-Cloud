@@ -13,8 +13,10 @@ const API = '/online-store';
 // ---------- Siparişler ----------
 function OrderSheet({ id, onClose, onChanged }) {
   const detail = useAsync(async () => (await api.get(`${API}/orders/${id}`)).data, [id]);
-  const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [reason, setReason] = useState(''), [cancelling, setCancelling] = useState(false);
+  const [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [reason, setReason] = useState(''), [cancelling, setCancelling] = useState(false), [ship, setShip] = useState({ carrier: '', tracking_no: '' });
   const order = detail.data;
+  useEffect(() => { if (order) setShip({ carrier: order.carrier || '', tracking_no: order.tracking_no || '' }); }, [order?.carrier, order?.tracking_no]); // eslint-disable-line react-hooks/exhaustive-deps
+  const saveShip = async () => { setBusy(true); setMessage(''); try { await api.put(`${API}/orders/${id}/shipping`, ship); await detail.reload(); setMessage('Kargo bilgisi kaydedildi.'); } catch (e) { setMessage(errorText(e, 'Kargo bilgisi kaydedilemedi.')); } finally { setBusy(false); } };
   const change = async (status, why) => {
     setBusy(true); setMessage('');
     try { await api.patch(`${API}/orders/${id}/status`, { status, reason: why }); await detail.reload(); onChanged(); setCancelling(false); }
@@ -26,16 +28,20 @@ function OrderSheet({ id, onClose, onChanged }) {
       <h2 style={{ margin: '0 0 4px' }}>Sipariş {order.number}</h2>
       <p className="vm-note">{statusLabel(order.status)} · {order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim'} · {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme'}</p>
       <div className="vm-list" style={{ margin: '10px 0' }}>{order.items.map(i => <div key={i.product_id} className="vm-row"><span className="grow"><b>{i.quantity}×</b> {i.name}</span><b>{money(i.line_total)}</b></div>)}</div>
-      <p className="vm-note">Ara toplam {money(order.subtotal)} · Teslimat {money(order.delivery_fee)}</p>
+      <p className="vm-note">Ara toplam {money(order.subtotal)}{order.discount_amount > 0 ? ` · İndirim −${money(order.discount_amount)} (${order.discount_code})` : ''} · Teslimat {money(order.delivery_fee)}{order.shipping_rule ? ` (${order.shipping_rule})` : ''}</p>
       <p style={{ fontWeight: 800, fontSize: 18 }}>Toplam {money(order.total)}</p>
       <div className="vm-card" style={{ margin: '10px 0' }}>
         <b>{order.customer_name}</b><div><a href={`tel:${order.phone}`}>{order.phone}</a></div>
         {order.email && <div className="vm-note">{order.email}</div>}
-        {order.address && <div className="vm-note">{order.address}</div>}
+        {order.address && <div className="vm-note">{order.city ? order.city + ' · ' : ''}{order.address}</div>}
         {order.note && <div className="vm-note"><b>Not:</b> {order.note}</div>}
         {order.cancel_reason && <div className="vm-err">İptal nedeni: {order.cancel_reason}</div>}
       </div>
-      {message && <p role="alert" className="vm-err">{message}</p>}
+      {order.delivery_method === 'delivery' && ['confirmed', 'preparing', 'ready', 'delivered'].includes(order.status) && <div className="vm-card" style={{ margin: '10px 0' }}><b>Kargo takibi</b>
+        <label className="vm-field"><input aria-label="Kargo firması" placeholder="Kargo firması" maxLength={60} value={ship.carrier} onChange={e => setShip(x => ({ ...x, carrier: e.target.value }))} /></label>
+        <label className="vm-field"><input aria-label="Takip numarası" placeholder="Takip numarası" maxLength={60} value={ship.tracking_no} onChange={e => setShip(x => ({ ...x, tracking_no: e.target.value }))} /></label>
+        <button type="button" className="vm-btn ghost" disabled={busy} onClick={saveShip}>Kargo bilgisini kaydet</button><div className="vm-note">Müşteri sipariş sayfasında görür.</div></div>}
+      {message && <p role="alert" className={/^Kargo bilgisi kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
       {cancelling ? <div><label className="vm-field"><input autoFocus placeholder="İptal nedeni (isteğe bağlı)" maxLength={200} value={reason} onChange={e => setReason(e.target.value)} aria-label="İptal nedeni" /></label>
         <button type="button" className="vm-btn" disabled={busy} onClick={() => change('cancelled', reason)}>Siparişi iptal et, stok geri gelsin</button>
         <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setCancelling(false)}>Vazgeç</button></div>
@@ -225,14 +231,66 @@ function SettingsTab() {
   </div>;
 }
 
+// ---------- Kampanya ve kargo ----------
+const KIND_LABELS = { percent: 'Yüzde indirim', amount: 'Tutar indirimi (TL)', free_shipping: 'Kargo bedava' };
+const inner = { flex: 1, border: 0, background: 'none', font: 'inherit', color: 'var(--vm-ink)' };
+function CodesSection() {
+  const list = useAsync(async () => (await api.get(`${API}/discount-codes`)).data, []);
+  const empty = { code: '', kind: 'percent', value: '10', min_order: '', max_uses: '', ends_at: '' };
+  const [form, setForm] = useState(empty), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const call = async fn => { setBusy(true); setMessage(''); try { await fn(); await list.reload(); } catch (e) { setMessage(errorText(e, 'İşlem yapılamadı.')); } finally { setBusy(false); } };
+  const add = () => call(async () => { await api.post(`${API}/discount-codes`, { code: form.code, kind: form.kind, value: form.kind === 'free_shipping' ? 0 : Number(form.value), min_order: Number(form.min_order) || 0, max_uses: form.max_uses === '' ? null : Number(form.max_uses), ends_at: form.ends_at ? form.ends_at + ' 23:59:59' : null }); setForm(empty); });
+  const f = (key, props) => <input value={form[key]} onChange={e => setForm(x => ({ ...x, [key]: e.target.value }))} {...props} />;
+  return <div>
+    <div className="vm-label"><span>İndirim kodları</span></div>
+    {message && <p role="alert" className="vm-err">{message}</p>}
+    <div className="vm-list">{(list.data?.items || []).map(c => <div key={c.id} className="vm-row" style={{ flexWrap: 'wrap' }}><span className="grow" style={{ flexBasis: '100%' }}><b>{c.code}</b> · {c.kind === 'percent' ? `%${c.value}` : c.kind === 'amount' ? money(c.value) : 'Kargo bedava'}<div className="vm-note">{c.used_count}{c.max_uses ? '/' + c.max_uses : ''} kullanım{c.min_order > 0 ? ` · min. ${money(c.min_order)}` : ''}{c.ends_at ? ` · ${String(c.ends_at).slice(0, 10)} tarihine kadar` : ''}{c.active ? '' : ' · pasif'}</div></span>
+      <button type="button" className="vm-btn ghost" style={{ minHeight: 40 }} disabled={busy} onClick={() => call(() => api.put(`${API}/discount-codes/${c.id}`, { active: !c.active }))}>{c.active ? 'Durdur' : 'Aç'}</button>
+      <button type="button" aria-label={c.code + ' kodunu sil'} className="vm-btn ghost" style={{ minHeight: 40 }} disabled={busy} onClick={() => call(() => api.delete(`${API}/discount-codes/${c.id}`))}><Trash2 size={16} /></button></div>)}
+      {list.data && !list.data.items.length && <p className="vm-note">Henüz kod yok.</p>}</div>
+    <div className="vm-card" style={{ marginTop: 10 }}><b>Yeni kod</b>
+      <label className="vm-field">{f('code', { 'aria-label': 'Kod', placeholder: 'Kod (örn. YAZ10)', maxLength: 20, autoCapitalize: 'characters', onChange: e => setForm(x => ({ ...x, code: e.target.value.toUpperCase() })) })}</label>
+      <label className="vm-field"><select aria-label="İndirim türü" value={form.kind} onChange={e => setForm(x => ({ ...x, kind: e.target.value }))} style={inner}>{Object.entries(KIND_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+      {form.kind !== 'free_shipping' && <label className="vm-field">{f('value', { 'aria-label': 'İndirim değeri', inputMode: 'decimal', placeholder: form.kind === 'percent' ? 'Yüzde (örn. 10)' : 'Tutar (TL)' })}</label>}
+      <label className="vm-field">{f('min_order', { 'aria-label': 'Minimum sepet tutarı', inputMode: 'decimal', placeholder: 'Minimum sepet tutarı (TL, boş = yok)' })}</label>
+      <label className="vm-field">{f('max_uses', { 'aria-label': 'Kullanım sınırı', inputMode: 'numeric', placeholder: 'Toplam kullanım sınırı (boş = sınırsız)' })}</label>
+      <label className="vm-field"><span className="vm-note">Son gün</span>{f('ends_at', { 'aria-label': 'Son gün', type: 'date' })}</label>
+      <button type="button" className="vm-btn" disabled={busy || !form.code} onClick={add}>Kodu ekle</button></div>
+  </div>;
+}
+function RulesSection() {
+  const list = useAsync(async () => (await api.get(`${API}/shipping-rules`)).data, []);
+  const empty = { name: '', cities: '', fee: '', free_over: '' };
+  const [form, setForm] = useState(empty), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const call = async fn => { setBusy(true); setMessage(''); try { await fn(); await list.reload(); } catch (e) { setMessage(errorText(e, 'İşlem yapılamadı.')); } finally { setBusy(false); } };
+  const add = () => call(async () => { await api.post(`${API}/shipping-rules`, { name: form.name, cities: form.cities, fee: Number(form.fee) || 0, free_over: form.free_over === '' ? null : Number(form.free_over) }); setForm(empty); });
+  const f = (key, props) => <input value={form[key]} onChange={e => setForm(x => ({ ...x, [key]: e.target.value }))} {...props} />;
+  return <div style={{ marginTop: 18 }}>
+    <div className="vm-label"><span>Kargo ücreti kuralları</span></div>
+    <p className="vm-note">Müşterinin seçtiği il için ücret uygulanır. Sırayla bakılır, ilk eşleşen kazanır; eşleşme yoksa Ayarlar sekmesindeki varsayılan ücret geçerlidir. Tüm Türkiye için * yazın.</p>
+    {message && <p role="alert" className="vm-err">{message}</p>}
+    <div className="vm-list">{(list.data?.items || []).map(r => <div key={r.id} className="vm-row" style={{ flexWrap: 'wrap' }}><span className="grow" style={{ flexBasis: '100%' }}><b>{r.name}</b> · {money(r.fee)}<div className="vm-note">{r.cities[0] === '*' ? 'Tüm Türkiye' : r.cities.join(', ')}{r.free_over != null ? ` · ${money(r.free_over)} üzeri ücretsiz` : ''}{r.active ? '' : ' · pasif'}</div></span>
+      <button type="button" className="vm-btn ghost" style={{ minHeight: 40 }} disabled={busy} onClick={() => call(() => api.put(`${API}/shipping-rules/${r.id}`, { active: !r.active }))}>{r.active ? 'Durdur' : 'Aç'}</button>
+      <button type="button" aria-label={r.name + ' kuralını sil'} className="vm-btn ghost" style={{ minHeight: 40 }} disabled={busy} onClick={() => call(() => api.delete(`${API}/shipping-rules/${r.id}`))}><Trash2 size={16} /></button></div>)}
+      {list.data && !list.data.items.length && <p className="vm-note">Kural yok; tüm siparişlerde Ayarlar sekmesindeki teslimat ücreti uygulanır.</p>}</div>
+    <div className="vm-card" style={{ marginTop: 10 }}><b>Yeni kural</b>
+      <label className="vm-field">{f('name', { 'aria-label': 'Kural adı', placeholder: 'Kural adı (örn. Marmara)', maxLength: 60 })}</label>
+      <label className="vm-field">{f('cities', { 'aria-label': 'İller', placeholder: 'İller, virgülle (örn. İstanbul, Kocaeli) ya da *' })}</label>
+      <label className="vm-field">{f('fee', { 'aria-label': 'Kargo ücreti', inputMode: 'decimal', placeholder: 'Kargo ücreti (TL)' })}</label>
+      <label className="vm-field">{f('free_over', { 'aria-label': 'Ücretsiz kargo eşiği', inputMode: 'decimal', placeholder: 'Ücretsiz kargo eşiği (TL, boş = yok)' })}</label>
+      <button type="button" className="vm-btn" disabled={busy || !form.name} onClick={add}>Kuralı ekle</button></div>
+  </div>;
+}
+function CampaignsTab() { return <div><CodesSection /><RulesSection /></div>; }
+
 export function MobileOnlineStore() {
   const [tab, setTab] = useState('orders');
-  const tabs = isBoss() ? [['orders', 'Siparişler'], ['products', 'Ürünler'], ['settings', 'Ayarlar']] : [['orders', 'Siparişler']];
+  const tabs = isBoss() ? [['orders', 'Siparişler'], ['products', 'Ürünler'], ['campaigns', 'Kod & Kargo'], ['settings', 'Ayarlar']] : [['orders', 'Siparişler']];
   return <div className="vm">
     <MobileTop title="Online Mağaza" flat />
     <PackGate pack="online_store"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
       <div role="tablist" aria-label="Online mağaza" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>{tabs.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={'vm-btn ' + (tab === k ? '' : 'ghost')} style={{ flex: 1, minHeight: 44 }} onClick={() => setTab(k)}>{l}</button>)}</div>
-      {tab === 'orders' && <OrdersTab />}{tab === 'products' && <ProductsTab />}{tab === 'settings' && <SettingsTab />}
+      {tab === 'orders' && <OrdersTab />}{tab === 'products' && <ProductsTab />}{tab === 'campaigns' && <CampaignsTab />}{tab === 'settings' && <SettingsTab />}
       <p className="vm-note" style={{ marginTop: 14 }}>Akış: {STATUS_FLOW}</p>
     </div></PackGate>
   </div>;

@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const db = require('../config/database');
 const { ciLike } = require('./sqlSearch');
+const extras = require('./onlineStoreExtras');
 
 const fail = (message, status = 400, code) => { throw Object.assign(new Error(message), { status, ...(code ? { code } : {}) }); };
 const lock = () => (db.getEngine() === 'mysql' ? ' FOR UPDATE' : '');
@@ -245,7 +246,9 @@ const publicWhere = (tenantId, query) => {
 async function publicStore(slug) {
   const row = await openStore(slug) || notFound();
   const categories = (await db.query("SELECT p.category AS name,COUNT(*) AS n FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 AND p.category IS NOT NULL AND p.category<>'' GROUP BY p.category ORDER BY p.category", [row.tenant_id])).rows;
-  return shapePublicStore(row, { categories: categories.map(c => ({ name: c.name, count: Number(c.n) })) });
+  const ruleCount = Number((await db.query('SELECT COUNT(*) AS n FROM online_shipping_rules WHERE tenant_id=$1 AND active=1', [row.tenant_id])).rows[0].n);
+  const codeCount = Number((await db.query('SELECT COUNT(*) AS n FROM online_discount_codes WHERE tenant_id=$1 AND active=1', [row.tenant_id])).rows[0].n);
+  return shapePublicStore(row, { categories: categories.map(c => ({ name: c.name, count: Number(c.n) })), provinces: ruleCount ? extras.PROVINCES : [], has_codes: codeCount > 0 });
 }
 async function shapePublicProducts(row, rows) {
   const ids = rows.map(r => Number(r.id));
@@ -341,15 +344,15 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     const priced = ids.map(id => { const p = byId.get(id), qty = wanted.get(id), line = cents(p.sale_price) * qty; subtotal += line; return { id, p, qty, line }; });
     const minOrder = cents(store.min_order);
     if (subtotal < minOrder) fail(`Minimum sipariş tutarı ${fromCents(minOrder).toFixed(2).replace('.', ',')} ₺.`, 422, 'MIN_ORDER');
-    const freeOver = store.free_delivery_over == null ? null : cents(store.free_delivery_over);
-    const fee = delivery === 'pickup' || (freeOver != null && subtotal >= freeOver) ? 0 : cents(store.delivery_fee);
+    const price = await extras.priceCart(tx, store, { subtotalC: subtotal, delivery, cityInput: body.city, codeInput: body.discount_code });
+    const fee = price.shippingC;
     // Stok: tek işlemde koşullu düşülür; yetmeyen olursa hiçbir şey yazılmaz.
     const orderNumber = (await (async () => {
       await tx.query('UPDATE online_stores SET order_counter=order_counter+1 WHERE tenant_id=$1', [tenantId]);
       return Number((await tx.query('SELECT order_counter FROM online_stores WHERE tenant_id=$1' + lock(), [tenantId])).rows[0].order_counter);
     })());
     const code = crypto.randomBytes(15).toString('base64url');
-    const total = subtotal + fee;
+    const total = price.totalC;
     const inserted = (await tx.query('INSERT INTO online_orders (tenant_id,number,public_code,status,delivery_method,payment_method,customer_name,phone,email,address,note,subtotal,delivery_fee,total,warehouse_id,consent_at,idempotency_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,CURRENT_TIMESTAMP,$16) RETURNING id', [tenantId, orderNumber, code, 'new', delivery, payment, name, phone, email, delivery === 'delivery' ? address : null, note, fromCents(subtotal), fromCents(fee), fromCents(total), warehouse, idempotencyKey])).rows[0];
     const orderId = Number(inserted.id);
     const shortages = [];
@@ -358,14 +361,35 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
       if (!got.ok) shortages.push({ product_id: row.id, name: row.p.name, available: got.available });
     }
     if (shortages.length) throw Object.assign(new Error('Bazı ürünlerin stoğu yetersiz.'), { status: 409, code: 'OUT_OF_STOCK', shortages });
+    if (price.code) await extras.consumeCode(tx, tenantId, price.code.id);
+    await tx.query('INSERT INTO online_order_extras (order_id,tenant_id,city,discount_code_id,discount_code,discount_amount,shipping_rule) VALUES ($1,$2,$3,$4,$5,$6,$7)', [orderId, tenantId, price.city, price.code ? price.code.id : null, price.code ? price.code.code : null, fromCents(price.discountC), price.rule ? price.rule.name : null]);
     for (const row of priced) await tx.query('INSERT INTO online_order_items (tenant_id,order_id,product_id,sku,name,unit,unit_price,quantity,line_total) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [tenantId, orderId, row.id, row.p.sku || null, row.p.name, row.p.unit || 'adet', round(row.p.sale_price), row.qty, fromCents(row.line)]);
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,NULL,$3,$4)', [tenantId, orderId, 'new', ipHash ? 'Müşteri siparişi' : null]);
     const order = (await tx.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
     const its = (await tx.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [tenantId, orderId])).rows;
-    return shapeOrder(order, its);
+    return { ...shapeOrder(order, its), discount: fromCents(price.discountC), discount_code: price.code ? price.code.code : '' };
   });
   if (!result.repeated) announce(store, result, { name, phone, address: delivery === 'delivery' ? address : '', note, email }).catch(() => {});
   return result;
+}
+// Sepet özeti: sipariş vermeden toplamları (indirim, kargo) hesaplar; sipariş oluştururken aynı hesap yapılır.
+async function quote(slug, body = {}) {
+  const store = await openStore(slug) || notFound();
+  const delivery = body.delivery_method === 'pickup' ? 'pickup' : 'delivery';
+  const lines = Array.isArray(body.items) ? body.items : [];
+  if (!lines.length || lines.length > 30) fail('Sepette 1-30 ürün olmalı.');
+  const wanted = new Map();
+  for (const line of lines) {
+    const id = Number(line && line.product_id), qty = Number(line && line.quantity);
+    if (!Number.isSafeInteger(id) || id < 1 || !Number.isSafeInteger(qty) || qty < 1 || qty > 50) fail('Sepetteki ürün veya adet geçersiz.');
+    wanted.set(id, Math.min(50, (wanted.get(id) || 0) + qty));
+  }
+  const ids = [...wanted.keys()];
+  const rows = (await db.query(`SELECT p.id,p.sale_price FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 AND p.id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [store.tenant_id, ...ids])).rows;
+  if (rows.length !== ids.length) fail('Sepetteki bazı ürünler artık satışta değil.', 409, 'PRODUCT_UNAVAILABLE');
+  const subtotal = rows.reduce((s, r) => s + cents(r.sale_price) * wanted.get(Number(r.id)), 0);
+  const price = await extras.priceCart(db, store, { subtotalC: subtotal, delivery, cityInput: body.city, codeInput: body.discount_code, lenientCity: true });
+  return { subtotal: fromCents(price.subtotalC), discount: fromCents(price.discountC), delivery_fee: fromCents(price.shippingC), total: fromCents(price.totalC), city: price.city, code: price.code ? price.code.code : '', shipping_rule: price.rule ? price.rule.name : '' };
 }
 // Yeni sipariş bildirimi (en iyi çaba): işletmenin yönetici ve müdürlerine mobil bildirim, iletişim e-postasına ayrıntılı e-posta.
 // Bildirim hatası siparişi asla bozmaz.
@@ -389,7 +413,7 @@ async function publicOrder(slug, code) {
   const order = (await db.query('SELECT * FROM online_orders WHERE tenant_id=$1 AND public_code=$2', [store.tenant_id, code])).rows[0];
   if (!order) fail('Sipariş bulunamadı.', 404, 'NO_ORDER');
   const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [store.tenant_id, order.id])).rows;
-  return { ...shapeOrder(order, items), customer_name: order.customer_name.split(' ')[0], phone: maskPhone(order.phone), transfer_note: order.payment_method === 'transfer' ? store.transfer_note || '' : '' };
+  return { ...shapeOrder(order, items), customer_name: order.customer_name.split(' ')[0], phone: maskPhone(order.phone), transfer_note: order.payment_method === 'transfer' ? store.transfer_note || '' : '', ...(await (async () => { const x = await extras.extrasFor(db, store.tenant_id, order.id); return { discount: x.discount_amount, discount_code: x.discount_code, carrier: x.carrier, tracking_no: x.tracking_no }; })()) };
 }
 async function publicMedia(slug, key) {
   const store = await openStore(slug) || notFound();
@@ -433,7 +457,7 @@ async function getOrder(user, id) {
   const order = await ownOrder(user, id);
   const items = (await db.query('SELECT * FROM online_order_items WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [user.tenantId, order.id])).rows;
   const events = (await db.query('SELECT from_status,to_status,note,created_at FROM online_order_events WHERE tenant_id=$1 AND order_id=$2 ORDER BY id', [user.tenantId, order.id])).rows;
-  return { ...shapeOrder(order, items), id: Number(order.id), customer_name: order.customer_name, phone: order.phone, email: order.email || '', address: order.address || '', note: order.note || '', cancel_reason: order.cancel_reason || '', events };
+  return { ...shapeOrder(order, items), id: Number(order.id), customer_name: order.customer_name, phone: order.phone, email: order.email || '', address: order.address || '', note: order.note || '', cancel_reason: order.cancel_reason || '', events, ...(({ discount_code_id, ...x }) => x)(await extras.extrasFor(db, user.tenantId, order.id)) };
 }
 async function setStatus(user, id, body = {}) {
   const to = body.status;
@@ -447,6 +471,7 @@ async function setStatus(user, id, body = {}) {
       const items = (await tx.query('SELECT product_id,quantity FROM online_order_items WHERE tenant_id=$1 AND order_id=$2', [user.tenantId, order.id])).rows;
       for (const item of items) await giveBackStock(tx, user.tenantId, Number(order.warehouse_id), Number(item.product_id), Number(item.quantity), codeOf(order.number), Number(order.id), user.userId);
     }
+    if (to === 'cancelled') { const x = await extras.extrasFor(tx, user.tenantId, order.id); await extras.releaseCode(tx, user.tenantId, x.discount_code_id); }
     await tx.query('UPDATE online_orders SET status=$3,cancel_reason=$4,updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2', [order.id, user.tenantId, to, reason]);
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,user_id,note) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, order.id, order.status, to, user.userId || null, reason]);
     await audit(tx, user, 'online_store.order_status', order.id, { number: codeOf(order.number), from: order.status, to });
@@ -490,4 +515,4 @@ async function sitemapFor(slug) {
   return { slug: store.slug, ids: rows.map(r => Number(r.id)) };
 }
 
-module.exports = { getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, closeIfNoPack, normalizePhone, STATUSES, NEXT, RESERVED };
+module.exports = { quote, getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, closeIfNoPack, normalizePhone, STATUSES, NEXT, RESERVED };
