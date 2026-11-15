@@ -111,6 +111,8 @@
 .vm-search:focus-within{box-shadow:4px 4px 0 var(--vm-orange)}
 .vm-search input{flex:1;min-width:0;min-height:46px;border:0;outline:none;background:none;color:var(--vm-ink);font-size:16px}
 .vm-search svg{flex:none;color:var(--vm-ink)}
+.vm-search button svg{color:inherit}
+.vm-search .vm-iconbtn[aria-label^="Kamera"]{color:#fff}
 .vm-field{display:flex;align-items:center;gap:10px;min-height:54px;margin-bottom:12px;padding:0 14px;background:var(--vm-card);border:2px solid var(--vm-ink);border-radius:3px}
 .vm-field:focus-within{box-shadow:4px 4px 0 var(--vm-orange)}
 .vm-field svg{flex:none;color:var(--vm-ink)}

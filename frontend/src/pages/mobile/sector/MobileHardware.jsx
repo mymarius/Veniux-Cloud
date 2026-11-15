@@ -33,7 +33,7 @@ export function MobileProductSearch() {
     <MobileTop title="Ürün Ara" flat right={<span style={{ display: 'flex', gap: 8 }}>{isBoss() && <Link to={sectorPath(desktop, '/m/toplu-fiyat')} className="vm-iconbtn" aria-label="Toplu fiyat değişikliği"><Percent size={20} /></Link>}<Link to={sectorPath(desktop, '/m/kritik')} className="vm-iconbtn" aria-label="Kritik stok"><AlertTriangle size={20} /></Link></span>} />
     <PackGate pack="hardware"><div className="vm-body" style={{ marginTop: 0, paddingTop: 16 }}>
       <div className="vm-search"><Search size={18} />
-        <input type="search" autoFocus placeholder="Ürün, ölçü, barkod…  örn. 3 numara vida" value={q} onChange={e => setQ(e.target.value)} aria-label="Ürün ara" />
+        <input type="search" autoFocus placeholder="örn. 3 numara vida" value={q} onChange={e => setQ(e.target.value)} aria-label="Ürün ara" />
         {(q || size || category || material) && <button type="button" aria-label="Temizle" className="vm-iconbtn" style={{ width: 30, height: 30, background: 'none', color: 'var(--vm-muted)' }} onClick={reset}><X size={16} /></button>}
         <button type="button" aria-label="Kamerayla barkod oku" className="vm-iconbtn" style={{ width: 34, height: 34, background: 'var(--vm-brand)' }} onClick={() => setCamera(v => !v)}><Camera size={17} /></button></div>
       {camera && <div style={{ marginBottom: 12 }}><BarcodeCamera onCode={code => { setQ(code); setCamera(false); }} onClose={() => setCamera(false)} /></div>}
