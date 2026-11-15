@@ -33,14 +33,51 @@ async function saveTable(user, id, body = {}) {
 }
 
 // Menü: "menü" işaretli ürünler; hiç işaret yoksa satış fiyatı olan tüm ürünler.
-async function menu(user) {
+// ---------- Stok ile menü tek çatıda: porsiyon durumu ----------
+// Reçeteli ürünün kaç porsiyon çıkabileceği, malzeme stoğundan (çok katlı reçete dahil) hesaplanır.
+// null: stoğu izlenmeyen ürün (sınırlamaz). Sipariş yine alınır; stok yetmezse sipariş kalemine eksik işaretlenir.
+const LOW_PORTIONS = 5;
+async function defaultWarehouse(user, requested) {
+  let warehouse = Number(requested) || 0;
+  if (!warehouse) warehouse = Number((await db.query("SELECT id FROM warehouses WHERE tenant_id=$1 AND warehouse_type='NORMAL' ORDER BY id LIMIT 1", [user.tenantId])).rows[0]?.id || 0);
+  return warehouse;
+}
+async function availability(user, warehouse) {
+  const recipeRows = (await db.query('SELECT product_id,ingredient_id,quantity FROM product_recipes WHERE tenant_id=$1', [user.tenantId])).rows;
+  const recipe = new Map();
+  for (const r of recipeRows) recipe.set(Number(r.product_id), [...(recipe.get(Number(r.product_id)) || []), { id: Number(r.ingredient_id), q: Number(r.quantity) }]);
+  const stockRows = (await db.query('SELECT product_id,SUM(quantity) AS q FROM stock_records WHERE tenant_id=$1' + (warehouse ? ' AND warehouse_id=$2' : '') + ' GROUP BY product_id', warehouse ? [user.tenantId, warehouse] : [user.tenantId])).rows;
+  const stock = new Map(stockRows.map(r => [Number(r.product_id), Number(r.q)]));
+  const memo = new Map();
+  const portions = (id, seen = new Set()) => {
+    if (memo.has(id)) return memo.get(id);
+    const parts = recipe.get(id);
+    let out;
+    if (!parts || seen.has(id)) out = stock.has(id) ? Math.max(0, Math.floor(round(stock.get(id), 6))) : null;
+    else {
+      const next = new Set(seen).add(id);
+      const each = parts.filter(c => c.q > 0).map(c => { const have = portions(c.id, next); return have === null ? null : Math.floor(round(have / c.q, 6)); });
+      const tracked = each.filter(v => v !== null);
+      out = tracked.length ? Math.max(0, Math.min(...tracked)) : null;
+    }
+    memo.set(id, out);
+    return out;
+  };
+  return { portions, stock, recipe };
+}
+const portionState = n => (n === null ? 'untracked' : n <= 0 ? 'out' : n <= LOW_PORTIONS ? 'low' : 'ok');
+
+async function menu(user, query = {}) {
   const flagged = (await db.query("SELECT product_id FROM product_attributes WHERE tenant_id=$1 AND attr_key='menu' AND attr_value='1'", [user.tenantId])).rows.map(r => Number(r.product_id));
   const all = (await db.query("SELECT id,name,category,unit,sale_price FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND sale_price>0 ORDER BY category,name LIMIT 500", [user.tenantId])).rows;
   const optionRows = (await db.query('SELECT product_id,name,price FROM restaurant_menu_options WHERE tenant_id=$1 ORDER BY product_id,position', [user.tenantId])).rows;
   const optionMap = new Map();
   for (const r of optionRows) optionMap.set(Number(r.product_id), [...(optionMap.get(Number(r.product_id)) || []), { name: r.name, price: round(r.price) }]);
   const items = (flagged.length ? all.filter(p => flagged.includes(Number(p.id))) : all).map(p => ({ id: Number(p.id), name: p.name, category: p.category || 'Diğer', unit: p.unit, price: round(p.sale_price), options: (optionMap.get(Number(p.id)) || []).map(o => ({ name: o.name, price: o.price })) }));
-  return { items, configured: flagged.length > 0 };
+  const warehouse = await defaultWarehouse(user, query && query.warehouse_id);
+  const stockView = await availability(user, warehouse);
+  for (const it of items) { const n = stockView.portions(it.id); it.available = n; it.stock_state = portionState(n); }
+  return { items, configured: flagged.length > 0, warehouse_id: warehouse || null };
 }
 
 // Ürün seçenekleri ("Kaşarlı +20 ₺", "Acılı"): restaurant_menu_options tablosunda sıralı tutulur. İsteğe bağlı malzeme stoktan düşer.
@@ -348,7 +385,16 @@ async function summary(user, query = {}) {
   const open = Number((await db.query("SELECT COUNT(*) AS n FROM restaurant_orders WHERE tenant_id=$1 AND business_day=$2 AND status='open'", [user.tenantId, day])).rows[0].n);
   const orders = byType.reduce((s, r) => s + Number(r.n), 0), revenue = byType.reduce((s, r) => s + Number(r.revenue || 0), 0);
   const refundCents = Number((await db.query('SELECT COALESCE(SUM(amount_cents),0) AS c FROM restaurant_refunds WHERE tenant_id=$1 AND business_day=$2', [user.tenantId, day])).rows[0].c);
-  return { date: day, orders, open_orders: open, revenue: round(revenue - refundCents / 100), gross_revenue: round(revenue), refunds: refundCents / 100,
+  const menuNow = await menu(user, query);
+  const stockSummary = { out: menuNow.items.filter(i => i.stock_state === 'out').map(i => ({ id: i.id, name: i.name })), low: menuNow.items.filter(i => i.stock_state === 'low').map(i => ({ id: i.id, name: i.name, available: i.available })) };
+  const used = [...new Set((await db.query('SELECT ingredient_id FROM product_recipes WHERE tenant_id=$1', [user.tenantId])).rows.map(r => Number(r.ingredient_id)))];
+  stockSummary.ingredients_low = [];
+  if (used.length) {
+    const view = await availability(user, menuNow.warehouse_id);
+    const rows = (await db.query('SELECT id,name,unit,min_stock_level FROM products WHERE tenant_id=$1 AND module_type=$2', [user.tenantId, 'NORMAL'])).rows.filter(r => used.includes(Number(r.id)) && !view.recipe.has(Number(r.id)));
+    stockSummary.ingredients_low = rows.map(r => ({ id: Number(r.id), name: r.name, unit: r.unit, quantity: round(view.stock.get(Number(r.id)) || 0, 3), min: Number(r.min_stock_level || 0) })).filter(r => r.quantity <= r.min).slice(0, 20);
+  }
+  return { stock: stockSummary, date: day, orders, open_orders: open, revenue: round(revenue - refundCents / 100), gross_revenue: round(revenue), refunds: refundCents / 100,
     by_type: TYPES.map(t => { const r = byType.find(x => x.order_type === t); return { type: t, orders: r ? Number(r.n) : 0, revenue: r ? round(r.revenue) : 0 }; }),
     products: products.map(p => ({ product_id: Number(p.product_id), name: p.product_name, quantity: round(p.qty, 3), revenue: round(p.revenue) })) };
 }

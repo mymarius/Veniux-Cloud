@@ -110,6 +110,7 @@ export function MobileWaiter() {
   const loadOrder = async id => { if (!id) { setOrder(null); return; } const list = (await api.get('/sector/restaurant/orders')).data.items; setOrder(list.find(o => o.id === id) || null); };
   const choose = t => { setTarget(t); setCart(new Map()); setSent(null); setClosed(null); setMessage(''); setCategory(''); setDelivered(false); loadOrder(t.type === 'masa' ? t.open_order_id : null).catch(() => setOrder(null)); };
   const refresh = async () => { const list = await tables.reload(); const t = (list || tables.data || []).find(x => x.id === target?.id); await loadOrder(t?.open_order_id).catch(() => setOrder(null)); };
+  usePolling(() => menu.reload(), 10000);
   const submit = async () => {
     setBusy(true); setMessage('');
     try {
@@ -118,6 +119,7 @@ export function MobileWaiter() {
       const r = (await api.post('/sector/restaurant/orders', body)).data;
       setSent({ ...r, type: target.type }); setCart(new Map());
       if (target.type === 'masa') { await tables.reload(); await loadOrder(r.order_id); }
+      menu.reload();
     } catch (e) { setMessage(errorText(e, 'Sipariş gönderilemedi.')); } finally { setBusy(false); }
   };
   const tap = p => (p.options?.length ? setChoosing(p) : setCart(c => cartAdd(c, p)));
@@ -147,7 +149,7 @@ export function MobileWaiter() {
           <button type="button" className={'vm-btn ' + (!category ? '' : 'ghost')} style={pill} onClick={() => setCategory('')}>Tümü</button>
           {categories.map(c => <button key={c} type="button" className={'vm-btn ' + (category === c ? '' : 'ghost')} style={pill} onClick={() => setCategory(c)}>{c}</button>)}</div>
         <div className="vm-modgrid">{shown.map(p => { const n = productQty(cart, p.id); return <div key={p.id} className="vm-mod" style={{ minHeight: 96, justifyContent: 'space-between', borderColor: n ? 'var(--vm-brand)' : undefined }}>
-          <button type="button" style={{ all: 'unset', cursor: 'pointer', display: 'block' }} aria-label={p.name + ' ekle'} onClick={() => tap(p)}><b style={{ fontSize: 15 }}>{p.name}</b><div className="vm-note">{money(p.price)}{p.options?.length ? ' · seçenekli' : ''}</div></button>
+          <button type="button" style={{ all: 'unset', cursor: 'pointer', display: 'block' }} aria-label={p.name + ' ekle'} onClick={() => tap(p)}><b style={{ fontSize: 15 }}>{p.name}</b><div className="vm-note">{money(p.price)}{p.options?.length ? ' · seçenekli' : ''}</div>{p.stock_state === 'out' && <div className="vm-err" style={{ fontWeight: 800 }}>Tükendi · stok yetmez</div>}{p.stock_state === 'low' && <div style={{ color: 'var(--vm-accent)', fontWeight: 800, fontSize: 13 }}>Son {p.available} porsiyon</div>}</button>
           {n > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><button type="button" className="vm-iconbtn" style={{ background: '#165da41a', color: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' azalt'} onClick={() => setCart(c => cartRemoveOne(c, p.id))}><Minus size={16} /></button><b aria-live="polite">{n}</b>
             <button type="button" className="vm-iconbtn" style={{ background: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' artır'} onClick={() => tap(p)}><Plus size={16} /></button></div>}</div>; })}</div></>}
     </div></PackGate>
@@ -208,6 +210,12 @@ export function MobileOwner() {
       {data && <>
         <section className="vm-card"><div className="vm-note">Bugün ({data.date})</div><div className="vm-money">{money(data.revenue)}</div><div className="vm-note">{data.orders} sipariş · {data.open_orders} açık{data.refunds > 0 ? ' · iade ' + money(data.refunds) : ''}</div>
           <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>{data.by_type.map(t => <div key={t.type} style={{ flex: 1, background: 'var(--vm-bg)', borderRadius: 8, padding: 8, textAlign: 'center' }}><b style={{ fontSize: 20 }}>{t.orders}</b><div className="vm-note">{TYPE_LABELS[t.type]}</div><div className="vm-note">{money(t.revenue)}</div></div>)}</div></section>
+        {data.stock && (data.stock.out.length > 0 || data.stock.low.length > 0 || data.stock.ingredients_low.length > 0) && <section className="vm-card" aria-label="Stok durumu">
+          <div className="vm-label"><span>Stok durumu</span></div>
+          {data.stock.out.length > 0 && <p className="vm-err" role="alert"><b>Tükendi:</b> {data.stock.out.map(i => i.name).join(', ')}</p>}
+          {data.stock.low.length > 0 && <p className="vm-note"><b>Azalıyor:</b> {data.stock.low.map(i => i.name + ' (' + i.available + ')').join(', ')}</p>}
+          {data.stock.ingredients_low.length > 0 && <p className="vm-note"><b>Malzeme asgari seviyede:</b> {data.stock.ingredients_low.map(i => i.name + ' ' + i.quantity + ' ' + (i.unit || '')).join(', ')}</p>}
+          <Link className="vm-btn ghost" to="/alerts" style={{ marginTop: 8 }}>Stok uyarılarına git</Link></section>}
         <div className="vm-label"><span>Bugün ne gitti?</span></div>
         {data.products.length === 0 ? <p className="vm-note">Henüz sipariş yok.</p> : <div className="vm-list">{data.products.map(p => <div key={p.product_id} className="vm-row"><span className="grow">{p.name}</span><b>{p.quantity}</b><span className="vm-note" style={{ minWidth: 80, textAlign: 'right' }}>{money(p.revenue)}</span></div>)}</div>}</>}
       <Deliveries />
