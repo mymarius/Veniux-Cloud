@@ -399,6 +399,12 @@ async function publicMedia(slug, key) {
   return row;
 }
 
+// Paket hesaptan kalkmışsa mağaza kapanır (veri silinmez). Cihazsız ziyaretçi isteğinde merkezi lisans sorgulanamadığı için kontrol,
+// işletmenin paket durumunu sorduğu her oturumda (ör. giriş sonrası /sector/packs/me) yapılır.
+async function closeIfNoPack(tenantId, packs) {
+  if (packs && packs.online_store === false) await db.query('UPDATE online_stores SET published=0,accepting_orders=0,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$1 AND (published=1 OR accepting_orders=1)', [tenantId]);
+}
+
 // ---------- Siparişler (yönetici) ----------
 function visibleWarehouse(user) { const scope = allowedWarehouses(user); return scope ? [...scope] : null; }
 async function listOrders(user, query = {}) {
@@ -484,4 +490,4 @@ async function sitemapFor(slug) {
   return { slug: store.slug, ids: rows.map(r => Number(r.id)) };
 }
 
-module.exports = { getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, normalizePhone, STATUSES, NEXT, RESERVED };
+module.exports = { getSettings, saveSettings, slugAvailable, listProducts, setProduct, bulkPublish, listOrders, getOrder, setStatus, summary, publicStore, publicProducts, publicProduct, createOrder, publicOrder, publicMedia, seoFor, sitemapFor, closeIfNoPack, normalizePhone, STATUSES, NEXT, RESERVED };

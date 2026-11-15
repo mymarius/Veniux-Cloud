@@ -250,6 +250,21 @@ describe('sipariş yönetimi', () => {
   });
 });
 
+describe('paket kalkınca', () => {
+  test('paket hesaptan kalkarsa işletmenin bir sonraki paket sorgusunda mağaza kapanır, veri kalır; paket dönünce yeniden yayınlanabilir', async () => {
+    expect((await shop('get', 'deneme-magaza')).status).toBe(200);
+    await db.query("DELETE FROM sector_packs WHERE tenant_id=$1 AND pack='online_store'", [owner.tenantId]);
+    const mine = (await request(app).get('/api/sector/packs/me').set('Authorization', 'Bearer ' + owner.token)).body.packs;
+    expect(mine.online_store).toBe(false);
+    expect((await shop('get', 'deneme-magaza')).status).toBe(404);
+    expect((await shop('post', 'deneme-magaza/orders', order(), key())).status).toBe(404);
+    expect(Number((await db.query('SELECT COUNT(*) AS n FROM online_orders WHERE tenant_id=$1', [owner.tenantId])).rows[0].n)).toBeGreaterThan(0);
+    await db.query("INSERT INTO sector_packs (tenant_id,pack) VALUES ($1,'online_store')", [owner.tenantId]);
+    expect((await admin(owner, 'put', '/settings', { ...settings, warehouse_id: w.id, published: true })).body.store.published).toBe(true);
+    expect((await shop('get', 'deneme-magaza')).status).toBe(200);
+  });
+});
+
 describe('yardımcılar', () => {
   test('telefon biçimleri tek biçime çevrilir', () => {
     for (const p of ['0532 123 45 67', '+90 532 123 45 67', '5321234567', '(0532) 123-45-67']) expect(svc.normalizePhone(p)).toBe('05321234567');

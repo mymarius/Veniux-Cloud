@@ -14,6 +14,12 @@ Bu belge Faz 1'in ince ayrıntısıdır. Kararlar aksi söylenmedikçe aşağıd
   2. **Paket kapanması:** vitrin yalnızca işletmenin lisansı süresi bitince durur. Paket tek başına kaldırılırsa mağaza, yöneticinin ilk girişine/panel isteğine kadar açık kalabilir (lisans merkezi cihazsız ziyaretçi isteğinde sorgulanamaz). Faz 2'de merkezi paket doğrulaması eklenecek.
   3. **Müşteri kaydı** (siparişten otomatik CRM müşterisi) Faz 2'ye alındı.
 
+## Durum (15 Kasım 2026, son)
+- Faz 1 kodu tamam (görsel, panel, vitrin, SEO, bildirim, MySQL 022 provası). Tüm sunucu testleri geçiyor (1231).
+- Paket kalkınca mağaza, işletmenin bir sonraki paket sorgusunda kapanır (uygulandı).
+- Faz 2'ye bırakılanlar: siparişten müşteri (CRM) kaydı, kiloyla satış, indirim kodu, kargo kuralları, özel alan adı, merkezi paket doğrulaması.
+- Dağıtım bekliyor: şema 022, lisans sunucusunda `online_store`, 2.4.78, fiyat kararı.
+
 ## 0. Varsayılan kararlar
 1. Adres: `app.veniux.com/magaza/<mağaza-adı>`. Özel alan adı Faz 2.
 2. Ödeme: **kapıda ödeme, havale/EFT, mağazadan teslim**. Online kart ödemesi yok (Faz 3, şirket gerekir).
