@@ -1,8 +1,17 @@
 {
-  "version": "2.4.76",
+  "version": "2.4.77",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.77",
+      "date": "15 Kasım 2026",
+      "title": "Deneme hesabı boş açılır",
+      "items": [
+        "- Kendi kendine açılan 14 günlük deneme hesabında örnek ürün, stok, müşteri ve personel yok; ürünler Excel/CSV ile aktarılır",
+        "- Ürünler sayfasında boş durum için yönlendirme eklendi"
+      ]
+    },
     {
       "version": "2.4.76",
       "date": "15 Kasım 2026",
