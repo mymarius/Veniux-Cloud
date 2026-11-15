@@ -1,8 +1,17 @@
 {
-  "version": "2.4.78",
+  "version": "2.4.79",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.79",
+      "date": "16 Kasım 2026",
+      "title": "Marka ayarı ve güvenlik",
+      "items": [
+        "- Mağazanızın adı ve logosu yan menüde, telefondaki üst barda, kasada ve fişin üst satırında görünür (Ayarlar > Şirket bilgileri > Marka)",
+        "- Online mağazada banka havalesi ile ödeme kaldırıldı; kapıda, mağazada ve kartla ödeme kalır"
+      ]
+    },
     {
       "version": "2.4.78",
       "date": "15 Kasım 2026",
