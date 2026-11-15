@@ -45,3 +45,6 @@ exec -- node --env-file=../cloud-private/install.env backend/scripts/seed_sector
 - Yalnız adı `Veniux Demo – ` ile başlayan işletmede çalışır; gerçek müşteri verisine yazmayı reddeder.
 - Aynı komut tekrar çalıştırılırsa mevcut örnek veriye dokunmaz (idempotent).
 - Birkaç ürün bilerek kritik stokta bırakılır: "Kritik Stok", muadil önerisi ve sipariş taslağı gösterilebilsin diye.
+
+## Kendi kendine açılan deneme (/deneme) boş açılır
+Müşterinin kendi e-postasıyla açtığı 14 günlük deneme hesabında **örnek ürün, stok, müşteri ve personel yoktur**; yalnız işletme, İşletme paketi lisansı ve tek bir "Ana Depo" açılır. Müşteri ürünlerini Excel/CSV'den aktarır (Kurulum rehberi, Ürünler sayfası). Örnek veri yalnız satış demosu içindir: `create_demo_account.js` (sample varsayılan açık) ve `seed_sector_demo.js`.

@@ -23,7 +23,7 @@ function TrialRequest() {
     finally { setLoading(false); }
   };
   return (
-    <AuthShell title="14 gün ücretsiz deneyin" description="İşletme paketiyle, örnek ürün ve stoklarla hazır bir hesap. Kart bilgisi istenmez." footer={<Link to="/login" className="font-bold text-brand-500 hover:underline">Hesabım var, giriş yap</Link>}>
+    <AuthShell title="14 gün ücretsiz deneyin" description="İşletme paketiyle boş bir hesap: ürünlerinizi Excel dosyanızdan aktarıp kendi verinizle deneyin. Kart bilgisi istenmez." footer={<Link to="/login" className="font-bold text-brand-500 hover:underline">Hesabım var, giriş yap</Link>}>
       {error && errorBox(error)}
       {sent ? (
         <p role="status" className="rounded-lg border border-green-200 bg-green-50 px-3.5 py-3 text-sm font-semibold text-green-700">E-postanıza bir onay bağlantısı gönderdik. 24 saat içinde bağlantıyı açıp hesabınızı oluşturun. Gelmediyse istenmeyen (spam) klasörüne bakın.</p>

@@ -335,7 +335,7 @@ export default function NormalProducts() {
             data={products}
             loading={loading}
             onRowClick={handleOpenDetail}
-            emptyState="Arama kriterlerinize uygun ürün bulunamadı."
+            emptyState={search || categoryFilter || supplierFilter ? 'Arama kriterlerinize uygun ürün bulunamadı.' : 'Henüz ürün yok. Sağ üstten Excel / CSV dosyanızı aktarın ya da Yeni Ürün Ekle ile başlayın.'}
           />
         </div>
       </div>

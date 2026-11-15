@@ -115,7 +115,8 @@ async function seedExisting(db, tenantId) {
   return { tenantId: id };
 }
 
-async function create(db, { email, company, days = 14 }) {
+// sample=false (kendi kendine açılan deneme): boş hesap; ürün, stok, örnek müşteri ve personel yok. Yalnız bir depo açılır.
+async function create(db, { email, company, days = 14, sample = true }) {
   const address = typeof email === 'string' ? email.trim().toLowerCase() : '';
   if (!EMAIL.test(address) || address.length > 254) throw Object.assign(new Error('Geçerli bir e-posta adresi verin.'), { code: 'BAD_EMAIL' });
   if (!Number.isInteger(days) || days < 1 || days > 60) throw Object.assign(new Error('Süre 1–60 gün arasında olmalı.'), { code: 'BAD_DAYS' });
@@ -144,9 +145,9 @@ async function create(db, { email, company, days = 14 }) {
       [licenseKey, tenant, plan.id, plan.max_users, plan.max_warehouses, plan.max_devices, plan.max_pdas, JSON.stringify(plan.features || {}), sqlDate(expires)]);
 
     const main = (await client.query("INSERT INTO warehouses (name, type, tenant_id) VALUES ($1,'MAIN',$2) RETURNING id", ['Ana Depo', tenant])).rows[0].id;
-    const shop = (await client.query("INSERT INTO warehouses (name, type, tenant_id) VALUES ($1,'MAIN',$2) RETURNING id", ['Şube Mağaza', tenant])).rows[0].id;
+    const shop = sample ? (await client.query("INSERT INTO warehouses (name, type, tenant_id) VALUES ($1,'MAIN',$2) RETURNING id", ['Şube Mağaza', tenant])).rows[0].id : null;
     let index = 0;
-    for (const [productName, category, unit, buy, sell, min, mainQty, shopQty] of SAMPLE) {
+    for (const [productName, category, unit, buy, sell, min, mainQty, shopQty] of (sample ? SAMPLE : [])) {
       index += 1;
       const product = (await client.query(
         'INSERT INTO products (tenant_id, sku, name, category, barcode, unit, purchase_price, sale_price, min_stock_level) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
@@ -156,9 +157,9 @@ async function create(db, { email, company, days = 14 }) {
         await client.query("INSERT INTO stock_movements (tenant_id, product_id, warehouse_id, change_amount, movement_type, source, note) VALUES ($1,$2,$3,$4,'IN','demo','Örnek açılış stoku')", [tenant, product, warehouse, quantity]);
       }
     }
-    await seedWorkspaces(client, tenant);
+    if (sample) await seedWorkspaces(client, tenant);
     await client.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)',
-      [tenant, address, 'demo.created', 'tenant', tenant, JSON.stringify({ days, plan: plan.id })]);
+      [tenant, address, 'demo.created', 'tenant', tenant, JSON.stringify({ days, plan: plan.id, sample })]);
     return { tenantId: Number(tenant), userId: Number(user) };
   });
   return { ...result, email: address, password, plan: plan.id, expiresAt: expires.toISOString(), days };

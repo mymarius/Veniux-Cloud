@@ -33,6 +33,22 @@ describe('kişiye özel demo hesabı', () => {
     expect(JSON.stringify(products.body)).toContain('Filtre Kahve');
   });
 
+  test('sample:false (kendi kendine deneme): boş hesap, tek depo; ürün, stok, örnek müşteri ve personel yok; giriş çalışır', async () => {
+    const mail = `bos_${Date.now()}@ornek.com`;
+    const empty = await demo.create(db, { email: mail, company: 'Gerçek Market', days: 14, sample: false });
+    const count = async table => Number((await db.query(`SELECT COUNT(*) AS n FROM ${table} WHERE tenant_id=$1`, [empty.tenantId])).rows[0].n);
+    expect(await count('products')).toBe(0);
+    expect(await count('stock_records')).toBe(0);
+    expect(await count('stock_movements')).toBe(0);
+    expect(await count('workspace_collections')).toBe(0);
+    expect(await count('warehouses')).toBe(1);
+    const login = await request(app).post('/api/auth/login').send({ email: mail, password: empty.password });
+    expect(login.status).toBe(200);
+    const products = await request(app).get('/api/products').set('Authorization', 'Bearer ' + login.body.token);
+    expect(products.status).toBe(200);
+    expect(JSON.stringify(products.body)).not.toContain('Filtre Kahve');
+  });
+
   test('aynı e-posta, geçersiz e-posta/süre ve rezerve sahip e-postası reddedilir; şifre kayda yazılmaz', async () => {
     await expect(demo.create(db, { email })).rejects.toMatchObject({ code: 'EXISTS' });
     await expect(demo.create(db, { email: 'gecersiz' })).rejects.toMatchObject({ code: 'BAD_EMAIL' });
