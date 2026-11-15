@@ -1,8 +1,18 @@
 {
-  "version": "2.4.77",
+  "version": "2.4.78",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.78",
+      "date": "15 Kasım 2026",
+      "title": "Online mağaza paketi",
+      "items": [
+        "- Kendi online mağazanız: ürünleri seçip tek adreste yayınlayın, siparişler stokla birlikte düşer",
+        "- İndirim kodları, ile göre kargo ücreti, kargo takip numarası, kiloyla satış, müşteri kaydı ve vitrin teması",
+        "- Kapıda ödeme, havale/EFT ve (iyzico hesabınızla) kartla ödeme"
+      ]
+    },
     {
       "version": "2.4.77",
       "date": "15 Kasım 2026",
