@@ -28,12 +28,20 @@ function licenseFields(array $l = []): string {
 }
 function authState(array $l): array { return licenseState($l['status'], $l['expires_at']); }
 
-function pageLicenses(array $list): string {
-    $b = '<h1>Lisanslar</h1><p class="lead">Lisans merkezindeki (api.veniux.com) gerçek lisans kayıtları. Terminal ve paket sınırları buradan belirlenir.</p><p><a class="btn" href="/lisanslar/yeni">Yeni lisans oluştur</a></p>' . flashHtml()
-        . '<div class="scroll"><table><thead><tr><th>Firma</th><th>Paket</th><th>Eklentiler</th><th>Durum</th><th>Bitiş</th><th class="r">Terminal</th><th>Son görülme</th><th>Anahtar</th></tr></thead><tbody>';
-    foreach ($list as $l) { [$s, $k] = authState($l);
-        $b .= '<tr><td><a href="/lisanslar/' . (int) $l['id'] . '">' . e($l['company']) . '</a><small>' . e($l['contact_email'] ?: '') . '</small></td><td>' . e(AUTH_PLANS[$l['plan']] ?? $l['plan']) . '</td><td>' . packLabels($l['addons']) . '</td><td>' . badge($s, $k) . '</td><td>' . dayOf($l['expires_at']) . '</td><td class="r">' . num($l['used']) . ' / ' . num($l['seats']) . '</td><td>' . when($l['last_seen']) . '</td><td>…' . e($l['key_suffix']) . '</td></tr>'; }
-    return $b . '</tbody></table></div>';
+function pageLicenses(array $list, string $filter = ''): string {
+    $now = gmdate('Y-m-d H:i:s'); $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400); $n = ['aktif' => 0, 'bitecek' => 0, 'doldu' => 0, 'askida' => 0, 'sonlandirildi' => 0];
+    $state = function ($l) use ($now, $in30) { if ($l['status'] === 'REVOKED') return 'sonlandirildi'; if ($l['status'] === 'SUSPENDED') return 'askida'; if ($l['expires_at'] <= $now) return 'doldu'; return $l['expires_at'] <= $in30 ? 'bitecek' : 'aktif'; };
+    foreach ($list as $l) $n[$state($l)]++;
+    $shown = $filter !== '' ? array_values(array_filter($list, fn($l) => $state($l) === $filter)) : $list;
+    $b = '<h1>Lisanslar</h1><p class="lead">Lisans merkezindeki (api.veniux.com) gerçek kayıtlar. Terminal ve paket sınırları buradan belirlenir.</p>' . flashHtml()
+        . '<div class="tags small">' . statBox('Aktif', num($n['aktif'])) . statBox('Yakında bitiyor', num($n['bitecek']), '', $n['bitecek'] ? 'warn' : '') . statBox('Süresi doldu', num($n['doldu']), '', $n['doldu'] ? 'bad' : '') . statBox('Askıda', num($n['askida'])) . statBox('Sonlandırılmış', num($n['sonlandirildi'])) . '</div>'
+        . '<p class="filters2"><a class="btn" href="/lisanslar/yeni">Yeni lisans oluştur</a>';
+    foreach (['' => 'Hepsi', 'aktif' => 'Aktif', 'bitecek' => 'Yakında bitiyor', 'doldu' => 'Süresi doldu', 'askida' => 'Askıda', 'sonlandirildi' => 'Sonlandırılmış'] as $k => $t) $b .= '<a class="chip' . ($filter === $k ? ' on' : '') . '" href="/lisanslar' . ($k ? '?durum=' . $k : '') . '">' . e($t) . '</a>';
+    $b .= '</p><section class="panel flush"><div class="scroll"><table><thead><tr><th>Firma</th><th>Paket</th><th>Eklentiler</th><th>Durum</th><th>Bitiş</th><th class="r">Terminal</th><th>Son görülme</th><th>Anahtar</th></tr></thead><tbody>';
+    foreach ($shown as $l) { [$s, $k] = authState($l);
+        $b .= '<tr><td><a href="/lisanslar/' . (int) $l['id'] . '">' . e($l['company']) . '</a><small>' . e($l['contact_email'] ?: '') . '</small></td><td>' . e(AUTH_PLANS[$l['plan']] ?? $l['plan']) . '</td><td>' . packLabels($l['addons']) . '</td><td>' . badge($l['status'] === 'REVOKED' ? 'Sonlandırıldı' : $s, $l['status'] === 'REVOKED' ? 'bad' : $k) . '</td><td>' . dayOf($l['expires_at']) . '</td><td class="r">' . num($l['used']) . ' / ' . num($l['seats']) . '</td><td>' . when($l['last_seen']) . '</td><td>…' . e($l['key_suffix']) . '</td></tr>'; }
+    if (!$shown) $b .= '<tr><td colspan="8" class="muted">Bu filtrede lisans yok.</td></tr>';
+    return $b . '</tbody></table></div></section>';
 }
 function pageLicenseNew(string $error = ''): string {
     return '<p><a href="/lisanslar">← Lisanslar</a></p><h1>Yeni lisans</h1>' . ($error !== '' ? '<p class="err" role="alert">' . e($error) . '</p>' : '') . '<form class="form" method="post" action="/lisanslar/yeni">' . csrfField() . licenseFields() . '<button class="btn" type="submit">Lisansı oluştur</button></form><p class="muted">Lisans anahtarı oluşturulunca yalnızca bir kez gösterilir; sunucuda yalnızca özeti saklanır.</p>';

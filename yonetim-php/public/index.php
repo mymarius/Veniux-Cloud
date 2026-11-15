@@ -50,7 +50,7 @@ if ($method === 'POST' && (str_starts_with($path, '/lisanslar'))) {
                     setAuthorityState($id, $state, (string) ($_POST['reason'] ?? '')); flashSet('ok', ['ACTIVE' => 'Lisans etkinleştirildi.', 'SUSPENDED' => 'Lisans askıya alındı.', 'REVOKED' => 'Lisans sonlandırıldı.'][$state]);
                 } else { setAuthorityDevice($id, (int) ($_POST['device'] ?? 0), ($_POST['enabled'] ?? '') === '1', (string) ($_POST['reason'] ?? '')); flashSet('ok', 'Terminal güncellendi.'); }
             } catch (InvalidArgumentException $e) { flashSet('err', $e->getMessage()); }
-            header('Location: /lisanslar/' . $id); exit;
+            header('Location: ' . (($_POST['back'] ?? '') === 'yonetim' ? '/yonetim' : '/lisanslar/' . $id)); exit;
         }
         http_response_code(404); exit('Bulunamadı.');
     } catch (Throwable $e) { error_log('yonetim: ' . $e->getMessage()); http_response_code(500); layout('Hata', '<h1>İşlem yapılamadı</h1><p class="err">Lisans merkezi bağlantısını ve yetkileri kontrol edin.</p>', '/lisanslar'); exit; }
@@ -62,9 +62,12 @@ try {
     elseif ($path === '/musteriler') { $q = trim((string) ($_GET['q'] ?? '')); $f = (string) ($_GET['durum'] ?? ''); layout('Müşteriler', pageCustomers(customers(mb_substr($q, 0, 80), $f), $q, $f), '/musteriler'); }
     elseif (preg_match('#^/musteriler/(\d{1,12})$#', $path, $m)) { $c = customerDetail((int) $m[1]); if (!$c) { http_response_code(404); layout('Bulunamadı', '<h1>Müşteri bulunamadı</h1>', '/musteriler'); } else layout($c['tenant']['company_name'], pageCustomer($c), '/musteriler'); }
     elseif ($path === '/satislar') { $g = (int) ($_GET['gun'] ?? 30); $days = in_array($g, [7, 30, 90, 365], true) ? $g : 30; layout('Satışlar', pageSales(salesByTenant($days), $days, salesRanking($days), dashboardCharts()['days']), '/satislar'); }
-    elseif ($path === '/lisanslar') { if (!authorityConfigured()) layout('Lisanslar', '<h1>Lisanslar</h1><p class="err">Lisans merkezi veritabanı ayarı (authority.json) yok.</p>', '/lisanslar'); else layout('Lisanslar', pageLicenses(authorityLicenses()), '/lisanslar'); }
+    elseif ($path === '/lisanslar') { if (!authorityConfigured()) layout('Lisanslar', '<h1>Lisanslar</h1><p class="err">Lisans merkezi veritabanı ayarı (authority.json) yok.</p>', '/lisanslar'); else layout('Lisanslar', pageLicenses(authorityLicenses(), preg_match('/^(aktif|bitecek|doldu|askida|sonlandirildi)$/', (string) ($_GET['durum'] ?? '')) ? (string) $_GET['durum'] : ''), '/lisanslar'); }
     elseif ($path === '/lisanslar/yeni') layout('Yeni lisans', pageLicenseNew(), '/lisanslar');
     elseif (preg_match('#^/lisanslar/(\d{1,12})$#', $path, $m)) { $l = authorityConfigured() ? authorityLicense((int) $m[1]) : null; if (!$l) { http_response_code(404); layout('Bulunamadı', '<h1>Lisans bulunamadı</h1>', '/lisanslar'); } else layout($l['company'], pageLicense($l), '/lisanslar'); }
+    elseif ($path === '/yonetim') { $auth = authorityConfigured(); $all = $auth ? authorityLicenses() : []; $now = gmdate('Y-m-d H:i:s'); $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400);
+        $due = array_values(array_filter($all, fn($l) => $l['status'] === 'ACTIVE' && $l['expires_at'] <= $in30)); usort($due, fn($a, $b2) => strcmp($a['expires_at'], $b2['expires_at']));
+        layout('Yönetim', pageManage($due, array_values(array_filter($all, fn($l) => $l['status'] === 'SUSPENDED')), $auth), '/yonetim'); }
     elseif ($path === '/paketler') layout('Paketler', pagePackages(catalogue()), '/paketler');
     elseif ($path === '/sistem') layout('Sistem', pageSystem(systemInfo()), '/sistem');
     else { http_response_code(404); layout('Bulunamadı', '<h1>Sayfa bulunamadı</h1>'); }

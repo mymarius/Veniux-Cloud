@@ -126,7 +126,8 @@ function catalogue(): array {
     return ['revision' => (int) ($payload['revision'] ?? 0), 'plans' => $plans, 'packCounts' => array_column($counts, 'n', 'pack')];
 }
 function systemInfo(): array {
-    $info = ['db_version' => (string) scalar('SELECT VERSION()'), 'migration' => (string) scalar('SELECT version FROM veniux_mysql_migrations ORDER BY version DESC LIMIT 1'), 'tables' => (int) scalar('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')];
+    $info = ['db_version' => (string) scalar('SELECT VERSION()'), 'migration' => (string) scalar('SELECT version FROM veniux_mysql_migrations ORDER BY version DESC LIMIT 1'), 'tables' => (int) scalar('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()'),
+        'php' => PHP_VERSION, 'time' => gmdate('Y-m-d H:i:s') . ' UTC', 'authority' => null, 'smtp' => null];
     $cfg = privateJson('app.json') ?? []; $url = (string) ($cfg['cloud_health_url'] ?? '');
     $info['health'] = null;
     if ($url !== '' && (str_starts_with($url, 'https://') || str_starts_with($url, 'http://127.0.0.1'))) {
@@ -134,6 +135,7 @@ function systemInfo(): array {
         $body = @file_get_contents($url, false, $ctx);
         $info['health'] = $body ? json_decode($body, true) : ['status' => 'ulaşılamadı'];
     }
+    if (function_exists('authorityConfigured') && authorityConfigured()) { try { $info['authority'] = ['licenses' => count(authorityLicenses()), 'ok' => true]; } catch (Throwable) { $info['authority'] = ['ok' => false]; } }
     return $info;
 }
 
