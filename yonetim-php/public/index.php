@@ -5,6 +5,7 @@ if (PHP_SAPI === 'cli-server' && is_file(__DIR__ . parse_url((string) $_SERVER['
 require_once dirname(__DIR__) . '/src/security.php';
 require_once dirname(__DIR__) . '/src/data.php';
 require_once dirname(__DIR__) . '/src/views.php';
+require_once dirname(__DIR__) . '/src/charts.php';
 require_once dirname(__DIR__) . '/src/authority.php';
 require_once dirname(__DIR__) . '/src/views_licenses.php';
 
@@ -57,10 +58,10 @@ if ($method === 'POST' && (str_starts_with($path, '/lisanslar'))) {
 if ($method !== 'GET' && $method !== 'HEAD') { http_response_code(405); exit('İzin verilmeyen yöntem.'); }
 
 try {
-    if ($path === '/') layout('Pano', pageDashboard(dashboard()), '/');
+    if ($path === '/') { $dd = dashboard(); $cc = dashboardCharts(); layout('Pano', pageDashboard($dd, $cc), '/', '<div class="ticker" aria-hidden="true"><div class="wrap"><span>MÜŞTERİ ' . num($dd['t']['n']) . '</span><span>GEÇERLİ LİSANS ' . num($cc['states']['Aktif'] + $cc['states']['Yakında bitiyor']) . '</span><span>ÇALIŞAN ' . num($dd['u']['n']) . '</span><span>TERMİNAL ' . num($dd['dev']['n']) . '</span><span>BUGÜN ' . e(money($dd['sToday']['total'])) . '</span></div></div>'); }
     elseif ($path === '/musteriler') { $q = trim((string) ($_GET['q'] ?? '')); $f = (string) ($_GET['durum'] ?? ''); layout('Müşteriler', pageCustomers(customers(mb_substr($q, 0, 80), $f), $q, $f), '/musteriler'); }
     elseif (preg_match('#^/musteriler/(\d{1,12})$#', $path, $m)) { $c = customerDetail((int) $m[1]); if (!$c) { http_response_code(404); layout('Bulunamadı', '<h1>Müşteri bulunamadı</h1>', '/musteriler'); } else layout($c['tenant']['company_name'], pageCustomer($c), '/musteriler'); }
-    elseif ($path === '/satislar') { $days = in_array((int) ($_GET['gun'] ?? 30), [7, 30, 90, 365], true) ? (int) $_GET['gun'] : 30; layout('Satışlar', pageSales(salesByTenant($days), $days), '/satislar'); }
+    elseif ($path === '/satislar') { $g = (int) ($_GET['gun'] ?? 30); $days = in_array($g, [7, 30, 90, 365], true) ? $g : 30; layout('Satışlar', pageSales(salesByTenant($days), $days, salesRanking($days), dashboardCharts()['days']), '/satislar'); }
     elseif ($path === '/lisanslar') { if (!authorityConfigured()) layout('Lisanslar', '<h1>Lisanslar</h1><p class="err">Lisans merkezi veritabanı ayarı (authority.json) yok.</p>', '/lisanslar'); else layout('Lisanslar', pageLicenses(authorityLicenses()), '/lisanslar'); }
     elseif ($path === '/lisanslar/yeni') layout('Yeni lisans', pageLicenseNew(), '/lisanslar');
     elseif (preg_match('#^/lisanslar/(\d{1,12})$#', $path, $m)) { $l = authorityConfigured() ? authorityLicense((int) $m[1]) : null; if (!$l) { http_response_code(404); layout('Bulunamadı', '<h1>Lisans bulunamadı</h1>', '/lisanslar'); } else layout($l['company'], pageLicense($l), '/lisanslar'); }

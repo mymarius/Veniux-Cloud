@@ -54,7 +54,9 @@ function applyAuthority(array &$list): void {
 function planName(?string $featuresJson, ?string $planId): string {
     $f = $featuresJson ? json_decode($featuresJson, true) : null;
     if (is_array($f) && isset($f['product_package']['name'])) return (string) $f['product_package']['name'];
-    return (string) ($planId ?: '—');
+    if ($planId && defined('AUTH_PLANS') && isset(AUTH_PLANS[$planId])) return AUTH_PLANS[$planId];
+    $legacy = ['BUSINESS_ANNUAL' => 'İşletme', 'STARTER_ANNUAL' => 'Başlangıç', 'ENTERPRISE_ANNUAL' => 'Kurumsal'];
+    return (string) ($legacy[$planId] ?? ($planId ?: '—'));
 }
 
 function customers(string $q = '', string $filter = ''): array {
@@ -133,4 +135,43 @@ function systemInfo(): array {
         $info['health'] = $body ? json_decode($body, true) : ['status' => 'ulaşılamadı'];
     }
     return $info;
+}
+
+
+// Pano grafikleri: 30 günlük kasa+online satış, 12 haftalık müşteri büyümesi, lisans durumu, paket dağılımı.
+function dashboardCharts(): array {
+    $n = 30; $from = gmdate('Y-m-d H:i:s', time() - ($n - 1) * 86400 - (int) gmdate('G') * 3600);
+    $pos = array_column(rows('SELECT DATE(created_at) AS d, COALESCE(SUM(net_amount),0) AS t FROM pos_sales WHERE status IN ' . SALE_OK . ' AND created_at>=? GROUP BY DATE(created_at)', [gmdate('Y-m-d', time() - ($n - 1) * 86400) . ' 00:00:00']), 't', 'd');
+    $onl = array_column(rows("SELECT DATE(created_at) AS d, COALESCE(SUM(total),0) AS t FROM online_orders WHERE status<>'cancelled' AND created_at>=? GROUP BY DATE(created_at)", [gmdate('Y-m-d', time() - ($n - 1) * 86400) . ' 00:00:00']), 't', 'd');
+    $days = [];
+    for ($i = $n - 1; $i >= 0; $i--) { $ts = time() - $i * 86400; $d = gmdate('Y-m-d', $ts); $days[] = ['label' => gmdate('d.m', $ts), 'a' => (float) ($pos[$d] ?? 0), 'b' => (float) ($onl[$d] ?? 0)]; }
+    // haftalık birikimli müşteri
+    $weeks = 12; $start = time() - ($weeks - 1) * 7 * 86400;
+    $base = (int) scalar('SELECT COUNT(*) FROM tenants WHERE created_at<?', [gmdate('Y-m-d H:i:s', $start)]);
+    $created = array_map(fn($r) => strtotime($r['created_at'] . ' UTC'), rows('SELECT created_at FROM tenants WHERE created_at>=?', [gmdate('Y-m-d H:i:s', $start)]));
+    $growth = [];
+    for ($w = 0; $w < $weeks; $w++) { $end = $start + ($w + 1) * 7 * 86400; $cnt = $base + count(array_filter($created, fn($t) => $t < $end)); $growth[] = ['label' => gmdate('d.m', $end - 86400), 'v' => $cnt]; }
+    // lisans durumu ve paket dağılımı: lisans merkezi varsa gerçek kaynak o
+    $states = ['Aktif' => 0, 'Yakında bitiyor' => 0, 'Süresi doldu' => 0, 'Askıda' => 0, 'Sonlandırılmış' => 0]; $plans = []; $packs = [];
+    $src = [];
+    if (function_exists('authorityConfigured') && authorityConfigured()) { try { $src = authorityLicenses(); } catch (Throwable) { $src = []; } }
+    if (!$src) $src = array_map(fn($r) => ['status' => $r['status'], 'expires_at' => $r['expires_at'], 'plan' => $r['plan_id'], 'addons' => ''], rows('SELECT status, expires_at, plan_id FROM licenses'));
+    $now = gmdate('Y-m-d H:i:s'); $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400);
+    foreach ($src as $l) {
+        if ($l['status'] === 'REVOKED' || $l['status'] === 'CANCELLED') { $states['Sonlandırılmış']++; continue; }
+        if ($l['status'] === 'SUSPENDED') { $states['Askıda']++; continue; }
+        if ($l['expires_at'] && $l['expires_at'] <= $now) { $states['Süresi doldu']++; continue; }
+        if ($l['expires_at'] && $l['expires_at'] <= $in30) $states['Yakında bitiyor']++; else $states['Aktif']++;
+        $name = planName(null, (string) $l['plan']); $plans[$name] = ($plans[$name] ?? 0) + 1;
+        foreach (array_filter(explode(',', (string) ($l['addons'] ?? ''))) as $a) $packs[$a] = ($packs[$a] ?? 0) + 1;
+    }
+    foreach (rows('SELECT pack, COUNT(*) AS n FROM sector_packs GROUP BY pack') as $r) $packs[$r['pack']] = max($packs[$r['pack']] ?? 0, (int) $r['n']);
+    arsort($plans);
+    return compact('days', 'growth', 'states', 'plans', 'packs');
+}
+function salesRanking(int $days): array {
+    $from = gmdate('Y-m-d H:i:s', time() - $days * 86400);
+    $kasa = rows('SELECT t.company_name AS label, t.id, COALESCE(SUM(s.net_amount),0) AS v FROM tenants t JOIN pos_sales s ON s.tenant_id=t.id WHERE s.status IN ' . SALE_OK . ' AND s.created_at>=? GROUP BY t.id, t.company_name ORDER BY v DESC LIMIT 10', [$from]);
+    $onl = rows("SELECT t.company_name AS label, t.id, COALESCE(SUM(o.total),0) AS v FROM tenants t JOIN online_orders o ON o.tenant_id=t.id WHERE o.status<>'cancelled' AND o.created_at>=? GROUP BY t.id, t.company_name ORDER BY v DESC LIMIT 10", [$from]);
+    return ['kasa' => $kasa, 'online' => $onl];
 }

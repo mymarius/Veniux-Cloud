@@ -21,17 +21,17 @@ function licenseState(?string $status, ?string $expires): array {
 }
 function badge(string $text, string $kind = 'ok'): string { return '<span class="b b-' . e($kind) . '">' . e($text) . '</span>'; }
 
-function layout(string $title, string $body, string $active = ''): void {
+function layout(string $title, string $body, string $active = '', string $strip = ''): void {
     $nav = ['/' => 'Pano', '/musteriler' => 'Müşteriler', '/lisanslar' => 'Lisanslar', '/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
-    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css"></head><body>';
-    echo '<a class="skip" href="#icerik">İçeriğe geç</a><header class="top"><div class="wrap nav"><a class="brand" href="/">Veniux <span>yönetim</span></a><nav aria-label="Ana menü">';
+    echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/console.css"></head><body>';
+    echo '<a class="skip" href="#icerik">İçeriğe geç</a><header class="top"><div class="wrap nav"><a class="brand" href="/" aria-label="Veniux yönetim ana sayfa"><img src="/assets/logo-40-v1.webp" srcset="/assets/logo-40-v1.webp 1x, /assets/logo-80-v1.webp 2x" alt="" width="28" height="28"><span>Veniux</span><em>yönetim</em></a><nav aria-label="Ana menü">';
     foreach ($nav as $href => $label) echo '<a href="' . $href . '"' . ($active === $href ? ' aria-current="page"' : '') . '>' . e($label) . '</a>';
-    echo '</nav><form method="post" action="/cikis" class="out"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><button class="link" type="submit">Çıkış</button></form></div></header>';
-    echo '<main id="icerik" class="wrap">' . $body . '</main><footer class="wrap foot">Bu sayfa yalnızca Veniux sahibine açıktır. Müşteri verileri bulut veritabanından salt okunur çekilir; lisans işlemleri lisans merkezine yazılır ve kayda geçer.</footer></body></html>';
+    echo '</nav><form method="post" action="/cikis" class="out"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><button class="link" type="submit">Çıkış</button></form></div></header>' . $strip;
+    echo '<main id="icerik" class="wrap">' . $body . '</main><footer class="wrap foot"><div>' . barcodeSvg('yonetim-' . $title, 26) . '</div><p>Bu sayfa yalnızca Veniux sahibine açıktır. Müşteri verileri bulut veritabanından salt okunur çekilir; lisans işlemleri lisans merkezine yazılır ve kayda geçer.</p></footer></body></html>';
 }
 
-function statBox(string $label, string $value, string $note = ''): string {
-    return '<div class="stat"><span class="k">' . e($label) . '</span><b>' . e($value) . '</b>' . ($note !== '' ? '<small>' . e($note) . '</small>' : '') . '</div>';
+function statBox(string $label, string $value, string $note = '', string $tone = ''): string {
+    return '<div class="tag' . ($tone ? ' tag-' . e($tone) : '') . '"><span class="k">VENIUX · ' . e(mb_strtoupper($label)) . '</span><b>' . e($value) . '</b>' . ($note !== '' ? '<small>' . e($note) . '</small>' : '') . '</div>';
 }
 
 function pageLogin(string $error = ''): void {
@@ -45,25 +45,30 @@ function pageLogin(string $error = ''): void {
     echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Giriş | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css"></head><body><main class="wrap">' . $b . '</main></body></html>';
 }
 
-function pageDashboard(array $d): string {
-    $b = '<h1>Pano</h1><p class="lead">Müşteriler, lisanslar ve satışlar tek bakışta.</p><div class="stats">';
+function pageDashboard(array $d, array $c): string {
+    $b = '<h1>Pano</h1><p class="lead">Müşteriler, lisanslar ve satışlar tek bakışta.</p><div class="tags">';
     $b .= statBox('Müşteri', num($d['t']['n']), num($d['t']['active']) . ' aktif · son 30 günde ' . num($d['t']['fresh']) . ' yeni');
-    $b .= statBox('Geçerli lisans', num($d['lic']['active']), num($d['lic']['expiring']) . ' tanesi 30 gün içinde bitiyor');
-    $b .= statBox('Kullanıcı (çalışan)', num($d['u']['n']), num($d['u']['recent']) . ' kişi son 7 günde giriş yaptı');
+    $b .= statBox('Geçerli lisans', num($c['states']['Aktif'] + $c['states']['Yakında bitiyor']), num($c['states']['Yakında bitiyor']) . ' tanesi 30 gün içinde bitiyor', $c['states']['Yakında bitiyor'] ? 'warn' : '');
+    $b .= statBox('Çalışan', num($d['u']['n']), num($d['u']['recent']) . ' kişi son 7 günde giriş yaptı');
     $b .= statBox('Terminal / cihaz', num($d['dev']['n']), num($d['dev']['recent']) . ' tanesi son 7 günde görüldü');
-    $b .= statBox('Satış (30 gün)', money($d['s30']['total']), num($d['s30']['n']) . ' satış');
+    $b .= statBox('Satış (30 gün)', money($d['s30']['total']), num($d['s30']['n']) . ' kasa satışı');
     $b .= statBox('Bugün', money($d['sToday']['total']), num($d['sToday']['n']) . ' satış');
-    $b .= statBox('Online mağaza', num($d['stores']['live']) . ' yayında', num($d['stores']['n']) . ' mağaza · son 30 günde ' . num($d['o30']['n']) . ' sipariş, ' . money($d['o30']['total']));
-    $b .= statBox('Süresi dolmuş', num($d['lic']['lapsed']), 'etkin kalmış ama süresi bitmiş lisans');
-    $b .= '</div><div class="cols"><section><h2>Yakında bitecek lisanslar</h2>';
-    if ($d['expiring']) { $b .= '<table><thead><tr><th>Müşteri</th><th>Paket</th><th>Bitiş</th></tr></thead><tbody>'; foreach ($d['expiring'] as $r) $b .= '<tr><td><a href="/musteriler/' . (int) $r['id'] . '">' . e($r['company_name']) . '</a></td><td>' . e($r['plan_id']) . '</td><td>' . dayOf($r['expires_at']) . '</td></tr>'; $b .= '</tbody></table>'; }
+    $b .= statBox('Online mağaza', num($d['stores']['live']) . ' yayında', num($d['stores']['n']) . ' mağaza · 30 günde ' . num($d['o30']['n']) . ' sipariş, ' . money($d['o30']['total']));
+    $b .= statBox('Süresi dolmuş', num($c['states']['Süresi doldu']), 'etkin kalmış ama süresi bitmiş lisans', $c['states']['Süresi doldu'] ? 'bad' : '');
+    $b .= '</div><section class="panel"><h2>Günlük satış (son 30 gün)</h2>' . chartStacked($c['days'], 'Kasa', 'Online', 'Son 30 günün günlük kasa ve online cirosu') . '</section>';
+    $b .= '<div class="cols"><section class="panel"><h2>Lisans durumu</h2>' . chartDonut([
+        ['label' => 'Aktif', 'value' => $c['states']['Aktif'], 'color' => C_GREEN], ['label' => 'Yakında bitiyor', 'value' => $c['states']['Yakında bitiyor'], 'color' => C_ORANGE],
+        ['label' => 'Süresi doldu', 'value' => $c['states']['Süresi doldu'], 'color' => C_RED], ['label' => 'Askıda', 'value' => $c['states']['Askıda'], 'color' => C_SOFT], ['label' => 'Sonlandırılmış', 'value' => $c['states']['Sonlandırılmış'], 'color' => C_LINE]], 'Lisans durumu dağılımı', 'lisans') . '</section>'
+        . '<section class="panel"><h2>Müşteri sayısı (12 hafta)</h2>' . chartLine($c['growth'], 'Haftalık birikimli müşteri sayısı') . '</section></div>';
+    $packRows = []; foreach (PACK_NAMES as $k => $n) if (!empty($c['packs'][$k])) $packRows[] = ['label' => $n, 'value' => $c['packs'][$k]];
+    $planRows = []; foreach ($c['plans'] as $n => $v2) $planRows[] = ['label' => $n, 'value' => $v2];
+    $b .= '<div class="cols"><section class="panel"><h2>Genel paketler</h2>' . chartHBars($planRows) . '</section><section class="panel"><h2>Sektör ve eklenti paketleri</h2>' . chartHBars($packRows) . '</section></div>';
+    $b .= '<div class="cols"><section class="panel"><h2>Yakında bitecek lisanslar</h2>';
+    if ($d['expiring']) { $b .= '<table><thead><tr><th>Müşteri</th><th>Paket</th><th>Bitiş</th></tr></thead><tbody>'; foreach ($d['expiring'] as $r) $b .= '<tr><td><a href="/musteriler/' . (int) $r['id'] . '">' . e($r['company_name']) . '</a></td><td>' . e(planName(null, $r['plan_id'])) . '</td><td>' . dayOf($r['expires_at']) . '</td></tr>'; $b .= '</tbody></table>'; }
     else $b .= '<p class="muted">30 gün içinde biten lisans yok.</p>';
-    $b .= '</section><section><h2>Son açılan hesaplar</h2><table><thead><tr><th>Müşteri</th><th>Sektör</th><th>Açılış</th></tr></thead><tbody>';
+    $b .= '</section><section class="panel"><h2>Son açılan hesaplar</h2><table><thead><tr><th>Müşteri</th><th>Sektör</th><th>Açılış</th></tr></thead><tbody>';
     foreach ($d['recent'] as $r) $b .= '<tr><td><a href="/musteriler/' . (int) $r['id'] . '">' . e($r['company_name']) . '</a>' . ($r['is_active'] ? '' : ' ' . badge('Kapalı', 'bad')) . '</td><td>' . e($r['industry'] ?: '—') . '</td><td>' . dayOf($r['created_at']) . '</td></tr>';
-    $b .= '</tbody></table></section></div><h2>Günlük satış (son 14 gün)</h2>';
-    if ($d['daily']) { $b .= '<table><thead><tr><th>Gün</th><th>Satış</th><th>Ciro</th></tr></thead><tbody>'; foreach ($d['daily'] as $r) $b .= '<tr><td>' . e($r['day']) . '</td><td>' . num($r['n']) . '</td><td>' . money($r['total']) . '</td></tr>'; $b .= '</tbody></table>'; }
-    else $b .= '<p class="muted">Son 14 günde satış yok.</p>';
-    return $b;
+    return $b . '</tbody></table></section></div>';
 }
 
 function pageCustomers(array $list, string $q, string $filter): string {
@@ -107,12 +112,17 @@ function pageCustomer(array $c): string {
     return $b . '</tbody></table>';
 }
 
-function pageSales(array $rows, int $days): string {
-    $b = '<h1>Satışlar</h1><p class="lead">Son ' . $days . ' gün · kasa satışları ve online mağaza siparişleri müşteri bazında. Ciro, tamamlanmış POS satışlarıdır; muhasebe cirosu değildir.</p><div class="scroll"><table><thead><tr><th>Müşteri</th><th class="r">Kasa satışı</th><th class="r">Kasa cirosu</th><th class="r">Online sipariş</th><th class="r">Online ciro</th></tr></thead><tbody>';
+function pageSales(array $rows, int $days, array $rank = [], array $series = []): string {
+    $b = '<h1>Satışlar</h1><p class="lead">Son ' . $days . ' gün · kasa satışları ve online mağaza siparişleri müşteri bazında. Ciro, tamamlanmış POS satışlarıdır; muhasebe cirosu değildir.</p><p class="filters2">';
+    foreach ([7, 30, 90, 365] as $g) $b .= '<a class="chip' . ($g === $days ? ' on' : '') . '" href="/satislar?gun=' . $g . '">' . $g . ' gün</a>';
+    $b .= '</p>';
+    if ($series) $b .= '<section class="panel"><h2>Günlük satış</h2>' . chartStacked($series, 'Kasa', 'Online', 'Günlük kasa ve online ciro') . '</section>';
+    if ($rank) $b .= '<div class="cols"><section class="panel"><h2>En çok kasa cirosu yapanlar</h2>' . chartHBars(array_map(fn($r) => ['label' => $r['label'], 'value' => (float) $r['v'], 'href' => '/musteriler/' . (int) $r['id']], $rank['kasa']), 'money') . '</section><section class="panel"><h2>En çok online sipariş cirosu</h2>' . chartHBars(array_map(fn($r) => ['label' => $r['label'], 'value' => (float) $r['v'], 'href' => '/musteriler/' . (int) $r['id']], $rank['online']), 'money') . '</section></div>';
+    $b .= '<section class="panel"><h2>Müşteri bazında</h2><div class="scroll"><table><thead><tr><th>Müşteri</th><th class="r">Kasa satışı</th><th class="r">Kasa cirosu</th><th class="r">Online sipariş</th><th class="r">Online ciro</th></tr></thead><tbody>';
     $ts = $ta = $to = $tr = 0.0;
     foreach ($rows as $r) { $ts += $r['sales']; $ta += $r['revenue']; $to += $r['orders']; $tr += $r['online_revenue'];
         $b .= '<tr><td><a href="/musteriler/' . (int) $r['id'] . '">' . e($r['company_name']) . '</a></td><td class="r">' . num($r['sales']) . '</td><td class="r">' . money($r['revenue']) . '</td><td class="r">' . num($r['orders']) . '</td><td class="r">' . money($r['online_revenue']) . '</td></tr>'; }
-    return $b . '</tbody><tfoot><tr><th>Toplam</th><th class="r">' . num($ts) . '</th><th class="r">' . money($ta) . '</th><th class="r">' . num($to) . '</th><th class="r">' . money($tr) . '</th></tr></tfoot></table></div>';
+    return $b . '</tbody><tfoot><tr><th>Toplam</th><th class="r">' . num($ts) . '</th><th class="r">' . money($ta) . '</th><th class="r">' . num($to) . '</th><th class="r">' . money($tr) . '</th></tr></tfoot></table></div></section>';
 }
 
 function pagePackages(array $c): string {
