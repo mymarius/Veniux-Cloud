@@ -124,11 +124,11 @@ export function StoreCart() {
   const { slug, store, cart, setCart } = useOutletContext();
   const navigate = useNavigate();
   const lines = Object.values(cart);
-  const [delivery, setDelivery] = useState(store.pickup && !store.payment.cod && !store.payment.transfer ? 'pickup' : 'delivery');
+  const [delivery, setDelivery] = useState(store.pickup && !store.payment.cod ? 'pickup' : 'delivery');
   const methods = useMemo(() => {
     const list = [];
-    if (delivery === 'delivery') { if (store.payment.cod) list.push(['cod', 'Kapıda ödeme', 'Teslimatta nakit veya kartla ödersiniz.']); if (store.payment.transfer) list.push(['transfer', 'Havale / EFT', 'Siparişten sonra IBAN bilgisi gösterilir.']); }
-    else { list.push(['pickup', 'Mağazada ödeme', 'Siparişinizi teslim alırken ödersiniz.']); if (store.payment.transfer) list.push(['transfer', 'Havale / EFT', 'Siparişten sonra IBAN bilgisi gösterilir.']); }
+    if (delivery === 'delivery') { if (store.payment.cod) list.push(['cod', 'Kapıda ödeme', 'Teslimatta nakit veya kartla ödersiniz.']); }
+    else { list.push(['pickup', 'Mağazada ödeme', 'Siparişinizi teslim alırken ödersiniz.']); }
     if (store.payment.card) list.push(['card', 'Kartla öde', 'Güvenli ödeme sayfasında kartınızla ödersiniz. Kart bilgisi mağazaya iletilmez.']);
     return list;
   }, [delivery, store]);
@@ -228,7 +228,6 @@ export function StoreOrder() {
     <div className="sf-totals"><div><span>Ara toplam</span><span>{tl(order.subtotal)}</span></div>{order.discount > 0 && <div><span>İndirim{order.discount_code ? ` (${order.discount_code})` : ''}</span><span>−{tl(order.discount)}</span></div>}<div><span>Teslimat</span><span>{order.delivery_fee ? tl(order.delivery_fee) : 'Ücretsiz'}</span></div><div className="grand"><span>Toplam</span><span>{tl(order.total)}</span></div></div>
     <p>{order.delivery_method === 'pickup' ? 'Mağazadan teslim alacaksınız.' : 'Adresinize teslim edilecek.'} Ödeme: {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale / EFT' : order.payment_method === 'card' ? 'Kartla ödeme' : 'Mağazada ödeme'}.</p>
     {order.tracking_no && <div className="sf-banner"><b>Kargo takibi</b><p style={{ margin: '6px 0 0' }}>{order.carrier ? order.carrier + ' · ' : ''}Takip no: {order.tracking_no}</p>{order.tracking_url && <p style={{ margin: '8px 0 0' }}><a className="sf-btn ghost" href={order.tracking_url} target="_blank" rel="noopener noreferrer">Kargom nerede?</a></p>}</div>}
-    {order.transfer_note && order.status !== 'cancelled' && <div className="sf-banner"><b>Havale / EFT bilgileri</b><p style={{ whiteSpace: 'pre-line', margin: '6px 0 0' }}>{order.transfer_note}</p><p style={{ margin: '6px 0 0' }}>Açıklamaya sipariş numaranızı ({order.number}) yazın.</p></div>}
     <p>Telefon: {order.phone}</p>
     <p><Link className="sf-btn ghost" to={`/magaza/${slug}`}>{store.name} mağazasına dön</Link></p>
   </section>;

@@ -66,8 +66,9 @@ describe('ayarlar ve yayın', () => {
     await db.query("INSERT INTO online_stores (tenant_id,slug,name) VALUES ($1,'baska-magaza','Başka')", [other.tenantId]);
     expect((await admin(owner, 'put', '/settings', { ...settings, slug: 'baska-magaza', warehouse_id: w.id })).body.code).toBe('SLUG_TAKEN');
   });
-  test('havale açıksa IBAN notu şart; başka işletmenin deposu seçilemez', async () => {
-    expect((await admin(owner, 'put', '/settings', { ...settings, warehouse_id: w.id, transfer_note: '' })).status).toBe(400);
+  test('havale/EFT kapalıdır (istense de açılmaz); başka işletmenin deposu seçilemez', async () => {
+    const saved = await admin(owner, 'put', '/settings', { ...settings, warehouse_id: w.id, transfer_enabled: true, transfer_note: 'TR00 0000' });
+    expect(saved.status).toBe(200); expect(saved.body.store.transfer_enabled).toBe(false); expect(saved.body.store.transfer_note).toBe('');
     const foreign = Number((await db.query('SELECT id FROM warehouses WHERE tenant_id=$1 LIMIT 1', [other.tenantId])).rows[0].id);
     expect((await admin(owner, 'put', '/settings', { ...settings, warehouse_id: foreign })).status).toBe(404);
   });
@@ -235,11 +236,13 @@ describe('sipariş yönetimi', () => {
     expect(Number((await db.query("SELECT COUNT(*) AS n FROM stock_movements WHERE source='online_store' AND movement_type='return' AND product_id=$1", [a.id])).rows[0].n)).toBe(1);
   });
   test('müşteri durum sorgusu: kişisel veri maskeli, yanlış kod 404, başka mağazanın kodu bulunmaz', async () => {
-    const r = await shop('post', 'deneme-magaza/orders', order({ payment_method: 'transfer' }), key());
+    const r = await shop('post', 'deneme-magaza/orders', order({ payment_method: 'cod' }), key());
     const got = await shop('get', `deneme-magaza/orders/${r.body.code}`);
     expect(got.status).toBe(200);
     expect(got.body).toMatchObject({ customer_name: 'Ayşe', phone: '0532 *** ** 67', status: 'new' });
-    expect(got.body.transfer_note).toMatch(/TR00/);
+    expect(got.body.transfer_note).toBe('');
+    expect((await shop('get', 'deneme-magaza')).body.payment).toMatchObject({ transfer: false, transfer_note: '' });
+    expect((await shop('post', 'deneme-magaza/orders', order({ payment_method: 'transfer' }), key())).body.code).toBe('TRANSFER_DISABLED');
     expect(JSON.stringify(got.body)).not.toMatch(/Atatürk|05321234567|demir/i);
     expect((await shop('get', 'deneme-magaza/orders/' + 'x'.repeat(20))).status).toBe(404);
     expect((await shop('get', 'baska-magaza/orders/' + r.body.code)).status).toBe(404);

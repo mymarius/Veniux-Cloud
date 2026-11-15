@@ -52,8 +52,8 @@ function shapeStore(row) {
   if (!row) return null;
   return {
     slug: row.slug, name: row.name, tagline: row.tagline || '', about: row.about || '', contact_email: row.contact_email || '', public_phone: row.public_phone || '',
-    cod_enabled: Boolean(Number(row.cod_enabled)), transfer_enabled: Boolean(Number(row.transfer_enabled)), pickup_enabled: Boolean(Number(row.pickup_enabled)),
-    transfer_note: row.transfer_note || '', delivery_fee: round(row.delivery_fee), free_delivery_over: row.free_delivery_over == null ? null : round(row.free_delivery_over),
+    cod_enabled: Boolean(Number(row.cod_enabled)), transfer_enabled: false, pickup_enabled: Boolean(Number(row.pickup_enabled)),
+    transfer_note: '', delivery_fee: round(row.delivery_fee), free_delivery_over: row.free_delivery_over == null ? null : round(row.free_delivery_over),
     min_order: round(row.min_order), warehouse_id: row.warehouse_id == null ? null : Number(row.warehouse_id),
     published: Boolean(Number(row.published)), accepting_orders: Boolean(Number(row.accepting_orders)), terms_text: row.terms_text || ''
   };
@@ -84,12 +84,12 @@ async function saveSettings(user, body = {}) {
   const publicPhone = body.public_phone === undefined ? (current && current.public_phone) || null : (text(body.public_phone, 20) ? normalizePhone(body.public_phone) : null);
   if (body.public_phone && !publicPhone) fail('Sitede gösterilecek telefon geçersiz.');
   const pick = (key, fallback) => flag(body[key], current ? Number(current[key]) : fallback);
-  const cod = pick('cod_enabled', 1), transfer = pick('transfer_enabled', 0), pickup = pick('pickup_enabled', 1);
+  // Havale/EFT (IBAN ile ödeme) bilinçli olarak kaldırıldı: dekont sahteciliği ve elle eşleştirme riski. Ödeme yalnız kapıda, mağazada ya da kartla alınır.
+  const cod = pick('cod_enabled', 1), transfer = 0, pickup = pick('pickup_enabled', 1);
   const deliveryFee = body.delivery_fee === undefined ? round(current ? current.delivery_fee : 0) : money(body.delivery_fee);
   const freeOver = body.free_delivery_over === undefined ? (current && current.free_delivery_over != null ? round(current.free_delivery_over) : null) : (body.free_delivery_over === null || body.free_delivery_over === '' ? null : money(body.free_delivery_over));
   const minOrder = body.min_order === undefined ? round(current ? current.min_order : 0) : money(body.min_order);
-  const transferNote = body.transfer_note === undefined ? (current && current.transfer_note) || null : longText(body.transfer_note, 600) || null;
-  if (transfer && !transferNote) fail('Havale/EFT açıksa IBAN ve açıklama yazın.');
+  const transferNote = null;
   let warehouse = body.warehouse_id === undefined ? (current && current.warehouse_id != null ? Number(current.warehouse_id) : null) : (body.warehouse_id === null ? null : Number(body.warehouse_id));
   if (warehouse != null) {
     const ok = Number.isSafeInteger(warehouse) && (await db.query("SELECT id FROM warehouses WHERE id=$1 AND tenant_id=$2 AND warehouse_type='NORMAL'", [warehouse, user.tenantId])).rows[0];
@@ -238,7 +238,7 @@ const imageUrl = (slug, key) => `/api/public/shop/${slug}/media/${key}`;
 function shapePublicStore(row, extra = {}) {
   return {
     slug: row.slug, name: row.name, tagline: row.tagline || '', about: row.about || '', contact_email: row.contact_email || '', phone: row.public_phone || '',
-    accepting_orders: Boolean(Number(row.accepting_orders)), payment: { card: Boolean(extra.card), cod: Boolean(Number(row.cod_enabled)), transfer: Boolean(Number(row.transfer_enabled)), transfer_note: Number(row.transfer_enabled) ? row.transfer_note || '' : '' },
+    accepting_orders: Boolean(Number(row.accepting_orders)), payment: { card: Boolean(extra.card), cod: Boolean(Number(row.cod_enabled)), transfer: false, transfer_note: '' },
     pickup: Boolean(Number(row.pickup_enabled)), delivery_fee: round(row.delivery_fee), free_delivery_over: row.free_delivery_over == null ? null : round(row.free_delivery_over), min_order: round(row.min_order),
     terms_text: row.terms_text || '', ...extra
   };
@@ -313,7 +313,7 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash, ctx = {}) {
   const payment = ['cod', 'transfer', 'pickup', 'card'].includes(body.payment_method) ? body.payment_method : null;
   if (!payment) fail('Ödeme yöntemini seçin.');
   if (payment === 'cod' && (!Number(store.cod_enabled) || delivery === 'pickup')) fail('Kapıda ödeme bu teslimat yöntemiyle kullanılamaz.');
-  if (payment === 'transfer' && !Number(store.transfer_enabled)) fail('Havale/EFT bu mağazada kapalı.');
+  if (payment === 'transfer') fail('Havale/EFT ile ödeme alınmıyor. Kapıda, mağazada ya da kartla ödeyin.', 400, 'TRANSFER_DISABLED');
   if (payment === 'pickup' && delivery !== 'pickup') fail('Mağazada ödeme yalnız mağazadan teslimde seçilebilir.');
   if (payment === 'card' && !(await payments.cardEnabled(tenantId))) fail('Kartla ödeme bu mağazada kapalı.', 400, 'CARD_DISABLED');
   const name = text(body.customer_name, 80);

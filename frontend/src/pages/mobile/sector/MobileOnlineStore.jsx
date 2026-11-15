@@ -226,8 +226,7 @@ function SettingsTab() {
     <div className="vm-label"><span>Stok deposu</span></div>
     <label className="vm-field"><select aria-label="Stok deposu" value={form.warehouse_id || ''} onChange={e => set('warehouse_id', e.target.value)} style={{ flex: 1, border: 0, background: 'none', font: 'inherit', color: 'var(--vm-ink)' }}><option value="">Depo seçin</option>{data.data.warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
     <div className="vm-label"><span>Ödeme ve teslimat</span></div>
-    {check('Kapıda ödeme', 'cod_enabled')}{check('Havale / EFT', 'transfer_enabled')}{check('Mağazadan teslim', 'pickup_enabled')}
-    {form.transfer_enabled && <label className="vm-field"><span className="vm-note">IBAN ve açıklama</span><textarea aria-label="IBAN ve açıklama" rows={2} maxLength={600} value={form.transfer_note || ''} onChange={e => set('transfer_note', e.target.value)} style={{ flex: 1, border: 0, background: 'none', font: 'inherit', color: 'var(--vm-ink)' }} /></label>}
+    {check('Kapıda ödeme', 'cod_enabled')}{check('Mağazadan teslim', 'pickup_enabled')}
     {field('Teslimat ücreti (TL)', 'delivery_fee', { inputMode: 'decimal' })}
     {field('Ücretsiz teslimat eşiği (TL, boş = yok)', 'free_delivery_over', { inputMode: 'decimal' })}
     {field('Minimum sipariş tutarı (TL)', 'min_order', { inputMode: 'decimal' })}
