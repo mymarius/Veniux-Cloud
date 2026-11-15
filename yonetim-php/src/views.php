@@ -22,12 +22,12 @@ function licenseState(?string $status, ?string $expires): array {
 function badge(string $text, string $kind = 'ok'): string { return '<span class="b b-' . e($kind) . '">' . e($text) . '</span>'; }
 
 function layout(string $title, string $body, string $active = ''): void {
-    $nav = ['/' => 'Pano', '/musteriler' => 'Müşteriler', '/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
+    $nav = ['/' => 'Pano', '/musteriler' => 'Müşteriler', '/lisanslar' => 'Lisanslar', '/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
     echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="stylesheet" href="/assets/console.css"></head><body>';
     echo '<a class="skip" href="#icerik">İçeriğe geç</a><header class="top"><div class="wrap nav"><a class="brand" href="/">Veniux <span>yönetim</span></a><nav aria-label="Ana menü">';
     foreach ($nav as $href => $label) echo '<a href="' . $href . '"' . ($active === $href ? ' aria-current="page"' : '') . '>' . e($label) . '</a>';
     echo '</nav><form method="post" action="/cikis" class="out"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><button class="link" type="submit">Çıkış</button></form></div></header>';
-    echo '<main id="icerik" class="wrap">' . $body . '</main><footer class="wrap foot">Bu sayfa yalnızca Veniux sahibine açıktır. Veriler bulut veritabanından salt okunur çekilir.</footer></body></html>';
+    echo '<main id="icerik" class="wrap">' . $body . '</main><footer class="wrap foot">Bu sayfa yalnızca Veniux sahibine açıktır. Müşteri verileri bulut veritabanından salt okunur çekilir; lisans işlemleri lisans merkezine yazılır ve kayda geçer.</footer></body></html>';
 }
 
 function statBox(string $label, string $value, string $note = ''): string {
@@ -86,7 +86,9 @@ function pageCustomer(array $c): string {
     $b .= statBox('Online mağaza', $c['store'] ? ($c['store']['published'] ? 'Yayında' : 'Yayında değil') : 'Yok', $c['store'] ? '/magaza/' . $c['store']['slug'] . ' · ' . num($c['orders']['n']) . ' sipariş, ' . money($c['orders']['total']) : '');
     $b .= '</div><h2>Bilgiler</h2><table class="kv"><tbody>';
     foreach (['Sektör' => $t['industry'], 'Vergi no' => $t['tax_number'], 'Vergi dairesi' => $t['tax_office'], 'Adres' => $t['address'], 'Para birimi' => $t['currency'], 'Saat dilimi' => $t['timezone'], 'Açılış' => $t['created_at']] as $k => $v) $b .= '<tr><th>' . e($k) . '</th><td>' . e($v ?: '—') . '</td></tr>';
-    $b .= '</tbody></table><h2>Lisanslar ve paketler</h2>';
+    $b .= '</tbody></table>';
+    if (!empty($c['central'])) { $cl = $c['central']; [$cs, $ck] = licenseState($cl['status'], $cl['expires_at']); $b .= '<h2>Merkezi lisans</h2><p>' . e($cl['company']) . ' · ' . e(AUTH_PLANS[$cl['plan']] ?? $cl['plan']) . ' · ' . badge($cs, $ck) . ' · bitiş ' . dayOf($cl['expires_at']) . ' · terminal sınırı ' . num($cl['seats']) . ' · <a href="/lisanslar/' . (int) $cl['id'] . '">Lisansı yönet</a></p>'; }
+    $b .= '<h2>Bulut lisans kaydı</h2>';
     if ($c['licenses']) { $b .= '<div class="scroll"><table><thead><tr><th>Paket</th><th>Durum</th><th>Bitiş</th><th class="r">Kullanıcı</th><th class="r">Depo</th><th class="r">Cihaz</th><th>Son doğrulama</th></tr></thead><tbody>'; foreach ($c['licenses'] as $l) { [$lb, $lk] = licenseState($l['status'], $l['expires_at']); $b .= '<tr><td>' . e($l['plan_name']) . '</td><td>' . badge($lb, $lk) . '</td><td>' . dayOf($l['expires_at']) . '</td><td class="r">' . num($l['max_users']) . '</td><td class="r">' . num($l['max_warehouses']) . '</td><td class="r">' . num($l['max_devices']) . '</td><td>' . when($l['last_validation_at']) . '</td></tr>'; } $b .= '</tbody></table></div>'; }
     else $b .= '<p class="muted">Lisans kaydı yok.</p>';
     $b .= '<p>Sektör ve eklenti paketleri: <b>' . ($c['packs'] ? e(implode(', ', array_map(fn($p) => PACK_NAMES[$p['pack']] ?? $p['pack'], $c['packs']))) : 'yok') . '</b></p>';

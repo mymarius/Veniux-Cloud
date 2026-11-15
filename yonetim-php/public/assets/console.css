@@ -27,3 +27,10 @@ td small{display:block;color:var(--soft);font-size:13px}.r{text-align:right;whit
 .login{max-width:420px;margin:12vh auto}.login form{display:grid;gap:14px}.login label{display:grid;gap:4px;font-weight:600}.login input{min-height:44px;padding:0 12px;border:1px solid var(--line);background:#fff;font:inherit;border-radius:4px}
 .err{color:var(--bad);font-weight:600}.foot{padding:30px 0;color:var(--soft);font-size:13px}
 .nw{white-space:nowrap}
+.form{display:grid;gap:14px;max-width:560px}.form label,.inline label{display:grid;gap:4px;font-weight:600}
+.form input,.form select,.form textarea,.inline input,.inline select{min-height:42px;padding:8px 12px;border:1px solid var(--line);background:#fff;font:inherit;border-radius:4px}
+.form fieldset{border:1px solid var(--line);padding:10px 14px}.chk{display:flex!important;grid-template-columns:none;align-items:center;gap:8px;font-weight:400!important;padding:3px 0}.chk input{min-height:0;width:auto}
+.inline{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0}.inline input{min-width:240px;flex:1}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--text)}.btn.ghost:hover{background:#ebe2d0}.btn.danger{background:var(--bad)}.btn.danger:hover{background:#8f1c12}
+.note-ok{color:var(--ok);font-weight:600}.key{font:600 18px/1.4 ui-monospace,Consolas,monospace;word-break:break-all;background:#fff;border:2px solid var(--text);padding:14px}
+

@@ -35,6 +35,22 @@ function dashboard(): array {
     return compact('t', 'lic', 'u', 'dev', 's30', 'sToday', 'o30', 'stores', 'daily', 'expiring', 'recent');
 }
 
+// Bulutta bağlı (merkezi) lisansı olan müşterilerde plan, durum, bitiş ve eklentiler lisans merkezindeki gerçek kayıttan alınır.
+function applyAuthority(array &$list): void {
+    if (!function_exists('authorityConfigured') || !authorityConfigured() || !$list) return;
+    try {
+        $bind = array_column(rows('SELECT tenant_id, authority_license_id FROM cloud_license_bindings'), 'authority_license_id', 'tenant_id');
+        $byId = []; foreach (authorityLicenses() as $l) $byId[(int) $l['id']] = $l;
+    } catch (Throwable) { return; }
+    foreach ($list as &$r) {
+        $lic = $byId[(int) ($bind[$r['id']] ?? 0)] ?? null;
+        if (!$lic) continue;
+        $r['plan_id'] = (AUTH_PLANS[$lic['plan']] ?? $lic['plan']); $r['features'] = null; $r['license_status'] = $lic['status']; $r['expires_at'] = $lic['expires_at']; $r['central_id'] = (int) $lic['id'];
+        $merged = array_unique(array_filter(array_merge(explode(',', (string) ($r['packs'] ?? '')), explode(',', (string) $lic['addons']))));
+        sort($merged); $r['packs'] = implode(',', $merged);
+    }
+}
+
 function planName(?string $featuresJson, ?string $planId): string {
     $f = $featuresJson ? json_decode($featuresJson, true) : null;
     if (is_array($f) && isset($f['product_package']['name'])) return (string) $f['product_package']['name'];
@@ -59,6 +75,7 @@ function customers(string $q = '', string $filter = ''): array {
       (SELECT COALESCE(SUM(s.net_amount),0) FROM pos_sales s WHERE s.tenant_id=t.id AND s.status IN " . SALE_OK . " AND s.created_at>=?) AS sales30
       FROM tenants t WHERE " . implode(' AND ', $where) . ' ORDER BY t.id DESC LIMIT 500';
     $list = rows($sql, array_merge([$d30], $params));
+    applyAuthority($list);
     if ($filter === 'bitecek') $list = array_values(array_filter($list, fn($r) => $r['expires_at'] && $r['expires_at'] > $now && $r['expires_at'] <= $in30));
     if ($filter === 'suresi-doldu') $list = array_values(array_filter($list, fn($r) => $r['expires_at'] && $r['expires_at'] <= $now));
     return $list;
@@ -71,8 +88,10 @@ function customerDetail(int $id): ?array {
     $licenses = rows('SELECT id, plan_id, status, max_users, max_warehouses, max_devices, enabled_features_json, issued_at, activated_at, expires_at, last_validation_at FROM licenses WHERE tenant_id=? ORDER BY id DESC LIMIT 20', [$id]);
     foreach ($licenses as &$l) $l['plan_name'] = planName($l['enabled_features_json'], $l['plan_id']);
     unset($l);
+    $central = null;
+    if (function_exists('authorityConfigured') && authorityConfigured()) { try { $bid = (int) scalar('SELECT authority_license_id FROM cloud_license_bindings WHERE tenant_id=?', [$id]); $central = $bid ? authorityLicense($bid) : null; } catch (Throwable) { $central = null; } }
     return [
-        'tenant' => $t, 'licenses' => $licenses,
+        'tenant' => $t, 'licenses' => $licenses, 'central' => $central,
         'users' => rows('SELECT id, email, full_name, role, status, last_login, created_at FROM users WHERE tenant_id=? ORDER BY id LIMIT 200', [$id]),
         'devices' => rows('SELECT id, label, platform, status, created_at, last_seen_at FROM pos_devices WHERE tenant_id=? ORDER BY id LIMIT 100', [$id]),
         'warehouses' => rows('SELECT id, name, warehouse_type, location FROM warehouses WHERE tenant_id=? ORDER BY id LIMIT 100', [$id]),
