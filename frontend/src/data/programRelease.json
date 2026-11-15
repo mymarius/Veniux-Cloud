@@ -1,8 +1,18 @@
 {
-  "version": "2.4.75",
+  "version": "2.4.76",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.76",
+      "date": "15 Kasım 2026",
+      "title": "Restoran ve stok tek çatıda",
+      "items": [
+        "- Garson menüsünde her ürünün kalan porsiyonu görünür: Tükendi ve Son 3 porsiyon uyarıları",
+        "- Sipariş gönderilince menü anında yenilenir",
+        "- Esnaf panelinde stok durumu kartı: tükenenler, azalanlar, asgari seviyedeki malzemeler"
+      ]
+    },
     {
       "version": "2.4.75",
       "date": "15 Kasım 2026",
