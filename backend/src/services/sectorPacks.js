@@ -3,8 +3,8 @@
 // yöneticisinin verdiği kayıt (sector_packs). Platform sahibinin kendi çalışma alanı deneme için tüm paketleri görür.
 const db = require('../config/database');
 const packages = require('./productPackages');
-const PACKS = ['hardware', 'tableware', 'restaurant'];
-const LABELS = { hardware: 'Hırdavat paketi', tableware: 'Züccaciye paketi', restaurant: 'Pide ve restoran paketi' };
+const PACKS = ['hardware', 'tableware', 'restaurant', 'online_store'];
+const LABELS = { hardware: 'Hırdavat paketi', tableware: 'Züccaciye paketi', restaurant: 'Pide ve restoran paketi', online_store: 'Online mağaza paketi' };
 const denied = pack => Object.assign(new Error((LABELS[pack] || 'Bu paket') + ' hesabınızda etkin değil. Paketi satın almak için bize ulaşın.'), { status: 403, code: 'PACK_REQUIRED', pack });
 
 async function has(user, pack, central) {

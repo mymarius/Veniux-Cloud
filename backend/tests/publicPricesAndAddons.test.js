@@ -72,7 +72,7 @@ describe('sektör paketi yönetimi (platform yöneticisi)', () => {
     const set = packs => request(app).put('/api/sector/packs/admin/' + customer.tenantId).set('Authorization', 'Bearer ' + admin.token).send({ packs });
     expect((await set(['hardware', 'restaurant'])).status).toBe(200);
     let list = (await get(admin)).body;
-    expect(list.packs.sort()).toEqual(['hardware', 'restaurant', 'tableware']);
+    expect(list.packs.sort()).toEqual(['hardware', 'online_store', 'restaurant', 'tableware']);
     const row = list.tenants.find(t => t.id === customer.tenantId);
     expect(row.packs).toEqual(['hardware', 'restaurant']);
     expect(typeof row.company_name).toBe('string');

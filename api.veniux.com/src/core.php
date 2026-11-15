@@ -55,7 +55,7 @@ function setLicenseState(int $id,string $state,int $actor):void {
     });
 }
 // ---- Şema 2: lisansa not, iletişim e-postası ve sektör eklentileri. Kod şema 1'de de çalışır; sütunlar yükseltmeden sonra kullanılır.
-const LICENSE_ADDONS=['hardware'=>'Hırdavat','tableware'=>'Züccaciye','restaurant'=>'Pide ve restoran'];
+const LICENSE_ADDONS=['hardware'=>'Hırdavat','tableware'=>'Züccaciye','restaurant'=>'Pide ve restoran','online_store'=>'Online mağaza'];
 const LICENSE_PLANS=['STARTER_ANNUAL'=>'Başlangıç','BUSINESS_ANNUAL'=>'İşletme','ENTERPRISE_ANNUAL'=>'Kurumsal'];
 function schemaVersion(): int {
     static $version;

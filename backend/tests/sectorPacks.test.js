@@ -33,12 +33,12 @@ describe('paket yetkisi', () => {
       const r = await as(owner).get(url);
       expect([url, r.status, r.body.code]).toEqual([url, 403, 'PACK_REQUIRED']);
     }
-    expect((await as(owner).get('/packs/me')).body.packs).toEqual({ hardware: false, tableware: false, restaurant: false });
+    expect((await as(owner).get('/packs/me')).body.packs).toEqual({ hardware: false, tableware: false, restaurant: false, online_store: false });
     await grant(owner.tenantId, 'hardware');
     expect((await as(owner).get('/hardware/critical')).status).toBe(200);
     expect((await as(owner).get('/tableware/sets')).status).toBe(403);
     expect((await as(other).get('/hardware/critical')).status).toBe(403);
-    expect((await as(owner).get('/packs/me')).body.packs).toEqual({ hardware: true, tableware: false, restaurant: false });
+    expect((await as(owner).get('/packs/me')).body.packs).toEqual({ hardware: true, tableware: false, restaurant: false, online_store: false });
   });
 
   test('paketi yalnız platform yöneticisi verir', async () => {

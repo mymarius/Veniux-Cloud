@@ -87,6 +87,7 @@ app.use('/api/updates', (req,res,next)=>{
 if(process.env.VENIUX_CLOUD_SERVICE==='1')app.use('/api/auth/register',(req,res)=>res.status(403).json({error:'Bu çalışma alanında hesaplar yönetici davetiyle açılır.'}));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/business', require('./routes/businessRoutes'));
+app.use('/api/public/shop', require('./routes/publicShopRoutes'));
 app.use('/api/public', require('./routes/publicPrices'));
 app.use('/api/trial', require('./routes/trialRoutes'));
 app.use('/api/packages', require('./routes/packageRoutes'));
@@ -117,6 +118,7 @@ app.use('/api/label-checks', require('./routes/labelCheckRoutes'));
 app.use('/api/sector', require('./routes/sectorRoutes'));
 app.use('/api/push', require('./routes/pushRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
+app.use('/api/online-store', require('./routes/onlineStoreRoutes'));
 // Token ÖKC adaptörü yalnız ayarları tamsa etkinleşir (Token geliştirici ekibinden gelen adres ve yollar).
 try { const tokenx = require('./services/tokenxAdapter'); if (tokenx.config()) require('./services/retailExternalService').register('tokenx', tokenx.adapter()); } catch (error) { console.error('[TokenX] Ayar geçersiz:', error.message); }
 app.use('/api/edocuments', require('./routes/edocumentRoutes'));
