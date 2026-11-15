@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const db = require('../config/database');
 const { ciLike } = require('./sqlSearch');
 const extras = require('./onlineStoreExtras');
+const mq = require('./onlineStoreMeasure');
+const customers = require('./onlineStoreCustomers');
 
 const fail = (message, status = 400, code) => { throw Object.assign(new Error(message), { status, ...(code ? { code } : {}) }); };
 const lock = () => (db.getEngine() === 'mysql' ? ' FOR UPDATE' : '');
@@ -20,8 +22,7 @@ const STATUSES = ['new', 'confirmed', 'preparing', 'ready', 'delivered', 'cancel
 const NEXT = { new: ['confirmed', 'cancelled'], confirmed: ['preparing', 'cancelled'], preparing: ['ready', 'confirmed', 'cancelled'], ready: ['delivered', 'preparing', 'cancelled'], delivered: [], cancelled: [] };
 const OPEN_STATUSES = ['new', 'confirmed', 'preparing', 'ready'];
 // Faz 1: yalnız tam sayı adetle satılan ürünler. Tartılı/ölçülü birimler vitrinde gösterilmez.
-const MEASURED_UNITS = new Set(['kg', 'kilo', 'kilogram', 'g', 'gr', 'gram', 'l', 'lt', 'litre', 'm', 'mt', 'metre', 'cm', 'm2', 'm3']);
-const measured = unit => MEASURED_UNITS.has(String(unit || '').trim().toLowerCase().replace(/\./g, ''));
+const measured = mq.measured;
 const LOW_STOCK = 5;
 
 const text = (value, max) => (typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').slice(0, max) : '');
@@ -130,42 +131,45 @@ async function listProducts(user, query = {}) {
   const stock = await stockMap(user.tenantId, store && store.warehouse_id != null ? Number(store.warehouse_id) : null, ids);
   const media = ids.length ? (await db.query(`SELECT product_id,COUNT(*) AS n FROM online_product_media WHERE tenant_id=$1 AND product_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')}) GROUP BY product_id`, [user.tenantId, ...ids])).rows : [];
   const mediaCount = new Map(media.map(m => [Number(m.product_id), Number(m.n)]));
+  const measures = await mq.measureMap(db, user.tenantId, rows);
   return {
     total, page, page_size: size,
     items: rows.map(r => ({
       id: Number(r.id), name: r.name, sku: r.sku, category: r.category || '', unit: r.unit, price: round(r.sale_price), published: Boolean(Number(r.published || 0)),
       description: r.description || '', sort_order: Number(r.sort_order || 0), max_per_order: r.max_per_order == null ? null : Number(r.max_per_order),
-      stock: stock.has(Number(r.id)) ? stock.get(Number(r.id)) : null, images: mediaCount.get(Number(r.id)) || 0, measured_unit: measured(r.unit)
+      stock: stock.has(Number(r.id)) ? stock.get(Number(r.id)) : null, images: mediaCount.get(Number(r.id)) || 0, measured_unit: measured(r.unit),
+      step: measures.has(Number(r.id)) ? measures.get(Number(r.id)).step : null, min_qty: measures.has(Number(r.id)) ? measures.get(Number(r.id)).min : null
     }))
   };
 }
 async function setProduct(user, productId, body = {}) {
   const id = Number(productId);
-  const product = Number.isSafeInteger(id) ? (await db.query("SELECT id,unit FROM products WHERE id=$1 AND tenant_id=$2 AND module_type='NORMAL'", [id, user.tenantId])).rows[0] : null;
+  const product = Number.isSafeInteger(id) ? (await db.query("SELECT id,unit,name FROM products WHERE id=$1 AND tenant_id=$2 AND module_type='NORMAL'", [id, user.tenantId])).rows[0] : null;
   if (!product) fail('Ürün bulunamadı.', 404);
   const published = flag(body.published, 0);
-  if (published && measured(product.unit)) fail('Kiloyla, litreyle veya metreyle satılan ürünler şimdilik online mağazada yayınlanamaz.', 422, 'MEASURED_UNIT');
   const current = (await db.query('SELECT * FROM online_product_settings WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, id])).rows[0];
   const description = body.description === undefined ? (current && current.description) || null : longText(body.description, 2000) || null;
   const sort = body.sort_order === undefined ? Number(current ? current.sort_order : 0) : Math.max(-1000, Math.min(1000, Math.trunc(Number(body.sort_order) || 0)));
   let maxPer = current && current.max_per_order != null ? Number(current.max_per_order) : null;
-  if (body.max_per_order !== undefined) { maxPer = body.max_per_order === null || body.max_per_order === '' ? null : Number(body.max_per_order); if (maxPer !== null && (!Number.isSafeInteger(maxPer) || maxPer < 1 || maxPer > 1000)) fail('Sipariş başına üst sınır 1-1000 arası olmalı.'); }
+  if (body.max_per_order !== undefined) { maxPer = body.max_per_order === null || body.max_per_order === '' ? null : Number(body.max_per_order); if (maxPer !== null && (measured(product.unit) ? !(mq.isMilli(maxPer) && maxPer > 0 && maxPer <= 100000) : (!Number.isSafeInteger(maxPer) || maxPer < 1 || maxPer > 1000))) fail('Sipariş başına üst sınır geçersiz.'); }
   const publishedFinal = body.published === undefined ? Number(current ? current.published : 0) : published;
+  let measure = null;
   await db.transaction(async tx => {
+    if (measured(product.unit) && (publishedFinal || body.step !== undefined || body.min_qty !== undefined)) measure = await mq.saveMeasure(tx, user.tenantId, product, body);
     if (current) await tx.query('UPDATE online_product_settings SET published=$3,description=$4,sort_order=$5,max_per_order=$6,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, id, publishedFinal, description, sort, maxPer]);
     else await tx.query('INSERT INTO online_product_settings (tenant_id,product_id,published,description,sort_order,max_per_order) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, id, publishedFinal, description, sort, maxPer]);
   });
-  return { id, published: Boolean(publishedFinal), description: description || '', sort_order: sort, max_per_order: maxPer };
+  return { id, published: Boolean(publishedFinal), description: description || '', sort_order: sort, max_per_order: maxPer, ...(measure ? { step: measure.step, min_qty: measure.min } : {}) };
 }
 async function bulkPublish(user, body = {}) {
   const ids = Array.isArray(body.product_ids) ? [...new Set(body.product_ids.map(Number))].filter(Number.isSafeInteger).slice(0, 500) : [];
   if (!ids.length) fail('En az bir ürün seçin.');
   const published = flag(body.published, 0);
-  const rows = (await db.query(`SELECT id,unit FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...ids])).rows;
+  const rows = (await db.query(`SELECT id,unit,name FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [user.tenantId, ...ids])).rows;
   let changed = 0; const skipped = [];
   await db.transaction(async tx => {
     for (const r of rows) {
-      if (published && measured(r.unit)) { skipped.push(Number(r.id)); continue; }
+      if (published && measured(r.unit)) await mq.saveMeasure(tx, user.tenantId, r, {});
       const have = (await tx.query('SELECT 1 FROM online_product_settings WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, Number(r.id)])).rows[0];
       if (have) await tx.query('UPDATE online_product_settings SET published=$3,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, Number(r.id), published]);
       else await tx.query('INSERT INTO online_product_settings (tenant_id,product_id,published) VALUES ($1,$2,$3)', [user.tenantId, Number(r.id), published]);
@@ -181,14 +185,14 @@ async function stockMap(tenantId, warehouse, ids, runner = db) {
   const out = new Map();
   if (!warehouse || !ids.length) return out;
   const rows = (await runner.query(`SELECT product_id,SUM(quantity) AS q FROM stock_records WHERE tenant_id=$1 AND warehouse_id=$2 AND product_id IN (${ids.map((_, i) => '$' + (i + 3)).join(',')}) GROUP BY product_id`, [tenantId, warehouse, ...ids])).rows;
-  for (const r of rows) out.set(Number(r.product_id), Math.max(0, Math.floor(round(r.q, 6))));
+  for (const r of rows) out.set(Number(r.product_id), Math.max(0, Math.floor(round(r.q, 6) * 1000) / 1000));
   return out;
 }
 const stockState = q => (q === undefined || q === null || q <= 0 ? 'out' : q <= LOW_STOCK ? 'low' : 'ok');
 async function takeStock(tx, tenantId, warehouse, productId, quantity, orderNo, orderId, userId) {
   const rows = (await tx.query('SELECT id,quantity FROM stock_records WHERE tenant_id=$1 AND warehouse_id=$2 AND product_id=$3 ORDER BY id' + lock(), [tenantId, warehouse, productId])).rows;
   const have = rows.reduce((s, r) => s + Math.max(Number(r.quantity), 0), 0);
-  if (have + 1e-9 < quantity) return { ok: false, available: Math.max(0, Math.floor(have)) };
+  if (have + 1e-9 < quantity) return { ok: false, available: Math.max(0, Math.floor(have * 1000) / 1000) };
   let remaining = quantity;
   for (const row of rows) {
     const take = Math.min(Math.max(Number(row.quantity), 0), remaining);
@@ -223,6 +227,8 @@ async function openStore(slug) {
   const row = (await db.query('SELECT * FROM online_stores WHERE slug=$1', [value])).rows[0];
   if (!row || !Number(row.published)) return null;
   if (!(await tenantLicensed(Number(row.tenant_id)))) return null;
+  // Bulutta: paket merkezde yakın zamanda doğrulanmamışsa (kalkmış ya da uzun süredir kullanılmıyorsa) vitrin kapalı görünür.
+  if (!(await require('./cloudLicenseSeen').packAllowed(Number(row.tenant_id), 'online_store'))) return null;
   return row;
 }
 const notFound = () => fail('Mağaza bulunamadı.', 404, 'NO_STORE');
@@ -256,9 +262,11 @@ async function shapePublicProducts(row, rows) {
   const media = ids.length ? (await db.query(`SELECT product_id,file_key,alt FROM online_product_media WHERE tenant_id=$1 AND product_id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')}) ORDER BY position,id`, [row.tenant_id, ...ids])).rows : [];
   const byProduct = new Map();
   for (const m of media) byProduct.set(Number(m.product_id), [...(byProduct.get(Number(m.product_id)) || []), { url: imageUrl(row.slug, m.file_key), alt: m.alt || '' }]);
-  return rows.filter(r => !measured(r.unit)).map(r => {
+  const measures = await mq.measureMap(db, Number(row.tenant_id), rows);
+  return rows.map(r => {
     const q = stock.get(Number(r.id));
-    return { id: Number(r.id), name: r.name, category: r.category || '', unit: r.unit || 'adet', price: round(r.sale_price), description: r.description || '', stock_state: stockState(q), max_per_order: r.max_per_order == null ? null : Number(r.max_per_order), images: byProduct.get(Number(r.id)) || [] };
+    const m = measures.get(Number(r.id));
+    return { ...(m ? { measured: true, step: m.step, min_qty: m.min, unit_label: mq.label(r.unit) } : {}), id: Number(r.id), name: r.name, category: r.category || '', unit: r.unit || 'adet', price: round(r.sale_price), description: r.description || '', stock_state: stockState(q), max_per_order: r.max_per_order == null ? null : Number(r.max_per_order), images: byProduct.get(Number(r.id)) || [] };
   });
 }
 async function publicProducts(slug, query = {}) {
@@ -319,9 +327,8 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
   const wanted = new Map();
   for (const line of lines) {
     const id = Number(line && line.product_id), qty = Number(line && line.quantity);
-    if (!Number.isSafeInteger(id) || id < 1 || !Number.isSafeInteger(qty) || qty < 1 || qty > 50) fail('Sepetteki ürün veya adet geçersiz.');
-    wanted.set(id, (wanted.get(id) || 0) + qty);
-    if (wanted.get(id) > 50) fail('Bir üründen en çok 50 adet sipariş verilebilir.');
+    if (!Number.isSafeInteger(id) || id < 1 || !mq.isMilli(qty) || qty <= 0 || qty > 1000) fail('Sepetteki ürün veya miktar geçersiz.');
+    wanted.set(id, Math.round(((wanted.get(id) || 0) + qty) * 1000) / 1000);
   }
   const expected = new Map(lines.filter(l => l && l.expected_price !== undefined).map(l => [Number(l.product_id), Number(l.expected_price)]));
   const result = await db.transaction(async tx => {
@@ -331,17 +338,19 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     const ids = [...wanted.keys()];
     const products = (await tx.query(`SELECT p.id,p.sku,p.name,p.unit,p.sale_price,s.max_per_order FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 AND p.id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [tenantId, ...ids])).rows;
     const byId = new Map(products.map(p => [Number(p.id), p]));
-    const unavailable = ids.filter(id => !byId.has(id) || measured(byId.get(id).unit));
+    const unavailable = ids.filter(id => !byId.has(id));
     if (unavailable.length) fail('Sepetteki bazı ürünler artık satışta değil.', 409, 'PRODUCT_UNAVAILABLE');
+    const measures = await mq.measureMap(tx, tenantId, products);
+    for (const id of ids) mq.checkQuantity(byId.get(id), wanted.get(id), measures.get(id));
     const changed = [];
     for (const id of ids) {
       const p = byId.get(id);
-      if (p.max_per_order != null && wanted.get(id) > Number(p.max_per_order)) fail(`"${p.name}" için sipariş başına en çok ${p.max_per_order} adet.`, 422, 'MAX_PER_ORDER');
+      if (p.max_per_order != null && wanted.get(id) > Number(p.max_per_order)) fail(`"${p.name}" için sipariş başına en çok ${p.max_per_order} ${mq.measured(p.unit) ? mq.label(p.unit) : "adet"}.`, 422, 'MAX_PER_ORDER');
       if (expected.has(id) && Math.abs(cents(expected.get(id)) - cents(p.sale_price)) > 0) changed.push({ product_id: id, name: p.name, price: round(p.sale_price) });
     }
     if (changed.length) throw Object.assign(new Error('Bazı ürünlerin fiyatı değişti. Yeni fiyatları kontrol edip tekrar onaylayın.'), { status: 409, code: 'PRICE_CHANGED', changed });
     let subtotal = 0;
-    const priced = ids.map(id => { const p = byId.get(id), qty = wanted.get(id), line = cents(p.sale_price) * qty; subtotal += line; return { id, p, qty, line }; });
+    const priced = ids.map(id => { const p = byId.get(id), qty = wanted.get(id), line = mq.lineCents(cents(p.sale_price), qty); subtotal += line; return { id, p, qty, line }; });
     const minOrder = cents(store.min_order);
     if (subtotal < minOrder) fail(`Minimum sipariş tutarı ${fromCents(minOrder).toFixed(2).replace('.', ',')} ₺.`, 422, 'MIN_ORDER');
     const price = await extras.priceCart(tx, store, { subtotalC: subtotal, delivery, cityInput: body.city, codeInput: body.discount_code });
@@ -363,6 +372,7 @@ async function createOrder(slug, body = {}, idempotencyKey, ipHash) {
     if (shortages.length) throw Object.assign(new Error('Bazı ürünlerin stoğu yetersiz.'), { status: 409, code: 'OUT_OF_STOCK', shortages });
     if (price.code) await extras.consumeCode(tx, tenantId, price.code.id);
     await tx.query('INSERT INTO online_order_extras (order_id,tenant_id,city,discount_code_id,discount_code,discount_amount,shipping_rule) VALUES ($1,$2,$3,$4,$5,$6,$7)', [orderId, tenantId, price.city, price.code ? price.code.id : null, price.code ? price.code.code : null, fromCents(price.discountC), price.rule ? price.rule.name : null]);
+    await customers.recordOrder(tx, tenantId, orderId, { phone, name, email, city: price.city, address: delivery === 'delivery' ? address : null }, fromCents(total));
     for (const row of priced) await tx.query('INSERT INTO online_order_items (tenant_id,order_id,product_id,sku,name,unit,unit_price,quantity,line_total) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [tenantId, orderId, row.id, row.p.sku || null, row.p.name, row.p.unit || 'adet', round(row.p.sale_price), row.qty, fromCents(row.line)]);
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,NULL,$3,$4)', [tenantId, orderId, 'new', ipHash ? 'Müşteri siparişi' : null]);
     const order = (await tx.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
@@ -381,13 +391,13 @@ async function quote(slug, body = {}) {
   const wanted = new Map();
   for (const line of lines) {
     const id = Number(line && line.product_id), qty = Number(line && line.quantity);
-    if (!Number.isSafeInteger(id) || id < 1 || !Number.isSafeInteger(qty) || qty < 1 || qty > 50) fail('Sepetteki ürün veya adet geçersiz.');
-    wanted.set(id, Math.min(50, (wanted.get(id) || 0) + qty));
+    if (!Number.isSafeInteger(id) || id < 1 || !mq.isMilli(qty) || qty <= 0 || qty > 1000) fail('Sepetteki ürün veya miktar geçersiz.');
+    wanted.set(id, Math.round(((wanted.get(id) || 0) + qty) * 1000) / 1000);
   }
   const ids = [...wanted.keys()];
   const rows = (await db.query(`SELECT p.id,p.sale_price FROM products p JOIN online_product_settings s ON s.tenant_id=p.tenant_id AND s.product_id=p.id WHERE p.tenant_id=$1 AND p.module_type='NORMAL' AND p.sale_price>0 AND s.published=1 AND p.id IN (${ids.map((_, i) => '$' + (i + 2)).join(',')})`, [store.tenant_id, ...ids])).rows;
   if (rows.length !== ids.length) fail('Sepetteki bazı ürünler artık satışta değil.', 409, 'PRODUCT_UNAVAILABLE');
-  const subtotal = rows.reduce((s, r) => s + cents(r.sale_price) * wanted.get(Number(r.id)), 0);
+  const subtotal = rows.reduce((s, r) => s + mq.lineCents(cents(r.sale_price), wanted.get(Number(r.id))), 0);
   const price = await extras.priceCart(db, store, { subtotalC: subtotal, delivery, cityInput: body.city, codeInput: body.discount_code, lenientCity: true });
   return { subtotal: fromCents(price.subtotalC), discount: fromCents(price.discountC), delivery_fee: fromCents(price.shippingC), total: fromCents(price.totalC), city: price.city, code: price.code ? price.code.code : '', shipping_rule: price.rule ? price.rule.name : '' };
 }
@@ -471,7 +481,7 @@ async function setStatus(user, id, body = {}) {
       const items = (await tx.query('SELECT product_id,quantity FROM online_order_items WHERE tenant_id=$1 AND order_id=$2', [user.tenantId, order.id])).rows;
       for (const item of items) await giveBackStock(tx, user.tenantId, Number(order.warehouse_id), Number(item.product_id), Number(item.quantity), codeOf(order.number), Number(order.id), user.userId);
     }
-    if (to === 'cancelled') { const x = await extras.extrasFor(tx, user.tenantId, order.id); await extras.releaseCode(tx, user.tenantId, x.discount_code_id); }
+    if (to === 'cancelled') { const x = await extras.extrasFor(tx, user.tenantId, order.id); await extras.releaseCode(tx, user.tenantId, x.discount_code_id); await customers.reverseOrder(tx, user.tenantId, order.id, Number(order.total)); }
     await tx.query('UPDATE online_orders SET status=$3,cancel_reason=$4,updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2', [order.id, user.tenantId, to, reason]);
     await tx.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,user_id,note) VALUES ($1,$2,$3,$4,$5,$6)', [user.tenantId, order.id, order.status, to, user.userId || null, reason]);
     await audit(tx, user, 'online_store.order_status', order.id, { number: codeOf(order.number), from: order.status, to });

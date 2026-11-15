@@ -264,6 +264,26 @@
       "annual_cents": null,
       "discount_percent": 0,
       "available": true
+    },
+    {
+      "code": "RETAIL_ONLINE",
+      "family": "retail",
+      "name": "Online Mağaza Paketi",
+      "modules": [
+        "stock",
+        "pos",
+        "online_store"
+      ],
+      "limits": {
+        "users": 10,
+        "warehouses": 2,
+        "registers": 2,
+        "devices": 6
+      },
+      "monthly_cents": null,
+      "annual_cents": null,
+      "discount_percent": 0,
+      "available": true
     }
   ]
 }

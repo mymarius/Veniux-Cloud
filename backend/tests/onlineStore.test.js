@@ -71,13 +71,13 @@ describe('ayarlar ve yayın', () => {
     const foreign = Number((await db.query('SELECT id FROM warehouses WHERE tenant_id=$1 LIMIT 1', [other.tenantId])).rows[0].id);
     expect((await admin(owner, 'put', '/settings', { ...settings, warehouse_id: foreign })).status).toBe(404);
   });
-  test('ürün yayını: tartılı ürün reddedilir, açıklama kaydedilir, toplu yayın tartılıyı atlar, başka işletmenin ürünü bulunamaz', async () => {
-    expect((await admin(owner, 'put', `/products/${kg.id}`, { published: true })).body.code).toBe('MEASURED_UNIT');
+  test('ürün yayını: geçersiz tartı adımı reddedilir, açıklama kaydedilir, başka işletmenin ürünü bulunamaz', async () => {
+    expect((await admin(owner, 'put', `/products/${kg.id}`, { published: true, step: 0.0005 })).body.code).toBe('BAD_STEP');
     expect((await admin(owner, 'put', `/products/${otherProduct.id}`, { published: true })).status).toBe(404);
     const r = await admin(owner, 'put', `/products/${a.id}`, { published: true, description: 'Altı kişilik\nçay seti', max_per_order: 6, sort_order: 1 });
     expect(r.body).toMatchObject({ published: true, max_per_order: 6 });
-    const bulk = await admin(owner, 'put', '/products/bulk', { product_ids: [b.id, kg.id], published: true });
-    expect(bulk.body).toMatchObject({ changed: 1, skipped_measured: [kg.id] });
+    const bulk = await admin(owner, 'put', '/products/bulk', { product_ids: [b.id], published: true });
+    expect(bulk.body).toMatchObject({ changed: 1 });
     const list = (await admin(owner, 'get', '/products?published=1')).body;
     expect(list.items.map(i => i.sku).sort()).toEqual(['OM-A', 'OM-B']);
     expect(list.items.find(i => i.sku === 'OM-A')).toMatchObject({ stock: 100, description: 'Altı kişilik\nçay seti' });

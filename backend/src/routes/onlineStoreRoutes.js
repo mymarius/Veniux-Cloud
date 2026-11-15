@@ -5,6 +5,8 @@ const packs = require('../services/sectorPacks');
 const store = require('../services/onlineStoreService');
 const media = require('../services/onlineStoreMedia');
 const extras = require('../services/onlineStoreExtras');
+const customers = require('../services/onlineStoreCustomers');
+const domains = require('../services/onlineStoreDomain');
 const router = express.Router();
 const run = fn => async (req, res, next) => { try { res.json(await fn(req)); } catch (e) { next(e); } };
 const staff = requireRole('admin', 'manager', 'cashier');
@@ -48,6 +50,13 @@ router.post('/shipping-rules', boss, run(req => extras.saveRule(req.user, null, 
 router.put('/shipping-rules/:id', boss, run(req => extras.saveRule(req.user, req.params.id, req.body)));
 router.delete('/shipping-rules/:id', boss, run(req => extras.deleteRule(req.user, req.params.id)));
 router.put('/orders/:id/shipping', staff, run(req => extras.setShipping(req.user, req.params.id, req.body)));
+router.get('/customers', boss, run(req => customers.list(req.user, req.query)));
+router.get('/customers/:id', boss, run(req => customers.get(req.user, req.params.id)));
+router.delete('/customers/:id', boss, run(req => customers.anonymize(req.user, req.params.id)));
+router.get('/domain', boss, run(req => domains.get(req.user)));
+router.put('/domain', boss, run(req => domains.save(req.user, req.body)));
+router.post('/domain/verify', boss, run(req => domains.verify(req.user)));
+router.delete('/domain', boss, run(req => domains.remove(req.user)));
 router.get('/summary', staff, run(req => store.summary(req.user)));
 
 module.exports = router;

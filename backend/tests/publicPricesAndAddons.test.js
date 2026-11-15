@@ -12,7 +12,7 @@ describe('herkese açık fiyat özeti', () => {
     expect(response.body.currency).toBe('TRY');
     expect(response.body.plans.length).toBeGreaterThanOrEqual(13);
     const sector = response.body.sector.map(item => item.pack).sort();
-    expect(sector).toEqual(['hardware', 'restaurant', 'tableware']);
+    expect(sector).toEqual(['hardware', 'online_store', 'restaurant', 'tableware']);
     for (const plan of response.body.plans) expect(Object.keys(plan).sort()).toEqual(['annual_cents', 'code', 'discount_percent', 'family', 'modules', 'monthly_cents', 'name']);
     expect(JSON.stringify(response.body)).not.toMatch(/users|warehouses|devices|tenant/i);
   });

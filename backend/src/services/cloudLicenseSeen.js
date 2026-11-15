@@ -16,6 +16,33 @@ async function touch(license) {
   lastTouch.set(id, now);
   const done = await db.query('UPDATE cloud_license_seen SET last_valid_epoch=$1 WHERE authority_license_id=$2', [now, id]);
   if (done.rowCount === 0) await db.query('INSERT INTO cloud_license_seen (authority_license_id,last_valid_epoch) VALUES ($1,$2)', [id, now]).catch(() => {});
+  await syncPacks(id, license).catch(() => {});
+}
+
+// Herkese açık vitrinler (cihazsız ziyaretçi) paketin merkezde hâlâ geçerli olup olmadığını bu kayıttan öğrenir.
+// Lisans sunucusunun imzalı yanıtına göre paket açıksa kayıt tazelenir, kapalıysa silinir: mağaza en geç bir sonraki yönetici/kasiyer isteğinde kapanır.
+const PUBLIC_PACKS = ['online_store'];
+async function syncPacks(licenseId, license) {
+  const bound = (await db.query('SELECT tenant_id FROM cloud_license_bindings WHERE authority_license_id=$1', [licenseId])).rows[0];
+  if (!bound) return;
+  const now = nowSeconds();
+  for (const pack of PUBLIC_PACKS) {
+    const allowed = await require('./sectorPacks').has({ tenantId: Number(bound.tenant_id), isPlatformAdmin: false }, pack, license);
+    if (allowed) {
+      const done = await db.query('UPDATE cloud_pack_seen SET last_seen_epoch=$3 WHERE authority_license_id=$1 AND pack=$2', [licenseId, pack, now]);
+      if (done.rowCount === 0) await db.query('INSERT INTO cloud_pack_seen (authority_license_id,pack,last_seen_epoch) VALUES ($1,$2,$3)', [licenseId, pack, now]).catch(() => {});
+    } else await db.query('DELETE FROM cloud_pack_seen WHERE authority_license_id=$1 AND pack=$2', [licenseId, pack]);
+  }
+}
+// Bulutta paket merkezde GRACE_SECONDS içinde doğrulanmış mı. İzlenmeyen kurulumda hep izinli. Kayıt hiç yoksa saat bu çağrıyla başlar.
+async function packAllowed(tenantId, pack) {
+  if (!active()) return true;
+  const bound = (await db.query('SELECT authority_license_id FROM cloud_license_bindings WHERE tenant_id=$1', [tenantId])).rows[0];
+  if (!bound) return false;
+  const id = Number(bound.authority_license_id);
+  const seen = (await db.query('SELECT last_seen_epoch FROM cloud_pack_seen WHERE authority_license_id=$1 AND pack=$2', [id, pack])).rows[0];
+  if (!seen) { await db.query('INSERT INTO cloud_pack_seen (authority_license_id,pack,last_seen_epoch) VALUES ($1,$2,$3)', [id, pack, nowSeconds()]).catch(() => {}); return true; }
+  return nowSeconds() - Number(seen.last_seen_epoch) < GRACE_SECONDS;
 }
 
 // Lisans izlenmeyen kurulumda (bulut lisans sunucusu yok) her zaman izinli. İzlenen bulutta: bağlı lisansın son geçerli
@@ -30,4 +57,4 @@ async function tenantAllowed(tenantId) {
   return nowSeconds() - Number(seen.last_valid_epoch) < GRACE_SECONDS;
 }
 
-module.exports = { touch, tenantAllowed, GRACE_SECONDS };
+module.exports = { touch, tenantAllowed, packAllowed, syncPacks, GRACE_SECONDS };

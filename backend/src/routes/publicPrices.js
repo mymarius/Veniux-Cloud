@@ -3,7 +3,7 @@
 const express = require('express');
 const packages = require('../services/productPackages');
 const router = express.Router();
-const SECTOR = { RETAIL_HIRDAVAT: 'hardware', RETAIL_ZUCCACIYE: 'tableware', RETAIL_PIDE: 'restaurant' };
+const SECTOR = { RETAIL_HIRDAVAT: 'hardware', RETAIL_ZUCCACIYE: 'tableware', RETAIL_PIDE: 'restaurant', RETAIL_ONLINE: 'online_store' };
 let cache = { at: 0, body: null };
 const TTL_MS = 60 * 1000;
 

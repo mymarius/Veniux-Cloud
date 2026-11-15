@@ -17,7 +17,7 @@ Bu belge Faz 1'in ince ayrıntısıdır. Kararlar aksi söylenmedikçe aşağıd
 ## Durum (15 Kasım 2026, son)
 - Faz 1 kodu tamam (görsel, panel, vitrin, SEO, bildirim, MySQL 022 provası). Tüm sunucu testleri geçiyor (1231).
 - Paket kalkınca mağaza, işletmenin bir sonraki paket sorgusunda kapanır (uygulandı).
-- Faz 2'ye bırakılanlar: siparişten müşteri (CRM) kaydı, kiloyla satış, özel alan adı, merkezi paket doğrulaması. (İndirim kodu ve kargo kuralları yapıldı: aşağıdaki bölüm 16.)
+- Faz 2 maddelerinin hepsi yapıldı (bölüm 16 ve 17).
 - Dağıtım bekliyor: şema 022, lisans sunucusunda `online_store`, 2.4.78, fiyat kararı.
 
 ## 0. Varsayılan kararlar
@@ -160,3 +160,13 @@ yönetim panelinden işletmeye verilir. Pilot işletme: önce yalnız Veniux Tes
 - Arayüz: yönetici panelinde "Kod & Kargo" sekmesi, sipariş ayrıntısında kargo kutusu; vitrinde il seçici, indirim kodu alanı, sunucudan gelen toplamlar.
 - Sınır: kod tahminine karşı `quote` ucu IP başına dakikada 40 (SHOP_QUOTE_MAX).
 - Canlıya alırken: `022` + `023` birlikte `upgradeAdditive` ile uygulanır; `SHIPPABLE_MYSQL_SCHEMA` = `023-online-store-extras`.
+
+## 17. Faz 2 tamamlayıcıları (yapıldı, canlıya alınmadı)
+Şema: `054_online_store_phase2.js` (MySQL manifest `024-online-store-phase2`, yalnız yeni tablolar): `online_product_measure`, `online_customers`, `online_order_customers`, `online_domains`, `cloud_pack_seen`.
+
+- **Siparişten müşteri (CRM):** her sipariş telefon numarasına göre (biçimden bağımsız) müşteri kaydı açar/günceller; sipariş sayısı ve toplam harcama iptalde geri alınır. Yönetici panelinde "Müşteriler" sekmesi: arama, tekrar sipariş verenler, sipariş geçmişi. "Kişisel bilgileri sil (KVKK)": açık siparişi yoksa müşteri ve siparişlerindeki ad/telefon/adres anonimleşir.
+- **Kiloyla/litreyle/metreyle satış:** ürün başına satış adımı ve en az miktar (varsayılan kg/L/m için 0,5; g için 100; cm için 10). Miktar adımın katı olmalı, en çok 3 ondalık, tutar kuruşa yuvarlanır. Stok ve sipariş kalemi ondalıklı tutulur; iptalde ondalıklı stok geri gelir. Vitrinde "₺200 / kg", adım adım artırma.
+- **Merkezi paket doğrulaması (bulut):** lisans sunucusunun imzalı yanıtı geldikçe (kasa/yönetici istekleri) paketin açık olduğu `cloud_pack_seen` tablosuna yazılır; paket kalkmışsa kayıt silinir. Vitrin, paket 7 gün içinde doğrulanmamışsa kapalı görünür (lisansın kendi 7 günlük toleransıyla aynı). Kayıt hiç yoksa saat ilk bakışta başlar (dağıtım sonrası kilitlenmeyi önler).
+- **Özel alan adı:** yönetici alan adını kaydeder; sahiplik `_veniux-verify.<alan>` TXT kaydıyla doğrulanır (CNAME `app.veniux.com` bilgi amaçlı denetlenir). Doğrulanmış alan adında kök adres mağaza sayfası olur, `/sitemap.xml` ve `/robots.txt` mağazaya özeldir; uygulamanın diğer sayfaları o alan adında açılmaz (302 ile köke döner). **Altyapı şartı:** alan adı başına HTTPS sertifikası ve Host yönlendirmesi sunucu tarafında ayrıca sağlanmalıdır (Cloudflare özel ana makine adı ya da Plesk alan adı takma adı + sertifika). Kodda bu adım yok.
+- Ortam değişkenleri: `VENIUX_PRIMARY_HOSTS` (uygulamanın kendi alan adları), `VENIUX_SHOP_CNAME` (müşteriye gösterilen CNAME hedefi).
+- Canlıya alırken `022`, `023`, `024` birlikte `upgradeAdditive` ile uygulanır; `SHIPPABLE_MYSQL_SCHEMA` = `024-online-store-phase2`.

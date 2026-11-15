@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import api from '../api/client';
-import { cartAdd, cartCount, cartKey, cartPayload, cartSet, cartTotals, loadCart, newIdempotencyKey, statusLabel } from '../lib/onlineStore.mjs';
+import { cartAdd, cartCount, cartKey, cartPayload, cartSet, cartTotals, lineStep, loadCart, newIdempotencyKey, qtyLabel, statusLabel } from '../lib/onlineStore.mjs';
 import './storefront.css';
 
 const tl = value => Number(value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
@@ -77,8 +77,8 @@ export function StoreHome() {
     {!loading && !error && items.length === 0 && <p className="sf-empty">Aramanıza uygun ürün bulunamadı.</p>}
     <div className="sf-grid">{items.map(p => <article className="sf-card" key={p.id}>
       <Link to={`/magaza/${slug}/urun/${p.id}`} aria-label={p.name}><Photo product={p} /></Link>
-      <div className="sf-card-body"><h3><Link to={`/magaza/${slug}/urun/${p.id}`}>{p.name}</Link></h3><span className="sf-price">{tl(p.price)}</span><StockTag state={p.stock_state} />
-        <button type="button" className="sf-btn" disabled={p.stock_state === 'out' || !store.accepting_orders} onClick={() => setCart(c => cartAdd(c, p, 1))}>{cart[p.id] ? `Sepette (${cart[p.id].quantity})` : 'Sepete ekle'}</button></div></article>)}</div>
+      <div className="sf-card-body"><h3><Link to={`/magaza/${slug}/urun/${p.id}`}>{p.name}</Link></h3><span className="sf-price">{tl(p.price)}{p.measured ? ` / ${p.unit_label}` : ''}</span><StockTag state={p.stock_state} />
+        <button type="button" className="sf-btn" disabled={p.stock_state === 'out' || !store.accepting_orders} onClick={() => setCart(c => cartAdd(c, p))}>{cart[p.id] ? `Sepette (${qtyLabel(cart[p.id])})` : p.measured ? `Sepete ekle (${String(p.min_qty).replace('.', ',')} ${p.unit_label})` : 'Sepete ekle'}</button></div></article>)}</div>
     {items.length < total && <div className="sf-more"><button type="button" className="sf-btn ghost" disabled={loading} onClick={() => setPage(page + 1)}>{loading ? 'Yükleniyor…' : 'Daha fazla göster'}</button></div>}
     {count > 0 && <div className="sf-bar"><div className="sf-wrap"><span>{count} ürün · {tl(totals.subtotal)}</span><Link className="sf-btn" to={`/magaza/${slug}/sepet`}>Sepete git</Link></div></div>}
   </>;
@@ -91,26 +91,28 @@ export function StoreProduct() {
   const [product, setProduct] = useState(null), [error, setError] = useState(''), [qty, setQty] = useState(1), [shown, setShown] = useState(0), [added, setAdded] = useState(false);
   useEffect(() => {
     let live = true; setProduct(null); setError(''); setShown(0);
-    api.get(`${shopApi(slug)}/products/${id}`).then(r => { if (live) setProduct(r.data); }).catch(e => { if (live) setError(e?.response?.status === 404 ? 'Bu ürün artık satışta değil.' : apiError(e, 'Ürün yüklenemedi.')); });
+    api.get(`${shopApi(slug)}/products/${id}`).then(r => { if (live) { setProduct(r.data); setQty(r.data.measured ? r.data.min_qty : 1); } }).catch(e => { if (live) setError(e?.response?.status === 404 ? 'Bu ürün artık satışta değil.' : apiError(e, 'Ürün yüklenemedi.')); });
     return () => { live = false; };
   }, [slug, id]);
   useEffect(() => { if (product) document.title = `${product.name} | ${store.name}`; return () => { document.title = store.name; }; }, [product, store.name]);
   if (error) return <div className="sf-empty"><p>{error}</p><Link className="sf-btn" to={`/magaza/${slug}`}>Mağazaya dön</Link></div>;
   if (!product) return <p className="sf-empty" role="status">Yükleniyor…</p>;
-  const limit = Math.min(50, product.max_per_order || 50);
+  const step = product.measured ? product.step : 1, minQty = product.measured ? product.min_qty : 1;
+  const limit = Math.min(product.measured ? 1000 : 50, product.max_per_order || (product.measured ? 1000 : 50));
+  const shownQty = String(Math.round(qty * 1000) / 1000).replace('.', ',') + (product.measured ? ' ' + product.unit_label : '');
   const img = product.images[shown];
   return <article className="sf-product">
     <div className="sf-gallery">{img ? <img className="sf-main" src={img.url} alt={img.alt || product.name} width={800} height={800} /> : <div className="sf-img-empty" style={{ borderRadius: 12 }} role="img" aria-label="Görsel yok">Görsel yok</div>}
       {product.images.length > 1 && <div className="sf-thumbs">{product.images.map((m, i) => <button key={m.url} type="button" aria-current={i === shown} aria-label={`Görsel ${i + 1}`} onClick={() => setShown(i)}><img src={m.url} alt="" width={64} height={64} loading="lazy" /></button>)}</div>}</div>
-    <div className="sf-info"><p className="sf-tag" style={{ margin: 0, color: 'var(--sf-muted)' }}>{product.category}</p><h1>{product.name}</h1><p className="sf-price" style={{ fontSize: 24 }}>{tl(product.price)}</p><StockTag state={product.stock_state} />
+    <div className="sf-info"><p className="sf-tag" style={{ margin: 0, color: 'var(--sf-muted)' }}>{product.category}</p><h1>{product.name}</h1><p className="sf-price" style={{ fontSize: 24 }}>{tl(product.price)}{product.measured ? ` / ${product.unit_label}` : ''}</p><StockTag state={product.stock_state} />
       {product.description && <p className="sf-desc">{product.description}</p>}
       {store.accepting_orders && product.stock_state !== 'out' ? <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 12 }}>
-        <div className="sf-qty" role="group" aria-label="Adet"><button type="button" aria-label="Azalt" onClick={() => setQty(Math.max(1, qty - 1))}>−</button><span aria-live="polite">{qty}</span><button type="button" aria-label="Artır" onClick={() => setQty(Math.min(limit, qty + 1))}>+</button></div>
+        <div className="sf-qty" role="group" aria-label={product.measured ? 'Miktar' : 'Adet'}><button type="button" aria-label="Azalt" onClick={() => setQty(Math.max(minQty, Math.round((qty - step) * 1000) / 1000))}>−</button><span aria-live="polite">{shownQty}</span><button type="button" aria-label="Artır" onClick={() => setQty(Math.min(limit, Math.round((qty + step) * 1000) / 1000))}>+</button></div>
         <button type="button" className="sf-btn" onClick={() => { setCart(c => cartAdd(c, product, qty)); setAdded(true); setTimeout(() => setAdded(false), 2500); }}>Sepete ekle</button></div>
         : <p className="sf-banner">{product.stock_state === 'out' ? 'Bu ürün şu anda tükendi.' : 'Mağaza şu anda sipariş almıyor.'}</p>}
       <p role="status" className="sf-sr">{added ? 'Ürün sepete eklendi' : ''}</p>
       {added && <p className="sf-ok">Sepete eklendi. <Link to={`/magaza/${slug}/sepet`}>Sepete git</Link></p>}
-      {cart[product.id] && !added && <p className="sf-note" style={{ color: 'var(--sf-muted)' }}>Sepetinizde {cart[product.id].quantity} adet var.</p>}
+      {cart[product.id] && !added && <p className="sf-note" style={{ color: 'var(--sf-muted)' }}>Sepetinizde {qtyLabel(cart[product.id])}{product.measured ? '' : ' adet'} var.</p>}
       <p style={{ marginTop: 16 }}><Link to={`/magaza/${slug}`}>← Alışverişe devam et</Link></p></div>
   </article>;
 }
@@ -159,7 +161,7 @@ export function StoreCart() {
     } catch (err) {
       const data = err?.response?.data || {};
       if (data.code === 'PRICE_CHANGED') { setCart(c => { const next = { ...c }; for (const ch of data.changed || []) if (next[ch.product_id]) next[ch.product_id] = { ...next[ch.product_id], price: ch.price }; return next; }); setNotice('Bazı ürünlerin fiyatı değişti. Güncel tutarları kontrol edip tekrar onaylayın.'); key.current = null; }
-      else if (data.code === 'OUT_OF_STOCK') { setCart(c => { const next = { ...c }; for (const s of data.shortages || []) { if (s.available <= 0) delete next[s.product_id]; else if (next[s.product_id]) next[s.product_id] = { ...next[s.product_id], quantity: s.available }; } return next; }); setError('Bazı ürünlerin stoğu yetersiz; sepetiniz mevcut stoğa göre güncellendi. Kontrol edip tekrar deneyin.'); key.current = null; }
+      else if (data.code === 'OUT_OF_STOCK') { setCart(c => { const next = { ...c }; for (const s of data.shortages || []) { if (s.available <= 0) delete next[s.product_id]; else if (next[s.product_id]) { const fixed = cartSet({ [s.product_id]: next[s.product_id] }, s.product_id, s.available); if (fixed[s.product_id]) next[s.product_id] = fixed[s.product_id]; else delete next[s.product_id]; } } return next; }); setError('Bazı ürünlerin stoğu yetersiz; sepetiniz mevcut stoğa göre güncellendi. Kontrol edip tekrar deneyin.'); key.current = null; }
       else if (/^(BAD_CODE|CODE_)/.test(data.code || '')) { setError(data.error); setApplied(''); setCodeMsg(data.error); key.current = null; }
       else if (data.code === 'PRODUCT_UNAVAILABLE') { setError(data.error + ' Sepeti yenilemek için ürün sayfalarını kontrol edin.'); key.current = null; }
       else setError(apiError(err, 'Sipariş gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.'));
@@ -169,8 +171,8 @@ export function StoreCart() {
   return <>
     <h1>Sepetiniz</h1>
     <div className="sf-lines">{lines.map(l => <div className="sf-line" key={l.id}>
-      {l.image ? <img className="sf-thumb" src={l.image} alt="" width={64} height={64} /> : <div className="sf-thumb" aria-hidden="true" />}<div><b>{l.name}</b><div>{tl(l.price)}</div></div>
-      <div className="sf-qty" role="group" aria-label={l.name + ' adedi'}><button type="button" aria-label="Azalt" onClick={() => setCart(c => cartSet(c, l.id, l.quantity - 1))}>−</button><span aria-live="polite">{l.quantity}</span><button type="button" aria-label="Artır" onClick={() => setCart(c => cartSet(c, l.id, l.quantity + 1))}>+</button></div></div>)}</div>
+      {l.image ? <img className="sf-thumb" src={l.image} alt="" width={64} height={64} /> : <div className="sf-thumb" aria-hidden="true" />}<div><b>{l.name}</b><div>{tl(l.price)}{l.unit ? ` / ${l.unit}` : ''}</div></div>
+      <div className="sf-qty" role="group" aria-label={l.name + ' adedi'}><button type="button" aria-label="Azalt" onClick={() => setCart(c => cartSet(c, l.id, l.quantity - lineStep(l)))}>−</button><span aria-live="polite">{qtyLabel(l)}</span><button type="button" aria-label="Artır" onClick={() => setCart(c => cartSet(c, l.id, l.quantity + lineStep(l)))}>+</button></div></div>)}</div>
     <form className="sf-form" onSubmit={submit} noValidate>
       <fieldset><legend>Teslimat</legend>
         <label className="sf-radio"><input type="radio" name="delivery" checked={delivery === 'delivery'} onChange={() => setDelivery('delivery')} /><span><b>Adrese teslim</b><br /><small>{(store.provinces || []).length ? 'Teslimat ücreti seçtiğiniz ile göre hesaplanır' : store.delivery_fee > 0 ? `Teslimat ücreti ${tl(store.delivery_fee)}${store.free_delivery_over != null ? ` (${tl(store.free_delivery_over)} üzeri ücretsiz)` : ''}` : 'Ücretsiz teslimat'}</small></span></label>

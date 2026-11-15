@@ -10,8 +10,8 @@ function sitePlans(): array {
     ];
 }
 function sitePlanSelection($value): ?array {
-    if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide):yillik$/D',$value,$pack)) {
-        $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)'];
+    if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide|online):yillik$/D',$value,$pack)) {
+        $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)','online'=>'Online mağaza paketi (ek)'];
         return ['code'=>$value,'name'=>$names[$pack[1]],'period'=>'Yıllık (12 ay)','amount_try'=>siteSectorPrices()[$pack[1]],'tax'=>'%20 KDV dahil'];
     }
     if (!is_string($value) || !preg_match('/^(baslangic|isletme|kurumsal):(uc-aylik|yillik)$/D',$value,$match)) return null;
@@ -45,8 +45,8 @@ User-Agent: veniux-site
     return $result=is_array($cached)?$cached:null;
 }
 function siteSectorPrices(): array {
-    $prices=['hirdavat'=>21456,'zuccaciye'=>21456,'pide'=>35856];
-    $keys=['hardware'=>'hirdavat','tableware'=>'zuccaciye','restaurant'=>'pide'];
+    $prices=['hirdavat'=>21456,'zuccaciye'=>21456,'pide'=>35856,'online'=>14388];
+    $keys=['hardware'=>'hirdavat','tableware'=>'zuccaciye','restaurant'=>'pide','online_store'=>'online'];
     foreach((siteCloudPrices()['sector']??[]) as $item){
         $key=$keys[$item['pack']??'']??null;$cents=$item['annual_cents']??null;
         if($key&&is_int($cents)&&$cents>0&&$cents<=100000000)$prices[$key]=intdiv($cents,100);

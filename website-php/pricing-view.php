@@ -97,7 +97,7 @@ $compare=[
       <?php $firstPlan=true; foreach($plans as $key=>$plan):?><label class="pr-calc-opt"><input type="radio" name="plan" value="<?=e($key)?>" data-price="<?=(int)$plan['annual']?>"<?=!empty($plan['from'])?' data-from="1"':''?><?=$firstPlan?' checked':''?>><span><b><?=e($plan['name'])?></b><small><?=$plan['warehouses']?> depo · <?=$plan['users']?> kullanıcı · <?=$plan['devices']?> cihaz</small></span><em><?=number_format((int)$plan['annual'],0,',','.')?> ₺<?=!empty($plan['from'])?'’den':''?></em></label><?php $firstPlan=false; endforeach;?>
     </fieldset>
     <fieldset><legend>Sektör paketleri (isteğe bağlı)</legend>
-      <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):$price=siteSectorPrices()[$key];?><label class="pr-calc-opt"><input type="checkbox" name="sector" value="<?=e($key)?>" data-price="<?=(int)$price?>"><span><b><?=e($label)?></b><small>Genel pakete ek</small></span><em><?=number_format($price,0,',','.')?> ₺</em></label><?php endforeach;?>
+      <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran','online'=>'Online mağaza'] as $key=>$label):$price=siteSectorPrices()[$key];?><label class="pr-calc-opt"><input type="checkbox" name="sector" value="<?=e($key)?>" data-price="<?=(int)$price?>"><span><b><?=e($label)?></b><small>Genel pakete ek</small></span><em><?=number_format($price,0,',','.')?> ₺</em></label><?php endforeach;?>
     </fieldset>
     <div class="pr-calc-out" role="status" aria-live="polite">
       <small>Yıllık toplam (KDV dahil)</small>

@@ -101,12 +101,12 @@ function Thumb({ mediaKey, alt }) {
   return url ? <img src={url} alt={alt || ''} width={72} height={72} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 4, border: '2px solid var(--vm-ink)' }} /> : <div style={{ width: 72, height: 72, background: 'var(--vm-line)', borderRadius: 4 }} aria-hidden="true" />;
 }
 function ProductSheet({ product, onClose, onChanged }) {
-  const [desc, setDesc] = useState(product.description || ''), [max, setMax] = useState(product.max_per_order ?? ''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+  const [desc, setDesc] = useState(product.description || ''), [max, setMax] = useState(product.max_per_order ?? ''), [step, setStep] = useState(product.step ?? ''), [minQty, setMinQty] = useState(product.min_qty ?? ''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
   const media = useAsync(async () => (await api.get(`${API}/products/${product.id}/media`)).data, [product.id]);
   const file = useRef(null);
   const save = async () => {
     setBusy(true); setMessage('');
-    try { await api.put(`${API}/products/${product.id}`, { description: desc, max_per_order: max === '' ? null : Number(max) }); onChanged(); setMessage('Kaydedildi.'); }
+    try { await api.put(`${API}/products/${product.id}`, { description: desc, max_per_order: max === '' ? null : Number(String(max).replace(',', '.')), ...(product.measured_unit ? { step: step === '' ? undefined : Number(String(step).replace(',', '.')), min_qty: minQty === '' ? undefined : Number(String(minQty).replace(',', '.')) } : {}) }); onChanged(); setMessage('Kaydedildi.'); }
     catch (e) { setMessage(errorText(e, 'Kaydedilemedi.')); } finally { setBusy(false); }
   };
   const upload = async e => {
@@ -128,7 +128,10 @@ function ProductSheet({ product, onClose, onChanged }) {
     <p className="vm-note">{money(product.price)} · stok {product.stock ?? '—'}</p>
     <label className="vm-label"><span>Açıklama (en çok 2000 karakter)</span></label>
     <textarea className="vm-textarea" rows={4} maxLength={2000} value={desc} onChange={e => setDesc(e.target.value)} aria-label="Ürün açıklaması" style={{ width: '100%', border: '2px solid var(--vm-ink)', borderRadius: 3, padding: 10, background: 'var(--vm-card)', color: 'var(--vm-ink)', font: 'inherit' }} />
-    <label className="vm-field" style={{ marginTop: 8 }}><input inputMode="numeric" placeholder="Sipariş başına üst sınır (boş = sınırsız)" aria-label="Sipariş başına üst sınır" value={max} onChange={e => setMax(e.target.value.replace(/\D/g, ''))} /></label>
+    <label className="vm-field" style={{ marginTop: 8 }}><input inputMode="numeric" placeholder="Sipariş başına üst sınır (boş = sınırsız)" aria-label="Sipariş başına üst sınır" value={max} onChange={e => setMax(product.measured_unit ? e.target.value.replace(/[^\d.,]/g, '') : e.target.value.replace(/\D/g, ''))} /></label>
+    {product.measured_unit && <div className="vm-card" style={{ marginTop: 8 }}><b>Ölçülü satış ({product.unit})</b><p className="vm-note">Müşteri bu adımın katları kadar sipariş verir. Örn. adım 0,25 ve en az 0,5: 0,5 - 0,75 - 1 {product.unit}…</p>
+      <label className="vm-field"><input inputMode="decimal" placeholder={`Satış adımı (${product.unit})`} aria-label="Satış adımı" value={step} onChange={e => setStep(e.target.value.replace(/[^\d.,]/g, ''))} /></label>
+      <label className="vm-field"><input inputMode="decimal" placeholder={`En az miktar (${product.unit})`} aria-label="En az miktar" value={minQty} onChange={e => setMinQty(e.target.value.replace(/[^\d.,]/g, ''))} /></label></div>}
     <div className="vm-label"><span>Görseller ({items.length}/5)</span></div>
     <div className="vm-list">{items.map((m, i) => <div key={m.id} className="vm-row"><Thumb mediaKey={m.key} alt={m.alt} />
       <span className="grow" style={{ fontSize: 13 }}>{i === 0 ? 'Ana görsel' : 'Görsel ' + (i + 1)}<small>{m.width}×{m.height} · {Math.round(m.bytes / 1024)} KB</small></span>
@@ -149,7 +152,7 @@ function ProductsTab() {
     try { await api.put(`${API}/products/${p.id}`, { published: !p.published }); list.reload(); setMessage(''); } catch (e) { setMessage(errorText(e, 'Değiştirilemedi.')); }
   };
   const bulk = async published => {
-    const ids = (list.data?.items || []).filter(p => !p.measured_unit).map(p => p.id);
+    const ids = (list.data?.items || []).map(p => p.id);
     if (!ids.length || !window.confirm(`Bu sayfadaki ${ids.length} ürün ${published ? 'yayına alınsın' : 'gizlensin'} mı?`)) return;
     try { await api.put(`${API}/products/bulk`, { product_ids: ids, published }); list.reload(); } catch (e) { setMessage(errorText(e, 'Toplu işlem yapılamadı.')); }
   };
@@ -161,8 +164,8 @@ function ProductsTab() {
     {list.error && <p role="alert" className="vm-err">{list.error}</p>}
     {list.data && list.data.items.length === 0 && <EmptyState title="Ürün yok" text="Önce Ürünler sayfasından ürün ekleyin ya da Excel'den aktarın." />}
     <div className="vm-list">{(list.data?.items || []).map(p => <div key={p.id} className="vm-row">
-      <button type="button" className="grow" style={{ all: 'unset', cursor: 'pointer', flex: 1 }} onClick={() => setSelected(p)} aria-label={p.name + ' ayrıntısı'}><b>{p.name}</b><small style={{ display: 'block' }}>{money(p.price)} · stok {p.stock ?? '—'} · {p.images} görsel{p.measured_unit ? ' · tartılı (yayınlanamaz)' : ''}</small></button>
-      <button type="button" role="switch" aria-checked={p.published} aria-label={p.name + ' mağazada yayında'} disabled={p.measured_unit} className={'vm-btn ' + (p.published ? '' : 'ghost')} style={{ minHeight: 40, padding: '0 12px' }} onClick={() => toggle(p)}>{p.published ? <><Check size={16} /> Yayında</> : 'Gizli'}</button></div>)}</div>
+      <button type="button" className="grow" style={{ all: 'unset', cursor: 'pointer', flex: 1 }} onClick={() => setSelected(p)} aria-label={p.name + ' ayrıntısı'}><b>{p.name}</b><small style={{ display: 'block' }}>{money(p.price)} · stok {p.stock ?? '—'} · {p.images} görsel{p.measured_unit ? ` · ölçülü satış, ${String(p.step ?? '').replace('.', ',')} ${p.unit} adım` : ''}</small></button>
+      <button type="button" role="switch" aria-checked={p.published} aria-label={p.name + ' mağazada yayında'} className={'vm-btn ' + (p.published ? '' : 'ghost')} style={{ minHeight: 40, padding: '0 12px' }} onClick={() => toggle(p)}>{p.published ? <><Check size={16} /> Yayında</> : 'Gizli'}</button></div>)}</div>
     {list.data && list.data.total > list.data.page_size && <div style={{ display: 'flex', gap: 8, marginTop: 10 }}><button type="button" className="vm-btn ghost" disabled={page === 0} onClick={() => setPage(page - 1)}>Önceki</button><button type="button" className="vm-btn ghost" disabled={(page + 1) * list.data.page_size >= list.data.total} onClick={() => setPage(page + 1)}>Sonraki</button></div>}
     {selected && <ProductSheet key={selected.id} product={selected} onClose={() => setSelected(null)} onChanged={() => list.reload()} />}
   </div>;
@@ -225,6 +228,7 @@ function SettingsTab() {
     {field('Teslimat ücreti (TL)', 'delivery_fee', { inputMode: 'decimal' })}
     {field('Ücretsiz teslimat eşiği (TL, boş = yok)', 'free_delivery_over', { inputMode: 'decimal' })}
     {field('Minimum sipariş tutarı (TL)', 'min_order', { inputMode: 'decimal' })}
+    <DomainCard />
     <div className="vm-label"><span>Sipariş koşulları (müşteriye gösterilir)</span></div>
     <label className="vm-field"><textarea aria-label="Sipariş koşulları" rows={5} maxLength={6000} placeholder="İade, cayma hakkı ve teslimat koşullarınızı yazın. Hukuki metin için avukat veya mali müşavirinize danışın." value={form.terms_text || ''} onChange={e => set('terms_text', e.target.value)} style={{ flex: 1, border: 0, background: 'none', font: 'inherit', color: 'var(--vm-ink)' }} /></label>
     <button type="button" className="vm-btn" style={{ marginTop: 10 }} disabled={busy} onClick={() => save()}>Kaydet</button>
@@ -281,16 +285,69 @@ function RulesSection() {
       <button type="button" className="vm-btn" disabled={busy || !form.name} onClick={add}>Kuralı ekle</button></div>
   </div>;
 }
+function CustomersTab() {
+  const [q, setQ] = useState(''), [repeat, setRepeat] = useState(false), [page, setPage] = useState(0), [selected, setSelected] = useState(null);
+  const list = useAsync(async () => (await api.get(`${API}/customers`, { params: { q: q.trim() || undefined, repeat: repeat ? 1 : undefined, page } })).data, [q, repeat, page]);
+  const detail = useAsync(async () => (selected ? (await api.get(`${API}/customers/${selected}`)).data : null), [selected]);
+  const [message, setMessage] = useState('');
+  const erase = async () => {
+    if (!window.confirm('Bu müşterinin kişisel bilgileri (ad, telefon, adres) ve siparişlerindeki kişisel bilgiler kalıcı olarak silinsin mi? Geri alınamaz.')) return;
+    try { await api.delete(`${API}/customers/${selected}`); setSelected(null); list.reload(); } catch (e) { setMessage(errorText(e, 'Silinemedi.')); }
+  };
+  const d = detail.data;
+  return <div>
+    <p className="vm-note">Mağazadan sipariş veren herkes telefon numarasına göre burada listelenir. Tekrar sipariş verenler: {list.data?.repeat ?? 0} / {list.data?.all ?? 0}.</p>
+    <label className="vm-field"><Search size={16} aria-hidden="true" /><input placeholder="Ad veya telefon ara" aria-label="Müşteri ara" value={q} onChange={e => { setQ(e.target.value); setPage(0); }} /></label>
+    <label className="vm-row" style={{ cursor: 'pointer' }}><input type="checkbox" checked={repeat} onChange={e => { setRepeat(e.target.checked); setPage(0); }} style={{ width: 22, height: 22 }} /><span className="grow">Yalnız tekrar sipariş verenler</span></label>
+    {list.error && <p role="alert" className="vm-err">{list.error}</p>}
+    <div className="vm-list">{(list.data?.items || []).map(c => <button key={c.id} type="button" className="vm-row" style={{ width: '100%', textAlign: 'left' }} onClick={() => { setSelected(c.id); setMessage(''); }}><span className="grow"><b>{c.name}</b><small style={{ display: 'block' }}>{c.phone || 'silinmiş'}{c.city ? ' · ' + c.city : ''} · {c.order_count} sipariş</small></span><b>{money(c.total_spent)}</b></button>)}
+      {list.data && !list.data.items.length && <p className="vm-note">Müşteri bulunamadı.</p>}</div>
+    {list.data && list.data.total > (page + 1) * 50 && <button type="button" className="vm-btn ghost" onClick={() => setPage(page + 1)}>Daha fazla</button>}
+    {selected && <Sheet onClose={() => setSelected(null)} label="Müşteri ayrıntısı">
+      {d && <><h2 style={{ margin: '0 0 4px' }}>{d.name}</h2>
+        <p className="vm-note">{d.phone ? <a href={`tel:${d.phone}`}>{d.phone}</a> : 'Kişisel bilgiler silinmiş'}{d.email ? ' · ' + d.email : ''}</p>
+        {d.address && <p className="vm-note">{d.city ? d.city + ' · ' : ''}{d.address}</p>}
+        <p style={{ fontWeight: 800 }}>{d.order_count} sipariş · {money(d.total_spent)}</p>
+        <div className="vm-list">{d.orders.map(o => <div key={o.id} className="vm-row"><span className="grow"><b>{o.number}</b><small style={{ display: 'block' }}>{statusLabel(o.status)} · {String(o.created_at).slice(0, 10)}</small></span><b>{money(o.total)}</b></div>)}</div>
+        {message && <p role="alert" className="vm-err">{message}</p>}
+        {!d.anonymized && <button type="button" className="vm-btn ghost" style={{ marginTop: 10 }} onClick={erase}>Kişisel bilgileri sil (KVKK)</button>}</>}
+      <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setSelected(null)}>Kapat</button></Sheet>}
+  </div>;
+}
+function DomainCard() {
+  const data = useAsync(async () => (await api.get(`${API}/domain`)).data, []);
+  const [input, setInput] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [checks, setChecks] = useState(null);
+  const d = data.data?.domain;
+  const run = async fn => { setBusy(true); setMessage(''); try { await fn(); await data.reload(); } catch (e) { setMessage(errorText(e, 'İşlem yapılamadı.')); } finally { setBusy(false); } };
+  const verify = () => run(async () => { const r = (await api.post(`${API}/domain/verify`)).data; setChecks(r.checks); setMessage(r.domain.verified ? 'Alan adı doğrulandı; mağazanız bu adreste açılır.' : 'TXT kaydı henüz bulunamadı. DNS değişikliği birkaç dakika sürebilir.'); });
+  return <div className="vm-card" style={{ marginTop: 14 }}>
+    <b>Özel alan adı</b>
+    <p className="vm-note">Mağazanızı kendi alan adınızda (örn. magaza.firmam.com) açın. Önce alan adını kaydedin, sonra DNS ayarlarına aşağıdaki kayıtları ekleyip doğrulayın.</p>
+    {message && <p role="status" className={/doğrulandı/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
+    {!d && <><label className="vm-field"><input aria-label="Alan adı" placeholder="magaza.firmam.com" autoCapitalize="none" value={input} onChange={e => setInput(e.target.value)} /></label>
+      <button type="button" className="vm-btn" disabled={busy || !input.trim()} onClick={() => run(async () => { await api.put(`${API}/domain`, { domain: input }); setInput(''); })}>Alan adını kaydet</button></>}
+    {d && <div>
+      <p><b>{d.domain}</b> · {d.verified ? 'doğrulandı' : 'doğrulama bekliyor'}</p>
+      {!d.verified && <div className="vm-note" style={{ wordBreak: 'break-all' }}>
+        <p>1) DNS’e <b>TXT</b> kaydı ekleyin:<br />Ad: <code>{d.instructions.txt.name}</code><br />Değer: <code>{d.instructions.txt.value}</code></p>
+        <p>2) Alan adınızı <b>CNAME</b> ile yönlendirin:<br />Ad: <code>{d.instructions.cname.name}</code><br />Hedef: <code>{d.instructions.cname.value}</code></p>
+        {checks && <p>TXT: {checks.txt ? 'bulundu' : 'bulunamadı'} · CNAME: {checks.cname ? 'bulundu' : 'bulunamadı'}</p>}
+        <p>HTTPS sertifikası için Veniux ile iletişime geçin; alan adı doğrulandıktan sonra sertifika bağlanır.</p></div>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {!d.verified && <button type="button" className="vm-btn" disabled={busy} onClick={verify}>Doğrula</button>}
+        <button type="button" className="vm-btn ghost" disabled={busy} onClick={() => { if (window.confirm('Alan adı bağlantısı kaldırılsın mı?')) run(async () => { await api.delete(`${API}/domain`); setChecks(null); }); }}>Kaldır</button></div></div>}
+  </div>;
+}
 function CampaignsTab() { return <div><CodesSection /><RulesSection /></div>; }
 
 export function MobileOnlineStore() {
   const [tab, setTab] = useState('orders');
-  const tabs = isBoss() ? [['orders', 'Siparişler'], ['products', 'Ürünler'], ['campaigns', 'Kod & Kargo'], ['settings', 'Ayarlar']] : [['orders', 'Siparişler']];
+  const tabs = isBoss() ? [['orders', 'Siparişler'], ['products', 'Ürünler'], ['customers', 'Müşteriler'], ['campaigns', 'Kod & Kargo'], ['settings', 'Ayarlar']] : [['orders', 'Siparişler']];
   return <div className="vm">
     <MobileTop title="Online Mağaza" flat />
     <PackGate pack="online_store"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
-      <div role="tablist" aria-label="Online mağaza" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>{tabs.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={'vm-btn ' + (tab === k ? '' : 'ghost')} style={{ flex: 1, minHeight: 44 }} onClick={() => setTab(k)}>{l}</button>)}</div>
-      {tab === 'orders' && <OrdersTab />}{tab === 'products' && <ProductsTab />}{tab === 'campaigns' && <CampaignsTab />}{tab === 'settings' && <SettingsTab />}
+      <div role="tablist" aria-label="Online mağaza" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>{tabs.map(([k, l]) => <button key={k} type="button" role="tab" aria-selected={tab === k} className={'vm-btn ' + (tab === k ? '' : 'ghost')} style={{ flex: '1 1 30%', minHeight: 44, padding: '0 8px' }} onClick={() => setTab(k)}>{l}</button>)}</div>
+      {tab === 'orders' && <OrdersTab />}{tab === 'products' && <ProductsTab />}{tab === 'customers' && <CustomersTab />}{tab === 'campaigns' && <CampaignsTab />}{tab === 'settings' && <SettingsTab />}
       <p className="vm-note" style={{ marginTop: 14 }}>Akış: {STATUS_FLOW}</p>
     </div></PackGate>
   </div>;

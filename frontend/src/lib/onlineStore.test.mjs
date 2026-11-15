@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cartAdd, cartCount, cartPayload, cartSet, cartSubtotal, cartTotals, fitSize, loadCart, newIdempotencyKey, orderActions, shopUrl, statusLabel } from './onlineStore.mjs';
+import { cartAdd, cartCount, cartPayload, cartSet, cartSubtotal, cartTotals, fitSize, lineStep, loadCart, newIdempotencyKey, orderActions, qtyLabel, shopUrl, statusLabel } from './onlineStore.mjs';
 
 test('fitSize: oranı korur, büyütmez, en az 1 piksel', () => {
   assert.deepEqual(fitSize(4000, 2000, 1200), { width: 1200, height: 600 });
@@ -67,4 +67,22 @@ test('loadCart: bozuk kayıtta boş sepet; idempotency anahtarı benzersiz', () 
   assert.deepEqual(loadCart(store('{"1":{"id":1,"quantity":2}}'), 'a'), { 1: { id: 1, quantity: 2 } });
   assert.notEqual(newIdempotencyKey(), newIdempotencyKey());
   assert.match(newIdempotencyKey(), /^shop-[a-z0-9]{8,}$/);
+});
+
+test('ölçülü ürün: adım, minimum, kuruş yuvarlama ve etiket', () => {
+  const tea = { id: 9, name: 'Çay', price: 200, measured: true, step: 0.25, min_qty: 0.5, unit_label: 'kg', max_per_order: 5 };
+  let cart = cartAdd({}, tea);
+  assert.equal(cart[9].quantity, 0.5);
+  cart = cartSet(cart, 9, cart[9].quantity + lineStep(cart[9]));
+  assert.equal(cart[9].quantity, 0.75);
+  assert.equal(qtyLabel(cart[9]), '0,75 kg');
+  assert.equal(cartSubtotal(cart), 150);
+  cart = cartSet(cart, 9, 1.1);
+  assert.equal(cart[9].quantity, 1);
+  cart = cartSet(cart, 9, 99);
+  assert.equal(cart[9].quantity, 5);
+  assert.deepEqual(cartSet(cartAdd({}, tea), 9, 0.25), {});
+  assert.equal(cartCount(cartAdd(cartAdd({}, tea), { id: 1, name: 'Bardak', price: 10, max_per_order: null }, 3)), 4);
+  assert.equal(cartPayload(cartAdd({}, tea, 1.75))[0].quantity, 1.75);
+  assert.equal(cartSubtotal(cartAdd({}, { id: 2, name: 'x', price: 33.33, measured: true, step: 0.001, min_qty: 0.001, unit_label: 'kg' }, 1.5)), 50);
 });

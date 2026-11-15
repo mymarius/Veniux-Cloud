@@ -12,6 +12,7 @@ if(process.env.NODE_ENV==='production'&&process.env.VENIUX_WEB_ACCESS==='1')app.
 app.use(require('./middlewares/requestContext'));
 app.use(require('./middlewares/requestFirewall').createFirewall());
 app.use(require('./middlewares/productionPrivacy').boundary);
+app.use(require('./middlewares/shopDomain'));
 
 const localOrigins=require('./middlewares/productionPrivacy').defaultOrigins(PORT);
 const allowedOrigins=new Set(process.env.CORS_ORIGIN?process.env.CORS_ORIGIN.split(',').map(s=>s.trim()):localOrigins);

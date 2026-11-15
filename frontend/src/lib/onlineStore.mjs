@@ -24,21 +24,35 @@ export const shopUrl = (origin, slug) => `${String(origin).replace(/\/$/, '')}/m
 // ---------- Sepet (vitrin) ----------
 // Sepet { [productId]: { id, name, price, quantity, max } } biçimindedir. Fiyat ve ad yalnız gösterim içindir; sunucu yeniden hesaplar.
 export const MAX_LINE = 50;
-export function cartAdd(cart, product, quantity = 1) {
-  const limit = Math.min(MAX_LINE, product.max_per_order || MAX_LINE);
+const r3 = v => Math.round(Number(v) * 1000) / 1000;
+const MEASURE_LIMIT = 1000;
+// Ölçülü ürün (kg, L, m): miktar `step` adımının katıdır, en az `min`. Adetli üründe step yoktur ve miktar tam sayıdır.
+export function cartAdd(cart, product, quantity) {
+  const measured = Boolean(product.measured);
+  const step = measured ? product.step : 1, min = measured ? product.min_qty : 1;
+  const limit = Math.min(measured ? MEASURE_LIMIT : MAX_LINE, product.max_per_order || (measured ? MEASURE_LIMIT : MAX_LINE));
+  const add = quantity === undefined ? min : quantity;
   const current = cart[product.id] ? cart[product.id].quantity : 0;
-  const next = Math.min(limit, current + quantity);
-  if (next <= 0) { const { [product.id]: _removed, ...rest } = cart; return rest; }
-  return { ...cart, [product.id]: { id: product.id, name: product.name, price: product.price, quantity: next, max: limit, image: (product.images && product.images[0] && product.images[0].url) || '' } };
+  const next = Math.min(limit, r3(current + add));
+  if (next <= 0 || (measured && next < min - 1e-9)) { const { [product.id]: _removed, ...rest } = cart; return rest; }
+  return { ...cart, [product.id]: { id: product.id, name: product.name, price: product.price, quantity: next, max: limit, step, min, unit: measured ? product.unit_label || product.unit : '', image: (product.images && product.images[0] && product.images[0].url) || '' } };
 }
 export function cartSet(cart, id, quantity) {
   const line = cart[id]; if (!line) return cart;
-  const q = Math.floor(Number(quantity));
-  if (!Number.isFinite(q) || q <= 0) { const { [id]: _removed, ...rest } = cart; return rest; }
+  const step = line.step || 1, min = line.min || 1;
+  let q = Number(quantity);
+  if (!Number.isFinite(q)) q = 0;
+  q = step === 1 && !line.unit ? Math.floor(q) : Math.round(q / step) * step;
+  q = r3(q);
+  if (q <= 0 || q < min - 1e-9) { const { [id]: _removed, ...rest } = cart; return rest; }
   return { ...cart, [id]: { ...line, quantity: Math.min(q, line.max || MAX_LINE) } };
 }
-export const cartCount = cart => Object.values(cart).reduce((s, l) => s + l.quantity, 0);
-export const cartSubtotal = cart => Math.round(Object.values(cart).reduce((s, l) => s + Math.round(l.price * 100) * l.quantity, 0)) / 100;
+// Miktarı kullanıcıya gösterim: "2" ya da "1,75 kg".
+export const qtyLabel = line => `${String(r3(line.quantity)).replace('.', ',')}${line.unit ? ' ' + line.unit : ''}`;
+export const lineStep = line => line.step || 1;
+// Sepet simgesindeki sayı: adetli ürünlerde adet toplamı, ölçülü ürünlerde satır başına 1.
+export const cartCount = cart => Object.values(cart).reduce((s, l) => s + (l.unit ? 1 : l.quantity), 0);
+export const cartSubtotal = cart => Math.round(Object.values(cart).reduce((s, l) => s + Math.round(Math.round(l.price * 100) * l.quantity), 0)) / 100;
 // Teslimat ücreti ve toplam; sunucudaki kuralın aynısı (ücretsiz eşiği, mağazadan teslimde 0).
 export function cartTotals(cart, store, delivery) {
   const sub = Math.round(cartSubtotal(cart) * 100);
