@@ -82,3 +82,14 @@ html[data-theme='dark'] .rs-ready{background:#10352a!important}
 .size-ask button b{display:block;font-size:24px}
 .size-ask button span{font-size:14px}
 @media(max-width:520px){.size-ask>div>div{grid-template-columns:1fr}}
+
+.rs-split{display:grid;grid-template-columns:280px minmax(0,1fr);gap:22px;align-items:start}
+.rs-tables{position:sticky;top:76px;max-height:calc(100vh - 110px);overflow:auto;padding-right:6px}
+.rs-tables .vm-modgrid{grid-template-columns:1fr 1fr}
+.rs-tables .vm-mod[style*='accent']{background:#fbe7dc!important}
+.rs-pick{padding:24px;border:2px dashed #c9bda6;font-size:16px}
+@media(max-width:900px){.rs-split{grid-template-columns:1fr}.rs-tables{position:static;max-height:none}}
+.rs-tables .vm-mod{background:#eaf6ef;border-color:#0d7a57}
+.rs-tables .vm-mod[style*='accent']{background:#fbe7dc!important;border-color:#b92c1c!important}
+html[data-theme='dark'] .rs-tables .vm-mod{background:#10352a;color:#eef2f7}
+html[data-theme='dark'] .rs-tables .vm-mod[style*='accent']{background:#4a1f1a!important}

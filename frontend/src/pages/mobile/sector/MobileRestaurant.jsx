@@ -111,6 +111,7 @@ function DeliveryForm({ order, onSaved }) {
 
 // Garson modu: masaya yanaş, masayı seç, ürüne dokun, gönder. Sipariş anında mutfağa düşer ve stok o an azalır.
 export function MobileWaiter() {
+  const { desktop } = useSurface();
   const tables = useAsync(async () => (await api.get('/sector/restaurant/tables')).data.items, []);
   const menu = useAsync(async () => (await api.get('/sector/restaurant/menu')).data, []);
   const [closed, setClosed] = useState(null), [choosing, setChoosing] = useState(null), [order, setOrder] = useState(null), [delivered, setDelivered] = useState(false);
@@ -154,19 +155,14 @@ export function MobileWaiter() {
     };
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
   });
-  return <div className="vm" style={{ paddingBottom: target ? 150 : 104 }}>
-    <MobileTop title={target ? target.label : 'Garson'} flat back="/m" onBack={target ? () => setTarget(null) : undefined} />
-    <PackGate pack="restaurant"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
-      {tables.error && <p role="alert" className="vm-err">{tables.error}</p>}
-      {ready.length > 0 && <section className="vm-card rs-ready" role="status" aria-label="Hazır siparişler">{ready.map(r => <div key={r.id}><span><b>{r.where}</b> · {r.qty}× {r.name} hazır</span><button type="button" className="vm-btn" style={{ width: 'auto', minHeight: 40, padding: '0 14px' }} onClick={() => served(r)}>Servis edildi</button></div>)}</section>}
-      {!target && <>
+  const tablesBlock = <>
         <div className="vm-label" style={{ marginTop: 0 }}><span>Masalar</span></div>
         <div className="vm-modgrid">{(tables.data || []).filter(t => t.active).map(t => <button key={t.id} type="button" className="vm-mod" style={{ cursor: 'pointer', textAlign: 'left', borderColor: t.open_order_id ? 'var(--vm-accent)' : undefined }} onClick={() => choose({ type: 'masa', id: t.id, label: t.name, open_order_id: t.open_order_id })}>
           <i className={t.open_order_id ? 'vm-tone-orange' : 'vm-tone-blue'}><Utensils size={22} /></i><b>{t.name}</b><span className="vm-note">{t.open_order_id ? 'Açık · ' + money(t.open_total) : 'Boş'}</span></button>)}</div>
         {tables.data?.length === 0 && <EmptyState icon={<Utensils size={34} />} title="Masa tanımlı değil" text="Önce Restoran ayarlarından masa ekleyin ya da aşağıdan paket/motor siparişi girin." />}
         <div className="vm-label"><span>Masasız</span></div>
-        <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'paket', label: 'Paket servisi' })}>Paket</button><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'motor', label: 'Motor kurye' })}>Motor</button></div></>}
-      {target && <>
+        <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'paket', label: 'Paket servisi' })}>Paket</button><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'motor', label: 'Motor kurye' })}>Motor</button></div></>;
+  const targetBlock = target && <>
         {sent && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Sipariş mutfağa gitti · {money(sent.total)}</b>
           {sent.shortages.length > 0 && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>Stok yetersiz: {sent.shortages.flatMap(s => s.missing.map(m => m.name)).join(', ')} (siparişe devam edilir, stok eksiye düşmez).</p>}
           <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setTarget(null)}>Masalara dön</button></section>}
@@ -184,7 +180,13 @@ export function MobileWaiter() {
         <div className="vm-modgrid">{shown.map(p => { const n = productQty(cart, p.id); return <div key={p.id} className="vm-mod" style={{ minHeight: 96, justifyContent: 'space-between', borderColor: n ? 'var(--vm-brand)' : undefined }}>
           <button type="button" style={{ all: 'unset', cursor: 'pointer', display: 'block' }} aria-label={p.name + ' ekle'} onClick={() => tap(p)}><b style={{ fontSize: 15 }}>{p.name}</b><div className="vm-note">{money(p.price)}{p.options?.length ? ' · seçenekli' : ''}</div>{p.stock_state === 'out' && <div className="vm-err" style={{ fontWeight: 800 }}>Tükendi · stok yetmez</div>}{p.stock_state === 'low' && <div style={{ color: 'var(--vm-accent)', fontWeight: 800, fontSize: 13 }}>Son {p.available} porsiyon</div>}</button>
           {n > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><button type="button" className="vm-iconbtn" style={{ background: '#165da41a', color: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' azalt'} onClick={() => setCart(c => cartRemoveOne(c, p.id))}><Minus size={16} /></button><b aria-live="polite">{n}</b>
-            <button type="button" className="vm-iconbtn" style={{ background: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' artır'} onClick={() => tap(p)}><Plus size={16} /></button></div>}</div>; })}</div></>}
+            <button type="button" className="vm-iconbtn" style={{ background: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' artır'} onClick={() => tap(p)}><Plus size={16} /></button></div>}</div>; })}</div></>;
+  return <div className="vm" style={{ paddingBottom: target ? 150 : 104 }}>
+    <MobileTop title={target ? target.label : 'Garson'} flat back="/m" onBack={target ? () => setTarget(null) : undefined} />
+    <PackGate pack="restaurant"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
+      {tables.error && <p role="alert" className="vm-err">{tables.error}</p>}
+      {ready.length > 0 && <section className="vm-card rs-ready" role="status" aria-label="Hazır siparişler">{ready.map(r => <div key={r.id}><span><b>{r.where}</b> · {r.qty}× {r.name} hazır</span><button type="button" className="vm-btn" style={{ width: 'auto', minHeight: 40, padding: '0 14px' }} onClick={() => served(r)}>Servis edildi</button></div>)}</section>}
+      {desktop ? <div className="rs-split"><aside className="rs-tables">{tablesBlock}</aside><div className="rs-main">{!target && <p className="vm-note rs-pick">Soldan bir masa seçin, ürüne basınca adisyona eklenir.</p>}{targetBlock}</div></div> : <>{!target && tablesBlock}{targetBlock}</>}
     </div></PackGate>
     {choosing && <OptionSheet product={choosing} onClose={() => setChoosing(null)} onAdd={opts => { setCart(c => cartAdd(c, choosing, 1, opts)); setChoosing(null); }} />}
     {target && cart.size > 0 && <div className="vm-sheet-back" style={{ background: 'none', pointerEvents: 'none', alignItems: 'flex-end' }}><div className="vm-sheet" style={{ pointerEvents: 'auto', boxShadow: '0 -8px 30px #0003', padding: '12px 16px calc(env(safe-area-inset-bottom,0px) + 14px)' }}>
