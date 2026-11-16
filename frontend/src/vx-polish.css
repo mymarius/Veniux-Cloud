@@ -1,0 +1,8 @@
+/* Masaüstü ince ayarlar (2.4.80): en son yüklenir. */
+/* Özet kartlarındaki büyük rakamlar karta sığar; para birimi alt satıra düşmez. */
+html:root[data-design='veniux'] .enterprise-content .metric-card{container-type:inline-size}
+html:root[data-design='veniux'] .enterprise-content .metric-card .metric-value{font-size:clamp(18px,12cqw,44px);line-height:1.1;white-space:nowrap}
+/* Sayfa başlığı ile eylem düğmeleri dar alanda yan yana ezilmez; düğmeler alta iner. */
+html:root[data-design='veniux'] .enterprise-content .flex:has(> div:first-child h1){flex-wrap:wrap;gap:12px 16px}
+html:root[data-design='veniux'] .enterprise-content .flex:has(> div:first-child h1)>div:first-child{flex:1 1 340px;min-width:0}
+html:root[data-design='veniux'] .enterprise-content h1{text-wrap:balance}

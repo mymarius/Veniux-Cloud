@@ -102,7 +102,7 @@ const SECTOR_NAV = [
   { name: 'Esnaf Paneli', path: '/sektor/esnaf', icon: ClipboardCheck, pack: 'restaurant' },
   { name: 'Online Mağaza', path: '/sektor/online-magaza', icon: ShoppingBag, pack: 'online_store' }
 ];
-const ALL_ITEMS = NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]);
+const ALL_ITEMS = [...NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]), ...SECTOR_NAV];
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };
 
 export function Layout({ children }) {
