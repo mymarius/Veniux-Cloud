@@ -21,7 +21,7 @@ async function geminiComplete(messages,{json=false,visitor=false}={}){
 }
 async function complete(messages,options={}){
  const canFallBack=Boolean(process.env.GEMINI_API_KEY);
- if(!process.env.NVIDIA_API_KEY&&canFallBack)return geminiComplete(messages,options);
+ if(canFallBack&&(!process.env.NVIDIA_API_KEY||process.env.AI_PROVIDER==='gemini'))return geminiComplete(messages,options);
  try{return await nvidiaComplete(messages,options);}
  catch(failure){if(canFallBack&&['AI_PROVIDER_REJECTED','AI_PROVIDER_AUTH','AI_PROVIDER_UNAVAILABLE'].includes(failure.code))return geminiComplete(messages,options);throw failure;}
 }

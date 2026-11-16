@@ -24,3 +24,11 @@ test('without any key it reports not configured',async()=>{
  delete process.env.NVIDIA_API_KEY;delete process.env.GEMINI_API_KEY;
  await expect(complete([{role:'user',content:'x'}])).rejects.toMatchObject({code:'AI_NOT_CONFIGURED'});
 });
+test('AI_PROVIDER=gemini uses Gemini first even when an NVIDIA key exists',async()=>{
+ process.env.AI_PROVIDER='gemini';
+ try{
+  const spy=jest.spyOn(global,'fetch').mockResolvedValueOnce(gemini);
+  expect(await complete([{role:'user',content:'x'}])).toBe('merhaba');
+  expect(spy).toHaveBeenCalledTimes(1);expect(spy.mock.calls[0][0]).toContain('generativelanguage');
+ }finally{delete process.env.AI_PROVIDER;}
+});
