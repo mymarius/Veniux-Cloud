@@ -20,14 +20,14 @@ function displayName(user){
 const lira=n=>Number(n).toLocaleString('tr-TR',{maximumFractionDigits:0})+' ₺';
 function compose({name,since,movements,run,critical,alerts,low,drafts=0,sales=null,newAlerts=0}){
  const lines=[];
- if(since)lines.push(movements?`Son girişinizden beri ${count(movements,'stok hareketi')} kaydedildi.`:'Son girişinizden beri stok hareketi kaydedilmedi.');
+ if(since)lines.push(movements?`Siz yokken ${count(movements,'stok hareketi')} işledim, her şey kayıtta.`:'Stokta hareket yok, ortalık sakin.');
  if(sales&&sales.count)lines.push(`Siz yokken ${count(sales.count,'satış')} yapıldı${sales.total!=null?', toplam '+lira(sales.total):''}.`);
  if(newAlerts)lines.push(`Siz yokken ${count(newAlerts,'yeni uyarı')} düştü.`);
- if(run)lines.push(run.status==='completed'?`Otomatik kontrol tamamlandı.${run.summary?' '+String(run.summary).slice(0,300):''}`:run.status==='running'?'Otomatik kontrol şu anda çalışıyor.':'Son otomatik kontrol tamamlanamadı. Asistan otomasyonu sayfasına bakın.');
+ if(run)lines.push(run.status==='completed'?`Kontrolleri yaptım, tamamdır.${run.summary?' '+String(run.summary).slice(0,300):''}`:run.status==='running'?'Şu an kontrollere bakıyorum, bir dakika.':'Son kontrolde takıldım, Asistan otomasyonu sayfasına bi göz atın.');
  if(alerts)lines.push(critical?`${count(alerts,'açık uyarı')} var, ${Number(critical).toLocaleString('tr-TR')} tanesi kritik.`:`${count(alerts,'açık uyarı')} var.`);
  if(low.total)lines.push(`${count(low.total,'ürün')} minimum seviyede veya altında: ${low.names.join(', ')}${low.total>low.names.length?' ve diğerleri':''}.`);
  if(drafts)lines.push(`${count(drafts,'sipariş taslağı')} onayınızı bekliyor.`);
- if(!lines.length||(!alerts&&!low.total&&!movements&&!run&&!drafts&&!(sales&&sales.count)&&!newAlerts))lines.push('Dikkat etmeniz gereken yeni bir şey görünmüyor.');
+ if(!lines.length||(!alerts&&!low.total&&!movements&&!run&&!drafts&&!(sales&&sales.count)&&!newAlerts))lines.push('Dikkat etmeniz gereken yeni bir şey görünmüyor, rahat olun.');
  const greeting=`Hoş geldiniz${name?' '+name:''} efendim.`;
  return {greeting,lines,speech:[greeting,...lines].join(' ')};
 }
