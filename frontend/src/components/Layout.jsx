@@ -118,6 +118,8 @@ export function Layout({ children }) {
   const [unreadAlerts, setUnreadAlerts] = useState([]);
   const [showAlertsDropdown, setShowAlertsDropdown] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [askSize, setAskSize] = useState(() => { try { return !window.veniuxMobile && !localStorage.getItem('veniux_size_asked'); } catch { return false; } });
+  const answerSize = easy => { try { localStorage.setItem('veniux_size_asked', '1'); } catch { /* sorulmaya devam eder */ } setAskSize(false); if (easy) themeUpdate?.({ easy: true, scale: 120 }); };
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [stockModalType, setStockModalType] = useState('inbound');
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -304,6 +306,11 @@ export function Layout({ children }) {
       {/* ── MAIN CONTENT COCKPIT ── */}
       <div className="sb-main flex min-w-0 flex-1 flex-col lg:pl-[224px] min-h-screen">
         
+        {askSize && <div className="size-ask" role="dialog" aria-modal="true" aria-label="Yazı büyüklüğü"><div>
+          <h2>Yazılar nasıl olsun?</h2>
+          <p>İstediğiniz zaman üst çubuktaki düğmeden veya Ayarlar &gt; Görünüm'den değiştirebilirsiniz.</p>
+          <div><button type="button" onClick={() => answerSize(false)}><b>Normal</b><span>Standart yazı ve düğmeler</span></button><button type="button" onClick={() => answerSize(true)}><b>Büyük</b><span>Daha büyük yazı, daha kolay kullanım</span></button></div>
+        </div></div>}
         {/* Oval Corporate Header */}
         <header className="enterprise-header sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-gray-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-6">
           <div className="flex items-center gap-3">

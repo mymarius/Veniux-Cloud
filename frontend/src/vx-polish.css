@@ -71,3 +71,14 @@ html[data-easy='true'] *{transition-duration:0s!important;animation-duration:0s!
 .rs-ready>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0}
 html[data-theme='dark'] .rs-hot button{background:#14243a;color:#eef2f7;border-color:#3a506e}
 html[data-theme='dark'] .rs-ready{background:#10352a!important}
+
+.size-ask{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(16,28,48,.55);padding:16px}
+.size-ask>div{width:min(560px,100%);background:#fffdf8;border-top:6px solid #cf4b06;padding:28px;color:#17263a}
+.size-ask h2{font-size:30px;font-weight:800;margin:0 0 6px}
+.size-ask p{font-size:15px;margin:0 0 18px}
+.size-ask>div>div{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.size-ask button{text-align:left;padding:18px;border:2px solid #17263a;background:#fffdf8;color:#17263a;cursor:pointer}
+.size-ask button:last-child{background:#cf4b06;border-color:#cf4b06;color:#fff}
+.size-ask button b{display:block;font-size:24px}
+.size-ask button span{font-size:14px}
+@media(max-width:520px){.size-ask>div>div{grid-template-columns:1fr}}
