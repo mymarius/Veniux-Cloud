@@ -104,3 +104,6 @@ html:not([data-motion='off']) .enterprise-shell .sb .sb-item em{animation:vx-pop
 /* 5) İpucu etiketi biraz gecikmeyle kayarak gelir */
 .vx-tip[data-motion='on']{animation:vx-tip .22s .12s var(--vx-ease) backwards}
 }
+
+/* Açılış dairesindeki Veniux logosu */
+.vx-intro-dot img{display:block;width:44px;height:44px;object-fit:contain;user-select:none}
