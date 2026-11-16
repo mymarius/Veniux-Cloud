@@ -1,9 +1,11 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useLayoutEffect,useState} from 'react';
 import {motionOn} from '../lib/motion';
 
 // Daraltılmış yan menüde simgenin üzerine gelince, sağında koyu bir etiket belirir (videodaki ipucu).
 export default function SidebarTip(){
  const [tip,setTip]=useState(null);
+ // Yan menü öğelerine sıra numarası verilir; açılışta üstten alta 45 ms arayla belirirler (CSS --k).
+ useLayoutEffect(()=>{document.querySelectorAll('.enterprise-shell .sb :is(.sb-brand,.sb-search,.sb-section-title,.sb-item,.sb-release-notes,.sb-account)').forEach((el,i)=>el.style.setProperty('--k',String(Math.min(i,24))));},[]);
  useEffect(()=>{
   const shell=document.querySelector('.enterprise-shell');
   if(!shell)return undefined;

@@ -79,3 +79,28 @@ html:not([data-motion='off']) .vx-intro-dot{left:10px!important;top:10px!importa
 /* ---- Sayfa geçişi: eski içerik tamamen solar, kısa boşluk, sonra yenisi açılır ---- */
 ::view-transition-old(vx-page){animation:vx-out .28s ease both!important}
 ::view-transition-new(vx-page){animation:vx-in .6s .22s var(--vx-ease) both!important}
+
+/* ================= Yan menü hareketleri (videodaki gibi) ================= */
+@media (prefers-reduced-motion:no-preference){
+/* 1) Panel açılışta yukarıdan aşağı uzar; öğeler üstten alta sırayla, bulanıklıktan belirir */
+html:not([data-motion='off']) .enterprise-shell .sb{animation:vx-sb-grow .85s var(--vx-ease) backwards}
+@keyframes vx-sb-grow{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+html:not([data-motion='off']) .enterprise-shell .sb :is(.sb-brand,.sb-search,.sb-section-title,.sb-item,.sb-release-notes,.sb-account){animation:vx-sb-item .6s var(--vx-ease) backwards;animation-delay:calc(var(--k,0)*45ms + .2s)}
+@keyframes vx-sb-item{from{opacity:0;transform:translateX(-12px);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+
+/* 2) Aktif öğe, öbür öğeye kayarak geçer (tarayıcının görünüm geçişi, yan menüden sayfa değişince) */
+html:not([data-motion='off']) .enterprise-shell .sb .sb-item[data-active='true']{view-transition-name:vx-active}
+::view-transition-group(vx-active){animation-duration:.5s;animation-timing-function:var(--vx-ease)}
+::view-transition-old(vx-active),::view-transition-new(vx-active){animation-duration:.5s;height:100%}
+
+/* 3) Üzerine gelince simge hafifçe büyür ve parlar */
+html:not([data-motion='off']) .enterprise-shell .sb .sb-item svg{transition:transform .25s var(--vx-ease),filter .25s ease}
+html:not([data-motion='off']) .enterprise-shell .sb .sb-item:hover svg{transform:scale(1.14);filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
+
+/* 4) Bildirim rozeti sayfa açılınca zıplayarak çıkar */
+html:not([data-motion='off']) .enterprise-shell .sb .sb-item em{animation:vx-pop .5s calc(var(--vx-base,0s) + 1s) cubic-bezier(.34,1.56,.64,1) backwards}
+@keyframes vx-pop{from{transform:scale(0);opacity:0}}
+
+/* 5) İpucu etiketi biraz gecikmeyle kayarak gelir */
+.vx-tip[data-motion='on']{animation:vx-tip .22s .12s var(--vx-ease) backwards}
+}
