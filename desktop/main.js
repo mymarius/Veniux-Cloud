@@ -92,8 +92,11 @@ function createWindow() {
     }
   });
   mainWindow.webContents.session.webRequest.onBeforeSendHeaders({urls:['http://127.0.0.1:17849/*']},(details,callback)=>callback({requestHeaders:{...details.requestHeaders,'x-veniux-desktop-origin':desktopOriginToken}}));
-  mainWindow.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(permission==='media'&&contents===mainWindow.webContents&&Array.isArray(details?.mediaTypes)&&details.mediaTypes.length===1&&details.mediaTypes[0]==='audio'));
-  mainWindow.webContents.session.setPermissionCheckHandler((contents,permission)=>permission==='media'&&contents===mainWindow.webContents);
+  mainWindow.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(contents===mainWindow.webContents&&(permission==='serial'||(permission==='media'&&Array.isArray(details?.mediaTypes)&&details.mediaTypes.length===1&&details.mediaTypes[0]==='audio'))));
+  mainWindow.webContents.session.setPermissionCheckHandler((contents,permission)=>(permission==='media'||permission==='serial')&&contents===mainWindow.webContents);
+  // Terazi ve barkod okuyucu seri portu: kullanıcı listeden seçer, seçim bu oturumda hatırlanır.
+  mainWindow.webContents.session.setDevicePermissionHandler(details=>details.deviceType==='serial');
+  mainWindow.webContents.session.on('select-serial-port',(event,portList,webContents,callback)=>{event.preventDefault();if(webContents!==mainWindow.webContents||!portList.length)return callback('');if(portList.length===1)return callback(portList[0].portId);dialog.showMessageBox(mainWindow,{type:'question',title:'Seri port seçin',message:'Terazi veya okuyucunun bağlı olduğu portu seçin.',buttons:[...portList.map(p=>(p.displayName||p.portName)+' ('+p.portName+')').slice(0,8),'Vazgeç'],cancelId:Math.min(portList.length,8),noLink:true}).then(r=>callback(r.response<Math.min(portList.length,8)?portList[r.response].portId:'')).catch(()=>callback(''));});
   if (!process.env.ELECTRON_START_URL) mainWindow.webContents.session.webRequest.onHeadersReceived((details,callback)=>{
     if (!details.url.startsWith('file:')) return callback({responseHeaders:details.responseHeaders});
     const policy=`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ${new URL(runtime.apiBase).origin}; object-src 'none'; frame-src 'none'; base-uri 'none'`;

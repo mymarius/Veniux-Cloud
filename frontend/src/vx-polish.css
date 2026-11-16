@@ -98,3 +98,13 @@ html[data-theme='dark'] .rs-tables .vm-mod[style*='accent']{background:#4a1f1a!i
 .rs-bill{position:sticky;top:76px;max-height:calc(100vh - 110px);overflow:auto;display:grid;gap:12px}
 .rs-cart{border:2px solid #cf4b06!important}
 .rs-cart>b{display:block;margin-bottom:8px;font-size:17px}
+
+/* Terazi paneli (kasa, tartılı ürün penceresi) */
+.scale-panel{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .75rem;border:1px solid var(--border,#e2e8f0);border-radius:.75rem;padding:.6rem .8rem;margin:.5rem 0}
+.scale-live{display:flex;align-items:baseline;gap:.6rem;flex:1 1 12rem}
+.scale-live b{font-size:1.6rem;font-variant-numeric:tabular-nums}
+.scale-live span{font-size:.8rem;color:#b45309}
+.scale-live span[data-stable]{color:#15803d}
+.scale-setup{display:flex;gap:.4rem}
+.scale-panel small{flex-basis:100%;color:#64748b}
+.scale-panel small[role=alert]{color:#b91c1c}
