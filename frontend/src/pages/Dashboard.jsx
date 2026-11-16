@@ -1,6 +1,7 @@
 import { readSessionUser } from '../lib/sessionUser';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, Bell, Boxes, ChevronDown,
   Gauge, Handshake, IdCard, Package, RefreshCw, ShoppingCart, Truck, Wallet, Warehouse
@@ -141,7 +142,21 @@ export default function Dashboard() {
 
   const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
 
+  const easy = !!useTheme()?.prefs?.easy;
+  const EASY_ACTIONS = [
+    ['Satış yap', 'Kasayı açıp ürün sat', '/magaza/kasa'],
+    ['Ürün ekle', 'Yeni ürün kaydet', '/magaza/hizli-ekle'],
+    ['Ürünlerime bak', 'Listede ara, fiyat ve stok gör', '/normal-depo/products'],
+    ['Mal geldi', 'Gelen malı stoğa ekle', '/normal-depo/inbound'],
+    ['Stok hareketleri', 'Ne girdi, ne çıktı', '/normal-depo/movements'],
+    ['Uyarılar', 'Biten ve azalan ürünler', '/alerts']
+  ];
+
   return <div className="ax-page ax-overview">
+    {easy && <section className="easy-home" aria-label="Ne yapmak istiyorsunuz?">
+      <h2>Ne yapmak istiyorsunuz?</h2>
+      <div>{EASY_ACTIONS.map(([t, d, to]) => <Link key={to} to={to}><b>{t}</b><span>{d}</span></Link>)}</div>
+    </section>}
     <header className="ax-head">
       <div>
         <h1>Genel Bakış</h1>

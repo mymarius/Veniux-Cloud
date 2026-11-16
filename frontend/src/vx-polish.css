@@ -51,3 +51,12 @@ html[data-easy='true'] *{transition-duration:0s!important;animation-duration:0s!
 .size-step button:disabled{opacity:.35;cursor:default}
 .size-step output{min-width:72px;text-align:center;font-weight:800;font-size:22px}
 .size-sample{margin-top:12px;padding:14px 16px;border:1.5px dashed #c9bda6;background:#fffdf8}
+
+.easy-home{margin:0 0 28px}
+.easy-home h2{font-size:28px;font-weight:800;color:#17263a;margin:0 0 14px}
+.easy-home>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.easy-home a{display:block;padding:22px 20px;border:2px solid #17263a;background:#fffdf8;color:#17263a;text-decoration:none}
+.easy-home a:first-child{background:#cf4b06;border-color:#cf4b06;color:#fff}
+.easy-home a b{display:block;font-size:24px;font-weight:800;line-height:1.15}
+.easy-home a span{display:block;margin-top:6px;font-size:15px}
+.easy-home a:hover{box-shadow:5px 5px 0 #17263a}
