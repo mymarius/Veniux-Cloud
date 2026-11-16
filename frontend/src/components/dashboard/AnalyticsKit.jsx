@@ -5,24 +5,20 @@ import './analytics.css';
 import { motionOn } from '../../lib/motion';
 
 
-// Sayıyı sıfırdan hedef değere doğru yumuşakça sayar (hareket kapalıysa doğrudan hedefi gösterir).
-export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR'), duration = 1300 }) {
-  const target = Number(value) || 0;
-  const [shown, setShown] = React.useState(() => (motionOn() ? 0 : target));
-  const from = React.useRef(motionOn() ? 0 : target);
+// Rakamlar basamak basamak, aşağıdan yukarı dönerek hedef değere oturur (odometre). Hareket kapalıysa düz metin.
+export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR') }) {
+  const text = format(Number(value) || 0), on = motionOn();
+  const [ready, setReady] = React.useState(!on);
   React.useEffect(() => {
-    if (!motionOn()) { from.current = target; setShown(target); return undefined; }
-    let frame; const start = performance.now() + (document.documentElement.dataset.intro ? 100 : 0), begin = from.current;
-    const tick = now => {
-      const t = Math.max(0, Math.min(1, (now - start) / duration)), eased = 1 - Math.pow(1 - t, 4);
-      const current = begin + (target - begin) * eased;
-      from.current = current; setShown(current);
-      if (t < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [target, duration]);
-  return <span className="vx-count">{format(Math.abs(shown - target) < 0.5 ? target : shown)}</span>;
+    if (!on) return undefined;
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)));
+    return () => cancelAnimationFrame(id);
+  }, [on]);
+  if (!on) return <span className="vx-count">{text}</span>;
+  let n = 0;
+  return <span className="vx-count vx-odo" role="text" aria-label={text}>{[...text].map((ch, i) => /\d/.test(ch)
+    ? <span key={i} className="vx-digit" aria-hidden="true" style={{ '--n': n++ }}><span className="vx-strip" style={{ transform: ready ? `translateY(${-(Number(ch) + 10) * 5}%)` : 'translateY(0)' }}>{Array.from({ length: 20 }, (_, k) => <i key={k}>{k % 10}</i>)}</span></span>
+    : <span key={i} aria-hidden="true">{ch}</span>)}</span>;
 }
 
 // Küçük, kendini çizen çizgi grafik (KPI kartları için).

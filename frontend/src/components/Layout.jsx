@@ -1,6 +1,9 @@
 import UpdateButton from './UpdateButton';
 import SidebarTip from './SidebarTip';
 import IntroReveal from './IntroReveal';
+import { flushSync } from 'react-dom';
+import { holdMotion, motionOn } from '../lib/motion';
+import { revealTitle } from '../lib/titleReveal';
 import { readSessionUser } from '../lib/sessionUser';
 import veniuxLogo from '../assets/veniux-logo.webp';
 import { useBranding } from '../lib/branding';
@@ -136,6 +139,25 @@ export function Layout({ children }) {
   
   const navigate = useNavigate();
   const location = useLocation();
+  // Yan menüden sayfa değişimi: eski içerik solar, kısa boşluk, yenisi bulanıklıktan açılır (tarayıcının görünüm geçişi).
+  const softNavigate = (event, to) => {
+    if (!motionOn() || typeof document.startViewTransition !== 'function' || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || to === location.pathname) return;
+    event.preventDefault();
+    holdMotion(1200, '.22s');
+    document.startViewTransition(() => { flushSync(() => navigate(to)); });
+  };
+  // Sayfa başlığı: yeni sayfa açılınca harf harf belirir (ilk başlık bulunana kadar kısa süre izlenir).
+  useEffect(() => {
+    if (!motionOn()) return undefined;
+    const root = document.getElementById('main-content');
+    if (!root) return undefined;
+    const run = () => { const h = root.querySelector('.vx-page h1:not(.vx-reveal-text)'); if (h) revealTitle(h); };
+    const observer = new MutationObserver(run);
+    observer.observe(root, { childList: true, subtree: true });
+    const stop = setTimeout(() => observer.disconnect(), 2500);
+    run();
+    return () => { observer.disconnect(); clearTimeout(stop); };
+  }, [location.pathname]);
   const contentRef = useRef(null);
   useEffect(() => {
     if (document.documentElement.dataset.motion==='off' || !contentRef.current?.animate) return;
@@ -272,7 +294,7 @@ export function Layout({ children }) {
                       const active = isItemActive(item);
                       const badge = badges[item.badgeKey] || 0;
                       return (
-                        <NavLink key={item.path} to={item.path} viewTransition data-active={active} data-tip={sidebarCollapsed ? item.name : undefined} aria-current={active ? 'page' : undefined} aria-label={item.name} onClick={() => setSidebarOpen(false)} className="sb-item">
+                        <NavLink key={item.path} to={item.path} data-active={active} data-tip={sidebarCollapsed ? item.name : undefined} aria-current={active ? 'page' : undefined} aria-label={item.name} onClick={e => { setSidebarOpen(false); softNavigate(e, item.path); }} className="sb-item">
                           <Icon size={16} strokeWidth={1.9} />
                           <span>{item.name}</span>
                           {badge > 0 && <em data-tone={item.badgeKey === 'expiring' ? 'warn' : undefined}>{badge > 99 ? '99+' : badge}</em>}

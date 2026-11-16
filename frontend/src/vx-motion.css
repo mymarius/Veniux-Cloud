@@ -10,7 +10,7 @@
 @property --vx-r{syntax:'<length>';inherits:false;initial-value:0px}
 html:not([data-motion='off']) .vx-intro{position:fixed;inset:0;z-index:2000;pointer-events:none;
  background:radial-gradient(circle at 46px 46px,transparent var(--vx-r),#12203a calc(var(--vx-r) + 1px));
- animation:vx-iris .55s 0s cubic-bezier(.65,0,.35,1) forwards,vx-intro-out .2s .65s ease forwards}
+ animation:vx-iris .75s 0s cubic-bezier(.65,0,.35,1) forwards,vx-intro-out .2s .85s ease forwards}
 html:not([data-motion='off']) .vx-intro-dot{position:absolute;left:34px;top:34px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#bcd0ff 70%);box-shadow:0 0 18px 4px rgba(160,190,255,.5);animation:vx-dot .35s var(--vx-ease) both,vx-dot-out .2s .3s ease forwards}
 @keyframes vx-iris{from{--vx-r:36px}to{--vx-r:160vmax}}
 @keyframes vx-intro-out{to{opacity:0}}
@@ -59,3 +59,23 @@ html:not([data-motion='off']) .enterprise-header{view-transition-name:vx-head}
 @keyframes vx-out{to{opacity:0;filter:blur(10px)}}
 @keyframes vx-in{from{opacity:0;filter:blur(10px)}}
 }
+
+/* ---- Rakamlar: basamak basamak dönen odometre ---- */
+.vx-odo{display:inline-flex;vertical-align:bottom}
+.vx-digit{display:inline-block;overflow:hidden;height:1.1em;line-height:1.1;vertical-align:bottom}
+.vx-strip{display:flex;flex-direction:column;transition:transform 1.3s var(--vx-ease) calc(var(--vx-base,0s) + var(--n,0)*70ms)}
+.vx-strip i{display:block;height:1.1em;font-style:normal;text-align:center}
+.vx-odo>span:not(.vx-digit){line-height:1.1}
+
+/* ---- Başlık katmanı (tüm sayfalar) ---- */
+html:not([data-motion='off']) h1[data-vx-split]{position:relative;color:transparent!important;-webkit-text-fill-color:transparent}
+.vx-split{position:absolute;left:0;top:0;width:calc(100% + 16px);pointer-events:none}
+.vx-split .vx-w{display:inline-block;white-space:nowrap}
+.vx-split .vx-c{display:inline-block;-webkit-text-fill-color:currentColor;animation:vx-char .75s var(--vx-ease) backwards;animation-delay:calc(var(--i)*38ms + .12s + var(--vx-base,0s))}
+
+/* ---- Açılış dairesi: açık renkli daire + nabız ikonu ---- */
+html:not([data-motion='off']) .vx-intro-dot{left:10px!important;top:10px!important;width:72px!important;height:72px!important;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,#dfe6ff 75%)!important;color:#17263a;box-shadow:0 0 0 1px rgba(255,255,255,.35),0 0 34px 6px rgba(160,190,255,.4)!important}
+
+/* ---- Sayfa geçişi: eski içerik tamamen solar, kısa boşluk, sonra yenisi açılır ---- */
+::view-transition-old(vx-page){animation:vx-out .28s ease both!important}
+::view-transition-new(vx-page){animation:vx-in .6s .22s var(--vx-ease) both!important}
