@@ -1,3 +1,4 @@
+import UpdateButton from './UpdateButton';
 import { readSessionUser } from '../lib/sessionUser';
 import veniuxLogo from '../assets/veniux-logo.webp';
 import { useBranding } from '../lib/branding';
@@ -337,6 +338,7 @@ export function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <UpdateButton/>
             {!window.veniuxMobile&&<button type="button" className="easy-toggle" aria-pressed={!!themePrefs?.easy} title="Yazıları ve düğmeleri büyütür, ekranı sadeleştirir" onClick={()=>themeUpdate?.({easy:!themePrefs?.easy})}><ZoomIn size={18}/><span>{themePrefs?.easy?'Kolay kullanım: açık':'Yazıları büyüt'}</span></button>}
             {window.veniuxMobile&&<button aria-label="İşletme asistanını aç" className="mobile-header-assistant" onClick={()=>window.dispatchEvent(new Event('veniux:assistant-open'))}><Sparkles size={20}/></button>}
             {/* Pill Search */}

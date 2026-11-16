@@ -108,3 +108,14 @@ html[data-theme='dark'] .rs-tables .vm-mod[style*='accent']{background:#4a1f1a!i
 .scale-setup{display:flex;gap:.4rem}
 .scale-panel small{flex-basis:100%;color:#64748b}
 .scale-panel small[role=alert]{color:#b91c1c}
+
+/* Güncelleme düğmesi: yeni sürüm hazır olunca üst çubukta yeşil ok */
+.update-wrap{position:relative}
+.update-btn{display:inline-flex;align-items:center;gap:.35rem;height:2.25rem;min-width:2.25rem;padding:0 .55rem;border-radius:.6rem;border:0;background:#16a34a;color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;animation:update-pulse 2.4s ease-in-out infinite}
+.update-btn[data-state=downloading],.update-btn[data-state=installing]{background:#94a3b8;animation:none;cursor:default}
+.update-pop{position:absolute;right:0;top:calc(100% + .5rem);width:19rem;padding:.9rem;border-radius:.8rem;border:1px solid var(--border,#e2e8f0);background:#fff;color:#0f172a;box-shadow:0 12px 32px rgba(15,23,42,.18);z-index:60}
+.update-pop p{font-size:.8rem;color:#475569;margin:.4rem 0 .7rem}
+.update-pop div{display:flex;gap:.5rem}
+:root[data-theme=dark] .update-pop{background:#1e293b;color:#f1f5f9;border-color:#334155}
+:root[data-theme=dark] .update-pop p{color:#94a3b8}
+@keyframes update-pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}50%{box-shadow:0 0 0 6px rgba(22,163,74,0)}}

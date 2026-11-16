@@ -189,6 +189,8 @@ function registerIpcHandlers() {
   });
 
   // Hardware Fingerprint
+  handle('update-state', () => require('./updater').getState());
+  handle('update-install', () => require('./updater').install());
   handle('get-hardware-info', async () => {
     return getHardwareFingerprint();
   });

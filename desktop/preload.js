@@ -27,6 +27,15 @@ contextBridge.exposeInMainWorld('veniuxDesktop', {
     return () => ipcRenderer.removeListener('window-state-changed', subscription);
   },
 
+  // Program güncellemesi: hazır olunca arayüzde yeşil ok çıkar, tıklayınca kurulup yeniden açılır
+  getUpdateState: () => ipcRenderer.invoke('update-state'),
+  installUpdate: () => ipcRenderer.invoke('update-install'),
+  onUpdateState: (callback) => {
+    const subscription = (event, state) => callback(state);
+    ipcRenderer.on('update-state', subscription);
+    return () => ipcRenderer.removeListener('update-state', subscription);
+  },
+
   // Hardware & Machine Fingerprint
   getHardwareInfo: () => ipcRenderer.invoke('get-hardware-info'),
 
