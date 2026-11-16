@@ -86,3 +86,50 @@ html:root[data-theme='dark'] .sd .vm-btn.soft:hover:not(:disabled),html:root[dat
 html:root[data-theme='dark'] .sd .vm-iconbtn{background:#14243a;border-color:#9fb0c8;color:#e8ecf4}
 html:root[data-theme='dark'] .sd:after{background:repeating-linear-gradient(90deg,#9fb0c8 0 3px,transparent 3px 6px,#9fb0c8 6px 7px,transparent 7px 11px,#9fb0c8 11px 15px,transparent 15px 18px)}
 html:root[data-theme='dark'] .sd .sd-eyebrow,html:root[data-theme='dark'] .sd .vm-label{color:#ff9a5a}
+
+/* ===== 2.4.80: masaüstü düzeni ===== */
+.sd{max-width:1360px;padding:10px 12px 36px}
+.sd .vm{border:0!important;background-image:none!important}
+.sd .vm-body:after{display:none}
+.sd-head{margin:0 0 18px;padding-bottom:14px}
+.sd-head h1{font-size:clamp(26px,2.2vw,34px);line-height:1.1}
+.sd-head h1:after{width:44px;height:4px;margin-top:10px}
+.sd-eyebrow{margin:0 0 6px;font-size:11px}
+.sd-back{font-size:14px;margin-bottom:6px}
+.sd .vm-note{margin:0 0 16px;max-width:70ch;font-size:14px;line-height:1.55;color:#4d5a6b}
+/* giriş alanları: tek aile, ham tarayıcı görünümü yok */
+.sd .vm select,.sd .vm input:not([type=checkbox]):not([type=radio]):not([type=range]),.sd .vm textarea,.sd .vm .vm-input{min-height:44px;padding:0 12px;border:1px solid #b5a88f;border-radius:0;background:#fff;color:#17263a;font-size:14px;font-weight:500;line-height:1.2;font-family:inherit}
+.sd textarea{padding:10px 12px;min-height:88px}
+.sd select{appearance:auto;cursor:pointer}
+.sd select:focus,.sd input:focus,.sd textarea:focus{outline:0;border-color:#cf4b06;box-shadow:0 0 0 3px #cf4b0644}
+.sd .vm .vm-input{display:block;width:100%;max-width:640px;margin-bottom:10px}
+.sd .vm-field{max-width:640px;min-height:46px;border:1px solid #b5a88f;border-radius:0;margin-bottom:10px}
+.sd .vm-field input{border:0;box-shadow:none;min-height:42px;font-size:15px;padding:0}
+.sd .vm-price-in{max-width:640px;margin:0 0 10px}
+.sd .vm-price-in select{min-width:150px}
+.sd .vm-price-in input{font-size:16px;font-weight:600;font-family:inherit;min-height:44px}
+/* düğmeler */
+.sd .vm-btn{min-width:0;min-height:42px;padding:0 18px;font-size:14px;letter-spacing:0;box-shadow:none}
+.sd .vm-btn.ghost,.sd .vm-btn.soft{min-height:40px}
+.sd .vm-body>.vm-btn,.sd .vm-body>button.vm-btn{width:auto;justify-self:start}
+/* sekmeler ve durum süzgeçleri: alt çizgili sekme */
+.sd [role=tablist]{display:flex!important;flex-wrap:wrap;gap:0!important;margin:0 0 16px!important;border-bottom:2px solid #17263a}
+.sd [role=tablist]>button{flex:0 0 auto!important;min-height:42px!important;padding:0 18px!important;border:0;border-bottom:4px solid transparent;margin-bottom:-2px;border-radius:0;background:none;color:#4d5a6b;font-weight:700;box-shadow:none}
+.sd [role=tablist]>button:hover{background:#17263a0d;color:#17263a}
+.sd [role=tablist]>button[aria-selected=true]{color:#17263a;border-bottom-color:#cf4b06;background:none}
+.sd [role=group][aria-label=Durum]{display:flex!important;flex-wrap:wrap;gap:8px!important;overflow:visible!important;padding:0 0 12px!important}
+.sd [role=group][aria-label=Durum]>button{min-height:36px!important;padding:0 14px!important;font-size:13px;border-width:1px;border-radius:0}
+/* boş ekran: kompakt */
+.sd .vm-empty{padding:28px 16px;grid-column:1/-1}
+.sd .vm-empty i{width:60px;height:60px;margin-bottom:10px}
+.sd .vm-empty b{font-size:19px}
+/* kartlar: başlık altı boşluk, daha sık ızgara */
+.sd .vm-body{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px 18px}
+.sd .vm-body>.vm-btn{grid-column:1/-1}
+.sd .vm-card{padding:20px 18px 16px}
+.sd .vm-list{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+/* sayfanın altındaki tek barkod şeridi daha alçak */
+.sd:after{height:18px;margin-top:32px;opacity:.7}
+.sd .vm .vm-input{border:1px solid #b5a88f!important;border-radius:0!important;background:#fff!important;min-height:44px;font-size:14px}
+.sd .vm .vm-input:focus{outline:0;border-color:#cf4b06!important;box-shadow:0 0 0 3px #cf4b0644!important}
+html:root[data-theme='dark'] .sd .vm .vm-input{background:#0e1520!important;border-color:#30455e!important}
