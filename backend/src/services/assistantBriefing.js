@@ -17,14 +17,17 @@ function displayName(user){
  return name&&!name.includes('@')?name:'';
 }
 
-function compose({name,since,movements,run,critical,alerts,low,drafts=0}){
+const lira=n=>Number(n).toLocaleString('tr-TR',{maximumFractionDigits:0})+' ₺';
+function compose({name,since,movements,run,critical,alerts,low,drafts=0,sales=null,newAlerts=0}){
  const lines=[];
  if(since)lines.push(movements?`Son girişinizden beri ${count(movements,'stok hareketi')} kaydedildi.`:'Son girişinizden beri stok hareketi kaydedilmedi.');
+ if(sales&&sales.count)lines.push(`Siz yokken ${count(sales.count,'satış')} yapıldı${sales.total!=null?', toplam '+lira(sales.total):''}.`);
+ if(newAlerts)lines.push(`Siz yokken ${count(newAlerts,'yeni uyarı')} düştü.`);
  if(run)lines.push(run.status==='completed'?`Otomatik kontrol tamamlandı.${run.summary?' '+String(run.summary).slice(0,300):''}`:run.status==='running'?'Otomatik kontrol şu anda çalışıyor.':'Son otomatik kontrol tamamlanamadı. Asistan otomasyonu sayfasına bakın.');
  if(alerts)lines.push(critical?`${count(alerts,'açık uyarı')} var, ${Number(critical).toLocaleString('tr-TR')} tanesi kritik.`:`${count(alerts,'açık uyarı')} var.`);
  if(low.total)lines.push(`${count(low.total,'ürün')} minimum seviyede veya altında: ${low.names.join(', ')}${low.total>low.names.length?' ve diğerleri':''}.`);
  if(drafts)lines.push(`${count(drafts,'sipariş taslağı')} onayınızı bekliyor.`);
- if(!lines.length||(!alerts&&!low.total&&!movements&&!run&&!drafts))lines.push('Dikkat etmeniz gereken yeni bir şey görünmüyor.');
+ if(!lines.length||(!alerts&&!low.total&&!movements&&!run&&!drafts&&!(sales&&sales.count)&&!newAlerts))lines.push('Dikkat etmeniz gereken yeni bir şey görünmüyor.');
  const greeting=`Hoş geldiniz${name?' '+name:''} efendim.`;
  return {greeting,lines,speech:[greeting,...lines].join(' ')};
 }
@@ -38,8 +41,12 @@ async function briefing(user,sinceValue){
  const lowRows=(await db.query(`SELECT p.name FROM products p LEFT JOIN stock_records s ON s.product_id=p.id AND s.tenant_id=p.tenant_id
   WHERE p.tenant_id=$1 GROUP BY p.id,p.name,p.min_stock_level HAVING COALESCE(SUM(s.quantity),0)<=p.min_stock_level ORDER BY COALESCE(SUM(s.quantity),0) ASC,p.id ASC`,[tenant])).rows;
  const drafts=Number((await db.query("SELECT COUNT(*) count FROM purchase_orders WHERE tenant_id=$1 AND status='draft'",[tenant])).rows[0].count);
- const facts={movements,run,alerts:Number(alertRow.total),critical:Number(alertRow.critical),low:{total:lowRows.length,names:lowRows.slice(0,3).map(r=>r.name)},drafts};
- return {...compose({name:displayName(profile),since,...facts}),facts:{movements,alerts:facts.alerts,critical:facts.critical,low_stock:facts.low.total,draft_orders:drafts},since:since?since.toISOString():null};
+ const seeMoney=user.isPlatformAdmin||['admin','manager'].includes(user.role);
+ const salesRow=since?(await db.query("SELECT COUNT(*) count,COALESCE(SUM(net_amount),0) total FROM pos_sales WHERE tenant_id=$1 AND status IN ('completed','partially_returned') AND created_at>$2",[tenant,stored(since)])).rows[0]:null;
+ const sales=salesRow?{count:Number(salesRow.count),total:seeMoney?Number(salesRow.total):null}:null;
+ const newAlerts=since?Number((await db.query('SELECT COUNT(*) count FROM alerts WHERE tenant_id=$1 AND created_at>$2',[tenant,stored(since)])).rows[0].count):0;
+ const facts={sales,newAlerts,movements,run,alerts:Number(alertRow.total),critical:Number(alertRow.critical),low:{total:lowRows.length,names:lowRows.slice(0,3).map(r=>r.name)},drafts};
+ return {...compose({name:displayName(profile),since,...facts}),facts:{sales_count:sales?sales.count:0,new_alerts:newAlerts,movements,alerts:facts.alerts,critical:facts.critical,low_stock:facts.low.total,draft_orders:drafts},since:since?since.toISOString():null};
 }
 
 module.exports={briefing,compose,parseSince,displayName};

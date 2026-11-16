@@ -48,3 +48,21 @@ test('rejects bad input safely',()=>{
  for(const v of ['x',{},undefined,new Date(Date.now()+864e5).toISOString()])expect(parseSince(v)).toBeNull();
  expect(displayName({full_name:'a@b.c'})).toBe('');
 });
+test('siz yokken: satış ve yeni uyarı sayılır, tutarı yalnız yönetici görür',async()=>{
+ const since=new Date(Date.now()-3600000).toISOString();
+ await db.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,status) VALUES ($1,$2,300,300,'completed')",[a.tenantId,'SY-'+Date.now()+'-1']);
+ await db.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,status) VALUES ($1,$2,200,200,'completed')",[a.tenantId,'SY-'+Date.now()+'-2']);
+ await db.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,status) VALUES ($1,$2,999,999,'completed')",[b.tenantId,'SY-'+Date.now()+'-3']);
+ const boss=await briefing({tenantId:a.tenantId,userId:a.userId,role:'admin'},since);
+ expect(boss.speech).toContain('Siz yokken 2 satış yapıldı, toplam 500');
+ expect(boss.facts.sales_count).toBe(2);
+ expect(boss.speech).not.toContain('999');
+ const cashier=await briefing({tenantId:a.tenantId,userId:a.userId,role:'cashier'},since);
+ expect(cashier.speech).toContain('Siz yokken 2 satış yapıldı.');
+ expect(cashier.speech).not.toContain('500');
+});
+test('siz yokken: yeni uyarılar bildirilir, ilk ziyarette sayılmaz',async()=>{
+ const r=await briefing({tenantId:a.tenantId,userId:a.userId},new Date(Date.now()-3600000).toISOString());
+ expect(r.speech).toContain('Siz yokken 1 yeni uyarı düştü.');
+ expect((await briefing({tenantId:a.tenantId,userId:a.userId},null)).speech).not.toContain('Siz yokken');
+});
