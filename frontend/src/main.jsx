@@ -38,3 +38,4 @@ import './vx-foundation.css';
 import './vx-shelf.css';
 import './vx-polish.css';
 import './vx-glass.css';
+import './vx-motion.css';

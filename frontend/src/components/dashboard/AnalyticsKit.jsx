@@ -2,11 +2,27 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import './analytics.css';
+import { motionOn } from '../../lib/motion';
 
 
-// Sayıyı sıfırdan hedef değere doğru yumuşakça sayar.
-export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR') }) {
-  return format(value);
+// Sayıyı sıfırdan hedef değere doğru yumuşakça sayar (hareket kapalıysa doğrudan hedefi gösterir).
+export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString('tr-TR'), duration = 1300 }) {
+  const target = Number(value) || 0;
+  const [shown, setShown] = React.useState(() => (motionOn() ? 0 : target));
+  const from = React.useRef(motionOn() ? 0 : target);
+  React.useEffect(() => {
+    if (!motionOn()) { from.current = target; setShown(target); return undefined; }
+    let frame; const start = performance.now(), begin = from.current;
+    const tick = now => {
+      const t = Math.min(1, (now - start) / duration), eased = 1 - Math.pow(1 - t, 4);
+      const current = begin + (target - begin) * eased;
+      from.current = current; setShown(current);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+  return <span className="vx-count">{format(Math.abs(shown - target) < 0.5 ? target : shown)}</span>;
 }
 
 // Küçük, kendini çizen çizgi grafik (KPI kartları için).

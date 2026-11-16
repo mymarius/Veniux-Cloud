@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import api, { useDataSync } from '../api/client';
 import BusinessChart from '../components/BusinessChart';
+import RevealText from '../components/RevealText';
 import StockHealthPanel from '../components/StockHealthPanel';
 import './DashboardPro.css';
-import { BarList, Kpi, Legend, Panel, ScoreRing, Segmented } from '../components/dashboard/AnalyticsKit';
+import { BarList, CountUp, Kpi, Legend, Panel, ScoreRing, Segmented } from '../components/dashboard/AnalyticsKit';
 import { chartColors } from '../lib/chartPalette';
 import { DEPARTMENTS } from '../mock/hrData';
 import {
@@ -159,7 +160,7 @@ export default function Dashboard() {
     </section>}
     <header className="ax-head">
       <div>
-        <h1>Genel Bakış</h1>
+        <RevealText text="Genel Bakış" />
         <p>{[user.company_name, today].filter(Boolean).join(' · ')}{updatedAt ? ` · son güncelleme ${updatedAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` : ''}</p>
       </div>
       <div className="ax-actions">
@@ -175,18 +176,18 @@ export default function Dashboard() {
       <section className="dx-hero">
         <div className="dx-hero-main">
           <span>{canViewCosts ? 'Toplam stok değeri' : 'Toplam stok'}</span>
-          <strong>{canViewCosts ? tl(a.value) : num(a.units) + ' birim'}</strong>
+          <strong>{canViewCosts ? <CountUp value={a.value} format={tl} /> : <CountUp value={a.units} format={v => num(v) + ' birim'} />}</strong>
           <small>{num(a.units)} birim · {raw.products.length} ürün · {raw.warehouses.length} depo</small>
           {canViewCosts && <HeroArea data={a.valueSeries} />}
         </div>
         <div className="dx-hero-stats">
-          <div><span>Dönem girişi</span><b>{num(current.inbound)}</b><Delta value={change(current.inbound, previous.inbound)} /></div>
-          <div><span>Dönem çıkışı</span><b>{num(current.outbound)}</b><Delta value={change(current.outbound, previous.outbound)} /></div>
-          {canViewCosts && <div><span>Satış değeri</span><b>{compact(a.saleValue)} ₺</b><small>Potansiyel kâr {compact(a.saleValue - a.value)} ₺</small></div>}
+          <div><span>Dönem girişi</span><b><CountUp value={current.inbound} format={num} /></b><Delta value={change(current.inbound, previous.inbound)} /></div>
+          <div><span>Dönem çıkışı</span><b><CountUp value={current.outbound} format={num} /></b><Delta value={change(current.outbound, previous.outbound)} /></div>
+          {canViewCosts && <div><span>Satış değeri</span><b><CountUp value={a.saleValue} format={v => compact(v) + ' ₺'} /></b><small>Potansiyel kâr {compact(a.saleValue - a.value)} ₺</small></div>}
         </div>
         <div className="dx-hero-score" aria-label={`İşletme sağlık skoru ${a.score}`}>
           <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" /><circle cx="60" cy="60" r="50" pathLength="100" strokeDasharray={`${a.score} 100`} data-tone={a.score >= 80 ? 'good' : a.score >= 55 ? 'mid' : 'bad'} /></svg>
-          <b>{a.score}</b><span>Sağlık skoru</span>
+          <b><CountUp value={a.score} /></b><span>Sağlık skoru</span>
           <small>{scoreText}</small>
         </div>
       </section>
