@@ -6,3 +6,10 @@ html:root[data-design='veniux'] .enterprise-content .metric-card .metric-value{f
 html:root[data-design='veniux'] .enterprise-content .flex:has(> div:first-child h1){flex-wrap:wrap;gap:12px 16px}
 html:root[data-design='veniux'] .enterprise-content .flex:has(> div:first-child h1)>div:first-child{flex:1 1 340px;min-width:0}
 html:root[data-design='veniux'] .enterprise-content h1{text-wrap:balance}
+
+
+/* Birincil düğme: pencerelerde ve kasada marka turuncusu (mavi ana renk yalnız bağlantı ve odak için). */
+html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary{background:#cf4b06;border-color:#cf4b06;color:#fff}
+html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:hover:not(:disabled){background:#b23f04;border-color:#b23f04}
+html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:disabled{background:#cf4b06;opacity:.45}
+html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:focus-visible{outline:3px solid #17263a;outline-offset:2px}

@@ -133,3 +133,9 @@ html:root[data-theme='dark'] .sd .sd-eyebrow,html:root[data-theme='dark'] .sd .v
 .sd .vm .vm-input{border:1px solid #b5a88f!important;border-radius:0!important;background:#fff!important;min-height:44px;font-size:14px}
 .sd .vm .vm-input:focus{outline:0;border-color:#cf4b06!important;box-shadow:0 0 0 3px #cf4b0644!important}
 html:root[data-theme='dark'] .sd .vm .vm-input{background:#0e1520!important;border-color:#30455e!important}
+html:root[data-theme='dark'] .sd .vm-btn:disabled{background:#7a3a17;border-color:#7a3a17;color:#f1e3d6;opacity:1}
+html:root[data-theme='dark'] .sd .sd-back{color:#c9d3e2}
+html:root[data-theme='dark'] .sd [role=tablist]{border-bottom-color:#4a5d78}
+html:root[data-theme='dark'] .sd [role=tablist]>button{color:#b0bccd}
+html:root[data-theme='dark'] .sd [role=tablist]>button[aria-selected=true]{color:#fff}
+html:root[data-theme='dark'] .sd [role=tablist]>button:hover{background:#ffffff12;color:#fff}
