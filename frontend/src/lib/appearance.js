@@ -19,7 +19,7 @@ export const ACCENTS = [
 // Keep the old preference IDs readable while every workspace uses the same bundled typeface.
 export const UI_FONT_FAMILY="Archivo,'Segoe UI',Arial,sans-serif";
 export const FONTS=[{id:'geometric',name:'Veniux Manrope',family:UI_FONT_FAMILY},{id:'system',name:'Veniux Manrope',family:UI_FONT_FAMILY}];
-export const DEFAULTS = { mode: 'light', accent: 'ember', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle',easy:false };
+export const DEFAULTS = { mode: 'light', accent: 'ember', density: 'comfortable', sound: true, font:'geometric',textSize:'standard',corners:'soft',motion:'subtle',easy:false,scale:120 };
 
 const valid = {
   mode: v => ['light', 'dark', 'system'].includes(v),
@@ -30,7 +30,8 @@ const valid = {
   corners:v=>['sharp','balanced','soft'].includes(v),
   motion:v=>['subtle','off'].includes(v),
   sound: v => typeof v === 'boolean',
-  easy: v => typeof v === 'boolean'
+  easy: v => typeof v === 'boolean',
+  scale: v => [100,110,120,130,140,150].includes(v)
 };
 
 export function readAppearance() {
@@ -60,6 +61,7 @@ export function applyAppearance(prefs = readAppearance()) {
   root.style.colorScheme = mode;
   root.dataset.textSize=prefs.textSize;root.dataset.corners=prefs.corners;root.dataset.motion=prefs.motion;
   if (prefs.easy) root.dataset.easy = 'true'; else delete root.dataset.easy;
+  root.style.setProperty('--ui-scale', String(prefs.scale / 100));
   root.style.setProperty('--font-sans',UI_FONT_FAMILY);
   root.style.setProperty('--font-display','var(--font-sans)');
   root.style.setProperty('--vx-radius',({sharp:'8px',balanced:'14px',soft:'22px'})[prefs.corners]||'22px');

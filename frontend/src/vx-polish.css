@@ -36,10 +36,18 @@ html:root[data-design='veniux'] .dx-todo a b{font-size:clamp(26px,13cqw,40px);wh
 .easy-card b{display:block;font-size:20px}
 .easy-card span{display:block;margin-top:4px;font-size:15px}
 .easy-card[aria-checked='true']{background:#17263a;color:#fff}
-html[data-easy='true'] body:not([data-pos-terminal]) #root{zoom:1.2}
+html[data-easy='true'] body:not([data-pos-terminal]) #root{zoom:var(--ui-scale,1.2)}
 html[data-easy='true'] :is(button,a,input,select,textarea,.btn-primary,.btn-soft){min-height:44px}
 html[data-easy='true'] .enterprise-content :is(td,th,input,select,textarea,label,p,li,span,.text-sm,.text-xs){font-size:16px!important;line-height:1.55}
 html[data-easy='true'] :focus-visible{outline:3px solid #cf4b06!important;outline-offset:2px}
 html[data-easy='true'] .enterprise-header kbd{display:none}
 html[data-easy='true'] .sb-section-title{font-size:13px}
 html[data-easy='true'] *{transition-duration:0s!important;animation-duration:0s!important}
+
+/* Ayarlar sekme şeridi: kaydırma yerine alt satıra geç */
+@media(max-width:1100px){html:root[data-design='veniux']:not([data-theme='dark']):not([data-mobile='true']) .vx-set .settings-navigation>.vx-set-menu{flex-wrap:wrap!important;overflow:visible!important}}
+.size-step{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.size-step button{min-width:56px;height:52px;border:2px solid #17263a;background:#fffdf8;color:#17263a;font-weight:800;font-size:22px;cursor:pointer}
+.size-step button:disabled{opacity:.35;cursor:default}
+.size-step output{min-width:72px;text-align:center;font-weight:800;font-size:22px}
+.size-sample{margin-top:12px;padding:14px 16px;border:1.5px dashed #c9bda6;background:#fffdf8}

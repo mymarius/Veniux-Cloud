@@ -18,6 +18,8 @@ const DENSITIES = [
   { id: 'compact', label: 'Kompakt', hint: 'Daha küçük yazı ve dar satırlar; ekrana daha çok kayıt sığar.' }
 ];
 
+const SCALES = [100, 110, 120, 130, 140, 150];
+
 // Every choice applies immediately and is remembered on this device.
 export default function AppearanceTab() {
   const { prefs, update, theme } = useTheme();
@@ -42,10 +44,16 @@ export default function AppearanceTab() {
         </div>
       </header>
 
-      <button type="button" role="switch" aria-checked={!!prefs.easy} className="easy-card" onClick={() => update({ easy: !prefs.easy })}>
-        <b>Kolay kullanım {prefs.easy ? 'açık' : 'kapalı'}</b>
-        <span>Yazıları ve düğmeleri büyütür, ekranı sadeleştirir. Yaşlı veya ilk kez kullanan kişiler için önerilir.</span>
-      </button>
+      <div className="easy-card" style={{cursor:'default'}} aria-checked={!!prefs.easy}>
+        <b>Ekran büyüklüğü</b>
+        <span>Yazıları ve düğmeleri istediğiniz boyuta getirin. Müşterinize gösterirken büyütüp küçültebilirsiniz.</span>
+        <div className="size-step" style={{marginTop:12}}>
+          <button type="button" aria-label="Küçült" disabled={!prefs.easy} onClick={() => { const i = SCALES.indexOf(prefs.scale); update(i <= 0 ? { easy: false } : { scale: SCALES[i - 1] }); }}>A−</button>
+          <output>{prefs.easy ? `%${prefs.scale}` : 'Normal'}</output>
+          <button type="button" aria-label="Büyüt" disabled={prefs.easy && prefs.scale >= 150} onClick={() => { if (!prefs.easy) update({ easy: true, scale: 110 }); else update({ scale: SCALES[Math.min(SCALES.length - 1, SCALES.indexOf(prefs.scale) + 1)] }); }}>A+</button>
+          <button type="button" style={{fontSize:15,padding:'0 16px'}} onClick={() => update({ easy: !prefs.easy, scale: 120 })}>{prefs.easy ? 'Normale dön' : 'Kolay kullanım'}</button>
+        </div>
+      </div>
 
       <div className="appearance-grid">
         <Panel icon={Sun} title="Ekran modu" subtitle={prefs.mode === 'system' ? `Şu an sistem ayarı: ${theme === 'dark' ? 'koyu' : 'açık'}` : 'Uygulamanın genel renk düzeni'}>
