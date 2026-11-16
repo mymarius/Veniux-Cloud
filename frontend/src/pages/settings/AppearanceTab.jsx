@@ -42,6 +42,11 @@ export default function AppearanceTab() {
         </div>
       </header>
 
+      <button type="button" role="switch" aria-checked={!!prefs.easy} className="easy-card" onClick={() => update({ easy: !prefs.easy })}>
+        <b>Kolay kullanım {prefs.easy ? 'açık' : 'kapalı'}</b>
+        <span>Yazıları ve düğmeleri büyütür, ekranı sadeleştirir. Yaşlı veya ilk kez kullanan kişiler için önerilir.</span>
+      </button>
+
       <div className="appearance-grid">
         <Panel icon={Sun} title="Ekran modu" subtitle={prefs.mode === 'system' ? `Şu an sistem ayarı: ${theme === 'dark' ? 'koyu' : 'açık'}` : 'Uygulamanın genel renk düzeni'}>
           <div className="appearance-options" role="radiogroup" aria-label="Ekran modu">

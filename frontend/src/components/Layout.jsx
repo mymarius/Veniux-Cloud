@@ -3,7 +3,8 @@ import veniuxLogo from '../assets/veniux-logo.webp';
 import { useBranding } from '../lib/branding';
 import React, { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
-import { ShoppingBag, Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift } from 'lucide-react';
+import { ShoppingBag, Activity, ArrowRightLeft, BarChart3, Bell, Boxes, Building2, CalendarClock, ChevronDown, ClipboardCheck, Database, FileSpreadsheet, Handshake, IdCard, Inbox, Layers, ChevronLeft, ListTodo, LogOut, Menu, Minus, Package, Pill, Plus, ScanBarcode, Search, Settings, ShieldCheck, ShoppingCart, Thermometer, Truck, Users, Warehouse, X, LayoutDashboard, Sparkles, UserPlus, MonitorSmartphone, History, Printer, PanelLeftClose, PanelLeftOpen, Utensils, ChefHat, Search as SearchIcon, AlertTriangle as AlertTriangleIcon, Grid3x3, Printer as PrinterIcon, Percent, PackageX, Gift, ZoomIn } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import apiClient, { useDataSync } from '../api/client';
 import { QuickStockModal, QuickTransferModal } from './QuickModals';
 import UserAvatar from './UserAvatar';
@@ -107,6 +108,7 @@ const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi
 
 export function Layout({ children }) {
   const branding = useBranding();
+  const { prefs: themePrefs, update: themeUpdate } = useTheme() || {};
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => { try { return localStorage.getItem('veniux_sidebar_collapsed') === '1'; } catch { return false; } });
   const toggleSidebar = () => setSidebarCollapsed(current => {
@@ -328,6 +330,7 @@ export function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {!window.veniuxMobile&&<button type="button" className="easy-toggle" aria-pressed={!!themePrefs?.easy} title="Yazıları ve düğmeleri büyütür, ekranı sadeleştirir" onClick={()=>themeUpdate?.({easy:!themePrefs?.easy})}><ZoomIn size={18}/><span>{themePrefs?.easy?'Kolay kullanım: açık':'Yazıları büyüt'}</span></button>}
             {window.veniuxMobile&&<button aria-label="İşletme asistanını aç" className="mobile-header-assistant" onClick={()=>window.dispatchEvent(new Event('veniux:assistant-open'))}><Sparkles size={20}/></button>}
             {/* Pill Search */}
             <button 
