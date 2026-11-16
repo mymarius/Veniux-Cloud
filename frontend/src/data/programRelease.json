@@ -1,8 +1,17 @@
 {
-  "version": "2.4.80",
+  "version": "2.4.81",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.81",
+      "date": "16 Kasım 2026",
+      "title": "Vega'nın karşılaması ve platform atama işlemleri",
+      "items": [
+        "- Vega'nın \"Hoş geldiniz\" özeti artık samimi mahalle ağzıyla konuşuyor (\"Siz yokken ... işledim\", \"rahat olun\")",
+        "- Platform yöneticisi: sektör paketi hakkı verme ve lisans atama yönetim sitesine (Atama sayfası) taşındı; programdaki API Yönetim Merkezi'nden bu bölümler kaldırıldı"
+      ]
+    },
     {
       "version": "2.4.80",
       "date": "16 Kasım 2026",
