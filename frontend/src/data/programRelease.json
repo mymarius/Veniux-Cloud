@@ -1,8 +1,17 @@
 {
-  "version": "2.4.82",
+  "version": "2.4.83",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.83",
+      "date": "16 Kasım 2026",
+      "title": "Pazaryeri altyapısı: Hepsiburada ve N11",
+      "items": [
+        "- Ayarlar > Entegrasyonlar: Trendyol yanında Hepsiburada ve N11 bağlantıları eklendi (gerçek mağazada denenmedi, kapalı kaydedilir; önce bağlantıyı deneyip sonra eşitlemeyi açın)",
+        "- Pazaryeri altyapısı ortaklaştırıldı; Trendyol davranışı değişmedi"
+      ]
+    },
     {
       "version": "2.4.82",
       "date": "16 Kasım 2026",
