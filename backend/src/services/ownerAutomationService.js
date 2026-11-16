@@ -8,6 +8,19 @@ async function prepareDrafts(tenant){
  try{return await require('./procurementService').draftsFromForecast({tenantId:tenant,userId:owner.id,email:owner.email,role:owner.role},{},'automation-'+new Date().toISOString().slice(0,10));}
  catch(error){if(error.message==='Sipariş önerilen ürün bulunamadı.')return {orders:[],skipped:[]};throw error;}
 }
+// Sahibi yokken yapılan zamanlı kontrolde dikkat gerektiren bir şey bulunduysa telefona kısa, Vega ağzıyla bildirim gider. Bulgu yoksa susar (gürültü yapmaz).
+function vegaBody({created=0,low=0,drafts=0}){
+ const parts=[];
+ if(created>0)parts.push(`${created} yeni uyarı düştü`);
+ if(low>0)parts.push(`${low} ürün bitmek üzere`);
+ if(drafts>0)parts.push(`${drafts} sipariş taslağı hazırladım, onayına bakar mısın`);
+ return parts.length?`Efendim, bi baktım: ${parts.join(', ')}. Detay için uygulamaya gir.`:'';
+}
+async function vegaPush(tenant,found){
+ const body=vegaBody(found);if(!body)return {skipped:true};
+ try{return await require('./pushNotifier').notifyTenant(tenant,{title:'Vega',body,url:'/dashboard',tag:'vega-nobet'});}
+ catch{return {skipped:true};}
+}
 async function config(tenant){return {...defaults,...await policies.read(tenant,'automation')};}
 async function run(tenant,{scheduled=false,centralLicense}={}){
  const settings=await config(tenant);
@@ -20,7 +33,7 @@ async function run(tenant,{scheduled=false,centralLicense}={}){
   return result.rows[0].id;
  });
  if(!id)return {skipped:true};
- let summary='',status='completed';
+ let summary='',status='completed',found={created:0,low:0,drafts:0};
  try{
   let created=0;
   if(settings.ruleChecks)created+=(await require('./alertRuleEngine').runAlertRuleEngine(tenant)).created;
@@ -28,9 +41,11 @@ async function run(tenant,{scheduled=false,centralLicense}={}){
   const moduleType=await require('./moduleAccess').getModuleType(tenant,centralLicense);
   const overview=await require('./assistantMonitor').overview({tenantId:tenant,moduleType});
   summary=`Kontroller tamamlandı. ${created} yeni uyarı kaydedildi. ${overview.summary}`;
-  if(settings.draftOrders){const drafts=await prepareDrafts(tenant);if(drafts.orders.length)summary+=` ${drafts.orders.length} sipariş taslağı onayınızı bekliyor.`;if(drafts.skipped.length)summary+=` ${drafts.skipped.length} ürün tedarikçisi veya deposu olmadığı için taslağa eklenmedi.`;}
+  found.created=created;found.low=Number(overview.totals?.low_stock)||0;
+  if(settings.draftOrders){const drafts=await prepareDrafts(tenant);found.drafts=drafts.orders.length;if(drafts.orders.length)summary+=` ${drafts.orders.length} sipariş taslağı onayınızı bekliyor.`;if(drafts.skipped.length)summary+=` ${drafts.skipped.length} ürün tedarikçisi veya deposu olmadığı için taslağa eklenmedi.`;}
  }catch{status='failed';summary='Otomatik kontrolün bazı adımları tamamlanamadı. Yapılan işlemler ve işletme uyarıları panelden kontrol edilmelidir.';}
  await db.query('UPDATE assistant_runs SET summary=$1 WHERE tenant_id=$2 AND id=$3',[summary,tenant,id]);
+ if(scheduled&&status==='completed')await vegaPush(tenant,found);
  let sms={status:'not_requested'};
  if(settings.smsOnCompletion){
   const company=(await db.query('SELECT owner_phone FROM tenants WHERE id=$1',[tenant])).rows[0];
@@ -60,4 +75,4 @@ async function tick({centralLicense}={}){
   catch{console.error('[Owner automation] Tenant job failed:',tenant.id);}
  }
 }
-module.exports={prepareDrafts,defaults,config,run,tick};
+module.exports={prepareDrafts,defaults,config,run,tick,vegaBody};
