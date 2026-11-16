@@ -195,7 +195,7 @@ test('429 alınca Retry-After süresi boyunca istek gönderilmez', async () => {
   const second = await E.sync();
   expect(second.body.skipped).toBe(true);
   expect(fake.headers.length).toBe(before);
-  service._backoff.delete(E.t.tenantId);
+  service._backoff.delete(E.t.tenantId + ':trendyol');
   expect((await E.sync()).status).toBe(200);
 });
 

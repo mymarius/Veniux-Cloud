@@ -1,16 +1,24 @@
 const crypto = require('crypto');
 const db = require('../config/database');
 const ledger = require('./inventoryTransactionService');
+const { providers } = require('./marketplaceProviders');
 
-// Trendyol belgeleri: stok isteği en çok 1000 ürün, ürün başına en çok 20000 adet; sipariş sayfası en çok 200, tarih aralığı en çok 2 hafta.
-const PROVIDER = 'trendyol', HOSTS = { live: 'https://apigw.trendyol.com', test: 'https://stageapigw.trendyol.com' };
-const STOCK_BATCH = 1000, MAX_UNITS = 20000, PAGE_SIZE = 200, MAX_PAGES = 50, WINDOW_MS = 14 * 86400000, OVERLAP_MS = 3600000;
-const CANCELLED = new Set(['Cancelled', 'UnSupplied']);
+// Ortak pazaryeri çekirdeği. Sağlayıcıya özgü adres ve veri biçimi marketplaceProviders.js içindedir.
+const DEFAULT_PROVIDER = 'trendyol';
+const MAX_PAGES = 50, OVERLAP_MS = 3600000;
 const fail = (message, status = 400) => { throw Object.assign(Error(message), { status }); };
+// Beklemeler firma + sağlayıcı bazındadır: bir pazaryerinin sınırı diğerini durdurmaz.
 const backoff = new Map();
-const CLAIM_RESTOCK = new Set(['Accepted']);
+const waitKey = connection => `${connection.tenant_id}:${connection.provider}`;
 const stamp = date => date.toISOString().slice(0, 19).replace('T', ' ');
 const millis = value => Date.parse(String(value).includes('T') ? value : String(value).replace(' ', 'T') + 'Z');
+
+function adapterOf(provider) {
+  const adapter = providers[provider];
+  if (!adapter) fail('Desteklenmeyen pazaryeri.', 404);
+  return adapter;
+}
+const providerList = () => Object.values(providers).map(p => ({ id: p.id, label: p.label, experimental: p.experimental, environments: p.environments }));
 
 function key() {
   const { JWT_SECRET } = require('../middlewares/authMiddleware');
@@ -30,108 +38,112 @@ function unseal(payload, tenant) {
 }
 
 async function call(connection, method, path, body) {
+  const adapter = adapterOf(connection.provider);
   const secret = unseal(connection.credentials_enc, connection.tenant_id);
-  const host = process.env.TRENDYOL_TEST_BASE_URL || HOSTS[connection.environment];
+  const { url, headers } = adapter.request(connection, secret, path);
   let response;
   try {
-    response = await fetch(`${host}/integration${path}`, {
+    response = await fetch(url, {
       method,
       redirect: 'error',
       signal: AbortSignal.timeout(30000),
-      headers: { Authorization: 'Basic ' + Buffer.from(`${secret.apiKey}:${secret.apiSecret}`).toString('base64'), 'User-Agent': `${connection.seller_id} - SelfIntegration`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { ...headers, ...(body ? { 'Content-Type': 'application/json' } : {}) },
       body: body ? JSON.stringify(body) : undefined
     });
-  } catch { fail('Trendyol sunucusuna ulaşılamadı.', 502); }
-  if (response.status === 401) fail('Trendyol API bilgileri reddedildi. Satıcı ID, API anahtarı ve parolayı kontrol edin.', 502);
-  if (response.status === 503 && connection.environment === 'test') fail('Trendyol test ortamı isteği reddetti. Sunucu IP adresinin Trendyol tarafından tanımlanması gerekir.', 502);
+  } catch { fail(`${adapter.label} sunucusuna ulaşılamadı.`, 502); }
+  if (response.status === 401 || (response.status === 403 && adapter.experimental)) fail(adapter.authError, 502);
+  const hint = response.status === 503 ? adapter.hint503(connection) : null;
+  if (hint) fail(hint, 502);
   if (response.status === 429) {
-    const wait = Math.min(15 * 60, Math.max(60, Number(response.headers?.get?.('retry-after')) || 0, (backoff.get(connection.tenant_id)?.seconds || 30) * 2));
-    backoff.set(connection.tenant_id, { until: Date.now() + wait * 1000, seconds: wait });
-    fail(`Trendyol istek sınırı aşıldı; ${Math.ceil(wait / 60)} dakika sonra yeniden denenecek.`, 502);
+    const wait = Math.min(15 * 60, Math.max(60, Number(response.headers?.get?.('retry-after')) || 0, (backoff.get(waitKey(connection))?.seconds || 30) * 2));
+    backoff.set(waitKey(connection), { until: Date.now() + wait * 1000, seconds: wait });
+    fail(`${adapter.label} istek sınırı aşıldı; ${Math.ceil(wait / 60)} dakika sonra yeniden denenecek.`, 502);
   }
-  if (!response.ok) fail(`Trendyol isteği başarısız oldu (${response.status}).`, 502);
-  return response.json();
+  if (!response.ok) fail(`${adapter.label} isteği başarısız oldu (${response.status}).`, 502);
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 }
+const apiFor = connection => (method, path, body) => call(connection, method, path, body);
 
-const read = async tenant => (await db.query('SELECT * FROM marketplace_connections WHERE tenant_id=$1 AND provider=$2', [tenant, PROVIDER])).rows[0];
-async function settings(tenant) {
-  const row = (await db.query('SELECT stock_buffer,price_sync FROM marketplace_settings WHERE tenant_id=$1 AND provider=$2', [tenant, PROVIDER])).rows[0];
+const read = async (tenant, provider) => (await db.query('SELECT * FROM marketplace_connections WHERE tenant_id=$1 AND provider=$2', [tenant, provider])).rows[0];
+async function settings(tenant, provider) {
+  const row = (await db.query('SELECT stock_buffer,price_sync FROM marketplace_settings WHERE tenant_id=$1 AND provider=$2', [tenant, provider])).rows[0];
   return { stock_buffer: Number(row?.stock_buffer || 0), price_sync: Boolean(Number(row?.price_sync || 0)) };
 }
-function view(row) {
-  if (!row) return { connected: false };
-  return { connected: true, seller_id: row.seller_id, environment: row.environment, warehouse_id: row.warehouse_id, enabled: Boolean(Number(row.enabled)), last_sync_at: row.last_sync_at, last_error: row.last_error, orders_since: row.orders_since };
+function view(row, adapter) {
+  const meta = { provider: adapter.id, label: adapter.label, experimental: adapter.experimental, environments: adapter.environments };
+  if (!row) return { ...meta, connected: false };
+  return { ...meta, connected: true, seller_id: row.seller_id, environment: row.environment, warehouse_id: row.warehouse_id, enabled: Boolean(Number(row.enabled)), last_sync_at: row.last_sync_at, last_error: row.last_error, orders_since: row.orders_since };
 }
 
-async function status(user) {
-  const orders = (await db.query('SELECT status,stock_state,package_id,order_number,detail,created_at FROM marketplace_orders WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, PROVIDER])).rows;
-  const claims = (await db.query('SELECT status,stock_state,order_number,barcode,created_at FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, PROVIDER])).rows;
-  return { ...view(await read(user.tenantId)), ...(await settings(user.tenantId)), orders, claims };
+async function status(user, provider = DEFAULT_PROVIDER) {
+  const adapter = adapterOf(provider);
+  const orders = (await db.query('SELECT status,stock_state,package_id,order_number,detail,created_at FROM marketplace_orders WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, provider])).rows;
+  const claims = (await db.query('SELECT status,stock_state,order_number,barcode,created_at FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 ORDER BY id DESC LIMIT 20', [user.tenantId, provider])).rows;
+  return { ...view(await read(user.tenantId, provider), adapter), ...(await settings(user.tenantId, provider)), orders, claims };
 }
 
-async function save(user, body) {
-  const sellerId = String(body.seller_id ?? '').trim();
-  if (!/^\d{1,20}$/.test(sellerId)) fail('Satıcı ID yalnız rakamlardan oluşmalıdır.');
-  if (!['live', 'test'].includes(body.environment)) fail('Ortam canlı veya test olmalıdır.');
+async function save(user, body, provider = DEFAULT_PROVIDER) {
+  const adapter = adapterOf(provider);
+  const { sellerId, environment } = adapter.validate(body);
   const warehouse = (await db.query('SELECT id FROM warehouses WHERE id=$1 AND tenant_id=$2', [body.warehouse_id, user.tenantId])).rows[0];
   if (!warehouse) fail('Depo bulunamadı.', 404);
-  const current = await read(user.tenantId);
+  const current = await read(user.tenantId, provider);
   const hasKeys = String(body.api_key ?? '').trim() && String(body.api_secret ?? '').trim();
   if (!current && !hasKeys) fail('API anahtarı ve parola gereklidir.');
   const sealed = hasKeys ? seal({ apiKey: String(body.api_key).trim(), apiSecret: String(body.api_secret).trim() }, user.tenantId) : current.credentials_enc;
-  const enabled = body.enabled === false ? 0 : 1;
-  if (current) await db.query('UPDATE marketplace_connections SET seller_id=$1,credentials_enc=$2,environment=$3,warehouse_id=$4,enabled=$5,last_error=NULL WHERE id=$6 AND tenant_id=$7', [sellerId, sealed, body.environment, warehouse.id, enabled, current.id, user.tenantId]);
+  // Denenmemiş sağlayıcılar yöneticinin açık onayı olmadan kapalı kaydedilir; kapalıyken eşitleme ve stok gönderimi çalışmaz.
+  const enabled = adapter.experimental ? (body.enabled === true ? 1 : 0) : (body.enabled === false ? 0 : 1);
+  if (current) await db.query('UPDATE marketplace_connections SET seller_id=$1,credentials_enc=$2,environment=$3,warehouse_id=$4,enabled=$5,last_error=NULL WHERE id=$6 AND tenant_id=$7', [sellerId, sealed, environment, warehouse.id, adapter.experimental && body.enabled === undefined ? current.enabled : enabled, current.id, user.tenantId]);
   // Bağlantıdan önceki siparişler stoğa zaten yansımış kabul edilir; yalnız bundan sonrakiler işlenir.
-  else await db.query('INSERT INTO marketplace_connections (tenant_id,provider,seller_id,credentials_enc,environment,warehouse_id,enabled,orders_since) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [user.tenantId, PROVIDER, sellerId, sealed, body.environment, warehouse.id, enabled, stamp(new Date())]);
+  else await db.query('INSERT INTO marketplace_connections (tenant_id,provider,seller_id,credentials_enc,environment,warehouse_id,enabled,orders_since) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [user.tenantId, provider, sellerId, sealed, environment, warehouse.id, enabled, stamp(new Date())]);
   const buffer = body.stock_buffer === undefined ? null : Number(body.stock_buffer);
   if (buffer !== null && (!Number.isInteger(buffer) || buffer < 0 || buffer > 1000)) fail('Güvenlik payı 0-1000 arasında tam sayı olmalıdır.');
   if (buffer !== null || body.price_sync !== undefined) {
-    const current = await settings(user.tenantId), next = { stock_buffer: buffer ?? current.stock_buffer, price_sync: body.price_sync === undefined ? current.price_sync : body.price_sync === true };
-    const updated = await db.query('UPDATE marketplace_settings SET stock_buffer=$1,price_sync=$2 WHERE tenant_id=$3 AND provider=$4', [next.stock_buffer, next.price_sync ? 1 : 0, user.tenantId, PROVIDER]);
-    if (!updated.rowCount) await db.query('INSERT INTO marketplace_settings (tenant_id,provider,stock_buffer,price_sync) VALUES ($1,$2,$3,$4)', [user.tenantId, PROVIDER, next.stock_buffer, next.price_sync ? 1 : 0]);
+    const now = await settings(user.tenantId, provider), next = { stock_buffer: buffer ?? now.stock_buffer, price_sync: body.price_sync === undefined ? now.price_sync : body.price_sync === true };
+    const updated = await db.query('UPDATE marketplace_settings SET stock_buffer=$1,price_sync=$2 WHERE tenant_id=$3 AND provider=$4', [next.stock_buffer, next.price_sync ? 1 : 0, user.tenantId, provider]);
+    if (!updated.rowCount) await db.query('INSERT INTO marketplace_settings (tenant_id,provider,stock_buffer,price_sync) VALUES ($1,$2,$3,$4)', [user.tenantId, provider, next.stock_buffer, next.price_sync ? 1 : 0]);
   }
-  return { ...view(await read(user.tenantId)), ...(await settings(user.tenantId)) };
+  return { ...view(await read(user.tenantId, provider), adapter), ...(await settings(user.tenantId, provider)) };
 }
 
-async function test(user) {
-  const connection = await read(user.tenantId);
+async function test(user, provider = DEFAULT_PROVIDER) {
+  const adapter = adapterOf(provider);
+  const connection = await read(user.tenantId, provider);
   if (!connection) fail('Önce bağlantı bilgilerini kaydedin.');
-  const data = await call(connection, 'GET', `/product/sellers/${connection.seller_id}/products/approved/inventory-and-price?page=0&size=1`);
-  return { ok: true, approved_products: Number(data.totalElements || 0) };
+  return adapter.test(connection, apiFor(connection));
 }
 
 async function checkLastBatch(connection) {
   if (!connection.last_batch_id) return null;
-  const batch = await call(connection, 'GET', `/product/sellers/${connection.seller_id}/products/batch-requests/${encodeURIComponent(connection.last_batch_id)}`);
-  if (batch.status !== 'COMPLETED') return null;
+  const result = await adapterOf(connection.provider).checkBatch(connection, apiFor(connection));
+  if (!result.done) return null;
   await db.query('UPDATE marketplace_connections SET last_batch_id=NULL WHERE id=$1 AND tenant_id=$2', [connection.id, connection.tenant_id]);
-  if (!Number(batch.failedItemCount)) return null;
-  const reason = (batch.items || []).find(item => item.status === 'FAILED')?.failureReasons?.[0];
-  return `Son stok gönderiminde ${batch.failedItemCount} ürün reddedildi${reason ? ': ' + reason : ''}.`;
+  return result.problem || null;
 }
 
 async function pushStock(connection) {
   // Aşırı satışa karşı pazaryerine "stok − güvenlik payı" gönderilir. Fiyat gönderimi açıksa satış fiyatı da gider.
-  const { stock_buffer: buffer, price_sync: withPrice } = await settings(connection.tenant_id);
+  const adapter = adapterOf(connection.provider), provider = connection.provider;
+  const { stock_buffer: buffer, price_sync: withPrice } = await settings(connection.tenant_id, provider);
   const rows = (await db.query(`SELECT p.id,p.barcode,p.sale_price,COALESCE(s.quantity,0) AS quantity,m.quantity AS sent,ps.price_cents AS sent_price FROM products p
     LEFT JOIN stock_records s ON s.product_id=p.id AND s.tenant_id=p.tenant_id AND s.warehouse_id=$2
     LEFT JOIN marketplace_stock_sent m ON m.product_id=p.id AND m.tenant_id=p.tenant_id AND m.provider=$3
     LEFT JOIN marketplace_price_sent ps ON ps.product_id=p.id AND ps.tenant_id=p.tenant_id AND ps.provider=$3
-    WHERE p.tenant_id=$1 AND p.barcode IS NOT NULL AND p.barcode<>''`, [connection.tenant_id, connection.warehouse_id, PROVIDER])).rows;
-  const changed = rows.map(row => ({ ...row, units: Math.min(MAX_UNITS, Math.max(0, Math.floor(Number(row.quantity)) - buffer)), cents: Math.round(Number(row.sale_price) * 100) }))
+    WHERE p.tenant_id=$1 AND p.barcode IS NOT NULL AND p.barcode<>''`, [connection.tenant_id, connection.warehouse_id, provider])).rows;
+  const changed = rows.map(row => ({ ...row, units: Math.min(adapter.maxUnits, Math.max(0, Math.floor(Number(row.quantity)) - buffer)), cents: Math.round(Number(row.sale_price) * 100) }))
     .map(row => ({ ...row, sendPrice: withPrice && row.cents > 0 && (row.sent_price === null || row.sent_price === undefined || Number(row.sent_price) !== row.cents) }))
     .filter(row => row.sendPrice || row.sent === null || row.sent === undefined || Number(row.sent) !== row.units);
   let batchId = null;
-  for (let i = 0; i < changed.length; i += STOCK_BATCH) {
-    const part = changed.slice(i, i + STOCK_BATCH);
-    const result = await call(connection, 'POST', `/inventory/sellers/${connection.seller_id}/products/price-and-inventory`, { items: part.map(row => ({ barcode: row.barcode, quantity: row.units, ...(row.sendPrice ? { salePrice: row.cents / 100, listPrice: row.cents / 100 } : {}) })) });
-    batchId = result.batchRequestId || batchId;
+  for (let i = 0; i < changed.length; i += adapter.stockBatch) {
+    const part = changed.slice(i, i + adapter.stockBatch);
+    batchId = (await adapter.pushStock(connection, apiFor(connection), part)) || batchId;
     for (const row of part) {
-      const updated = await db.query('UPDATE marketplace_stock_sent SET quantity=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.units, connection.tenant_id, PROVIDER, row.id]);
-      if (!updated.rowCount) await db.query('INSERT INTO marketplace_stock_sent (tenant_id,provider,product_id,quantity) VALUES ($1,$2,$3,$4)', [connection.tenant_id, PROVIDER, row.id, row.units]);
+      const updated = await db.query('UPDATE marketplace_stock_sent SET quantity=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.units, connection.tenant_id, provider, row.id]);
+      if (!updated.rowCount) await db.query('INSERT INTO marketplace_stock_sent (tenant_id,provider,product_id,quantity) VALUES ($1,$2,$3,$4)', [connection.tenant_id, provider, row.id, row.units]);
       if (row.sendPrice) {
-        const priced = await db.query('UPDATE marketplace_price_sent SET price_cents=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.cents, connection.tenant_id, PROVIDER, row.id]);
-        if (!priced.rowCount) await db.query('INSERT INTO marketplace_price_sent (tenant_id,provider,product_id,price_cents) VALUES ($1,$2,$3,$4)', [connection.tenant_id, PROVIDER, row.id, row.cents]);
+        const priced = await db.query('UPDATE marketplace_price_sent SET price_cents=$1,sent_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND provider=$3 AND product_id=$4', [row.cents, connection.tenant_id, provider, row.id]);
+        if (!priced.rowCount) await db.query('INSERT INTO marketplace_price_sent (tenant_id,provider,product_id,price_cents) VALUES ($1,$2,$3,$4)', [connection.tenant_id, provider, row.id, row.cents]);
       }
     }
   }
@@ -140,11 +152,11 @@ async function pushStock(connection) {
 }
 
 async function moveStock(tx, connection, product, amount, packageId, note) {
-  await tx.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,$5,'trendyol',$6)", [connection.tenant_id, product.id, connection.warehouse_id, amount, amount < 0 ? 'sale' : 'return', note]);
+  await tx.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,$5,$6,$7)", [connection.tenant_id, product.id, connection.warehouse_id, amount, amount < 0 ? 'sale' : 'return', connection.provider, note]);
   const record = (await tx.query('SELECT id FROM stock_records WHERE tenant_id=$1 AND product_id=$2 AND warehouse_id=$3', [connection.tenant_id, product.id, connection.warehouse_id])).rows[0];
   if (record) await tx.query('UPDATE stock_records SET quantity=quantity+$1,updated_at=CURRENT_TIMESTAMP WHERE id=$2 AND tenant_id=$3', [amount, record.id, connection.tenant_id]);
   else await tx.query('INSERT INTO stock_records (tenant_id,product_id,warehouse_id,quantity) VALUES ($1,$2,$3,$4)', [connection.tenant_id, product.id, connection.warehouse_id, amount]);
-  await ledger.recordProjectedEntry(tx, { tenant_id: connection.tenant_id, warehouse_id: connection.warehouse_id, product_id: product.id, transaction_type: amount < 0 ? 'SHIP' : 'RECEIVE', quantity: amount, reference_type: 'trendyol_package', reference_id: packageId });
+  await ledger.recordProjectedEntry(tx, { tenant_id: connection.tenant_id, warehouse_id: connection.warehouse_id, product_id: product.id, transaction_type: amount < 0 ? 'SHIP' : 'RECEIVE', quantity: amount, reference_type: `${connection.provider}_package`, reference_id: packageId });
 }
 
 // Paket tek işlemde ya tamamen düşülür ya da hiç düşülmez; düşülemeyen paket yönetici incelemesine kalır.
@@ -168,76 +180,66 @@ async function planPackage(tx, connection, lines) {
 }
 
 async function applyPackage(connection, pack) {
-  const packageId = String(pack.shipmentPackageId ?? pack.id ?? '');
+  const provider = connection.provider, label = adapterOf(provider).label;
+  const packageId = String(pack.id ?? '');
   if (!packageId) return 'skipped';
-  const packStatus = String(pack.shipmentPackageStatus || pack.status || '');
-  const cancelled = CANCELLED.has(packStatus);
+  const packStatus = String(pack.status || ''), cancelled = Boolean(pack.cancelled);
   return db.transaction(async tx => {
-    const seen = (await tx.query('SELECT * FROM marketplace_orders WHERE tenant_id=$1 AND provider=$2 AND package_id=$3', [connection.tenant_id, PROVIDER, packageId])).rows[0];
+    const seen = (await tx.query('SELECT * FROM marketplace_orders WHERE tenant_id=$1 AND provider=$2 AND package_id=$3', [connection.tenant_id, provider, packageId])).rows[0];
     const lines = Array.isArray(pack.lines) ? pack.lines : [];
     if (seen) {
       if (seen.status !== packStatus) await tx.query('UPDATE marketplace_orders SET status=$1 WHERE id=$2 AND tenant_id=$3', [packStatus, seen.id, connection.tenant_id]);
       if (!cancelled || seen.stock_state !== 'deducted') return 'seen';
       const applied = JSON.parse(seen.detail || '[]');
-      for (const item of applied) await moveStock(tx, connection, { id: item.product_id }, item.quantity, packageId, `Trendyol iptali ${packageId}`);
+      for (const item of applied) await moveStock(tx, connection, { id: item.product_id }, item.quantity, packageId, `${label} iptali ${packageId}`);
       await tx.query("UPDATE marketplace_orders SET stock_state='restored' WHERE id=$1 AND tenant_id=$2", [seen.id, connection.tenant_id]);
       return 'restored';
     }
-    const insert = (state, detail) => tx.query('INSERT INTO marketplace_orders (tenant_id,provider,package_id,order_number,status,stock_state,detail) VALUES ($1,$2,$3,$4,$5,$6,$7)', [connection.tenant_id, PROVIDER, packageId, pack.orderNumber == null ? null : String(pack.orderNumber), packStatus, state, detail]);
+    const insert = (state, detail) => tx.query('INSERT INTO marketplace_orders (tenant_id,provider,package_id,order_number,status,stock_state,detail) VALUES ($1,$2,$3,$4,$5,$6,$7)', [connection.tenant_id, provider, packageId, pack.orderNumber == null ? null : String(pack.orderNumber), packStatus, state, detail]);
     if (cancelled) { await insert('ignored', '[]'); return 'ignored'; }
     const { plan, problems } = await planPackage(tx, connection, lines);
     if (problems.length) {
       await insert('needs_review', JSON.stringify(problems));
-      await tx.query("INSERT INTO alerts (tenant_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,'marketplace_order','warning',$3,'unread')", [connection.tenant_id, connection.warehouse_id, `Trendyol paketi ${packageId} stoktan düşülemedi: ${problems.join('; ')}.`]);
+      await tx.query("INSERT INTO alerts (tenant_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,'marketplace_order','warning',$3,'unread')", [connection.tenant_id, connection.warehouse_id, `${label} paketi ${packageId} stoktan düşülemedi: ${problems.join('; ')}.`]);
       return 'needs_review';
     }
-    for (const item of plan) await moveStock(tx, connection, item.product, -item.quantity, packageId, `Trendyol paketi ${packageId}`);
+    for (const item of plan) await moveStock(tx, connection, item.product, -item.quantity, packageId, `${label} paketi ${packageId}`);
     await insert('deducted', JSON.stringify(plan.map(item => ({ product_id: item.product.id, quantity: item.quantity }))));
     return 'deducted';
   });
 }
 
+function windowFor(connection, adapter, now) {
+  const floor = millis(connection.orders_since), last = connection.last_sync_at ? millis(connection.last_sync_at) - OVERLAP_MS : floor;
+  return Math.max(floor, last, now.getTime() - adapter.windowMs);
+}
+
 async function pullOrders(connection, now) {
-  const floor = millis(connection.orders_since), last = connection.last_sync_at ? millis(connection.last_sync_at) - OVERLAP_MS : floor;
-  const start = Math.max(floor, last, now.getTime() - WINDOW_MS);
-  const counts = {};
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const data = await call(connection, 'GET', `/order/sellers/${connection.seller_id}/v2/orders?startDate=${start}&endDate=${now.getTime()}&orderByField=PackageLastModifiedDate&orderByDirection=ASC&page=${page}&size=${PAGE_SIZE}`);
-    for (const pack of data.content || []) {
-      const result = await applyPackage(connection, pack);
-      counts[result] = (counts[result] || 0) + 1;
-    }
-    if (page + 1 >= Number(data.totalPages || 0)) break;
+  const adapter = adapterOf(connection.provider), counts = {};
+  for (const pack of await adapter.orders(connection, apiFor(connection), windowFor(connection, adapter, now), now.getTime())) {
+    const result = await applyPackage(connection, pack);
+    counts[result] = (counts[result] || 0) + 1;
   }
   return counts;
 }
 
-// İade: yalnız "Accepted" (ürün satıcıya ulaşıp iade onaylandı) kalemler stoğa geri eklenir; her iade kalemi bir kez işlenir.
+// İade: yalnız sağlayıcının "stoğa dön" saydığı kalemler eklenir; her iade kalemi bir kez işlenir.
 async function pullClaims(connection, now) {
-  const floor = millis(connection.orders_since), last = connection.last_sync_at ? millis(connection.last_sync_at) - OVERLAP_MS : floor;
-  const start = Math.max(floor, last, now.getTime() - WINDOW_MS);
-  const counts = {};
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const data = await call(connection, 'GET', `/order/sellers/${connection.seller_id}/claims?startDate=${start}&endDate=${now.getTime()}&page=${page}&size=${PAGE_SIZE}`);
-    for (const claim of data.content || []) for (const item of claim.items || []) for (const line of item.claimItems || []) {
-      const status = line.claimItemStatus?.name;
-      if (!CLAIM_RESTOCK.has(status) || !line.id) continue;
-      const result = await db.transaction(async tx => {
-        if ((await tx.query('SELECT id FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 AND claim_item_id=$3', [connection.tenant_id, PROVIDER, String(line.id)])).rows.length) return 'seen';
-        const barcode = item.orderLine?.barcode || null;
-        const product = barcode ? (await tx.query('SELECT id,name FROM products WHERE tenant_id=$1 AND barcode=$2', [connection.tenant_id, barcode])).rows[0] : null;
-        if (product) await moveStock(tx, connection, product, 1, claim.orderNumber || claim.id, 'Trendyol iadesi kabul edildi');
-        await tx.query('INSERT INTO marketplace_claims (tenant_id,provider,claim_item_id,order_number,barcode,status,stock_state) VALUES ($1,$2,$3,$4,$5,$6,$7)', [connection.tenant_id, PROVIDER, String(line.id), claim.orderNumber || null, barcode, status, product ? 'restored' : 'needs_review']);
-        return product ? 'restored' : 'needs_review';
-      });
-      counts[result] = (counts[result] || 0) + 1;
-    }
-    if (page + 1 >= Number(data.totalPages || 0)) break;
+  const adapter = adapterOf(connection.provider), provider = connection.provider, label = adapter.label, counts = {};
+  for (const claim of await adapter.claims(connection, apiFor(connection), windowFor(connection, adapter, now), now.getTime())) {
+    const result = await db.transaction(async tx => {
+      if ((await tx.query('SELECT id FROM marketplace_claims WHERE tenant_id=$1 AND provider=$2 AND claim_item_id=$3', [connection.tenant_id, provider, claim.id])).rows.length) return 'seen';
+      const product = claim.barcode ? (await tx.query('SELECT id,name FROM products WHERE tenant_id=$1 AND barcode=$2', [connection.tenant_id, claim.barcode])).rows[0] : null;
+      if (product) await moveStock(tx, connection, product, 1, claim.ref, `${label} iadesi kabul edildi`);
+      await tx.query('INSERT INTO marketplace_claims (tenant_id,provider,claim_item_id,order_number,barcode,status,stock_state) VALUES ($1,$2,$3,$4,$5,$6,$7)', [connection.tenant_id, provider, claim.id, claim.orderNumber, claim.barcode, claim.status, product ? 'restored' : 'needs_review']);
+      return product ? 'restored' : 'needs_review';
+    });
+    counts[result] = (counts[result] || 0) + 1;
   }
   return counts;
 }
 
-// Cari hesap ekstresi (developers.trendyol.com "Cari Hesap Ekstresi Entegrasyonu"): tarih aralığı en çok 15 gün, size 500/1000.
+// Cari hesap ekstresi (yalnız Trendyol; developers.trendyol.com "Cari Hesap Ekstresi Entegrasyonu"): tarih aralığı en çok 15 gün, size 500/1000.
 // Satıcıya göre işaret: Satış ve İndirim İptali hakediş +, İade ve İndirim hakediş -. Komisyon aynı işaretle gider sayılır
 // (iadede ve indirimde komisyon satıcıya geri döner). Kayıtlar kimliğiyle tekildir; Trendyol sonradan düzeltirse yeniden yazılır.
 const SETTLEMENT_SIGN = { Sale: 1, Return: -1, Discount: -1, DiscountCancel: 1 };
@@ -246,6 +248,8 @@ const SETTLEMENT_WINDOW = 15 * 86400000 - 1000, SETTLEMENT_LOOKBACK = 30 * 86400
 const settlementPulled = new Map();
 const cents = value => Math.round(Math.abs(Number(value) || 0) * 100);
 async function pullSettlements(connection, now, force = false) {
+  if (connection.provider !== 'trendyol') return null;
+  const PROVIDER = connection.provider;
   const last = settlementPulled.get(connection.tenant_id);
   if (!force && last && now.getTime() - last < SETTLEMENT_EVERY) return null;
   // Ekstre stoğu değiştirmez: bağlantı anından önceki son 30 gün de rapora alınır.
@@ -275,7 +279,9 @@ async function pullSettlements(connection, now, force = false) {
 
 // Kâr raporu: satış tutarı, komisyon ve hakediş Trendyol ekstresinden; maliyet ürün kartındaki alış fiyatından (tahmini).
 // Ekstreye henüz yansımamış paketler ayrıca sayılır; onların tutarı rapora katılmaz.
-async function report(user, query = {}) {
+async function report(user, query = {}, provider = DEFAULT_PROVIDER) {
+  if (provider !== 'trendyol') fail('Bu pazaryeri için hakediş raporu henüz yok.', 404);
+  const PROVIDER = provider;
   const day = /^\d{4}-\d{2}-\d{2}$/;
   const to = day.test(query.to || '') ? query.to : new Date().toISOString().slice(0, 10);
   const from = day.test(query.from || '') ? query.from : new Date(Date.parse(to) - 29 * 86400000).toISOString().slice(0, 10);
@@ -299,22 +305,23 @@ async function report(user, query = {}) {
   return { from, to, estimated: true, note: 'Maliyet ürün kartındaki alış fiyatıyla hesaplanır; kargo ve diğer kesintiler dahil değildir.', totals: { sales_cents: sum('sales_cents'), commission_cents: sum('commission_cents'), revenue_cents: sum('revenue_cents'), cost_cents: sum('cost_cents'), profit_cents: unknown ? null : sum('profit_cents') }, unknown_products: unknown, unsettled_packages: unsettled, products };
 }
 
-async function syncSettlements(user) {
-  const connection = await read(user.tenantId);
+async function syncSettlements(user, provider = DEFAULT_PROVIDER) {
+  const connection = await read(user.tenantId, provider);
   if (!connection) fail('Önce bağlantı bilgilerini kaydedin.');
+  if (provider !== 'trendyol') fail('Bu pazaryeri için hakediş eşitlemesi henüz yok.', 404);
   return pullSettlements(connection, new Date(), true);
 }
 
 async function syncConnection(connection, now = new Date()) {
-  const wait = backoff.get(connection.tenant_id);
+  const wait = backoff.get(waitKey(connection)), label = adapterOf(connection.provider).label;
   if (wait && wait.until > Date.now()) return { skipped: true, retry_after_seconds: Math.ceil((wait.until - Date.now()) / 1000) };
   try {
     const batchProblem = await checkLastBatch(connection);
     const orders = await pullOrders(connection, now);
     const claims = await pullClaims(connection, now);
     const stock = await pushStock(connection);
-    const settlements = await pullSettlements(connection, now).catch(error => { console.error('[Trendyol] Ekstre alınamadı:', connection.tenant_id, error.message); return null; });
-    backoff.delete(connection.tenant_id);
+    const settlements = await pullSettlements(connection, now).catch(error => { console.error(`[${label}] Ekstre alınamadı:`, connection.tenant_id, error.message); return null; });
+    backoff.delete(waitKey(connection));
     await db.query('UPDATE marketplace_connections SET last_sync_at=$1,last_error=$2 WHERE id=$3 AND tenant_id=$4', [stamp(now), batchProblem, connection.id, connection.tenant_id]);
     return { orders, claims, stock_sent: stock, settlements, warning: batchProblem };
   } catch (error) {
@@ -323,29 +330,29 @@ async function syncConnection(connection, now = new Date()) {
   }
 }
 
-async function sync(user) {
-  const connection = await read(user.tenantId);
+async function sync(user, provider = DEFAULT_PROVIDER) {
+  adapterOf(provider);
+  const connection = await read(user.tenantId, provider);
   if (!connection) fail('Önce bağlantı bilgilerini kaydedin.');
   return syncConnection(connection);
 }
 
+const enabledConnections = async () => (await db.transaction(tx => tx.query('SELECT * FROM marketplace_connections WHERE enabled=1'))).rows.filter(row => providers[row.provider]);
 async function syncAll() {
-  const rows = (await db.transaction(tx => tx.query('SELECT * FROM marketplace_connections WHERE enabled=1'))).rows;
-  for (const connection of rows) await syncConnection(connection).catch(error => console.error('[Trendyol] Eşitleme başarısız:', connection.tenant_id, error.message));
+  for (const connection of await enabledConnections()) await syncConnection(connection).catch(error => console.error(`[${adapterOf(connection.provider).label}] Eşitleme başarısız:`, connection.tenant_id, error.message));
 }
 
 let timer, stockTimer;
 async function pushAllStock() {
-  const rows = (await db.transaction(tx => tx.query('SELECT * FROM marketplace_connections WHERE enabled=1'))).rows;
-  for (const connection of rows) {
-    const wait = backoff.get(connection.tenant_id);
+  for (const connection of await enabledConnections()) {
+    const wait = backoff.get(waitKey(connection));
     if (wait && wait.until > Date.now()) continue;
-    await pushStock(connection).catch(error => console.error('[Trendyol] Stok gönderilemedi:', connection.tenant_id, error.message));
+    await pushStock(connection).catch(error => console.error(`[${adapterOf(connection.provider).label}] Stok gönderilemedi:`, connection.tenant_id, error.message));
   }
 }
 function startScheduler(intervalMs = 5 * 60000, stockMs = 60000) {
   if (timer) return;
-  const tick = () => syncAll().catch(error => console.error('[Trendyol] Eşitleme çalışmadı:', error.message));
+  const tick = () => syncAll().catch(error => console.error('[Pazaryeri] Eşitleme çalışmadı:', error.message));
   timer = setInterval(tick, intervalMs);
   timer.unref();
   // Kasada satılan ürün en geç bir dakika içinde pazaryerinde düşer (yalnız değişen satırlar gönderilir).
@@ -353,4 +360,4 @@ function startScheduler(intervalMs = 5 * 60000, stockMs = 60000) {
   stockTimer.unref();
 }
 
-module.exports = { status, save, test, sync, syncAll, pushAllStock, startScheduler, report, syncSettlements, _backoff: backoff, _settlementPulled: settlementPulled };
+module.exports = { status, save, test, sync, syncAll, pushAllStock, startScheduler, report, syncSettlements, providerList, _backoff: backoff, _settlementPulled: settlementPulled };
