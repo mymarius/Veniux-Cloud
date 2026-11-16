@@ -60,3 +60,14 @@ html[data-easy='true'] *{transition-duration:0s!important;animation-duration:0s!
 .easy-home a b{display:block;font-size:24px;font-weight:800;line-height:1.15}
 .easy-home a span{display:block;margin-top:6px;font-size:15px}
 .easy-home a:hover{box-shadow:5px 5px 0 #17263a}
+
+.rs-key{display:inline-block;margin-left:8px;padding:1px 6px;border:1.5px solid currentColor;font:700 11px/1.4 monospace;opacity:.8}
+.rs-hot>div:last-child{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.rs-hot button{position:relative;text-align:left;padding:16px 14px;border:2px solid #17263a;background:#fffdf8;color:#17263a;cursor:pointer;min-height:84px}
+.rs-hot button b{display:block;font-size:17px;padding-right:34px}
+.rs-hot button span{font-size:14px}
+.rs-hot .rs-key{position:absolute;top:8px;right:8px;margin:0}
+.rs-ready{border:2px solid #0d7a57!important;background:#e9f6f0!important}
+.rs-ready>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0}
+html[data-theme='dark'] .rs-hot button{background:#14243a;color:#eef2f7;border-color:#3a506e}
+html[data-theme='dark'] .rs-ready{background:#10352a!important}

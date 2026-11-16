@@ -74,6 +74,11 @@ async function menu(user, query = {}) {
   const optionMap = new Map();
   for (const r of optionRows) optionMap.set(Number(r.product_id), [...(optionMap.get(Number(r.product_id)) || []), { name: r.name, price: round(r.price) }]);
   const items = (flagged.length ? all.filter(p => flagged.includes(Number(p.id))) : all).map(p => ({ id: Number(p.id), name: p.name, category: p.category || 'Diğer', unit: p.unit, price: round(p.sale_price), options: (optionMap.get(Number(p.id)) || []).map(o => ({ name: o.name, price: o.price })) }));
+  const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+  const soldRows = (await db.query("SELECT product_id,SUM(quantity) AS qty FROM restaurant_order_items WHERE tenant_id=$1 AND status<>'cancelled' AND created_at>=$2 GROUP BY product_id", [user.tenantId, since])).rows;
+  const sold = new Map(soldRows.map(r => [Number(r.product_id), Number(r.qty) || 0]));
+  for (const it of items) it.sold = sold.get(it.id) || 0;
+  items.sort((x, y) => y.sold - x.sold || String(x.category).localeCompare(String(y.category), 'tr') || String(x.name).localeCompare(String(y.name), 'tr'));
   const warehouse = await defaultWarehouse(user, query && query.warehouse_id);
   const stockView = await availability(user, warehouse);
   for (const it of items) { const n = stockView.portions(it.id); it.available = n; it.stock_state = portionState(n); }

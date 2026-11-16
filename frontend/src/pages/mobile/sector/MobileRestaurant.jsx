@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, ChefHat, Minus, Plus, Utensils, X } from 'lucide-react';
 import api from '../../../api/client';
@@ -46,11 +46,21 @@ function OrderPanel({ order, tables, onChanged, onClosed }) {
   const pay = (body, items) => act(async () => (await api.post(items ? base + '/pay-items' : base + '/close', items ? { ...body, item_ids: items } : body)).data, r => { onClosed(r, Boolean(items)); });
   const selectedTotal = live.filter(i => selected.includes(i.id) && !comped.has(i.id)).reduce((t, i) => t + itemAmount(i), 0);
   const payButtons = items => { const total = items ? selectedTotal : order.total; return <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 8, marginTop: 8 }}>
-    <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'cash' }, items)}>Nakit · {money(total)}</button>
-    <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'card' }, items)}>Kart · {money(total)}</button>
+    <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'cash' }, items)}>Nakit · {money(total)}{!items && <kbd className="rs-key">F9</kbd>}</button>
+    <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'card' }, items)}>Kart · {money(total)}{!items && <kbd className="rs-key">F10</kbd>}</button>
     {!items && <><div className="vm-price-in"><input inputMode="decimal" aria-label="Nakit tutar" placeholder="Nakit" value={split.cash} onChange={e => setSplit(v => ({ ...v, cash: e.target.value }))} /><input inputMode="decimal" aria-label="Kart tutar" placeholder="Kart" value={split.card} onChange={e => setSplit(v => ({ ...v, card: e.target.value }))} /></div>
       <button type="button" className="vm-btn ghost" disabled={busy || (!split.cash && !split.card)} onClick={() => pay({ payments: { cash: num(split.cash || 0), card: num(split.card || 0) } })}>Nakit + kart ile kapat</button></>}
     <button type="button" className="vm-btn ghost" onClick={() => { setMode(null); setSelected([]); }}>Vazgeç</button></div>; };
+  useEffect(() => {
+    const onKey = e => {
+      if (e.key !== 'F9' && e.key !== 'F10') return;
+      const tag = (e.target?.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea') return;
+      if (busy) return;
+      if (mode === 'close') { e.preventDefault(); pay({ payment_method: e.key === 'F9' ? 'cash' : 'card' }); }
+      else if (e.key === 'F10' && !mode) { e.preventDefault(); setMode('close'); }
+    };
+    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
+  });
   const adjLabel = a => a.kind === 'comp' ? 'İkram: ' + (order.items.find(i => i.id === a.item_id)?.name || 'kalem') : a.kind === 'service' ? 'Servis %' + a.percent : 'İndirim ' + (a.percent != null ? '%' + a.percent : money(a.amount));
   const others = (tables || []).filter(t => t.active && t.id !== order.table_id);
   return <section className="vm-card" aria-label="Adisyon">
@@ -64,7 +74,7 @@ function OrderPanel({ order, tables, onChanged, onClosed }) {
     {(order.adjustments || []).length > 0 && <div style={{ marginTop: 6 }}>{order.adjustments.map(a => <div key={a.id} className="vm-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span>{adjLabel(a)}{a.reason ? ' · ' + a.reason : ''}</span>{boss && <button type="button" className="vm-iconbtn" style={{ background: 'none', color: 'var(--vm-muted)' }} aria-label={adjLabel(a) + ' kaldır'} onClick={() => act(() => api.delete(base + '/adjustments/' + a.id))}><X size={16} /></button>}</div>)}</div>}
     {message && <p role="alert" className="vm-err">{message}</p>}
     {!mode && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-      <button type="button" className="vm-btn" style={pill} onClick={() => setMode('close')}>Hesabı kapat</button>
+      <button type="button" className="vm-btn" style={pill} onClick={() => setMode('close')}>Hesabı kapat <kbd className="rs-key">F10</kbd></button>
       {live.length > 1 && <button type="button" className="vm-btn soft" style={pill} onClick={() => setMode('split')}>Hesabı böl</button>}
       {order.type === 'masa' && others.length > 0 && <button type="button" className="vm-btn soft" style={pill} onClick={() => setMode('move')}>Masa taşı / birleştir</button>}
       <button type="button" className="vm-btn ghost" style={pill} onClick={() => printTicket(order)}>Mutfak fişi</button>
@@ -107,6 +117,17 @@ export function MobileWaiter() {
   const [target, setTarget] = useState(null), [cart, setCart] = useState(() => new Map()), [category, setCategory] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [sent, setSent] = useState(null);
   const categories = useMemo(() => [...new Set((menu.data?.items || []).map(i => i.category))], [menu.data]);
   const shown = (menu.data?.items || []).filter(i => !category || i.category === category);
+  const hot = useMemo(() => (menu.data?.items || []).filter(i => i.sold > 0 && i.stock_state !== 'out').slice(0, 8), [menu.data]);
+  const [ready, setReady] = useState([]); const seenReady = useRef(null);
+  const checkReady = async () => {
+    const list = (await api.get('/sector/restaurant/orders')).data.items;
+    const now = list.flatMap(o => o.items.filter(i => i.status === 'ready').map(i => ({ id: i.id, orderId: o.id, name: i.name, qty: i.quantity, where: o.table || TYPE_LABELS[o.type] })));
+    const ids = new Set(now.map(x => x.id));
+    if (seenReady.current !== null && now.some(x => !seenReady.current.has(x.id))) { beep(2); notify('Sipariş hazır', now.filter(x => !seenReady.current.has(x.id)).map(x => x.where + ': ' + x.name).join(', ')); }
+    seenReady.current = ids; setReady(now);
+  };
+  usePolling(() => checkReady().catch(() => {}), 5000);
+  const served = async r => { try { await api.patch(`/sector/restaurant/orders/${r.orderId}/items/${r.id}`, { status: 'served' }); setReady(list => list.filter(x => x.id !== r.id)); } catch { /* sonraki yoklamada yeniden denenir */ } };
   const loadOrder = async id => { if (!id) { setOrder(null); return; } const list = (await api.get('/sector/restaurant/orders')).data.items; setOrder(list.find(o => o.id === id) || null); };
   const choose = t => { setTarget(t); setCart(new Map()); setSent(null); setClosed(null); setMessage(''); setCategory(''); setDelivered(false); loadOrder(t.type === 'masa' ? t.open_order_id : null).catch(() => setOrder(null)); };
   const refresh = async () => { const list = await tables.reload(); const t = (list || tables.data || []).find(x => x.id === target?.id); await loadOrder(t?.open_order_id).catch(() => setOrder(null)); };
@@ -123,10 +144,21 @@ export function MobileWaiter() {
     } catch (e) { setMessage(errorText(e, 'Sipariş gönderilemedi.')); } finally { setBusy(false); }
   };
   const tap = p => (p.options?.length ? setChoosing(p) : setCart(c => cartAdd(c, p)));
+  useEffect(() => {
+    const onKey = e => {
+      const m = /^F([1-9])$/.exec(e.key); if (!m || !target || choosing) return;
+      const tag = (e.target?.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea') return;
+      const n = Number(m[1]);
+      if (n <= 8 && hot[n - 1]) { e.preventDefault(); tap(hot[n - 1]); }
+      else if (n === 9 && cart.size > 0 && !busy) { e.preventDefault(); submit(); }
+    };
+    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
+  });
   return <div className="vm" style={{ paddingBottom: target ? 150 : 104 }}>
     <MobileTop title={target ? target.label : 'Garson'} flat back="/m" onBack={target ? () => setTarget(null) : undefined} />
     <PackGate pack="restaurant"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
       {tables.error && <p role="alert" className="vm-err">{tables.error}</p>}
+      {ready.length > 0 && <section className="vm-card rs-ready" role="status" aria-label="Hazır siparişler">{ready.map(r => <div key={r.id}><span><b>{r.where}</b> · {r.qty}× {r.name} hazır</span><button type="button" className="vm-btn" style={{ width: 'auto', minHeight: 40, padding: '0 14px' }} onClick={() => served(r)}>Servis edildi</button></div>)}</section>}
       {!target && <>
         <div className="vm-label" style={{ marginTop: 0 }}><span>Masalar</span></div>
         <div className="vm-modgrid">{(tables.data || []).filter(t => t.active).map(t => <button key={t.id} type="button" className="vm-mod" style={{ cursor: 'pointer', textAlign: 'left', borderColor: t.open_order_id ? 'var(--vm-accent)' : undefined }} onClick={() => choose({ type: 'masa', id: t.id, label: t.name, open_order_id: t.open_order_id })}>
@@ -148,6 +180,7 @@ export function MobileWaiter() {
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
           <button type="button" className={'vm-btn ' + (!category ? '' : 'ghost')} style={pill} onClick={() => setCategory('')}>Tümü</button>
           {categories.map(c => <button key={c} type="button" className={'vm-btn ' + (category === c ? '' : 'ghost')} style={pill} onClick={() => setCategory(c)}>{c}</button>)}</div>
+        {hot.length > 0 && !category && <div className="rs-hot" aria-label="Çok satanlar"><div className="vm-label" style={{ marginTop: 0 }}><span>Çok satanlar</span></div><div>{hot.map((p, i) => <button key={p.id} type="button" onClick={() => tap(p)}><kbd className="rs-key">F{i + 1}</kbd><b>{p.name}</b><span>{money(p.price)}</span></button>)}</div></div>}
         <div className="vm-modgrid">{shown.map(p => { const n = productQty(cart, p.id); return <div key={p.id} className="vm-mod" style={{ minHeight: 96, justifyContent: 'space-between', borderColor: n ? 'var(--vm-brand)' : undefined }}>
           <button type="button" style={{ all: 'unset', cursor: 'pointer', display: 'block' }} aria-label={p.name + ' ekle'} onClick={() => tap(p)}><b style={{ fontSize: 15 }}>{p.name}</b><div className="vm-note">{money(p.price)}{p.options?.length ? ' · seçenekli' : ''}</div>{p.stock_state === 'out' && <div className="vm-err" style={{ fontWeight: 800 }}>Tükendi · stok yetmez</div>}{p.stock_state === 'low' && <div style={{ color: 'var(--vm-accent)', fontWeight: 800, fontSize: 13 }}>Son {p.available} porsiyon</div>}</button>
           {n > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><button type="button" className="vm-iconbtn" style={{ background: '#165da41a', color: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' azalt'} onClick={() => setCart(c => cartRemoveOne(c, p.id))}><Minus size={16} /></button><b aria-live="polite">{n}</b>
