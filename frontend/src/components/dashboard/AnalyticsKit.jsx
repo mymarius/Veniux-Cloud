@@ -12,9 +12,9 @@ export function CountUp({ value = 0, format = v => Math.round(v).toLocaleString(
   const from = React.useRef(motionOn() ? 0 : target);
   React.useEffect(() => {
     if (!motionOn()) { from.current = target; setShown(target); return undefined; }
-    let frame; const start = performance.now(), begin = from.current;
+    let frame; const start = performance.now() + (document.documentElement.dataset.intro ? 100 : 0), begin = from.current;
     const tick = now => {
-      const t = Math.min(1, (now - start) / duration), eased = 1 - Math.pow(1 - t, 4);
+      const t = Math.max(0, Math.min(1, (now - start) / duration)), eased = 1 - Math.pow(1 - t, 4);
       const current = begin + (target - begin) * eased;
       from.current = current; setShown(current);
       if (t < 1) frame = requestAnimationFrame(tick);

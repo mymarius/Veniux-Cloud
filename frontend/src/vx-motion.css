@@ -10,37 +10,38 @@
 @property --vx-r{syntax:'<length>';inherits:false;initial-value:0px}
 html:not([data-motion='off']) .vx-intro{position:fixed;inset:0;z-index:2000;pointer-events:none;
  background:radial-gradient(circle at 46px 46px,transparent var(--vx-r),#12203a calc(var(--vx-r) + 1px));
- animation:vx-iris 1.5s .4s cubic-bezier(.65,0,.35,1) forwards,vx-intro-out .25s 1.9s ease forwards}
-html:not([data-motion='off']) .vx-intro-dot{position:absolute;left:24px;top:24px;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#bcd0ff 70%);box-shadow:0 0 30px 6px rgba(160,190,255,.45);animation:vx-dot 1.1s var(--vx-ease) both}
-@keyframes vx-iris{from{--vx-r:0px}to{--vx-r:160vmax}}
+ animation:vx-iris .55s 0s cubic-bezier(.65,0,.35,1) forwards,vx-intro-out .2s .65s ease forwards}
+html:not([data-motion='off']) .vx-intro-dot{position:absolute;left:34px;top:34px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#bcd0ff 70%);box-shadow:0 0 18px 4px rgba(160,190,255,.5);animation:vx-dot .35s var(--vx-ease) both,vx-dot-out .2s .3s ease forwards}
+@keyframes vx-iris{from{--vx-r:36px}to{--vx-r:160vmax}}
 @keyframes vx-intro-out{to{opacity:0}}
-@keyframes vx-dot{0%{transform:scale(.2);opacity:0}35%{opacity:1}100%{transform:scale(1)}}
+@keyframes vx-dot{0%{transform:scale(.2);opacity:0}100%{opacity:1;transform:scale(1)}}
+@keyframes vx-dot-out{to{opacity:0}}
 
 /* --- Sayfa girişi: bulanıklıktan netleşerek yükselir, kartlar 60 ms arayla sıralanır --- */
-html:not([data-motion='off']) .vx-page>*>*{animation:vx-rise .7s var(--vx-ease) backwards}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(2){animation-delay:.06s}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(3){animation-delay:.12s}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(4){animation-delay:.18s}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(5){animation-delay:.24s}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(6){animation-delay:.3s}
-html:not([data-motion='off']) .vx-page>*>*:nth-child(n+7){animation-delay:.36s}
+html:not([data-motion='off']) .vx-page>*>*{animation:vx-rise .7s var(--vx-ease) backwards;animation-delay:var(--vx-base,0s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(2){animation-delay:calc(var(--vx-base,0s) + .06s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(3){animation-delay:calc(var(--vx-base,0s) + .12s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(4){animation-delay:calc(var(--vx-base,0s) + .18s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(5){animation-delay:calc(var(--vx-base,0s) + .24s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(6){animation-delay:calc(var(--vx-base,0s) + .3s)}
+html:not([data-motion='off']) .vx-page>*>*:nth-child(n+7){animation-delay:calc(var(--vx-base,0s) + .36s)}
 /* Panolardaki alt kartlar (KPI, yapılacaklar, istatistik): ikinci seviye sıralama */
-html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>*{animation:vx-rise .7s var(--vx-ease) backwards}
-html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(2){animation-delay:.07s}
-html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(3){animation-delay:.14s}
-html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(4){animation-delay:.21s}
-html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(n+5){animation-delay:.28s}
+html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>*{animation:vx-rise .7s var(--vx-ease) backwards;animation-delay:var(--vx-base,0s)}
+html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(2){animation-delay:calc(var(--vx-base,0s) + .07s)}
+html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(3){animation-delay:calc(var(--vx-base,0s) + .14s)}
+html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(4){animation-delay:calc(var(--vx-base,0s) + .21s)}
+html:not([data-motion='off']) :is(.ax-reveal,.dx-todo,.dx-hero-stats)>:nth-child(n+5){animation-delay:calc(var(--vx-base,0s) + .28s)}
 @keyframes vx-rise{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
 @keyframes ax-rise{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
 
 /* --- Başlık: harf harf belirir --- */
-html:not([data-motion='off']) .vx-reveal-text span{display:inline-block;animation:vx-char .75s var(--vx-ease) backwards;animation-delay:calc(var(--i)*38ms + .12s)}
+html:not([data-motion='off']) .vx-reveal-text span{display:inline-block;animation:vx-char .75s var(--vx-ease) backwards;animation-delay:calc(var(--i)*38ms + .12s + var(--vx-base,0s))}
 @keyframes vx-char{from{opacity:0;transform:translateY(.55em) skewY(6deg);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
 
 /* --- Halka ve grafik çizimi --- */
-html:not([data-motion='off']) .dx-hero-score circle:nth-child(2){animation:vx-ring 1.5s .35s var(--vx-ease) backwards}
+html:not([data-motion='off']) .dx-hero-score circle:nth-child(2){animation:vx-ring 1.5s calc(var(--vx-base,0s) + .35s) var(--vx-ease) backwards}
 @keyframes vx-ring{from{stroke-dasharray:0 100}}
-html:not([data-motion='off']) .dx-area{animation:vx-wipe 1.3s .25s var(--vx-ease) backwards}
+html:not([data-motion='off']) .dx-area{animation:vx-wipe 1.3s calc(var(--vx-base,0s) + .25s) var(--vx-ease) backwards}
 @keyframes vx-wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 
 /* --- Yan menü ipucu: sağda koyu hap, soldan kayarak belirir --- */
