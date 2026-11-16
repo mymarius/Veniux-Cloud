@@ -8,7 +8,7 @@ ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, Li
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const formatNumber = value => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(value);
 
-// '#3563b1' -> 'rgba(53,99,177,a)'
+// '#17263a' -> 'rgba(53,99,177,a)'
 export function alpha(hex, a) {
   const n = parseInt(hex.replace('#', '').slice(0, 6), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
@@ -69,7 +69,7 @@ export default function BusinessChart({
 
   const prepared = datasets.map(set => {
     if (type === 'line') {
-      const color = set.borderColor || '#3563b1';
+      const color = set.borderColor || '#17263a';
       return {
         tension: 0.38, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHitRadius: 12,
         pointBackgroundColor: '#fff', pointBorderWidth: 2, pointBorderColor: color,
@@ -80,7 +80,7 @@ export default function BusinessChart({
     }
     if (type === 'bar') return { borderRadius: 6, borderSkipped: false, maxBarThickness: 34, ...set };
     if (type === 'radar') {
-      const color = set.borderColor || '#3563b1';
+      const color = set.borderColor || '#17263a';
       return { borderWidth: 2, pointRadius: 3, pointBackgroundColor: color, backgroundColor: alpha(color, 0.18), ...set };
     }
     return { borderWidth: 3, borderColor: '#fff', hoverOffset: 8, ...set };
@@ -123,7 +123,7 @@ export default function BusinessChart({
           labelPointStyle: () => ({ pointStyle: 'circle', rotation: 0 }),
           labelColor: context => {
             const colors = circular ? context.dataset.backgroundColor : context.dataset.borderColor || context.dataset.backgroundColor;
-            const color = Array.isArray(colors) ? colors[context.dataIndex] : typeof colors === 'string' ? colors : '#3563b1';
+            const color = Array.isArray(colors) ? colors[context.dataIndex] : typeof colors === 'string' ? colors : '#17263a';
             return { borderColor: color, backgroundColor: color, borderWidth: 0 };
           }
         }

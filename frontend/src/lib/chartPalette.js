@@ -1,1 +1,1 @@
-export const chartColors = ['#2f5fa8', '#6b7280', '#3f8f7f', '#b0893f', '#a95d5d', '#9aa0aa'];
+export const chartColors = ['#17263a', '#cf4b06', '#0d7a57', '#b98a1e', '#6c7d96', '#b92c1c'];

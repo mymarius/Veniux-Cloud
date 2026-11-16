@@ -284,7 +284,7 @@ export default function NormalMovements() {
         {/* Table Toolbar */}
         <div className="p-3.5 border-b border-slate-200 bg-slate-50 flex flex-col lg:flex-row items-center justify-between gap-3">
           {/* Quick Filter Chips */}
-          <div className="flex bg-slate-100 p-1 rounded-md border border-slate-200 text-xs font-semibold overflow-x-auto w-full lg:w-auto">
+          <div className="flex bg-slate-100 p-1 rounded-md border border-slate-200 text-xs font-semibold flex-wrap gap-1 w-full lg:w-auto">
             {[
               { id: '', label: `Tümü (${movements.length})` },
               { id: 'INBOUND', label: 'Mal Kabul / Giriş' },

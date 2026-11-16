@@ -16,7 +16,7 @@ import {
   num, parseDate, periodTotals, stockHealth, sumBy, tl, topMovers
 } from '../../lib/stockAnalytics';
 
-const IN = '#21a69b', OUT = '#e58282', BLUE = '#3563b1';
+const IN = '#0d7a57', OUT = '#cf4b06', BLUE = '#17263a';
 const PERIODS = [[7, '7 gün'], [14, '14 gün'], [30, '30 gün'], [90, '90 gün']];
 
 export default function NormalDashboard() {

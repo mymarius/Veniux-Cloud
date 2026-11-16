@@ -47,7 +47,7 @@ export default function CRMDashboard() {
   const totalPipelineValue = deals.filter((d) => d.stage !== 'lost').reduce((acc, d) => acc + Number(d.value), 0);
   const pendingTasksCount = tasks.filter((t) => t.status !== 'completed').length;
 
-  const COLORS = ['#94a3b8', '#38bdf8', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'];
+  const COLORS = ['#6c7d96', '#b98a1e', '#17263a', '#cf4b06', '#0d7a57', '#b92c1c'];
 
   return (
     <div className="space-y-6 max-w-[1700px] mx-auto text-gray-900 pb-12">
@@ -117,16 +117,16 @@ export default function CRMDashboard() {
               <AreaChart data={revenueTimeline} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#cf4b06" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#cf4b06" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.1} />
                 <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11 }} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={(v) => `$${v / 1000}k`} />
                 <Tooltip contentStyle={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', borderRadius: '8px', color: 'var(--color-text)' }} />
-                <Area type="monotone" dataKey="mrr" stroke="#2563eb" strokeWidth={2.5} fill="url(#colorMrr)" />
-                <Area type="monotone" dataKey="target" stroke="#94a3b8" strokeDasharray="4 4" fill="none" />
+                <Area type="monotone" dataKey="mrr" stroke="#cf4b06" strokeWidth={2.5} fill="url(#colorMrr)" />
+                <Area type="monotone" dataKey="target" stroke="#6c7d96" strokeDasharray="4 4" fill="none" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

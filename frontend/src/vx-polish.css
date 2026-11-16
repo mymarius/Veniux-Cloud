@@ -13,3 +13,18 @@ html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary{backg
 html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:hover:not(:disabled){background:#b23f04;border-color:#b23f04}
 html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:disabled{background:#cf4b06;opacity:.45}
 html:root[data-design='veniux'] :is(.vx-dialog,.pos-terminal) .btn-primary:focus-visible{outline:3px solid #17263a;outline-offset:2px}
+
+/* Sayfa başlıkları: tek hiyerarşi (sektör ekranlarıyla aynı ölçek). */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-content h1{font-size:clamp(32px,2.8vw,44px)!important;line-height:1.02}
+html:root[data-design='veniux']:not([data-theme='dark']):not([data-mobile='true']) .enterprise-content h1:after{content:'';display:block;width:48px;height:4px;margin-top:10px;background:#cf4b06}
+
+/* Kenar menü: grup başlıkları etiket gibi, gruplar kesikli çizgiyle ayrılır. */
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-section-title{min-height:34px;margin-top:6px;color:#ffb27f;font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-section-title:hover{color:#ffd0b0}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-section+.sb-section{margin-top:6px;padding-top:6px;border-top:1px dashed #3a4d68}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-nav{scrollbar-width:thin;scrollbar-color:#3a4d68 transparent}
+html:root[data-design='veniux']:not([data-theme='dark']) .enterprise-shell .sb .sb-item{font-size:14px}
+
+/* Ana sayfa görev kartları: büyük sayı ve "Kasayı aç" gibi metinler kartın içine sığar. */
+html:root[data-design='veniux'] .dx-todo a{container-type:inline-size}
+html:root[data-design='veniux'] .dx-todo a b{font-size:clamp(26px,13cqw,40px);white-space:nowrap;line-height:1.05}

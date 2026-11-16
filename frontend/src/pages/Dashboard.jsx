@@ -16,7 +16,7 @@ import {
   asList, change, compact, dayKey, movementLabel, movementTimeline, num, parseDate, periodTotals, stockHealth, sumBy, tl
 } from '../lib/stockAnalytics';
 
-const IN = '#21a69b', OUT = '#e58282', BLUE = '#3563b1', AMBER = '#e9ad51', VIOLET = '#9b8cdb';
+const IN = '#0d7a57', OUT = '#cf4b06', BLUE = '#17263a', AMBER = '#b98a1e', VIOLET = '#6c7d96';
 const PERIODS = [[7, '7 gün'], [30, '30 gün'], [90, '90 gün']];
 const STAGES = [['qualification', 'Niteleme'], ['proposal', 'Teklif'], ['negotiation', 'Pazarlık'], ['won', 'Kazanıldı'], ['lost', 'Kaybedildi']];
 const SEVERITY = { critical: ['Kritik', OUT], danger: ['Kritik', OUT], warning: ['Uyarı', AMBER], info: ['Bilgi', BLUE] };
