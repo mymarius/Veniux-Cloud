@@ -9,6 +9,7 @@ require_once dirname(__DIR__) . '/src/charts.php';
 require_once dirname(__DIR__) . '/src/cloud.php';
 require_once dirname(__DIR__) . '/src/authority.php';
 require_once dirname(__DIR__) . '/src/views_licenses.php';
+require_once dirname(__DIR__) . '/src/views_billing.php';
 
 securityHeaders();
 if (!ipAllowed()) { http_response_code(403); exit('Erişim yok.'); }
@@ -50,6 +51,27 @@ if ($method === 'POST' && (preg_match('#^/musteriler/(\d{1,12})/erisim$#', $path
     } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); }
     header('Location: ' . ($isTenant ? '/musteriler/' . (int) $m[1] : '/paketler')); exit;
 }
+// ---------- Havale ve fatura (yazma): bulutta imzalı istek, CSRF + gerekçe ----------
+if ($method === 'POST' && str_starts_with($path, '/havale/')) {
+    csrfCheck();
+    try {
+        $note = preg_replace('/\s+/', ' ', mb_substr((string) ($_POST['reason'] ?? ''), 0, 200));
+        if ($path === '/havale/fatura') {
+            $parts = array_map('intval', explode(':', (string) ($_POST['license'] ?? '0:0')) + [0, 0]);
+            $cents = parseLira((string) ($_POST['amount'] ?? '')); if ($cents === null) throw new RuntimeException('Tutar geçersiz (örn. 14388,00).');
+            cloudCall('POST', '/api/owner-console/tenants/' . $parts[0] . '/licenses/' . $parts[1] . '/invoices', ['amount' => $cents / 100, 'currency' => (string) ($_POST['currency'] ?? 'TRY'), 'reason' => (string) ($_POST['reason'] ?? '')]);
+            auditLine('havale-fatura-kesildi lisans=' . $parts[1] . ' neden=' . $note); flashSet('ok', 'Fatura kesildi.');
+        } elseif (preg_match('#^/havale/(\d{1,12})/(\d{1,12})/(\d{1,12})/(onay|iptal)$#', $path, $m)) {
+            $base = '/api/owner-console/tenants/' . (int) $m[1] . '/licenses/' . (int) $m[2] . '/invoices/' . (int) $m[3];
+            if ($m[4] === 'onay') {
+                $cents = parseLira((string) ($_POST['amount'] ?? '')); if ($cents === null) throw new RuntimeException('Tutar geçersiz.');
+                $r = cloudCall('POST', $base . '/confirm', ['amount' => $cents / 100, 'reference' => (string) ($_POST['reference'] ?? ''), 'reason' => (string) ($_POST['reason'] ?? '')]);
+                auditLine('havale-onaylandi fatura=' . (int) $m[3] . ' neden=' . $note); flashSet('ok', 'Havale onaylandı, lisans açıldı' . (isset($r['expires_at']) ? ' (yeni bitiş: ' . (string) $r['expires_at'] . ')' : '') . '.');
+            } else { cloudCall('POST', $base . '/void', ['reason' => (string) ($_POST['reason'] ?? '')]); auditLine('havale-fatura-geri-alindi fatura=' . (int) $m[3] . ' neden=' . $note); flashSet('ok', 'Fatura geri alındı.'); }
+        } else { http_response_code(404); exit('Bulunamadı.'); }
+    } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); }
+    header('Location: /havale'); exit;
+}
 // ---------- Lisans işlemleri (yazma): CSRF + gerekçe zorunlu; hata iletisi forma geri döner ----------
 if ($method === 'POST' && (str_starts_with($path, '/lisanslar'))) {
     csrfCheck();
@@ -88,6 +110,7 @@ try {
     elseif ($path === '/yonetim') { $auth = authorityConfigured(); $all = $auth ? authorityLicenses() : []; $now = gmdate('Y-m-d H:i:s'); $in30 = gmdate('Y-m-d H:i:s', time() + 30 * 86400);
         $due = array_values(array_filter($all, fn($l) => $l['status'] === 'ACTIVE' && $l['expires_at'] <= $in30)); usort($due, fn($a, $b2) => strcmp($a['expires_at'], $b2['expires_at']));
         layout('Yönetim', pageManage($due, array_values(array_filter($all, fn($l) => $l['status'] === 'SUSPENDED')), $auth), '/yonetim'); }
+    elseif ($path === '/havale') { $bt = null; try { if (cloudConfigured()) $bt = cloudCall('GET', '/api/owner-console/bank-transfers'); } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); } layout('Havale', $bt ? pageBankTransfers($bt) : '<h1>Havale ve fatura</h1>' . flashHtml() . '<p class="err">Bulut bağlantısı kurulu değil.</p>', '/havale'); }
     elseif ($path === '/paketler') layout('Paketler', pagePackages(catalogue()), '/paketler');
     elseif ($path === '/sistem') layout('Sistem', pageSystem(systemInfo()), '/sistem');
     else { http_response_code(404); layout('Bulunamadı', '<h1>Sayfa bulunamadı</h1>'); }

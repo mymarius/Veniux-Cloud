@@ -107,4 +107,10 @@ privateWrite('app.json', ['cloud_api_url' => 'https://app.veniux.com', 'console_
 check('kısa gizli anahtar kabul edilmez', !cloudConfigured());
 privateWrite('app.json', ['cloud_api_url' => 'https://app.veniux.com', 'console_secret' => $secretT]);
 check('doğru ayar kabul edilir', cloudConfigured());
+// Havale sayfası
+require_once dirname(__DIR__) . '/src/views_licenses.php'; require_once dirname(__DIR__) . '/src/views_billing.php';
+$_SESSION['csrf'] = 'tok';
+$html = pageBankTransfers(['bank' => ['iban' => 'TR330006100519786457841326', 'account_name' => 'Veniux'], 'pending' => [['id' => 7, 'invoice_no' => 'VNX-1', 'tenant_id' => 3, 'license_id' => 5, 'amount' => '14388.00', 'currency' => 'TRY', 'created_at' => '2026-11-16 10:00:00', 'company_name' => '<b>X</b>']], 'licenses' => [['tenant_id' => 3, 'id' => 5, 'company_name' => 'Firma', 'plan_id' => 'NORMAL_WMS_ANNUAL', 'status' => 'PENDING_PAYMENT']]]);
+check('havale sayfası onay ve geri alma formlarını gösterir', str_contains($html, '/havale/3/5/7/onay') && str_contains($html, '/havale/3/5/7/iptal') && str_contains($html, '/havale/fatura'));
+check('havale sayfası firma adını kaçırır', !str_contains($html, '<b>X</b>') && str_contains($html, '&lt;b&gt;X'));
 echo $fail ? "\n$fail test başarısız\n" : "\nTüm testler geçti\n"; exit($fail ? 1 : 0);
