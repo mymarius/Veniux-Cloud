@@ -100,6 +100,9 @@ export default function AppearanceTab() {
           <p className="text-sm"><strong>Veniux Manrope</strong> · Bilgisayar ve telefonda aynı yazı tipi kullanılır. Yazı dosyası programın içindedir; internet gerekmez.</p>
           <p className="text-xs text-gray-500 mt-4 mb-2">İçerik yazı boyutu</p><div className="appearance-size-options" role="radiogroup" aria-label="Yazı boyutu">{[['small','Küçük'],['standard','Standart'],['large','Büyük']].map(([id,label])=><button key={id} role="radio" aria-checked={prefs.textSize===id} className="appearance-option" onClick={()=>update({textSize:id})}><b>{label}</b></button>)}</div>
         </Panel>
+        <Panel icon={Square} title="Görünüm stili" subtitle="Cam: yarı saydam kartlar, yumuşak gölge ve ışıltılı arka plan. Klasik: önceki düz kâğıt görünümü">
+          <div className="appearance-size-options" role="radiogroup" aria-label="Görünüm stili">{[['glass','Cam'],['classic','Klasik']].map(([id,label])=><button key={id} role="radio" aria-checked={(prefs.style||'glass')===id} className="appearance-option" onClick={()=>update({style:id})}><b>{label}</b></button>)}</div>
+        </Panel>
         <Panel icon={Square} title="Kart biçimi" subtitle="Paneller ve bilgi kartlarının köşe görünümü">
           <div className="appearance-size-options" role="radiogroup" aria-label="Kart köşeleri">{[['sharp','Keskin',8],['balanced','Dengeli',14],['soft','Yumuşak',22]].map(([id,label,radius])=><button key={id} role="radio" aria-checked={prefs.corners===id} className="appearance-option" onClick={()=>update({corners:id})}><span className="appearance-corner-preview" style={{borderRadius:radius}} aria-hidden="true"/><b>{label}</b></button>)}</div>
         </Panel>
