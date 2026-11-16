@@ -1,8 +1,28 @@
 {
-  "version": "2.4.79",
+  "version": "2.4.80",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.80",
+      "date": "16 Kasım 2026",
+      "title": "Kasadan ana menüye dönüş, sektör ekranları ve ince tasarım düzeltmeleri",
+      "items": [
+        "- Kasa ekranına \"Ana menü\" düğmesi eklendi: kasadan çıkıp diğer modüllere geçilebilir",
+        "- Hırdavat, züccaciye, pide ve online mağaza ekranlarının masaüstü düzeni yenilendi (yan çizgiler, başlık boyutu, form kutuları, sekmeler, koyu tema)",
+        "- Üst çubukta sektör sayfalarının adı görünür",
+        "- Stok özet kartlarındaki büyük rakamlar karta sığar; sayfa başlığı ve eylem düğmeleri dar ekranda alt alta dizilir",
+        "- Kasa ödeme düğmesi ve pencerelerdeki birincil düğmeler marka turuncusu oldu",
+        "- Grafikler marka renklerinde (lacivert, turuncu, yeşil, altın)",
+        "- Kenar menü grup başlıkları etiket biçiminde, sayfa başlıkları daha dengeli; stok hareketleri sekmeleri alt satıra geçer",
+        "- Kolay kullanım: üst çubuktaki \"Yazıları büyüt\" düğmesi ve Ayarlar > Görünüm'de A- / A+ ile ekran büyüklüğü (%100-%150); açıkken ana sayfada büyük \"Ne yapmak istiyorsunuz?\" düğmeleri",
+        "- Ayarlar sekmeleri sürüklemeden görünür, sığmayanlar alt satıra geçer",
+        "- Restoran: çok satan ürünler menünün en üstünde, F1-F8 ile adisyona ekleme, F9 mutfağa gönder, F10 hesabı kapat (F9 nakit, F10 kart), mutfakta hazır olan sipariş garsona bildirilir (\"Servis edildi\")",
+        "- Programı ilk açan kişiye \"Yazılar nasıl olsun? Normal / Büyük\" diye sorulur",
+        "- Windows'ta garson ekranı üç bölmeli: solda renkli masalar (boş yeşil, dolu kırmızı), ortada menü, sağda adisyon ve yeni sipariş",
+        "- Platform yöneticisi: havale onayı ve fatura işlemleri yönetim sitesine taşındı; programdaki API Yönetim Merkezi'nden havale ve sürüm yayını bölümleri kaldırıldı"
+      ]
+    },
     {
       "version": "2.4.79",
       "date": "16 Kasım 2026",
