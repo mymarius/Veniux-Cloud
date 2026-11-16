@@ -1,8 +1,17 @@
 {
-  "version": "2.4.81",
+  "version": "2.4.82",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.82",
+      "date": "16 Kasım 2026",
+      "title": "Terazi bağlantısı",
+      "items": [
+        "- Kasada kiloyla satılan ürünün miktarı, seri porta bağlı teraziden kararlı ağırlık gelince kendiliğinden dolar (CAS, Mettler Toledo, Dibal/Bizerba ve genel protokoller)",
+        "- Terazi bağlı değilse elle miktar girişi aynen çalışır"
+      ]
+    },
     {
       "version": "2.4.81",
       "date": "16 Kasım 2026",
