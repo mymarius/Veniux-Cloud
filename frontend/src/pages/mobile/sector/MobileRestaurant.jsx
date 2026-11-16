@@ -162,7 +162,7 @@ export function MobileWaiter() {
         {tables.data?.length === 0 && <EmptyState icon={<Utensils size={34} />} title="Masa tanımlı değil" text="Önce Restoran ayarlarından masa ekleyin ya da aşağıdan paket/motor siparişi girin." />}
         <div className="vm-label"><span>Masasız</span></div>
         <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'paket', label: 'Paket servisi' })}>Paket</button><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'motor', label: 'Motor kurye' })}>Motor</button></div></>;
-  const targetBlock = target && <>
+  const adisyonBlock = target && <>
         {sent && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Sipariş mutfağa gitti · {money(sent.total)}</b>
           {sent.shortages.length > 0 && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>Stok yetersiz: {sent.shortages.flatMap(s => s.missing.map(m => m.name)).join(', ')} (siparişe devam edilir, stok eksiye düşmez).</p>}
           <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setTarget(null)}>Masalara dön</button></section>}
@@ -172,6 +172,8 @@ export function MobileWaiter() {
           {closed.split_from && <p className="vm-note">Kalan hesap masada açık: {money(closed.remaining_total)}</p>}
           {closed.warning && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>{closed.warning}</p>}<button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => { setClosed(null); if (!closed.split_from) setTarget(null); }}>{closed.split_from ? 'Tamam' : 'Masalara dön'}</button></section>}
         {order && !(closed && !closed.split_from) && <OrderPanel order={order} tables={tables.data} onChanged={() => refresh().catch(() => {})} onClosed={(r, partial) => { setClosed(r); if (partial) refresh().catch(() => {}); else { setOrder(null); tables.reload(); } }} />}
+</>;
+  const menuBlock = target && <>
         {menu.data && !menu.data.configured && <p className="vm-note">Menü işaretlenmemiş: tüm satış ürünleri gösteriliyor. Restoran ayarlarından menüyü seçebilirsiniz.</p>}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
           <button type="button" className={'vm-btn ' + (!category ? '' : 'ghost')} style={pill} onClick={() => setCategory('')}>Tümü</button>
@@ -181,19 +183,22 @@ export function MobileWaiter() {
           <button type="button" style={{ all: 'unset', cursor: 'pointer', display: 'block' }} aria-label={p.name + ' ekle'} onClick={() => tap(p)}><b style={{ fontSize: 15 }}>{p.name}</b><div className="vm-note">{money(p.price)}{p.options?.length ? ' · seçenekli' : ''}</div>{p.stock_state === 'out' && <div className="vm-err" style={{ fontWeight: 800 }}>Tükendi · stok yetmez</div>}{p.stock_state === 'low' && <div style={{ color: 'var(--vm-accent)', fontWeight: 800, fontSize: 13 }}>Son {p.available} porsiyon</div>}</button>
           {n > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><button type="button" className="vm-iconbtn" style={{ background: '#165da41a', color: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' azalt'} onClick={() => setCart(c => cartRemoveOne(c, p.id))}><Minus size={16} /></button><b aria-live="polite">{n}</b>
             <button type="button" className="vm-iconbtn" style={{ background: 'var(--vm-brand)', width: 36, height: 36 }} aria-label={p.name + ' artır'} onClick={() => tap(p)}><Plus size={16} /></button></div>}</div>; })}</div></>;
-  return <div className="vm" style={{ paddingBottom: target ? 150 : 104 }}>
+  const cartInner = <>
+      <div style={{ maxHeight: 140, overflow: 'auto', marginBottom: 8 }}>{[...cart.values()].map(l => <div key={l.key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4, fontSize: 14 }}><b>{l.quantity}×</b><span style={{ flex: 1 }}>{l.name}{l.options.length > 0 && <small style={{ display: 'block', color: 'var(--vm-muted)' }}>+ {l.options.join(', ')}</small>}</span>
+        <input aria-label={l.name + ' notu'} placeholder="not" maxLength={120} value={l.note} onChange={e => setCart(c => cartNote(c, l.key, e.target.value))} style={{ width: 90, border: '1px solid var(--vm-line)', borderRadius: 6, padding: '4px 6px', background: 'var(--vm-card)', color: 'var(--vm-text)' }} /></div>)}</div>
+      {message && <p role="alert" className="vm-err">{message}</p>}
+      <button type="button" className="vm-btn" disabled={busy} onClick={submit}>Mutfağa gönder · {cartCount(cart)} kalem · {money(cartTotal(cart))}</button></>;
+  const targetBlock = <>{adisyonBlock}{menuBlock}</>;
+  return <div className="vm" style={{ paddingBottom: target && !desktop ? 150 : 104 }}>
     <MobileTop title={target ? target.label : 'Garson'} flat back="/m" onBack={target ? () => setTarget(null) : undefined} />
     <PackGate pack="restaurant"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
       {tables.error && <p role="alert" className="vm-err">{tables.error}</p>}
       {ready.length > 0 && <section className="vm-card rs-ready" role="status" aria-label="Hazır siparişler">{ready.map(r => <div key={r.id}><span><b>{r.where}</b> · {r.qty}× {r.name} hazır</span><button type="button" className="vm-btn" style={{ width: 'auto', minHeight: 40, padding: '0 14px' }} onClick={() => served(r)}>Servis edildi</button></div>)}</section>}
-      {desktop ? <div className="rs-split"><aside className="rs-tables">{tablesBlock}</aside><div className="rs-main">{!target && <p className="vm-note rs-pick">Soldan bir masa seçin, ürüne basınca adisyona eklenir.</p>}{targetBlock}</div></div> : <>{!target && tablesBlock}{targetBlock}</>}
+      {desktop ? <div className="rs-split"><aside className="rs-tables">{tablesBlock}</aside><div className="rs-main">{!target && <p className="vm-note rs-pick">Soldan bir masa seçin, ürüne basınca adisyona eklenir.</p>}{menuBlock}</div><aside className="rs-bill">{target ? <>{adisyonBlock}{cart.size > 0 && <section className="vm-card rs-cart" aria-label="Yeni sipariş"><b>Yeni sipariş</b>{cartInner}</section>}</> : <p className="vm-note rs-pick">Adisyon burada görünür.</p>}</aside></div> : <>{!target && tablesBlock}{targetBlock}</>}
     </div></PackGate>
     {choosing && <OptionSheet product={choosing} onClose={() => setChoosing(null)} onAdd={opts => { setCart(c => cartAdd(c, choosing, 1, opts)); setChoosing(null); }} />}
-    {target && cart.size > 0 && <div className="vm-sheet-back" style={{ background: 'none', pointerEvents: 'none', alignItems: 'flex-end' }}><div className="vm-sheet" style={{ pointerEvents: 'auto', boxShadow: '0 -8px 30px #0003', padding: '12px 16px calc(env(safe-area-inset-bottom,0px) + 14px)' }}>
-      <div style={{ maxHeight: 140, overflow: 'auto', marginBottom: 8 }}>{[...cart.values()].map(l => <div key={l.key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4, fontSize: 14 }}><b>{l.quantity}×</b><span style={{ flex: 1 }}>{l.name}{l.options.length > 0 && <small style={{ display: 'block', color: 'var(--vm-muted)' }}>+ {l.options.join(', ')}</small>}</span>
-        <input aria-label={l.name + ' notu'} placeholder="not" maxLength={120} value={l.note} onChange={e => setCart(c => cartNote(c, l.key, e.target.value))} style={{ width: 90, border: '1px solid var(--vm-line)', borderRadius: 6, padding: '4px 6px', background: 'var(--vm-card)', color: 'var(--vm-text)' }} /></div>)}</div>
-      {message && <p role="alert" className="vm-err">{message}</p>}
-      <button type="button" className="vm-btn" disabled={busy} onClick={submit}>Mutfağa gönder · {cartCount(cart)} kalem · {money(cartTotal(cart))}</button></div></div>}
+    {!desktop && target && cart.size > 0 && <div className="vm-sheet-back" style={{ background: 'none', pointerEvents: 'none', alignItems: 'flex-end' }}><div className="vm-sheet" style={{ pointerEvents: 'auto', boxShadow: '0 -8px 30px #0003', padding: '12px 16px calc(env(safe-area-inset-bottom,0px) + 14px)' }}>
+      {cartInner}</div></div>}
   </div>;
 }
 
