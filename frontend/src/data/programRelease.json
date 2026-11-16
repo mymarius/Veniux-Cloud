@@ -1,8 +1,17 @@
 {
-  "version": "2.4.83",
+  "version": "2.4.84",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.84",
+      "date": "17 Kasım 2026",
+      "title": "Güncelleme bildirimi",
+      "items": [
+        "- Yeni sürüm hazır olunca üst çubukta yeşil ok çıkar; tıklayınca \"Şimdi güncelle\" ile program kurulup kendiliğinden yeniden açılır",
+        "- Güncelleme indirilirken ilerleme yüzdesi görünür"
+      ]
+    },
     {
       "version": "2.4.83",
       "date": "16 Kasım 2026",
