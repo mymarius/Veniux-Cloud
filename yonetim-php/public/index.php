@@ -10,6 +10,7 @@ require_once dirname(__DIR__) . '/src/cloud.php';
 require_once dirname(__DIR__) . '/src/authority.php';
 require_once dirname(__DIR__) . '/src/views_licenses.php';
 require_once dirname(__DIR__) . '/src/views_billing.php';
+require_once dirname(__DIR__) . '/src/views_platform.php';
 
 securityHeaders();
 if (!ipAllowed()) { http_response_code(403); exit('Erişim yok.'); }
@@ -72,6 +73,24 @@ if ($method === 'POST' && str_starts_with($path, '/havale/')) {
     } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); }
     header('Location: /havale'); exit;
 }
+// ---------- Atama (yazma): sektör paketi ve lisans; bulutta imzalı istek, CSRF + gerekçe ----------
+if ($method === 'POST' && str_starts_with($path, '/atama/')) {
+    csrfCheck();
+    try {
+        $note = preg_replace('/\s+/', ' ', mb_substr((string) ($_POST['reason'] ?? ''), 0, 200));
+        if (preg_match('#^/atama/paket/(\d{1,12})$#', $path, $m)) {
+            $chosen = array_values(array_filter((array) ($_POST['packs'] ?? []), 'is_string'));
+            cloudCall('PUT', '/api/owner-console/tenants/' . (int) $m[1] . '/sector-packs', ['packs' => $chosen, 'reason' => (string) ($_POST['reason'] ?? '')]);
+            auditLine('sektor-paketi #' . (int) $m[1] . ' ' . implode(',', $chosen) . ' neden=' . $note); flashSet('ok', 'Sektör paketleri kaydedildi.');
+        } elseif ($path === '/atama/lisans') {
+            if (($_POST['confirm'] ?? '') !== 'EVET') throw new RuntimeException('Mevcut lisansın iptal edileceğini onaylamanız gerekir.');
+            $tid = (int) ($_POST['tenant'] ?? 0);
+            $r = cloudCall('POST', '/api/owner-console/tenants/' . $tid . '/license', ['plan_id' => (string) ($_POST['plan'] ?? ''), 'days' => (int) ($_POST['days'] ?? 0), 'reason' => (string) ($_POST['reason'] ?? '')]);
+            auditLine('lisans-atandi #' . $tid . ' ' . (string) ($_POST['plan'] ?? '') . ' neden=' . $note); flashSet('ok', 'Lisans atandı' . (isset($r['expires_at']) ? ' (bitiş: ' . (string) $r['expires_at'] . ')' : '') . '.');
+        } else { http_response_code(404); exit('Bulunamadı.'); }
+    } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); }
+    header('Location: /atama'); exit;
+}
 // ---------- Lisans işlemleri (yazma): CSRF + gerekçe zorunlu; hata iletisi forma geri döner ----------
 if ($method === 'POST' && (str_starts_with($path, '/lisanslar'))) {
     csrfCheck();
@@ -111,6 +130,7 @@ try {
         $due = array_values(array_filter($all, fn($l) => $l['status'] === 'ACTIVE' && $l['expires_at'] <= $in30)); usort($due, fn($a, $b2) => strcmp($a['expires_at'], $b2['expires_at']));
         layout('Yönetim', pageManage($due, array_values(array_filter($all, fn($l) => $l['status'] === 'SUSPENDED')), $auth), '/yonetim'); }
     elseif ($path === '/havale') { $bt = null; try { if (cloudConfigured()) $bt = cloudCall('GET', '/api/owner-console/bank-transfers'); } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); } layout('Havale', $bt ? pageBankTransfers($bt) : '<h1>Havale ve fatura</h1>' . flashHtml() . '<p class="err">Bulut bağlantısı kurulu değil.</p>', '/havale'); }
+    elseif ($path === '/atama') { $pk = null; $pl = []; try { if (cloudConfigured()) { $pk = cloudCall('GET', '/api/owner-console/sector-packs'); $pl = cloudCall('GET', '/api/owner-console/plans')['plans'] ?? []; } } catch (RuntimeException $e) { flashSet('err', $e->getMessage()); } layout('Atama', $pk ? pageAssign($pk, $pl) : '<h1>Atama</h1>' . flashHtml() . '<p class="err">Bulut bağlantısı kurulu değil.</p>', '/atama'); }
     elseif ($path === '/paketler') layout('Paketler', pagePackages(catalogue()), '/paketler');
     elseif ($path === '/sistem') layout('Sistem', pageSystem(systemInfo()), '/sistem');
     else { http_response_code(404); layout('Bulunamadı', '<h1>Sayfa bulunamadı</h1>'); }

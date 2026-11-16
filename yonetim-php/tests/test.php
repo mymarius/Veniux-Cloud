@@ -113,4 +113,9 @@ $_SESSION['csrf'] = 'tok';
 $html = pageBankTransfers(['bank' => ['iban' => 'TR330006100519786457841326', 'account_name' => 'Veniux'], 'pending' => [['id' => 7, 'invoice_no' => 'VNX-1', 'tenant_id' => 3, 'license_id' => 5, 'amount' => '14388.00', 'currency' => 'TRY', 'created_at' => '2026-11-16 10:00:00', 'company_name' => '<b>X</b>']], 'licenses' => [['tenant_id' => 3, 'id' => 5, 'company_name' => 'Firma', 'plan_id' => 'NORMAL_WMS_ANNUAL', 'status' => 'PENDING_PAYMENT']]]);
 check('havale sayfası onay ve geri alma formlarını gösterir', str_contains($html, '/havale/3/5/7/onay') && str_contains($html, '/havale/3/5/7/iptal') && str_contains($html, '/havale/fatura'));
 check('havale sayfası firma adını kaçırır', !str_contains($html, '<b>X</b>') && str_contains($html, '&lt;b&gt;X'));
+// Atama sayfası
+require_once dirname(__DIR__) . '/src/views_platform.php';
+$html = pageAssign(['packs' => ['restaurant', 'hardware'], 'labels' => ['restaurant' => 'Restoran', 'hardware' => 'Hırdavat'], 'tenants' => [['id' => 4, 'company_name' => '<i>Y</i>', 'packs' => ['restaurant']]]], [['id' => 'NORMAL_WMS_ANNUAL', 'name' => 'Normal']]);
+check('atama sayfası paket ve lisans formlarını gösterir', str_contains($html, '/atama/paket/4') && str_contains($html, '/atama/lisans') && str_contains($html, 'value="restaurant" checked'));
+check('atama sayfası firma adını kaçırır', !str_contains($html, '<i>Y</i>') && str_contains($html, '&lt;i&gt;Y'));
 echo $fail ? "\n$fail test başarısız\n" : "\nTüm testler geçti\n"; exit($fail ? 1 : 0);

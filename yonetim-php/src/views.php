@@ -24,7 +24,7 @@ function licenseState(?string $status, ?string $expires): array {
 function badge(string $text, string $kind = 'ok'): string { return '<span class="b b-' . e($kind) . '">' . e($text) . '</span>'; }
 
 function layout(string $title, string $body, string $active = '', string $strip = ''): void {
-    $nav = ['/' => 'Pano', '/yonetim' => 'Yönetim', '/musteriler' => 'Müşteriler', '/lisanslar' => 'Lisanslar', '/havale' => 'Havale', '/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
+    $nav = ['/' => 'Pano', '/yonetim' => 'Yönetim', '/musteriler' => 'Müşteriler', '/lisanslar' => 'Lisanslar', '/havale' => 'Havale', '/atama' => 'Atama','/satislar' => 'Satışlar', '/paketler' => 'Paketler', '/sistem' => 'Sistem'];
     echo '<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' . e($title) . ' | Veniux Yönetim</title><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/console.css?v=' . assetVersion() . '"></head><body>';
     echo '<a class="skip" href="#icerik">İçeriğe geç</a><header class="top"><div class="wrap nav"><div class="brandwrap"><a class="brand" href="/" aria-label="Veniux ana sayfa (pano)"><img src="/assets/logo-40-v1.webp" srcset="/assets/logo-40-v1.webp 1x, /assets/logo-80-v1.webp 2x" alt="" width="28" height="28"><span>Veniux</span></a><a class="brand-sub" href="/yonetim">yönetim</a></div><nav aria-label="Ana menü">';
     foreach ($nav as $href => $label) echo '<a href="' . $href . '"' . ($active === $href ? ' aria-current="page"' : '') . '>' . e($label) . '</a>';

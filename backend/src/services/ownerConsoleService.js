@@ -66,4 +66,30 @@ async function voidBankInvoice(tenantId, licenseId, invoiceId, body = {}) {
   const t = ids(tenantId, licenseId, invoiceId); reasonOf(body.reason);
   return db.transaction(tx => billing.voidBankInvoice(tx, { ...t, actor: ACTOR.email }));
 }
-module.exports = { setTenantAccess, catalogue, setPlan, bankTransfers, createBankInvoice, confirmBankTransfer, voidBankInvoice };
+// ---- Sektör paketleri ve lisans atama (programdaki platform ekranlarının yönetim sitesindeki karşılığı) ----
+const sectorPacks = require('./sectorPacks');
+const licenseService = require('./licenseService');
+async function sectorPackList() { return sectorPacks.listAll(ACTOR); }
+async function setSectorPacks(tenantId, body = {}) {
+  const why = reasonOf(body.reason);
+  const saved = await sectorPacks.setForTenant({ ...ACTOR, userId: null }, tenantId, body.packs);
+  await db.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,details) VALUES ($1,$2,$3,$4,$5)', [saved.tenant_id, ACTOR.email, 'owner_console_sector_packs', 'sector_pack', JSON.stringify({ packs: saved.packs, reason: why })]);
+  return saved;
+}
+function planList() { return licenseService.getPlans().map(p => ({ id: p.id, name: p.name || p.id })); }
+async function assignLicense(tenantId, body = {}) {
+  const id = Number(tenantId), days = body.days;
+  const plan = licenseService.getPlans().find(p => p.id === body.plan_id);
+  if (!Number.isSafeInteger(id) || id < 1 || !plan || !Number.isInteger(days) || days < 1 || days > 366) fail('Geçerli işletme, paket ve 1–366 gün arasında süre seçin.', 422, 'BAD_LICENSE');
+  const why = reasonOf(body.reason);
+  const expires = new Date(Date.now() + days * 86400000).toISOString().replace('T', ' ').replace('Z', '');
+  const licenseKey = licenseService.generateKey();
+  await db.transaction(async tx => {
+    if (!(await tx.query('SELECT id FROM tenants WHERE id=$1', [id])).rows.length) fail('İşletme bulunamadı.', 404, 'NO_TENANT');
+    await tx.query("UPDATE licenses SET status='REVOKED' WHERE tenant_id=$1 AND status='ACTIVE'", [id]);
+    await tx.query('INSERT INTO licenses (license_key,tenant_id,plan_id,status,max_users,max_warehouses,max_devices,max_pdas,enabled_features_json,expires_at) VALUES ($1,$2,$3,\'ACTIVE\',$4,$5,$6,$7,$8,$9)', [licenseKey, id, plan.id, plan.max_users, plan.max_warehouses, plan.max_devices, plan.max_pdas, JSON.stringify(plan.features), expires]);
+    await tx.query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,$3,$4,$5,$6)', [id, ACTOR.email, 'license_assigned', 'tenant', id, JSON.stringify({ plan: plan.id, days, reason: why })]);
+  });
+  return { plan_id: plan.id, expires_at: expires };
+}
+module.exports = { setTenantAccess, catalogue, setPlan, bankTransfers, createBankInvoice, confirmBankTransfer, voidBankInvoice, sectorPackList, setSectorPacks, planList, assignLicense };

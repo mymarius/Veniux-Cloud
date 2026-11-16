@@ -45,3 +45,30 @@ test('yanlış kesilen fatura geri alınır', async () => {
 test('imzasız istek reddedilir', async () => {
   expect((await request(app).get('/api/owner-console/bank-transfers')).status).toBe(401);
 });
+
+// ---- Sektör paketi ve lisans atama (yönetim sitesi) ----
+test('sektör paketi: listele, ata, gerekçe ve geçersiz paket reddedilir, denetim kaydı yazılır', async () => {
+  const list = await call('GET', '/api/owner-console/sector-packs');
+  expect(list.body.tenants.some(t => t.id === customer.tenantId)).toBe(true);
+  const put = body => call('PUT', `/api/owner-console/tenants/${customer.tenantId}/sector-packs`, body);
+  expect((await put({ packs: ['restaurant'], reason: 'x' })).body.code).toBe('BAD_REASON');
+  expect((await put({ packs: ['yok-boyle-paket'], reason: 'sözleşme gereği' })).status).toBe(400);
+  expect((await put({ packs: ['restaurant', 'hardware'], reason: 'sözleşme gereği' })).body.packs.sort()).toEqual(['hardware', 'restaurant']);
+  const after = await call('GET', '/api/owner-console/sector-packs');
+  expect(after.body.tenants.find(t => t.id === customer.tenantId).packs.sort()).toEqual(['hardware', 'restaurant']);
+  expect((await db.query("SELECT 1 FROM audit_logs WHERE tenant_id=$1 AND user_email='yonetim-sitesi' AND action='owner_console_sector_packs'", [customer.tenantId])).rows.length).toBe(1);
+});
+
+test('lisans atama: paket ve gün doğrulanır, eski etkin lisans iptal olur', async () => {
+  const plans = (await call('GET', '/api/owner-console/plans')).body.plans;
+  expect(plans.length).toBeGreaterThan(0);
+  const assign = body => call('POST', `/api/owner-console/tenants/${customer.tenantId}/license`, body);
+  expect((await assign({ plan_id: plans[0].id, days: 400, reason: 'deneme lisansı' })).body.code).toBe('BAD_LICENSE');
+  expect((await assign({ plan_id: plans[0].id, days: 30, reason: 'k' })).body.code).toBe('BAD_REASON');
+  const first = await assign({ plan_id: plans[0].id, days: 30, reason: 'deneme lisansı' });
+  expect(first.status).toBe(200);
+  const second = await assign({ plan_id: plans[0].id, days: 60, reason: 'uzatma' });
+  expect(second.status).toBe(200);
+  const active = (await db.query("SELECT COUNT(*) n FROM licenses WHERE tenant_id=$1 AND status='ACTIVE'", [customer.tenantId])).rows[0].n;
+  expect(Number(active)).toBe(1);
+});
