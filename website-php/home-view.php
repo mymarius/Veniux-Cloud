@@ -162,15 +162,15 @@ $steps=[
 <section class="hx-plain hx-roadmap" id="yol-haritasi">
   <div class="hx-wrap">
     <h2>Yol haritası</h2>
-    <p class="hx-road-lead">Aşağıdakilerin bir kısmı henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak.</p>
+    <p class="hx-road-lead">Aşağıdakilerin bir kısmı henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak. Her özelliğin durumu için <a href="/bilgilendirme">bilgilendirme sayfasına</a> bakın.</p>
     <ol class="hx-road">
       <li data-s="build"><span class="hx-chip">Yapım aşamasında</span><div>Mağaza ile bulutun kendiliğinden eşitlenmesi.</div></li>
       <li data-s="limited"><span class="hx-chip">Bugün var, sınırlı</span><div>Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Yazarkasa (yeni nesil ÖKC) entegrasyonu.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>e-Fatura, e-Arşiv ve e-İrsaliye.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</div></li>
-      <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Teraziye kablolu bağlantı (terazi etiketindeki barkod bugün okunuyor).</div></li>
-      <li data-s="untested"><span class="hx-chip">Denenmedi</span><div>Trendyol entegrasyonu gerçek mağazada denenmedi; Hepsiburada ve N11 planlanıyor.</div></li>
+      <li data-s="untested"><span class="hx-chip">Denenmedi</span><div>Teraziye kablolu bağlantı Windows’ta 2.4.82 ile eklendi, gerçek terazide denenmedi (terazi etiketindeki barkod bugün de okunuyor).</div></li>
+      <li data-s="untested"><span class="hx-chip">Denenmedi</span><div>Trendyol entegrasyonu gerçek mağazada denenmedi. Hepsiburada ve N11 için bağlantı altyapısı eklendi, onlar da gerçek mağazada denenmedi.</div></li>
       <li data-s="no"><span class="hx-chip">Yok</span><div>iPhone uygulaması.</div></li>
     </ol>
   </div>
