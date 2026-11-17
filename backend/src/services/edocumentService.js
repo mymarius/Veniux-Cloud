@@ -150,4 +150,17 @@ async function refresh(user, id) {
   else if (outcome?.state === 'accepted' && row.status === 'unknown') await setState(user, id, 'sent', null, false);
   return view(await find(user, id));
 }
-module.exports = { status, saveConnection, removeConnection, testConnection, checkTaxpayer, createDraft, draftFromSale, list, send, refresh, setProvider, readTaxpayer };
+// Taslak XML önizlemesi: gerçek fatura numarası verilmez (TSL...0), imzalanmaz ve gönderilmez.
+async function draftXml(user, id) {
+  guard(user);
+  const row = await find(user, id);
+  const payload = JSON.parse(row.payload);
+  const t = (await db.query('SELECT company_name,tax_number,tax_office,address FROM tenants WHERE id=$1', [user.tenantId])).rows[0] || {};
+  const year = new Date().getUTCFullYear();
+  return require('./ublTrService').buildInvoiceXml({
+    draft: payload.draft, document_type: row.document_type, receiver: payload.receiver,
+    seller: { name: t.company_name, tax_number: t.tax_number, tax_office: t.tax_office, address: t.address },
+    uuid: row.id, number: `TSL${year}000000000`, issued_at: new Date(row.created_at.includes('T') ? row.created_at : row.created_at.replace(' ', 'T') + 'Z'), note: 'TASLAK - resmî belge değildir, gönderilmedi'
+  });
+}
+module.exports = { draftXml, status, saveConnection, removeConnection, testConnection, checkTaxpayer, createDraft, draftFromSale, list, send, refresh, setProvider, readTaxpayer };

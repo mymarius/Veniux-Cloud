@@ -17,6 +17,21 @@ export default function EDocumentConnection() {
     setBusy(true); setNote(null);
     try { const { data } = await work(); setNote({ text: done(data) }); await load(); } catch (e) { setNote({ error: true, text: errorOf(e, 'İşlem tamamlanamadı.') }); await load().catch(() => {}); } finally { setBusy(false); }
   };
+  // Taslak UBL-TR XML (resmî belge değil, gönderilmez); eksik veri varsa nedeni gösterilir.
+  const downloadXml = async d => {
+    setNote(null);
+    try {
+      const { data } = await api.get(`/edocuments/${d.id}/xml`, { responseType: 'text', transformResponse: r => r });
+      const url = URL.createObjectURL(new Blob([data], { type: 'application/xml' }));
+      const link = document.createElement('a'); link.href = url; link.download = `taslak-${d.sale_id}.xml`; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setNote({ text: 'Taslak XML indirildi. Resmî belge değildir, gönderilmedi.' });
+    } catch (e) {
+      let msg = 'XML üretilemedi.';
+      try { msg = JSON.parse(e.response?.data || '{}').error || msg; } catch { /* düz metin değil */ }
+      setNote({ error: true, text: msg });
+    }
+  };
   const save = e => { e.preventDefault(); run(async () => { const r = await api.put('/edocuments/connection', form); setForm({ username: '', password: '' }); return r; }, () => 'Hesap kaydedildi. Bağlantıyı deneyin.'); };
   return <section className="veniux-card p-5 space-y-4" aria-label="e-Belge">
     <div><h2 className="font-semibold">e-Fatura ve e-Arşiv</h2><p className="text-sm text-slate-500">Kendi entegratör hesabınızı bağlarsınız. Bu sürümde mükellef sorgulama çalışır; <strong>gerçek belge gönderimi henüz açık değildir.</strong></p></div>
@@ -34,6 +49,6 @@ export default function EDocumentConnection() {
       <button className="btn-soft" disabled={busy || !status?.connected}>Sorgula</button>
     </form>
     {note && <p role={note.error ? 'alert' : 'status'} className={note.error ? 'text-sm font-semibold text-red-700' : 'text-sm font-semibold text-emerald-700'}>{note.text}</p>}
-    {documents.length > 0 && <table className="w-full text-sm"><thead><tr><th className="text-left">Satış</th><th className="text-left">Tür</th><th className="text-left">Durum</th></tr></thead><tbody>{documents.map(d => <tr key={d.id}><td>{d.sale_id}</td><td>{d.document_type === 'E_FATURA' ? 'e-Fatura' : 'e-Arşiv'}</td><td>{STATE[d.status] || d.status}</td></tr>)}</tbody></table>}
+    {documents.length > 0 && <table className="w-full text-sm"><thead><tr><th className="text-left">Satış</th><th className="text-left">Tür</th><th className="text-left">Durum</th><th className="text-left">Taslak</th></tr></thead><tbody>{documents.map(d => <tr key={d.id}><td>{d.sale_id}</td><td>{d.document_type === 'E_FATURA' ? 'e-Fatura' : 'e-Arşiv'}</td><td>{STATE[d.status] || d.status}</td><td><button type="button" className="btn-soft" disabled={busy} onClick={() => downloadXml(d)}>XML indir</button></td></tr>)}</tbody></table>}
   </section>;
 }

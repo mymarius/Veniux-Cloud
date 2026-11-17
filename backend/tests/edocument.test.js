@@ -91,3 +91,16 @@ test('açık yanıt yoksa mükellef sonucu tahmin edilmez', () => {
   expect(service.readTaxpayer({ Value: 'false' })).toBe(false);
   expect(service.readTaxpayer({})).toBe(null);
 });
+
+test('taslak XML önizlemesi: kendi firmasının satıcı bilgisiyle üretilir, başka firma göremez, resmî numara verilmez', async () => {
+  await db.query('UPDATE tenants SET company_name=$1,tax_number=$2,tax_office=$3,address=$4 WHERE id=$5', ['Xml Test AŞ', '1234567890', 'Kadıköy', 'Moda 1', owner.tenantId]);
+  const lines = [{ name: 'Süt', quantity: 2, unit: 'adet', net_cents: 10000, vat_rate: 10, vat_cents: 1000, total_cents: 11000 }];
+  const doc = await service.createDraft(actor(owner), { sale_id: 'XML-' + (++saleNo), document_type: 'E_ARSIV', draft: { currency: 'TRY', lines, tax_totals: { groups: [{ rate: 10, base_cents: 10000, vat_cents: 1000, total_cents: 11000 }], unknown_total_cents: 0 }, total_cents: 11000 } });
+  const xml = await service.draftXml(actor(owner), doc.id);
+  expect(xml).toContain('Xml Test AŞ'); expect(xml).toContain('<cbc:ID>TSL'); expect(xml).toContain('TASLAK'); expect(xml).toContain('<cbc:PayableAmount currencyID="TRY">110.00</cbc:PayableAmount>');
+  await expect(service.draftXml(actor(other), doc.id)).rejects.toMatchObject({ status: 404 });
+  const res = await request(app).get('/api/edocuments/' + doc.id + '/xml').set(auth(owner));
+  expect(res.status).toBe(200); expect(res.headers['content-type']).toContain('xml'); expect(res.text).toContain('EARSIVFATURA');
+  const boş = await draft(owner);
+  await expect(service.draftXml(actor(owner), boş.id)).rejects.toThrow('en az bir satır');
+});
