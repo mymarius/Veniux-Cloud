@@ -70,8 +70,14 @@ def windows_package(version):
     sha512 = base64.b64encode(hashlib.sha512(data).digest()).decode()
     text = yml.read_text(encoding='utf-8')
     if f'version: {version}' not in text or sha512 not in text: raise SystemExit('latest.yml paketle uyuşmuyor')
-    manifest = {'version': version, 'filename': exe.name, 'bytes': len(data), 'sha512': sha512, 'signing_status': 'unsigned', 'notice': UNSIGNED}
-    latest = text.rstrip('\n') + '\n\nreleaseNotes: "Temporary unsigned Windows release. SmartScreen warning may appear."\n'
+    # İmza durumu yalnız derleme aracının doğruladığı kayıttan okunur; kayıt yoksa ya da geçerli değilse imzasız sayılır.
+    signing = {}
+    try: signing = json.loads((folder / 'signing.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError): pass
+    is_signed = signing.get('status') == 'signed' and signing.get('version') == version
+    manifest = {'version': version, 'filename': exe.name, 'bytes': len(data), 'sha512': sha512, 'signing_status': 'signed' if is_signed else 'unsigned'}
+    if not is_signed: manifest['notice'] = UNSIGNED
+    latest = text.rstrip('\n') + '\n' + ('' if is_signed else '\nreleaseNotes: "Temporary unsigned Windows release. SmartScreen warning may appear."\n')
     return {'platform': 'windows', 'manifest_name': 'windows.json', 'manifest': manifest, 'files': [exe, folder / (exe.name + '.blockmap')], 'extra': {'latest.yml': latest.encode()}, 'main': data}
 
 
@@ -168,7 +174,7 @@ def archive_document(raw, packages, version):
             if row.get('platform') == package['platform'] and row.get('version') != version: row['historical'] = True
         data['releases'] = [r for r in data['releases'] if not (r.get('platform') == package['platform'] and r.get('version') == version)]
         row = {'platform': package['platform'], 'version': version, 'filename': package['manifest']['filename'], 'bytes': len(package['main']), 'sha256': hashlib.sha256(package['main']).hexdigest()}
-        if package['platform'] == 'windows': row['notice'] = UNSIGNED
+        if package['platform'] == 'windows' and package['manifest'].get('signing_status') != 'signed': row['notice'] = UNSIGNED
         data['releases'].append(row)
     return data
 

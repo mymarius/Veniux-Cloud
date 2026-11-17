@@ -107,3 +107,12 @@ html:not([data-motion='off']) .enterprise-shell .sb .sb-item em{animation:vx-pop
 
 /* Açılış dairesindeki Veniux logosu */
 .vx-intro-dot img{display:block;width:44px;height:44px;object-fit:contain;user-select:none}
+
+/* Aktif öğe geçişi: kayarken hafif bulanık iz (videodaki gibi) */
+@media (prefers-reduced-motion:no-preference){
+::view-transition-group(vx-active){animation-duration:.6s}
+::view-transition-old(vx-active){animation:vx-smear-out .45s var(--vx-ease) both}
+::view-transition-new(vx-active){animation:vx-smear-in .45s var(--vx-ease) both}
+@keyframes vx-smear-out{to{opacity:0;filter:blur(4px)}}
+@keyframes vx-smear-in{from{opacity:0;filter:blur(4px)}}
+}

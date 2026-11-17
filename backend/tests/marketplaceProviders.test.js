@@ -40,6 +40,7 @@ test('pazaryeri listesi üç sağlayıcıyı ve deneme durumunu gösterir; bilin
   const r = await auth(request(app).get('/api/marketplace'));
   expect(r.body.providers.map(p => [p.id, p.experimental])).toEqual([['trendyol', false], ['hepsiburada', true], ['n11', true]]);
   expect((await auth(request(app).get('/api/marketplace/yok'))).status).toBe(404);
+  for (const name of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) expect((await auth(request(app).get('/api/marketplace/' + name))).status).toBe(404);
 });
 
 describe('Hepsiburada', () => {

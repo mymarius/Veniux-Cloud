@@ -14,7 +14,8 @@ const stamp = date => date.toISOString().slice(0, 19).replace('T', ' ');
 const millis = value => Date.parse(String(value).includes('T') ? value : String(value).replace(' ', 'T') + 'Z');
 
 function adapterOf(provider) {
-  const adapter = providers[provider];
+  // Yalnız kayıtlı sağlayıcı adları geçerlidir; 'constructor' gibi nesne özellikleri sağlayıcı sayılmaz.
+  const adapter = Object.hasOwn(providers, provider) ? providers[provider] : null;
   if (!adapter) fail('Desteklenmeyen pazaryeri.', 404);
   return adapter;
 }
