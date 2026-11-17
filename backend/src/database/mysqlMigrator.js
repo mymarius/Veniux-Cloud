@@ -70,14 +70,16 @@ class MySQLMigrator{
    await c.query('SET FOREIGN_KEY_CHECKS=0');
    const [oldRelations]=await c.query('SELECT TABLE_NAME,CONSTRAINT_NAME FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE()');
    for(const fk of oldRelations)await c.query('ALTER TABLE '+q(fk.TABLE_NAME)+' DROP FOREIGN KEY '+q(fk.CONSTRAINT_NAME));
+   const [priorTables]=await c.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');const tablesBefore=new Set(priorTables.map(v=>v.TABLE_NAME));const previous=catalog[catalog.indexOf(manifest)-1];
    for(const t of manifest.tables){
+    const previousTable=previous?.tables.find(v=>v.name===t.name),existedBefore=tablesBefore.has(t.name);
     const definitions=t.columns.map(v=>v.definition);if(t.primary.length)definitions.push('PRIMARY KEY('+cols(t.primary)+')');
     for(const ix of t.unique)definitions.push('UNIQUE KEY '+q(ix.name)+'('+cols(ix.columns)+')');
     for(const [i,check] of t.checks.entries())definitions.push('CONSTRAINT '+q('ck_'+t.name+'_'+i)+' CHECK('+check+')');
     await c.query('CREATE TABLE IF NOT EXISTS '+q(t.name)+'('+definitions.join(',')+') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin');
     const [existing]=await c.query('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?',[t.name]);
     for(const column of t.columns)if(!existing.some(v=>v.COLUMN_NAME===column.name))await c.query('ALTER TABLE '+q(t.name)+' ADD COLUMN '+column.definition);
-    for(const column of t.columns.filter(v=>!v.definition.includes('GENERATED ALWAYS'))){await c.query('ALTER TABLE '+q(t.name)+' MODIFY COLUMN '+column.definition);}
+    for(const column of t.columns.filter(v=>!v.definition.includes('GENERATED ALWAYS'))){if(!existedBefore||previousTable?.columns.some(v=>v.name===column.name&&v.definition===column.definition))continue;await c.query('ALTER TABLE '+q(t.name)+' MODIFY COLUMN '+column.definition);}
     for(const [i,check] of t.checks.entries()){const name='ck_'+t.name+'_'+i;const [found]=await c.query('SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND TABLE_NAME=? AND CONSTRAINT_NAME=?',[t.name,name]);if(!found.length)await c.query('ALTER TABLE '+q(t.name)+' ADD CONSTRAINT '+q(name)+' CHECK('+check+')');}
     for(const ix of [...t.unique,...t.indexes]){const [found]=await c.query('SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND INDEX_NAME=?',[t.name,ix.name]);if(!found.length)await c.query('CREATE '+(t.unique.includes(ix)?'UNIQUE ':'')+'INDEX '+q(ix.name)+' ON '+q(t.name)+'('+cols(ix.columns)+')');}
    }
