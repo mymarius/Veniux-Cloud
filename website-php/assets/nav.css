@@ -1,61 +1,129 @@
-/* Üst menü: yapışkan çubuk, kayan çizgili bağlantılar, Çözümler açılır menüsü, ilerleme çizgisi, tam ekran mobil menü. */
-.vs-header{position:sticky;top:0;z-index:60;background:rgba(244,238,226,.88);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);transition:background-color .25s,box-shadow .25s}
-.vs-header[data-scrolled]{background:rgba(244,238,226,.97);box-shadow:0 5px 0 -2px var(--kraft)}
-.vs-nav{min-height:76px;gap:30px;transition:min-height .25s cubic-bezier(.22,1,.36,1)}
-.vs-header[data-scrolled] .vs-nav{min-height:60px}
+/* Üst menü, sitenin kendi dilinde: kâğıt zemin, raf etiketi ve fiş önizlemeleri, barkod lazeri, damga, bant, turuncu kesikli şerit.
+   Renkler yalnız sitenin paleti: kâğıt, kraft, lacivert mürekkep, turuncu, kırmızı damga, yeşil onay. */
+:root{--vn-ease:cubic-bezier(.22,1,.36,1);--vn-rule:#bfb196;--vn-red:#c0392b}
+
+/* Kabuk: yükseklik sabit; kaydırınca çubuk düz kâğıt karta döner (blur yok, kaydırılmış gölge var) */
+.vs-header{position:sticky;top:0;z-index:60;height:76px;background:var(--paper);border-bottom:1px solid var(--line);transition:background-color .3s,border-color .3s}
+.vs-header[data-scrolled]{background:transparent;border-color:transparent}
+.vs-nav{position:relative;display:flex;align-items:center;gap:30px;min-height:76px;padding:0;border:1px solid transparent;background:transparent;transition:min-height .35s var(--vn-ease),margin-top .35s var(--vn-ease),padding .35s var(--vn-ease),background-color .3s,border-color .3s,box-shadow .3s}
+.vs-header[data-scrolled] .vs-nav{min-height:58px;margin-top:9px;padding:0 22px;background:var(--white);border-color:var(--vn-rule);box-shadow:5px 5px 0 var(--kraft)}
 
 /* Marka */
 .vs-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.vs-brand img{transition:transform .35s cubic-bezier(.22,1,.36,1)}
-.vs-brand:hover img{transform:rotate(-10deg) scale(1.12)}
-.vs-brand span{font-size:27px;font-weight:800;font-stretch:78%;letter-spacing:-.02em;line-height:1}
+.vs-brand img{transition:transform .4s var(--vn-ease)}
+.vs-brand:hover img{transform:rotate(-12deg) scale(1.14)}
+.vs-brand span{font-size:27px;font-weight:800;font-stretch:75%;letter-spacing:-.01em;line-height:1}
 .vs-brand span:after{content:'.';color:var(--orange)}
 
-/* Bağlantılar: altında turuncu çizgi soldan kayarak gelir */
-.vs-nav-links{display:flex;align-items:center;gap:30px;margin-right:auto}
-.vs-nav-links>a,.vs-nav-trigger{position:relative;display:inline-flex;align-items:center;gap:6px;padding:10px 0;font:inherit;font-size:15.5px;font-weight:650;color:var(--ink);background:none;border:0;cursor:pointer;text-decoration:none}
-.vs-nav-links>a:after,.vs-nav-trigger:after{content:'';position:absolute;left:0;right:0;bottom:3px;height:3px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.22,1,.36,1)}
+/* Bağlantılar: başlıklardaki gibi kalın turuncu çubuk soldan uzar */
+.vs-nav-links{position:static;display:flex;align-items:center;gap:8px;margin-right:auto}
+.vs-nav-links>a,.vs-nav-trigger{position:relative;display:inline-flex;align-items:center;gap:6px;padding:10px 14px;font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;border:0;cursor:pointer;text-decoration:none}
+.vs-nav-links>a:after,.vs-nav-trigger:after{content:'';position:absolute;left:14px;right:14px;bottom:3px;height:5px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .35s var(--vn-ease)}
 .vs-nav-links>a:hover:after,.vs-nav-links>a:focus-visible:after,.vs-nav-links>a[aria-current]:after,.vs-nav-trigger:hover:after,.vs-nav-trigger:focus-visible:after,.vs-nav-trigger[aria-expanded=true]:after,.vs-nav-trigger[data-current]:after{transform:scaleX(1)}
-.vs-nav-trigger svg{transition:transform .25s}
+.vs-nav-trigger svg{transition:transform .3s var(--vn-ease)}
 .vs-nav-trigger[aria-expanded=true] svg{transform:rotate(180deg)}
-.vs-nav-links a:focus-visible,.vs-nav-trigger:focus-visible,.vs-btn:focus-visible,.vs-nav-login:focus-visible{outline:3px solid #cf4b0699;outline-offset:3px}
+.vs-nav-links a:focus-visible,.vs-nav-trigger:focus-visible,.vs-btn:focus-visible,.vs-nav-login:focus-visible{outline:3px solid #cf4b0699;outline-offset:2px}
 
-/* Çözümler açılır menüsü */
-.vs-menu{position:relative}
-.vs-mega{position:absolute;left:-24px;top:100%;width:min(900px,92vw);padding-top:14px;opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .22s ease,transform .28s cubic-bezier(.22,1,.36,1),visibility 0s .28s;pointer-events:none}
-.vs-menu:hover .vs-mega,.vs-menu:focus-within .vs-mega,.vs-menu[data-open] .vs-mega{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition-delay:0s}
-.vs-mega-grid,.vs-mega-foot{background:var(--white);border:1px solid #bfb196}
-.vs-mega-grid{display:grid;grid-template-columns:1.25fr 1fr .8fr;gap:30px;padding:26px 28px;box-shadow:8px 8px 0 var(--kraft)}
-.vs-mega-foot{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:-1px;padding:14px 28px;background:var(--ink);border-color:var(--ink);color:#e9e4d8;font-size:14.5px}
-.vs-mega-foot a{color:#fff;font-weight:700;text-decoration:none;border-bottom:2px solid var(--orange)}
-.vs-mega-title{margin:0 0 12px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--orange-text)}
-.vs-mega-item{display:block;padding:9px 12px;margin:0 -12px;text-decoration:none;color:var(--ink);border-left:3px solid transparent;transition:background-color .15s,border-color .15s,transform .2s cubic-bezier(.22,1,.36,1)}
-.vs-mega-item b{display:block;font-size:16px}
-.vs-mega-item span{display:block;margin-top:2px;font-size:13.5px;color:var(--ink-soft);font-weight:500}
+/* Çözümler menüsü: bantlı kâğıt kart */
+.vs-menu{position:static}
+.vs-mega{position:absolute;left:0;right:0;top:100%;padding-top:12px;visibility:hidden;pointer-events:none;transition:visibility 0s .4s}
+.vs-mega-box{position:relative;opacity:0;transform:translateY(-10px);clip-path:inset(0 0 100% 0);transition:opacity .25s ease,transform .45s var(--vn-ease),clip-path .5s var(--vn-ease)}
+.vs-menu:hover .vs-mega,.vs-menu:focus-within .vs-mega,.vs-menu[data-open] .vs-mega{visibility:visible;pointer-events:auto;transition-delay:0s}
+.vs-menu:hover .vs-mega-box,.vs-menu:focus-within .vs-mega-box,.vs-menu[data-open] .vs-mega-box{opacity:1;transform:none;clip-path:inset(-24px -14px -14px 0)}
+.vs-mega-tape{position:absolute;left:42px;top:-12px;z-index:2;width:130px;height:26px;background:#e8cf9d;border:1px solid #c9a96b;opacity:.92;transform:rotate(-2deg)}
+.vs-mega-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) 330px;background:var(--white);border:1px solid var(--vn-rule);box-shadow:8px 8px 0 var(--kraft)}
+.vs-mega-col{padding:26px 28px 22px}
+.vs-mega-side{border-left:1px dashed var(--line)}
+.vs-mega-title{margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange-text)}
+.vs-mega-title-2{margin-top:22px}
+.vs-mega-item{display:flex;align-items:baseline;gap:14px;padding:8px 12px;margin:0 -12px 2px;text-decoration:none;color:var(--ink);border-left:4px solid transparent;transition:background-color .2s,border-color .2s,transform .3s var(--vn-ease)}
+.vs-mega-item em{flex:none;width:30px;font-style:normal;font-size:20px;font-weight:800;font-stretch:75%;color:var(--orange-text);opacity:.75;transition:opacity .2s}
+.vs-mega-item b{display:block;font-size:24px;font-weight:800;font-stretch:75%;line-height:1.1}
+.vs-mega-item small{display:block;margin-top:2px;font-size:14px;color:var(--ink-soft);font-weight:500}
 .vs-mega-item:hover,.vs-mega-item:focus-visible,.vs-mega-item[aria-current]{background:var(--paper);border-left-color:var(--orange);transform:translateX(4px)}
+.vs-mega-item:hover em,.vs-mega-item:focus-visible em{opacity:1}
+.vs-menu:hover .vs-mega-item,.vs-menu:focus-within .vs-mega-item,.vs-menu[data-open] .vs-mega-item{animation:vn-in .5s calc(var(--i,0)*45ms + .08s) var(--vn-ease) backwards}
 .vs-mega-chips{display:flex;flex-wrap:wrap;gap:8px}
-.vs-mega-chips a{padding:7px 14px;border:1px solid #bfb196;background:var(--paper);color:var(--ink);font-size:14px;font-weight:650;text-decoration:none;transition:background-color .15s,color .15s,transform .15s,box-shadow .15s}
-.vs-mega-chips a:hover,.vs-mega-chips a:focus-visible,.vs-mega-chips a[aria-current]{background:var(--ink);color:#fff;transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--orange)}
-.vs-mega-note{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
-.vs-mega-note a{color:var(--orange-text);font-weight:700}
-.vs-mega-link{display:block;padding:7px 0;color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--line)}
-.vs-mega-link:hover,.vs-mega-link:focus-visible,.vs-mega-link[aria-current]{color:var(--orange-text)}
+.vs-mega-chips a{padding:7px 14px;border:1px solid var(--vn-rule);background:var(--white);color:var(--ink);font-size:14.5px;font-weight:700;text-decoration:none;transition:background-color .15s,color .15s,transform .2s,box-shadow .2s}
+.vs-mega-chips a:hover,.vs-mega-chips a:focus-visible,.vs-mega-chips a[aria-current]{background:var(--ink);color:#fff;border-color:var(--ink);transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--orange)}
+.vs-mega-link{display:block;padding:7px 0;color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--line);transition:color .15s,padding-left .25s var(--vn-ease)}
+.vs-mega-link:hover,.vs-mega-link:focus-visible,.vs-mega-link[aria-current]{color:var(--orange-text);padding-left:6px}
+.vs-mega-foot{position:relative;display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:-1px;padding:16px 28px 13px;background:var(--ink);border:1px solid var(--ink);color:#e9e4d8;font-size:15px}
+.vs-mega-foot:before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(90deg,var(--orange) 0 14px,transparent 14px 20px)}
+.vs-mega-foot a{color:#fff;font-weight:800;text-decoration:none}
+.vs-mega-foot a i{display:inline-block;font-style:normal;color:var(--orange);transition:transform .3s var(--vn-ease)}
+.vs-mega-foot a:hover i{transform:translateX(6px)}
+
+/* Önizleme: kraft zemin üzerinde asılı raf etiketi, fiş ve not */
+.vs-prev{position:relative;overflow:hidden;min-height:330px;background:var(--kraft);border-left:1px solid var(--vn-rule)}
+.vs-tag{position:absolute;left:26px;right:26px;top:28px;display:flex;flex-direction:column;gap:8px;padding:22px 18px 16px;background:var(--white);border:1px solid var(--vn-rule);box-shadow:4px 4px 0 #cdbd9f;color:var(--ink);opacity:0;pointer-events:none;transform:translateY(-40px) rotate(-6deg);transform-origin:50% 0;transition:opacity .2s ease,transform .5s var(--vn-ease)}
+.vs-prev[data-prev=stok] .vs-tag[data-pv=stok],.vs-prev[data-prev=depo] .vs-tag[data-pv=depo],.vs-prev[data-prev=kasa] .vs-tag[data-pv=kasa],.vs-prev[data-prev=lot] .vs-tag[data-pv=lot],.vs-prev[data-prev=ai] .vs-tag[data-pv=ai]{opacity:1;transform:rotate(1.4deg)}
+.vs-hole{position:absolute;left:50%;top:7px;width:13px;height:13px;margin-left:-6px;border-radius:50%;background:var(--kraft);border:2px solid var(--ink)}
+.tg-k{margin:0;font-size:11.5px;font-weight:800;letter-spacing:.1em;color:var(--ink-soft)}
+.tg-name{margin:0;font-size:24px;font-weight:800;font-stretch:75%;line-height:1.1}
+.tg-code{position:relative;height:46px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px,var(--ink) 8px 11px,transparent 11px 13px,var(--ink) 13px 14px,transparent 14px 17px);overflow:hidden}
+.tg-laser{position:absolute;top:0;bottom:0;left:0;width:3px;background:#d6361f;box-shadow:0 0 8px 1px #d6361f99}
+.tg-num{display:flex;align-items:baseline;gap:8px}
+.tg-num b{font-size:54px;font-weight:800;font-stretch:66%;line-height:.95}
+.tg-num span{font-size:16px;font-weight:700;color:var(--ink-soft)}
+.tg-low{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px dashed var(--vn-rule);font-size:13px;font-weight:600;color:var(--ink-soft)}
+.tg-stamp{display:inline-block;padding:2px 8px;border:3px solid var(--vn-red);border-radius:3px;color:var(--vn-red);font-size:14px;font-weight:900;letter-spacing:.05em;text-decoration:none;transform:rotate(-5deg);opacity:0;background:#fffdf8e6}
+.tg-ok{position:absolute;right:12px;bottom:-6px;border-color:#0d7a57;color:#0d7a57;font-size:18px}
+.vs-tag[data-pv=lot] .tg-stamp{position:absolute;right:14px;top:58px;font-size:13px}
+.tg-shelf{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.tg-shelf i{height:26px;border:2px solid var(--ink);background:var(--paper)}
+.tg-shelf .tg-hit{background:var(--orange);border-color:var(--ink)}
+.tg-row{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600}
+.tg-row span{color:var(--ink-soft)}
+.tg-row b{font-weight:800}
+.tg-total{display:flex;justify-content:space-between;margin-top:2px;padding-top:8px;border-top:2px dashed var(--vn-rule);font-size:18px;font-weight:800}
+.vs-fis{padding-top:16px;padding-bottom:22px;background-image:radial-gradient(circle at 5px 0,var(--kraft) 4px,transparent 4.5px);background-size:10px 9px;background-repeat:repeat-x;background-position:0 100%}
+.tg-q{margin:0;padding:8px 10px;align-self:flex-end;background:var(--ink);color:#fff;font-size:13px;font-weight:600}
+.tg-a{margin:0;padding:8px 10px;border:1px solid var(--vn-rule);background:var(--paper);font-size:13.5px;line-height:1.45}
+.tg-btn{align-self:flex-start;padding:8px 14px;background:var(--orange);color:#fff;border-radius:3px;font-size:13.5px;font-weight:800;box-shadow:3px 3px 0 var(--ink)}
+.pv-note{position:absolute;left:26px;bottom:8px;margin:0;font-size:12px;color:#6b6557}
+
+/* Önizleme animasyonları: yalnız görünen etikette, her geçişte baştan oynar */
+.vs-prev[data-prev=stok] [data-pv=stok] .tg-laser{animation:vn-scan 1.7s ease-in-out infinite alternate}
+.vs-prev[data-prev=stok] [data-pv=stok] .tg-num b{animation:vn-beep .5s .2s var(--vn-ease) backwards}
+.vs-prev[data-prev=stok] [data-pv=stok] .tg-stamp{animation:vn-slam .4s .9s cubic-bezier(.3,1.5,.5,1) forwards}
+.vs-prev[data-prev=depo] [data-pv=depo] .tg-shelf i{animation:vn-pop .45s var(--vn-ease) backwards}
+.vs-prev[data-prev=depo] [data-pv=depo] .tg-shelf i:nth-child(3n){animation-delay:.14s}.vs-prev[data-prev=depo] [data-pv=depo] .tg-shelf i:nth-child(3n+1){animation-delay:.06s}.vs-prev[data-prev=depo] [data-pv=depo] .tg-shelf i:nth-child(3n+2){animation-delay:.22s}
+.vs-prev[data-prev=depo] [data-pv=depo] .tg-hit{animation:vn-pop .45s .5s var(--vn-ease) backwards,vn-hit 1.5s 1s ease-in-out infinite}
+.vs-prev[data-prev=depo] [data-pv=depo] .tg-num b{animation:vn-beep .5s .6s var(--vn-ease) backwards}
+.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-row{animation:vn-beep .45s var(--vn-ease) backwards}
+.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-row:nth-of-type(2){animation-delay:.2s}.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-row:nth-of-type(3){animation-delay:.35s}.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-row:nth-of-type(4){animation-delay:.5s}
+.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-total{animation:vn-beep .45s .65s var(--vn-ease) backwards}
+.vs-prev[data-prev=kasa] [data-pv=kasa] .tg-ok{animation:vn-slam .4s 1.1s cubic-bezier(.3,1.5,.5,1) forwards}
+.vs-prev[data-prev=lot] [data-pv=lot] .tg-num b{animation:vn-beep .5s .2s var(--vn-ease) backwards}
+.vs-prev[data-prev=lot] [data-pv=lot] .tg-stamp{animation:vn-slam .4s .8s cubic-bezier(.3,1.5,.5,1) forwards}
+.vs-prev[data-prev=ai] [data-pv=ai] .tg-q{animation:vn-beep .45s .1s var(--vn-ease) backwards}
+.vs-prev[data-prev=ai] [data-pv=ai] .tg-a{animation:vn-beep .45s .6s var(--vn-ease) backwards}
+.vs-prev[data-prev=ai] [data-pv=ai] .tg-btn{animation:vn-beep .45s 1.2s var(--vn-ease) backwards}
 
 /* Sağ taraf */
 .vs-nav-cta{display:flex;align-items:center;gap:22px}
-.vs-nav-login{position:relative;font-size:15.5px;font-weight:650;color:var(--ink);text-decoration:none}
-.vs-nav-login:after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:2px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.vs-nav-login{position:relative;font-size:16px;font-weight:700;color:var(--ink);text-decoration:none}
+.vs-nav-login:after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:3px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--vn-ease)}
 .vs-nav-login:hover:after{transform:scaleX(1)}
-.vs-nav-demo{padding:11px 20px;font-size:15px;font-weight:800;box-shadow:4px 4px 0 var(--ink);transition:transform .15s,box-shadow .15s,background-color .15s}
+.vs-nav-demo{display:inline-flex;align-items:center;padding:11px 20px;font-size:16px;font-weight:800;box-shadow:4px 4px 0 var(--ink);transition:transform .15s,box-shadow .15s,background-color .15s}
 .vs-nav-demo:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
 .vs-nav-demo:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 
-/* Kaydırma ilerleme çizgisi */
-.vs-progress{position:absolute;left:0;bottom:-1px;width:100%;height:3px;background:var(--orange);transform:scaleX(var(--p,0));transform-origin:left;pointer-events:none}
+/* Kaydırma ilerleme şeridi: sitedeki turuncu kesikli şerit */
+.vs-progress{position:absolute;left:0;bottom:-1px;width:100%;height:5px;background:repeating-linear-gradient(90deg,var(--orange) 0 14px,transparent 14px 20px);transform:scaleX(var(--p,0));transform-origin:left;pointer-events:none;transition:opacity .3s}
+.vs-header[data-scrolled] .vs-progress{opacity:0}
+
+@keyframes vn-in{from{opacity:0;transform:translateX(-14px)}}
+@keyframes vn-pop{from{opacity:0;transform:scale(.7)}}
+@keyframes vn-beep{0%{opacity:0;transform:translateX(-14px);background:#cf4b0644}55%{opacity:1;transform:none;background:#cf4b0644}100%{background:transparent}}
+@keyframes vn-slam{from{opacity:0;transform:rotate(-5deg) scale(2.3)}62%{opacity:1;transform:rotate(-5deg) scale(.94)}to{opacity:1;transform:rotate(-5deg) scale(1)}}
+@keyframes vn-scan{to{left:calc(100% - 3px)}}
+@keyframes vn-hit{50%{box-shadow:0 0 0 5px rgba(207,75,6,.3)}}
 
 /* Mobil */
 .vs-burger{display:inline-grid;gap:5px;width:24px}
-.vs-burger i{display:block;height:3px;background:var(--ink);transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .2s}
+.vs-burger i{display:block;height:3px;background:var(--ink);transition:transform .35s var(--vn-ease),opacity .2s}
 .vs-mobile[open] .vs-burger i:nth-child(1){transform:translateY(8px) rotate(45deg)}
 .vs-mobile[open] .vs-burger i:nth-child(2){opacity:0}
 .vs-mobile[open] .vs-burger i:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
@@ -63,14 +131,15 @@
 @media(max-width:940px){
   .vs-nav-links,.vs-nav-cta{display:none}
   .vs-mobile{display:block;position:static}
-  .vs-nav{min-height:64px}
-  .vs-header[data-scrolled] .vs-nav{min-height:56px}
-  .vs-mobile nav{position:absolute;left:0;right:0;top:100%;width:auto;height:calc(100vh - var(--vs-head,64px));height:calc(100dvh - var(--vs-head,64px));padding:22px 22px 40px;display:flex;flex-direction:column;gap:2px;overflow:auto;background:var(--paper);border:0;border-top:1px solid var(--line);z-index:70;animation:vs-sheet .35s cubic-bezier(.22,1,.36,1)}
-  .vs-mobile nav>a{padding:10px 0;font-size:30px;font-weight:800;font-stretch:78%;letter-spacing:-.01em;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);animation:vs-item .5s cubic-bezier(.22,1,.36,1) backwards}
+  .vs-header,.vs-header[data-scrolled]{height:64px;background:var(--paper);border-bottom:1px solid var(--line)}
+  .vs-nav,.vs-header[data-scrolled] .vs-nav{position:static;min-height:64px;margin-top:0;padding:0;background:transparent;border-color:transparent;box-shadow:none}
+  .vs-header[data-scrolled] .vs-progress{opacity:1}
+  .vs-mobile nav{position:absolute;left:0;right:0;top:100%;width:auto;height:calc(100vh - 64px);height:calc(100dvh - 64px);padding:22px 22px 40px;display:flex;flex-direction:column;gap:2px;overflow:auto;background:var(--paper);border:0;border-top:1px solid var(--line);z-index:70;animation:vs-sheet .4s var(--vn-ease)}
+  .vs-mobile nav>a{padding:10px 0;font-size:32px;font-weight:800;font-stretch:75%;letter-spacing:-.01em;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);animation:vs-item .55s var(--vn-ease) backwards}
   .vs-mobile nav>a:nth-of-type(2){animation-delay:.04s}.vs-mobile nav>a:nth-of-type(3){animation-delay:.08s}.vs-mobile nav>a:nth-of-type(4){animation-delay:.12s}.vs-mobile nav>a:nth-of-type(5){animation-delay:.16s}.vs-mobile nav>a:nth-of-type(n+6){animation-delay:.2s}
-  .vs-mobile-title{margin:22px 0 6px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--orange-text)}
+  .vs-mobile-title{margin:22px 0 6px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--orange-text)}
   .vs-mobile-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
-  .vs-mobile-chips a{padding:9px 16px;border:1px solid #bfb196;background:var(--white);color:var(--ink);font-weight:650;text-decoration:none}
+  .vs-mobile-chips a{padding:9px 16px;border:1px solid var(--vn-rule);background:var(--white);color:var(--ink);font-weight:700;text-decoration:none}
   .vs-mobile-cta{display:grid;gap:14px;margin-top:26px}
   .vs-mobile-cta .vs-btn{justify-content:center;padding:15px;font-size:18px;font-weight:800;text-align:center;box-shadow:4px 4px 0 var(--ink)}
   .vs-mobile-login{text-align:center;font-weight:700;color:var(--ink)}
@@ -79,4 +148,9 @@
 @keyframes vs-sheet{from{opacity:0;transform:translateY(-12px)}}
 @keyframes vs-item{from{opacity:0;transform:translateY(14px)}}
 @media(min-width:941px){.vs-mobile{display:none}}
-@media(prefers-reduced-motion:reduce){.vs-header,.vs-nav,.vs-mega,.vs-nav-links>a:after,.vs-nav-trigger:after,.vs-mobile nav,.vs-mobile nav>a{transition:none!important;animation:none!important}}
+@media(min-width:941px) and (max-width:1100px){.vs-mega-grid{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 280px}.vs-nav-links>a,.vs-nav-trigger{padding:10px 9px}.vs-mega-item b{font-size:21px}}
+@media(prefers-reduced-motion:reduce){
+  .vs-header,.vs-nav,.vs-mega,.vs-mega-box,.vs-tag,.vs-mobile nav,.vs-mobile nav>a{transition:none!important;animation:none!important}
+  .vs-tag *{animation:none!important}
+  .tg-stamp{opacity:1}
+}
