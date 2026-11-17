@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),{spawnSync}=require('child_process');
 const root=path.resolve(__dirname,'../..');
-const env={...process.env,CSC_IDENTITY_AUTO_DISCOVERY:'false',VENIUX_BUNDLE_SERVER:'1',VENIUX_NODE_PATH:path.join(root,'.local/desktop-installer-2.4.41/win-unpacked/resources/local-server/node.exe')};
+const env={...process.env,CSC_IDENTITY_AUTO_DISCOVERY:'false',VENIUX_BUNDLE_SERVER:'1',VENIUX_NODE_PATH:path.join(root,'.local/bundled-node/node.exe')};
 // İmza: sertifika bilgisi verilmişse imzalı yapılandırma kullanılır (CSC_LINK+CSC_KEY_PASSWORD, ya da Windows deposunda
 // VENIUX_SIGNING_THUMBPRINT / VENIUX_SIGNING_SUBJECT). Hiçbiri yoksa mevcut imzasız yayın akışı aynen sürer.
 const signed=Boolean(process.env.CSC_LINK||process.env.VENIUX_SIGNING_THUMBPRINT||process.env.VENIUX_SIGNING_SUBJECT);
