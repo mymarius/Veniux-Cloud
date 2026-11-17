@@ -1,8 +1,22 @@
 {
-  "version": "2.4.84",
+  "version": "2.4.85",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.85",
+      "date": "17 Kasım 2026",
+      "title": "Yeni tasarım, hareketler ve yedekleme kolaylığı",
+      "items": [
+        "- Programın görünümü veniux.com sitesiyle aynı hâle geldi (krem kâğıt, köşeli kartlar, turuncu vurgu); Ayarlar > Görünüm'de \"Veniux\" ve \"Cam\" stili seçilebilir",
+        "- Açılışta Veniux logolu daire, sayılarda dönen basamaklar, başlıklarda harf harf belirme, sayfa geçişinde bulanıklık ve yan menü hareketleri eklendi (Ayarlar > Hareket'ten kapatılabilir)",
+        "- Yeni sürüm çıkınca üst çubukta yeşil ok belirir; tıklayınca program kurulup kendiliğinden yeniden açılır",
+        "- Ayarlar > Sistem > Yedekleme: ikinci yedek konumu için \"Klasör seç\" düğmesi",
+        "- e-Belge: satıştan taslak fatura XML'i indirilebilir (gerçek gönderim kapalı)",
+        "- Pazaryeri: Hepsiburada ve N11 için bağlantı altyapısı (gerçek mağazada denenmedi, kapalı kaydedilir)",
+        "- Güvenlik: pazaryeri adı doğrulaması ve terazi seri port izni daraltıldı"
+      ]
+    },
     {
       "version": "2.4.84",
       "date": "17 Kasım 2026",
