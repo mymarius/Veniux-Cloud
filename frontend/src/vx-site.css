@@ -1,0 +1,71 @@
+/* Site tasarımı katmanı: programdaki her sayfayı veniux.com'un görünümüne (krem kâğıt, lacivert mürekkep, turuncu vurgu,
+   köşeli kartlar, kaydırılmış gölge) çeker. Sayfalarda elle yazılmış beyaz/gri/mavi/yuvarlak yardımcı sınıfları site
+   renklerine eşler. Kasa ekranı (.pos-terminal) kendi düzenini korur. Cam stili ve koyu tema bu katmanın dışındadır. */
+:root{--vs-paper:#fffdf8;--vs-canvas:#f4eee2;--vs-wash:#f7f1e6;--vs-tint:#efe6d5;--vs-line:#d6c9b2;--vs-rule:#bfb196;--vs-shadow:#e6d9c2;--vs-ink:#17263a;--vs-ink2:#2b3a4f;--vs-ink3:#4d5a6b;--vs-mute:#6b6557;--vs-faint:#8c8474;--vs-accent:#cf4b06;--vs-accent-hover:#b54105}
+
+@scope (html:root[data-design='veniux']:not([data-theme='dark']):not([data-style='glass']) :is(.enterprise-content,[role='dialog'])) to (.pos-terminal) {
+  /* Zeminler */
+  .bg-white{background-color:var(--vs-paper)}
+  :is(.bg-gray-50,.bg-slate-50,.bg-zinc-50){background-color:var(--vs-wash)}
+  :is(.bg-gray-100,.bg-slate-100,.bg-zinc-100){background-color:var(--vs-tint)}
+  :is(.bg-gray-200,.bg-slate-200){background-color:var(--vs-shadow)}
+  :is(.bg-slate-700,.bg-slate-800,.bg-slate-900,.bg-slate-950,.bg-gray-800,.bg-gray-900){background-color:var(--vs-ink)}
+  :is(.bg-blue-500,.bg-blue-600,.bg-blue-700,.bg-sky-500,.bg-sky-600,.bg-sky-700,.bg-indigo-500,.bg-indigo-600,.bg-violet-600){background-color:var(--vs-accent)}
+  :is(.bg-blue-50,.bg-sky-50,.bg-indigo-50,.bg-violet-50,.bg-purple-50){background-color:#fdeede}
+  :is(.bg-red-50,.bg-rose-50){background-color:#fbe9e2}
+  .bg-emerald-50,.bg-green-50{background-color:#eaf3e6}
+  :is(.bg-amber-50,.bg-yellow-50){background-color:#fbf0cf}
+
+  /* Çizgiler */
+  :is(.border-gray-100,.border-slate-100){border-color:var(--vs-shadow)}
+  :is(.border-gray-200,.border-slate-200,.border-zinc-200){border-color:var(--vs-line)}
+  :is(.border-gray-300,.border-slate-300){border-color:var(--vs-rule)}
+  :is(.border-slate-700,.border-slate-800,.border-slate-900){border-color:var(--vs-ink)}
+  :is(.border-blue-500,.border-blue-600,.border-indigo-500,.border-sky-500,.border-violet-500){border-color:var(--vs-accent)}
+  :is(.border-blue-200,.border-sky-200,.border-indigo-200){border-color:#f3c9a8}
+  :is(.divide-gray-100,.divide-slate-100,.divide-gray-200,.divide-slate-200)>*+*{border-color:var(--vs-shadow)}
+
+  /* Yazı */
+  :is(.text-gray-900,.text-slate-900,.text-gray-800,.text-slate-800,.text-zinc-900){color:var(--vs-ink)}
+  :is(.text-gray-700,.text-slate-700){color:var(--vs-ink2)}
+  :is(.text-gray-600,.text-slate-600){color:var(--vs-ink3)}
+  :is(.text-gray-500,.text-slate-500){color:var(--vs-mute)}
+  :is(.text-gray-400,.text-slate-400){color:var(--vs-faint)}
+  :is(.text-blue-600,.text-blue-700,.text-sky-600,.text-sky-700,.text-indigo-600,.text-indigo-700,.text-violet-600){color:var(--vs-accent)}
+  /* Lacivert zemin üstündeki açık yazılar okunur kalır */
+  :is(.bg-slate-700,.bg-slate-800,.bg-slate-900,.bg-slate-950) :is(.text-slate-200,.text-slate-300,.text-slate-400,.text-gray-300,.text-gray-400){color:#c9d6e6}
+
+  /* Köşeler: site köşeli çalışır (tam yuvarlak rozet ve avatarlar hariç) */
+  :is(.rounded,.rounded-sm,.rounded-md,.rounded-lg,.rounded-xl,.rounded-2xl,.rounded-3xl){border-radius:0}
+  :is(.rounded-t-xl,.rounded-t-2xl,.rounded-t-lg,.rounded-b-xl,.rounded-b-2xl,.rounded-b-lg,.rounded-l-lg,.rounded-r-lg){border-radius:0}
+
+  /* Kart: beyaz + kenarlık + büyük köşe taşıyan kutular sitenin kâğıt kartı olur */
+  .bg-white:is(.rounded-xl,.rounded-2xl,.rounded-lg)[class*='border']{border-color:var(--vs-rule);box-shadow:4px 4px 0 var(--vs-shadow)}
+  /* Yumuşak gölgeler düz kâğıtta kalkar (pencere ve açılır menüler hariç) */
+  :is(.shadow-sm,.shadow,.shadow-xs,.shadow-2xs){box-shadow:none}
+  .bg-white:is(.rounded-xl,.rounded-2xl,.rounded-lg)[class*='border']:is(.shadow-sm,.shadow,.shadow-xs){box-shadow:4px 4px 0 var(--vs-shadow)}
+
+  /* Odak halkası */
+  :is(input,select,textarea):focus-visible{outline:3px solid #cf4b0655;outline-offset:0;border-color:var(--vs-accent)}
+  :is(.ring-blue-500,.ring-sky-500,.ring-indigo-500){--tw-ring-color:#cf4b0680}
+
+  /* Düz form alanları: kâğıt zemin, köşeli, kahverengi çizgi */
+  :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea):where(.border,[class*='border-gray'],[class*='border-slate']){background-color:var(--vs-paper);border-color:var(--vs-rule);color:var(--vs-ink)}
+  :is(input,textarea)::placeholder{color:var(--vs-faint)}
+  input:is([type=checkbox],[type=radio]){accent-color:var(--vs-accent)}
+
+  /* Mavi düğmeler turuncu olur; üzerine gelince koyulaşır */
+  button:is(.bg-blue-600,.bg-sky-600,.bg-indigo-600,.bg-blue-500):hover{background-color:var(--vs-accent-hover)}
+  :is(.hover\:bg-gray-50,.hover\:bg-slate-50):hover{background-color:var(--vs-tint)}
+  :is(.hover\:bg-gray-100,.hover\:bg-slate-100):hover{background-color:var(--vs-shadow)}
+}
+
+/* Sayfaya özel kalıntılar: site kâğıdına ve köşeli biçime çekilir */
+@scope (html:root[data-design='veniux']:not([data-theme='dark']):not([data-style='glass']) :is(.enterprise-content,[role='dialog'])) to (.pos-terminal) {
+  :is(.icon-btn,.rq-chip,.rq-scan-box,.vm-search,.vm-input,.crm-page-links>a,.business-tabs){background-color:var(--vs-paper)}
+  :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select,textarea){background-color:var(--vs-paper)}
+  :is(.crm-search,.crm-page-links>a,.business-tabs,.business-badge,.rq-chip,.rq-scan-box,.vm-search,.vm-input,.icon-btn){border-radius:0}
+  .crm-page-links>a{border:1px solid var(--vs-rule);box-shadow:3px 3px 0 var(--vs-shadow)}
+  .business-tabs{border:1px solid var(--vs-rule);box-shadow:4px 4px 0 var(--vs-shadow)}
+  [role='alert']{border-radius:0}
+}
