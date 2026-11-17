@@ -3,7 +3,7 @@
 // Yayına almak için: her sayfaya gerçek arayüz görseli (sentetik örnek işletmeyle) ekleyin, metni ürünle
 // karşılaştırın, sonra index.php'de growth-pages gibi kaydedin. SEO-ALTYAPISI.md kurallarına uyun:
 // yalnız gerçek özellik, uydurma yorum/puan/müşteri yok, aynı metni sayfalar arasında çoğaltmayın.
-// 'status'=>'draft' olan sayfa yayınlanmamalıdır. Eczane sayfası ayrıca karar ister (ECZANE-MODULU-KALDIRILDI.md).
+// 'status'=>'draft' olan sayfa yayınlanmamalıdır.
 return [
  '/market-stok-ve-kasa-programi'=>[
   'status'=>'published',
@@ -155,24 +155,5 @@ return [
   ],
   'limits'=>'Pide ve restoran paketi ek pakettir (yıllık 35.856 ₺). Yazarkasa (ÖKC), e-adisyon ve Yemeksepeti/Getir gibi platform entegrasyonu şu an yoktur.',
   'keywords'=>['pide salonu programı','restoran adisyon programı','lokanta stok programı','pideci kasa programı','restoran stok takibi','reçeteli stok programı'],
- ],
- '/eczane-yan-urun-stok'=>[
-  'status'=>'draft-needs-decision',
-  'title'=>'Eczanede İlaç Dışı Ürün Stoğu | Veniux',
-  'description'=>'Dermokozmetik, medikal ve bebek ürünleri gibi ilaç dışı ürünlerin barkodlu stok, son kullanma ve kampanya takibi. İlaç takibi (İTS/MEDULA) yapmaz.',
-  'headline'=>'Eczanenin ilaç dışı rafları için stok takibi.',
-  'subtitle'=>'Dermokozmetik ve medikal ürünlerde son kullanma tarihi, kampanya ve kritik stok, tek yerde.',
-  'benefits'=>[
-   'Son kullanma tarihi lot bazında; yaklaşan ürün için uyarı.',
-   'Dermokozmetik kampanyaları kasada kendiliğinden uygulanır.',
-   'Sadakat kartıyla düzenli müşteriye puan.',
-   'Kritik stok uyarısı ve tedarikçiye sipariş belgesi.',
-   'Satılmayan ürün raporu ile bağlı kalan sermayeyi görün.',
-  ],
-  // ZORUNLU NOT: Eczane modülü 13 Ekim 2026'da kaldırıldı; site eczane tanıtımlarını bilerek kaldırdı ve
-  // /eczane-stok-takibi genel stok sayfasına 301 ile yönlenir. Bu sayfa ilaç satışı, reçete, İTS, MEDULA
-  // vaat etmemeli. Yayına almak ayrı bir ürün kararıdır.
-  'limits'=>'İlaç satışı, reçete, İTS ve MEDULA işlemleri Veniux’ta yoktur. Bu işlemler için eczane yazılımınızı kullanmaya devam edersiniz.',
-  'keywords'=>['eczane dermokozmetik stok takibi','eczane yan ürün stok','parafarmasi stok programı','medikal ürün stok takibi'],
  ],
 ];

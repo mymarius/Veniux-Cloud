@@ -43,6 +43,6 @@ if(process.env.VENIUX_BUNDLE_SERVER==='1'){
   {from:'integration-settings.cjs',to:'local-server/integration-settings.cjs'},
   {from:'license/secureStorage.js',to:'local-server/license-storage.cjs'},
   {from:'Prepare-LocalDatabase.ps1',to:'local-server/Prepare-LocalDatabase.ps1'},
-  {from:'../backend',to:'backend',filter:['package.json','src/**/*','scripts/**/*.js','!src/routes/pharmacy*.js','!src/routes/medicine*.js','!src/controllers/pharmacy*.js','!src/controllers/medula*.js','!src/controllers/dutyPharmacy*.js','!src/controllers/medicine*.js','!src/services/pharmacy*.js','!src/services/medula*.js','!src/services/farmakom*.js','!src/services/itsService.js','!src/services/eInvoiceService.js','!src/services/patientReminderService.js']}
+  {from:'../backend',to:'backend',filter:['package.json','src/**/*','scripts/**/*.js','!src/services/itsService.js','!src/services/eInvoiceService.js','!src/services/patientReminderService.js']}
  ];
 }

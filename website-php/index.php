@@ -58,7 +58,6 @@ $pages['/lot-miat-takibi']['image_height']=860;
 $pages['/lot-miat-takibi']['alt']='Veniux ürün ekranında stok ve lot takibi paneli, sentetik örnek kayıtlar';
 
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
-if($path==='/eczane-stok-takibi'){header('Location: /stok-yonetimi',true,301);exit;}
 // Dışarıda dolaşan tahmini adresler doğru sayfalara gider.
 $legacyRedirects=['/kurulum-secenekleri'=>'/sunucu-kurulumu','/el-terminali'=>'/el-terminali-depo-yonetimi','/el-terminali-stok-takibi'=>'/el-terminali-depo-yonetimi','/operasyon-asistani'=>'/yapay-zeka','/bize-yazin'=>'/#iletisim'];
 if(isset($legacyRedirects[$path])){header('Location: '.$legacyRedirects[$path],true,301);exit;}
