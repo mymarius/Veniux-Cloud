@@ -27,14 +27,27 @@ Bu rehber, programı ilk kez kuracak market/bakkal sahibi içindir. Yalnız stok
 - Kâr raporunu aynı ekrandan **CSV** veya **Excel** olarak indirebilirsiniz.
 - Gün bitince **Vardiya**'dan kasayı kapatın.
 
-## 5. Sık karşılaşılanlar
+## 5. Yedekleme (çok önemli, 5 dakikanızı ayırın)
+Verileriniz (ürünler, satışlar, stok) bilgisayarınızdadır. Bilgisayar bozulursa ya da çalınırsa yedeğiniz yoksa her şey gider. Program bunu sizin için otomatik yapar, ama **iki şeyi sizin yapmanız gerekir**:
+
+1. **İkinci bir yedek konumu seçin.** Program her gün şifreli bir yedek alır (son 7 günü, 4 haftayı ve 12 ayı saklar). Bu yedekler bilgisayarınızın içindedir. Bilgisayar bozulursa bunlar da gider.
+   - **Ayarlar → Sistem → Yedekleme ve geri yükleme** ekranında **İkinci yedek konumu** alanında **Klasör seç**'e basın.
+   - Takılı bir **harici disk veya USB bellek** seçin (örneğin `E:\Veniux-Yedek`). Program her yedeğin bir kopyasını oraya yazar.
+   - Disk takılı değilse ekranın üstünde sarı bir **"Yedekleme uyarısı"** çıkar. Diski takın, uyarı kaybolur.
+2. **Kurtarma kodunu bir kâğıda yazıp saklayın.** Aynı ekranda **Kurtarma kodunu göster** düğmesi vardır. Yedekler bu kodla açılır. Bilgisayarınız bozulursa yeni bilgisayarda yedeği bu kodla geri yüklersiniz. Kod yoksa yedek açılamaz. Kodu bilgisayarınıza değil, **kâğıda veya telefonunuza** yazın.
+
+**Geri yükleme:** Yeni ya da onarılmış bilgisayarda programı kurun, aynı ekranda **Harici kopyadan geri yükle**'yi seçin, kurtarma kodunu yazın ve diskteki `veniux-yedek-….vnxsecure` dosyasını gösterin.
+
+Yedeklerin gerçekten açılabildiğini program kendisi de denemektedir (her açılışta, 14 günde bir). Açılamazsa ekranda kırmızı uyarı çıkar. Bu uyarıyı görürseniz bize haber verin.
+
+## 6. Sık karşılaşılanlar
 | Durum | Ne yapmalı |
 |---|---|
 | Barkod okutunca ürün bulunamıyor | **Ürün bul**'dan adıyla arayın, ürünün barkodunu ürün kartına ekleyin |
 | Stok yanlış görünüyor | **Stok Sayımı** menüsünden sayım yapın |
 | Program güncellenirken kayboldu | Birkaç dakika bekleyin, sonra masaüstü kısayolundan açın |
 
-## 6. Destek
+## 7. Destek
 Sorun yaşarsanız ne yaptığınızı ve ekranda ne gördüğünüzü bize yazın. Mümkünse ekran görüntüsü ekleyin.
 
 ---

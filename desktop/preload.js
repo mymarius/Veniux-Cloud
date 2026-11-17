@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('veniuxDesktop', {
   },
 
   // Program güncellemesi: hazır olunca arayüzde yeşil ok çıkar, tıklayınca kurulup yeniden açılır
+  pickFolder: () => ipcRenderer.invoke('pick-folder'),
   getUpdateState: () => ipcRenderer.invoke('update-state'),
   installUpdate: () => ipcRenderer.invoke('update-install'),
   onUpdateState: (callback) => {

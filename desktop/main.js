@@ -189,6 +189,8 @@ function registerIpcHandlers() {
   });
 
   // Hardware Fingerprint
+  // Yedek klasörü seçimi: yalnız ana pencereden, sistemin klasör seçicisiyle (yol elle yazılmaz).
+  handle('pick-folder', async () => { const r = await dialog.showOpenDialog(mainWindow, { title: 'Yedek klasörünü seçin (harici disk önerilir)', properties: ['openDirectory', 'createDirectory'] }); return r.canceled || !r.filePaths[0] ? null : r.filePaths[0]; });
   handle('update-state', () => require('./updater').getState());
   handle('update-install', () => require('./updater').install());
   handle('get-hardware-info', async () => {
