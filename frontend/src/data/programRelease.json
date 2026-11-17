@@ -1,8 +1,19 @@
 {
-  "version": "2.4.85",
+  "version": "2.4.86",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.86",
+      "date": "17 Kasım 2026",
+      "title": "Hızlı yedek geri yükleme ve sadeleştirme",
+      "items": [
+        "- MySQL kullanan kurulumlarda yedekten geri yükleme çok hızlandı (dakikalar yerine saniyeler)",
+        "- Hırdavat, züccaciye ve restoran için iade ve sektör derinleştirme iyileştirmeleri",
+        "- Kullanılmayan eski eczane kodları programdan tamamen çıkarıldı; program daha hafif",
+        "- Küçük hata düzeltmeleri ve iç temizlik"
+      ]
+    },
     {
       "version": "2.4.85",
       "date": "17 Kasım 2026",
