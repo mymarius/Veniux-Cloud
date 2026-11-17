@@ -14,6 +14,16 @@ function triggerDDL({name,sql}){
  body=body.replace(/SELECT\s+RAISE\(ABORT,'([^']*)'\)\s*;/gi,"SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='$1';");
  return `CREATE TRIGGER ${q(name)} ${timing} ${event} ON ${q(table)} FOR EACH ROW BEGIN ${when?'IF '+when+' THEN ':''}${body}${when?' END IF;':''} END`;
 }
+// Boş hedefte 26 sürümü tek tek uygulamak yerine yalnız son şemayı kurmak, son şema önceki
+// tüm tablo, sütun, indeks, ilişki, kural ve trigger adlarını kapsıyorsa aynı sonucu verir.
+function finalCoversAll(){
+ const last=catalog.at(-1);
+ return catalog.slice(0,-1).every(old=>old.tables.every(t=>{
+  const n=last.tables.find(v=>v.name===t.name);if(!n)return false;
+  const has=(a,b,key)=>a.every(x=>b.some(y=>y[key]===x[key]));
+  return has(t.columns,n.columns,'name')&&has(t.unique,n.unique,'name')&&has(t.indexes,n.indexes,'name')&&has(t.foreign,n.foreign,'name')&&t.checks.length<=n.checks.length;
+ })&&old.triggers.every(t=>last.triggers.some(v=>v.name===t.name)));
+}
 class MySQLMigrator{
  constructor(connection){this.connection=connection;}
  async status(){
@@ -63,7 +73,10 @@ class MySQLMigrator{
    const [existingTables]=await c.query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME<>'veniux_mysql_migrations'");
    if(existingTables.length&&!options.upgradeCopy)throw error('Migration yalnız boş hedefte veya açıkça doğrulanmış güvenlik kopyasında uygulanır.');
    await c.query("CREATE TABLE IF NOT EXISTS veniux_mysql_migrations(version VARCHAR(80) PRIMARY KEY,state ENUM('running','complete','failed') NOT NULL,applied_at DATETIME,schema_spec LONGTEXT NOT NULL)");
-   for(const manifest of catalog.filter(v=>state.pending.includes(v.version))){
+   const wanted=catalog.filter(v=>state.pending.includes(v.version));
+   const fast=!existingTables.length&&wanted.length===catalog.length&&wanted.length>1&&finalCoversAll();
+   const skipped=fast?wanted.slice(0,-1):[];
+   for(const manifest of fast?wanted.slice(-1):wanted){
    await c.query("INSERT INTO veniux_mysql_migrations(version,state,schema_spec) VALUES(?,'running',?)",[manifest.version,JSON.stringify(manifest)]);
    // MySQL DDL commits implicitly. The durable running/failed latch is never
    // cleared automatically. Apply to an empty/copy target, then switch config.
@@ -106,7 +119,9 @@ class MySQLMigrator{
    for(const trigger of manifest.triggers){await c.query('DROP TRIGGER IF EXISTS '+q(trigger.name));await c.query(triggerDDL(trigger));}
    await c.query("INSERT INTO user_access_scopes(user_id,tenant_id,mode) SELECT id,tenant_id,CASE WHEN role='admin' THEN 'company' ELSE 'restricted' END FROM users WHERE id NOT IN (SELECT user_id FROM user_access_scopes)");
    await c.query("UPDATE veniux_mysql_migrations SET state='complete',applied_at=CURRENT_TIMESTAMP WHERE version=?",[manifest.version]);
-   }return this.status();
+   }
+   for(const old of skipped)await c.query("INSERT INTO veniux_mysql_migrations(version,state,applied_at,schema_spec) VALUES(?,'complete',CURRENT_TIMESTAMP,?)",[old.version,JSON.stringify(old)]);
+   return this.status();
   }catch(e){await c.query("UPDATE veniux_mysql_migrations SET state='failed' WHERE state='running'").catch(()=>{});throw e;}
   finally{await c.query('SET FOREIGN_KEY_CHECKS=1').catch(()=>{});await c.query("SELECT RELEASE_LOCK(CONCAT(DATABASE(),':veniux-migrate'))").catch(()=>{});}
  }
