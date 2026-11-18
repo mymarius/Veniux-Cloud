@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Activity, AlertTriangle, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, Bell, Boxes, ChevronDown,
-  Gauge, Handshake, IdCard, Package, RefreshCw, ShoppingCart, Truck, Wallet, Warehouse
+  Gauge, Handshake, IdCard, Package, RefreshCw, Truck, Wallet, Warehouse
 } from 'lucide-react';
 import api, { useDataSync } from '../api/client';
 import BusinessChart from '../components/BusinessChart';
