@@ -1,6 +1,7 @@
 import UpdateButton from './UpdateButton';
 import SidebarTip from './SidebarTip';
 import IntroReveal from './IntroReveal';
+import SetupBand from './SetupBand';
 import { flushSync } from 'react-dom';
 import { holdMotion, motionOn } from '../lib/motion';
 import { revealTitle } from '../lib/titleReveal';
@@ -438,7 +439,7 @@ export function Layout({ children }) {
         <main id="main-content" tabIndex={-1} className="enterprise-content min-w-0 flex-1 bg-[#F8FAFC] p-4 sm:p-6 lg:p-8">
           {compatibility && <div role="alert" className="vx-compat-alert">{compatibility.message}</div>}
           {user.is_platform_admin && sessionStorage.getItem('platform-tenant') && <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-wrap justify-between gap-3 text-sm text-amber-900"><span>Platform yönetimi · Aktif işletme: <strong>{sessionStorage.getItem('platform-tenant-name')}</strong></span><button className="btn-soft" data-tone="amber" onClick={()=>{sessionStorage.removeItem('platform-tenant');sessionStorage.removeItem('platform-tenant-name');window.location.assign(window.location.protocol==='file:'?'#/admin/api':'/admin/api');}}>Kendi hesabıma dön</button></div>}
-          <div ref={contentRef} className="mx-auto w-full max-w-[1560px]">{['/dashboard','/normal-depo/dashboard'].includes(location.pathname)&&user.role==='admin'&&!customerSetup?.completed&&<section className="veniux-card p-4 mb-5 flex flex-wrap gap-3 items-center justify-between" aria-label="İşletme kurulum durumu"><div><h2 className="font-semibold">{customerSetup?.completed?'Çalışma alanınızın ayarları':'İlk iş gününe hazırlık'}</h2><p className="text-sm text-slate-500">{customerSetup?`${PROFILES.find(p=>p.id===customerSetup.profile)?.name||'Genel perakende'} · ${customerSetup.steps.filter(s=>s==='reviewed').length} incelenen, ${customerSetup.steps.filter(s=>s==='skipped').length} sonraya bırakılan adım`:'Kurulum durumu henüz doğrulanmadı.'}</p></div><Link className="btn-primary" to="/setup">{customerSetup?.completed?'Ayarları gözden geçir':'Kuruluma devam et'}</Link></section>}{['/dashboard','/normal-depo/dashboard'].includes(location.pathname)&&customerSetup&&<nav aria-label="İşletme profiline göre hızlı işlemler" className="flex flex-wrap gap-2 mb-5">{profileActions(customerSetup).map(([label,to])=><Link className="btn-secondary" key={to} to={to}>{label}</Link>)}</nav>}<Suspense fallback={<div className="vx-route-skeleton" role="status" aria-label="Sayfa yükleniyor"><i /><i /><i /></div>}><div key={location.pathname} className="vx-page">{children}</div></Suspense></div>
+          <div ref={contentRef} className="mx-auto w-full max-w-[1560px]"><SetupBand setup={customerSetup} user={user} path={location.pathname} profileName={PROFILES.find(p=>p.id===customerSetup?.profile)?.name} />{location.pathname==='/dashboard'&&customerSetup&&<nav aria-label="İşletme profiline göre hızlı işlemler" className="flex flex-wrap gap-2 mb-5">{profileActions(customerSetup).map(([label,to])=><Link className="btn-secondary" key={to} to={to}>{label}</Link>)}</nav>}<Suspense fallback={<div className="vx-route-skeleton" role="status" aria-label="Sayfa yükleniyor"><i /><i /><i /></div>}><div key={location.pathname} className="vx-page">{children}</div></Suspense></div>
         </main>
       </div>
 

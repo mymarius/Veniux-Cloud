@@ -135,3 +135,13 @@ html.dark .veniux-backup-health-error,[data-theme=dark] .veniux-backup-health-er
 .vx-scan-add input:focus{outline:2px solid #f2711c;outline-offset:1px}
 .vx-empty-cta{margin-top:16px;padding:12px 26px;border:0;border-radius:999px;background:#f2711c;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
 .vx-empty-cta:hover{background:#d9590c}
+
+/* İlk kurulum bandı: tek satır, ilerleme çubuklu, kapatılabilir */
+.vx-setup-band{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin:0 0 14px;padding:10px 16px;border:1px solid var(--color-border,#d8d0c0);border-left:4px solid #f2711c;border-radius:12px;background:var(--color-surface,#fffdf8)}
+.vx-setup-band-text{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;min-width:0}
+.vx-setup-band-text b{font-size:15px}
+.vx-setup-band-text span{font-size:13px;color:var(--color-text-muted,#6b7280)}
+.vx-setup-bar{display:block;width:140px;height:6px;border-radius:999px;background:#efe7d6;overflow:hidden}
+.vx-setup-bar em{display:block;height:100%;background:#f2711c}
+.vx-setup-band-actions{display:flex;gap:8px;align-items:center}
+.vx-setup-band-actions .btn-primary,.vx-setup-band-actions .btn-secondary{padding:6px 14px;font-size:13px}
