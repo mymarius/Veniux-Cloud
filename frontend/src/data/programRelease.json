@@ -1,8 +1,19 @@
 {
-  "version": "2.4.91",
+  "version": "2.4.92",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.92",
+      "date": "18 Kasım 2026",
+      "title": "Ayarlar, kurulum bandı ve dayanıklılık iyileştirmeleri",
+      "items": [
+        "- Ayarlar: Türkçe rol adları, sektör seçimi, okuyucu seri ayarları varsayılan gizli",
+        "- Genel Bakış: ilk kurulum bandı tek satır ve 'Daha sonra' ile gizlenebilir",
+        "- Sunucu: çok müşteri aynı anda bağlanınca isteklerin yanlışlıkla sınırlanması önlendi",
+        "- Asistan ve mobil ana ekranda küçük görünüm düzeltmeleri"
+      ]
+    },
     {
       "version": "2.4.91",
       "date": "18 Kasım 2026",
