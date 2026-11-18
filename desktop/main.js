@@ -130,6 +130,7 @@ function createWindow() {
 
 function registerIpcHandlers() {
   require('./printing.cjs').register(handle,{app,BrowserWindow,apiBase:runtime.apiBase});
+  require('./devices.cjs').register(handle);
   handle('complete-first-setup', async (_event,input) => {
     if(!setupPending)throw Error('Mevcut sunucu seçimi bu ekrandan değiştirilemez.');
     const selection=require('./runtime').firstSetupSelection(input);

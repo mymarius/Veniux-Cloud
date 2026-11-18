@@ -2,6 +2,7 @@ import { readSessionUser } from '../../lib/sessionUser';
 import HostingSponsor from '../../components/HostingSponsor';
 import React, { useState, useEffect } from 'react';
 import BackupPanel from './BackupPanel';
+import DeviceCheckPanel from './DeviceCheckPanel';
 import DatabaseMigrationModal from '../../components/migration/DatabaseMigrationModal';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -213,6 +214,7 @@ export default function SystemEngineTab() {
       </div>
 
       <HostingSponsor/>
+      <DeviceCheckPanel />
       {(readSessionUser().is_platform_admin || readSessionUser().role === 'admin') && <BackupPanel />}
 
       <DatabaseMigrationModal

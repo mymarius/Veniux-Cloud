@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('veniuxDesktop', {
   getConnectionStatus: () => ipcRenderer.invoke('get-connection-status'),
   copyMobileCode: (code) => ipcRenderer.invoke('copy-mobile-code', code),
 
+  scanDevices: () => ipcRenderer.invoke('device-scan'),
   listLabelPrinters: () => ipcRenderer.invoke('label-printers'),
   labelStation: scope => ipcRenderer.invoke('label-station',scope),
   enableLabelStation: (scope,enabled) => ipcRenderer.invoke('label-station-enable',scope,enabled),
