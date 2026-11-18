@@ -1,3 +1,4 @@
+const {clientAddress}=require('./apiThrottle');
 function createFirewall({limit=6000,burst=600,clock=Date.now}={}){
  const clients=new Map();
  return (req,res,next)=>{
@@ -9,7 +10,9 @@ function createFirewall({limit=6000,burst=600,clock=Date.now}={}){
   if(!['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'].includes(req.method))return deny(405,'REQUEST_METHOD');
   const length=req.get('content-length');const max=/^\/api\/platform\/updates\//.test(path)||path==='/api/ai/actions/files'?500*1048576:path==='/api/backups/validate-upload'?128*1048576:path==='/api/admin/medicines/import'?40*1048576:10*1048576;
   if(length&&(!/^\d+$/.test(length)||Number(length)>max))return deny(413,'REQUEST_SIZE');
-  const ip=req.socket.remoteAddress||'unknown'; // Never trust a client-supplied forwarding header.
+  // Vekil (Plesk/Passenger) arkasında bağlantı adresi herkes için aynıdır; yalnızca bağlantı yerel vekilden geliyorsa vekilin eklediği en sağdaki X-Forwarded-For girdisi kullanılır.
+  // Doğrudan bağlantılarda ve soldaki (istemcinin yazabildiği) girdilerde başlığa güvenilmez.
+  const ip=clientAddress({socket:req.socket,headers:req.headers||{}});
   const now=clock(),minute=Math.floor(now/60000),tick=Math.floor(now/10000);
   for(const [key,v] of clients)if(v.expires<now)clients.delete(key);
   if(!clients.has(ip)&&clients.size>=4096)clients.delete(clients.keys().next().value);
