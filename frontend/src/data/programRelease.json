@@ -1,8 +1,19 @@
 {
-  "version": "2.4.92",
+  "version": "2.4.93",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.93",
+      "date": "19 Kasım 2026",
+      "title": "Rafsız sipariş teslimi ve duman testleri",
+      "items": [
+        "- Siparişi teslim alırken raf seçmek zorunlu değil: raf kullanmayan işletmeler (market, bakkal, restoran) mal kabulü yapabilir",
+        "- Restoran: ödeme sonrası ekranda çift başarı kartı kalktı; kartla ödemede banka POS yönergesi eklendi",
+        "- Kurulum rehberi görünümü düzeltildi",
+        "- Müşteri rehberi: kasiyer ve depo atama adımları eklendi"
+      ]
+    },
     {
       "version": "2.4.92",
       "date": "18 Kasım 2026",
