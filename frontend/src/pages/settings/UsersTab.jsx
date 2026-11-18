@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
 import { StatusBadge, Input } from '../../components/ui';
+import { roleLabel } from '../../lib/businessLabels.mjs';
 import { Users, Plus, Search, Trash2, Edit3, Shield, Mail, Phone, Loader2, X, CheckCircle2, KeyRound } from 'lucide-react';
 import AccessScopeEditor from './AccessScopeEditor';
 
@@ -208,7 +209,7 @@ export default function UsersTab({embedded=false}) {
                     <td className="p-4">
                       <StatusBadge
                         status={user.role === 'admin' ? 'active' : user.role === 'manager' ? 'warning' : 'info'}
-                        text={user.role?.toUpperCase()}
+                        text={roleLabel(user.role)}
                       />
                       <div className="text-xs text-gray-500 mt-1">{user.accessMode==='company'?'Firma genelinde erişim':user.assignedWarehouses?`${user.assignedWarehouses} depo erişimi`:'Depo atanmamış · operasyon kapalı'}</div>
                     </td>

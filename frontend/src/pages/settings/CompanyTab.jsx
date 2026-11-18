@@ -4,6 +4,7 @@ import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
 import { StatusBadge, Input, Select } from '../../components/ui';
 import BrandingCard from './BrandingCard';
+import { sectorOptions } from '../../lib/businessLabels.mjs';
 import { Building2, Save, Loader2, Globe, MapPin, Phone, Mail, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function CompanyTab({embedded=false}) {
@@ -90,14 +91,14 @@ export default function CompanyTab({embedded=false}) {
               onChange={(e) => setCompany({ ...company, companyName: e.target.value })}
               required
             />
-            <Input
+            <Select
               label="Faaliyet Alanı / Sektör"
               value={company.industry || ''}
               onChange={(e) => setCompany({ ...company, industry: e.target.value })}
-              placeholder="Depolama, Perakende, E-Ticaret"
+              options={sectorOptions(company.industry)}
             />
             <Input
-              label="Vergi Kimlik Numarası (VKN/TCKN)"
+              label="Vergi Kimlik Numarası (VKN/TCKN) · e-Belge ve fişte kullanılır"
               value={company.taxNumber || ''}
               onChange={(e) => setCompany({ ...company, taxNumber: e.target.value })}
             />

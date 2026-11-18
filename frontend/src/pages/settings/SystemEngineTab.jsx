@@ -87,7 +87,7 @@ export default function SystemEngineTab() {
           <button
             onClick={handleVacuum}
             disabled={optimizing}
-            className="btn-primary"
+            className="btn-secondary"
           >
             {optimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             <span>Veritabanını düzenle</span>

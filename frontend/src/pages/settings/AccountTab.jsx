@@ -6,6 +6,7 @@ import { StatusBadge, Input } from '../../components/ui';
 import { User, Lock, Shield, Smartphone, Mail, Phone, Calendar, Save, Loader2, CheckCircle2, Camera, Trash2 } from 'lucide-react';
 import UserAvatar from '../../components/UserAvatar';
 import { resizeAvatar, updateStoredUser } from '../../lib/avatar';
+import { roleLabel } from '../../lib/businessLabels.mjs';
 
 export default function AccountTab() {
   const { showToast } = useToast();
@@ -189,7 +190,7 @@ export default function AccountTab() {
             <h3 className="font-bold text-gray-900 text-base">{profile.fullName || 'Sistem Yöneticisi'}</h3>
             <p className="text-xs text-gray-500 font-mono mt-0.5">{profile.email}</p>
           </div>
-          <StatusBadge status={profile.role === 'admin' ? 'active' : 'info'} text={profile.role?.toUpperCase()} />
+          <StatusBadge status={profile.role === 'admin' ? 'active' : 'info'} text={roleLabel(profile.role)} />
 
           <div className="w-full pt-4 border-t border-gray-200 text-left space-y-3 text-xs text-gray-600">
             <div className="flex items-center justify-between">
@@ -253,7 +254,7 @@ export default function AccountTab() {
                 </label>
                 <input
                   disabled
-                  value={profile.role?.toUpperCase() || 'ADMIN'}
+                  value={roleLabel(profile.role || 'admin')}
                   className="w-full bg-gray-100/50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 font-mono cursor-not-allowed"
                 />
               </div>
