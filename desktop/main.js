@@ -1,3 +1,4 @@
+const { isCustomerDisplayUrl, windowOptions } = require('./customerDisplayWindow.cjs');
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, dialog } = require('electron');
 const desktopOriginToken=require('crypto').randomBytes(32).toString('hex');
 const path = require('path');
@@ -243,6 +244,11 @@ function registerIpcHandlers() {
     });
 
     contents.setWindowOpenHandler(({ url }) => {
+      // Yalnız uygulamanın kendi müşteri ekranı penceresine izin verilir; ikinci monitör varsa orada açılır.
+      if (isCustomerDisplayUrl(url) && isAllowedNavigation(url)) {
+        const { screen } = require('electron');
+        return { action: 'allow', overrideBrowserWindowOptions: windowOptions(screen.getAllDisplays(), screen.getPrimaryDisplay().id) };
+      }
       return { action: 'deny' }; // Prevent arbitrary popups
     });
   });

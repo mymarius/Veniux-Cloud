@@ -109,6 +109,9 @@ export default function AppearanceTab() {
         {!window.veniuxDesktop&&<Panel icon={Gauge} title="Hareket ve performans" subtitle="Dekoratif geçişleri kişiselleştirin">
           <div className="appearance-density" role="radiogroup" aria-label="Arayüz hareketleri">{[['subtle','Hafif geçişler','Kısa sayfa ve düğme geçişleri.'],['off','Hareketleri kapat','Dekoratif animasyonlar ve tıklama efektleri kapalı.']].map(([id,label,hint])=><button key={id} role="radio" aria-checked={prefs.motion===id} className="appearance-option appearance-option-row" onClick={()=>update({motion:id})}><span className="appearance-radio"/><span><b>{label}</b><small>{hint}</small></span></button>)}</div><p className="text-xs text-gray-500 mt-3">İşletim sisteminin azaltılmış hareket tercihi de korunur. Bu ayar veri yenilemeyi ve güvenlik kontrollerini kapatmaz.</p>
         </Panel>}
+        <Panel icon={Gauge} title="Dokunmatik terminal" subtitle="Kasa ve garson cihazları için büyük dokunma alanları">
+          <div className="appearance-density" role="radiogroup" aria-label="Dokunmatik mod">{[[false,'Fare ve klavye','Standart düğme ve satır boyları.'],[true,'Dokunmatik ekran','Düğmeler, alanlar ve satırlar parmakla rahat basılacak kadar büyür.']].map(([id,label,hint])=><button key={String(id)} role="radio" aria-checked={!!prefs.touch===id} className="appearance-option" onClick={() => update({ touch: id })}><b>{label}</b><small>{hint}</small></button>)}</div>
+        </Panel>
         <Panel icon={Volume2} title="Tarama sesleri" subtitle="Barkod, kasa ve el terminali">
           <div className="appearance-sound">
             <div>

@@ -143,3 +143,20 @@ html[data-theme='dark'] .rs-zones button.on{background:#eef2f7;color:#14243a}
 .rs-main .vm-mod{min-height:104px}
 .rs-main .vm-mod button[aria-label$='ekle']{width:100%}
 .rs-main .vm-iconbtn{width:44px!important;height:44px!important}
+/* Masa seçilince masalar tek satırlık şeride iner; menü ve adisyon ilk ekranda kalır (15" 1024x768) */
+@media(min-width:900px) and (max-width:1280px){
+  .rs-split[data-target='1'] .rs-tables .vm-modgrid{display:flex;overflow-x:auto;gap:8px;padding-bottom:6px}
+  .rs-split[data-target='1'] .rs-plan .rs-tile{min-height:54px;min-width:104px;flex:0 0 auto;padding:6px 10px}
+  .rs-split[data-target='1'] .rs-plan .rs-tile b{font-size:15px}
+  .rs-split[data-target='1'] .rs-tables .vm-label{display:none}
+  .rs-split[data-target='1'] .rs-bill{position:sticky;top:76px;max-height:calc(100vh - 100px);overflow:auto}
+}
+.rs-main,.rs-bill{min-width:0}
+@media(min-width:900px) and (max-width:1280px){.rs-split{grid-template-columns:minmax(0,1fr) minmax(0,300px)}.rs-bill{overflow-x:hidden}}
+.rs-bill{grid-template-columns:minmax(0,1fr)}.rs-bill>*{min-width:0;max-width:100%}.rs-bill .vm-card{overflow-wrap:anywhere}
+/* Dokunmatik mod (Ayarlar > Görünüm): parmakla rahat basılan boyutlar */
+html[data-touch='true'] button,html[data-touch='true'] .btn-primary,html[data-touch='true'] .btn-secondary,html[data-touch='true'] [role='button'],html[data-touch='true'] select,html[data-touch='true'] input:not([type='checkbox']):not([type='radio']){min-height:48px}
+html[data-touch='true'] table td,html[data-touch='true'] table th{padding-top:12px;padding-bottom:12px}
+html[data-touch='true'] nav a,html[data-touch='true'] aside a{min-height:48px;display:flex;align-items:center}
+html[data-touch='true'] input[type='checkbox'],html[data-touch='true'] input[type='radio']{width:22px;height:22px}
+html[data-touch='true'] *{-webkit-tap-highlight-color:transparent}

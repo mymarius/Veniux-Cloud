@@ -18,6 +18,7 @@ import WMSDetailDrawer from '../../components/wms/WMSDetailDrawer';
 import { useToast } from '../../components/Toast';
 import { DataTable, StatusBadge, MetricCard, Modal, Input, Select, Dropdown } from '../../components/ui';
 import { money } from '../../lib/stockAnalytics';
+import { collapseVariants, cellQty } from '../../lib/variantGroups.mjs';
 import { VIEWS, countViews, matchesView, sortProducts, nextSort } from '../../lib/productView.mjs';
 
 const MARK_COLORS = ['#2f6fe4', '#12a37f', '#f2711c', '#7c5ce0', '#d9488b', '#0e8fb3'];
@@ -40,7 +41,7 @@ export default function NormalProducts() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
-  const [showVariants, setShowVariants] = useState(false);
+  const [showVariants, setShowVariants] = useState(false), [openGroup, setOpenGroup] = useState(null), [grouped, setGrouped] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [scaleCode, setScaleCode] = useState('');
   const [karekodModalOpen, setKarekodModalOpen] = useState(false);
@@ -172,6 +173,7 @@ export default function NormalProducts() {
   };
 
   const handleOpenDetail = (p) => {
+    if (p.__group) { setOpenGroup(p.__group); return; }
     setSelectedProductId(p.id);
     setDrawerOpen(true);
   };
@@ -182,7 +184,8 @@ export default function NormalProducts() {
     </button>
   );
   const counts = useMemo(() => countViews(products), [products]);
-  const shown = useMemo(() => sortProducts(products.filter(p => matchesView(p, view)), sort.key, sort.dir), [products, view, sort]);
+  const shown = useMemo(() => { const base = sortProducts(products.filter(p => matchesView(p, view)), sort.key, sort.dir); return grouped ? collapseVariants(base) : base; }, [products, view, sort, grouped]);
+  const hasGroups = useMemo(() => collapseVariants(products).some(p => p.__group), [products]);
 
   const columns = [
     {
@@ -261,12 +264,18 @@ export default function NormalProducts() {
           <p className="text-sm text-slate-500 mt-1">Ürün tanımları, barkod eşleşmeleri ve tedarikçi bağlantıları.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button><button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
+        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button>{hasGroups&&<button type="button" className="btn-secondary" aria-pressed={grouped} onClick={()=>setGrouped(g=>!g)}>{grouped?'Varyantları aç':'Varyantları grupla'}</button>}<button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
           <Plus className="w-4 h-4" />
           <span>Yeni Ürün Ekle</span>
         </button></div>
       </div>
 
+      <Modal isOpen={!!openGroup} onClose={() => setOpenGroup(null)} title={openGroup ? openGroup.base + ' · beden / renk' : ''} size="lg">
+        {openGroup && <div className="space-y-3"><p className="text-sm text-slate-500">Toplam stok: <b>{openGroup.total.toLocaleString('tr-TR')}</b> · {openGroup.rows.length} çeşit. Kırmızı hücre stoğu biten çeşittir.</p>
+          <div className="overflow-auto"><table className="w-full text-sm" aria-label="Beden renk stok tablosu"><thead><tr><th className="p-2 text-left">Beden</th>{(openGroup.hasColor ? openGroup.colors : ['Stok']).map(c => <th key={c} className="p-2">{c}</th>)}</tr></thead>
+            <tbody>{openGroup.sizes.map(sz => <tr key={sz} className="border-t"><th className="p-2 text-left">{sz}</th>{(openGroup.hasColor ? openGroup.colors : [null]).map(c => { const q = cellQty(openGroup, sz, c); return <td key={c || 'x'} className="p-2 text-center" style={{ fontWeight: 700, background: q === null ? 'transparent' : q <= 0 ? '#fbe0dc' : undefined, color: q === null ? '#94a3b8' : undefined }}>{q === null ? '—' : q.toLocaleString('tr-TR')}</td>; })}</tr>)}</tbody></table></div>
+          <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={() => setOpenGroup(null)}>Kapat</button></div></div>}
+      </Modal>
       <VariantWizard isOpen={showVariants} onClose={()=>setShowVariants(false)} onDone={fetchProducts} />
       {showImport&&<ProductBulkImport onCompleted={fetchProducts}/>}
       <details className="mobile-stock-details"><summary>Stok ve lot uyarılarını göster</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
