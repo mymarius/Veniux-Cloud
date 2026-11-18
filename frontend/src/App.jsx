@@ -22,6 +22,7 @@ const PageSkeleton = PageLoading;
 
 // Normal Depo
 const StockMovementInsights = lazy(() => import('./pages/normal-depo/StockMovementInsights'));
+const Reports = lazy(() => import('./pages/Reports'));
 const BusinessPortal = lazy(() => import('./pages/BusinessPortal'));
 const BusinessInvite = lazy(() => import('./pages/BusinessInvite'));
 const NormalDashboard = lazy(() => import('./pages/normal-depo/NormalDashboard'));
@@ -248,6 +249,7 @@ function AppContent() {
             <Route path="/magaza/kasa" element={<ProtectedRoute><RetailPos /></ProtectedRoute>} />
             <Route path="/magaza/hizli-ekle" element={<ProtectedRoute><RetailQuickAdd /></ProtectedRoute>} />
             <Route path="/normal-depo/analytics" element={<ProtectedRoute><StockMovementInsights /></ProtectedRoute>} />
+            <Route path="/raporlar" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/normal-depo/dashboard" element={<ProtectedRoute><NormalDashboard /></ProtectedRoute>} />
             <Route path="/normal-depo/warehouses" element={<ProtectedRoute><NormalWarehouses /></ProtectedRoute>} />
             <Route path="/normal-depo/locations" element={<ProtectedRoute><NormalLocations /></ProtectedRoute>} />
