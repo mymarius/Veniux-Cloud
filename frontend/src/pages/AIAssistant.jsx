@@ -31,7 +31,7 @@ export default function AIAssistant() {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [aiStatus, setAiStatus] = useState('NVIDIA AI · Henüz yanıt alınmadı');
+  const [aiStatus, setAiStatus] = useState('Veniux Asistan · Henüz yanıt alınmadı');
   const [analyzing, setAnalyzing] = useState(false);
   const [forecasts, setForecasts] = useState([]);
   const [drafting, setDrafting] = useState(false);
@@ -89,7 +89,7 @@ export default function AIAssistant() {
       const history = messages.filter(m => m.id !== 1 && !m.failed).slice(-12).map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text.slice(0, 4000) }));
       const res = await apiClient.post('/ai/chat', { message: text, history }, { timeout: 55000 });
       if(res.data.proposal)setProposal(res.data.proposal);
-      setAiStatus('NVIDIA AI · Son yanıt doğrulandı');
+      setAiStatus('Veniux Asistan · Son yanıt doğrulandı');
       const botMsg = {
         id: Date.now() + 1,
         sender: 'bot',

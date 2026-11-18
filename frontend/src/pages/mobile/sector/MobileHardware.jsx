@@ -101,7 +101,7 @@ function ProductCard({ item: initial }) {
     {item.locations.length > 0
       ? <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>{item.locations.map(l => <div key={l.location_id} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}><MapPin size={16} style={{ flex: 'none', color: 'var(--vm-brand)' }} />
         <span><b>Koridor {l.aisle}</b> · Raf {l.rack} · Kat {l.shelf} <span className="vm-note">({l.zone}) {l.quantity} {item.unit || 'adet'}</span>{l.tags.map(t => <em key={t} style={{ marginLeft: 6, fontStyle: 'normal', fontSize: 11, background: '#165da41a', color: 'var(--vm-brand)', borderRadius: 6, padding: '2px 6px' }}>{t}</em>)}</span></div>)}</div>
-      : <p className="vm-note" style={{ marginTop: 6 }}>Raf konumu kayıtlı değil.</p>}
+      : null}
     {item.stock.length > 1 && <p className="vm-note" style={{ marginTop: 6 }}>{item.stock.map(s => s.warehouse_name + ': ' + (s.text || qtyText(s.quantity) + ' ' + (item.unit || 'adet'))).join(' · ')}</p>}
     {isBoss() && <div style={{ marginTop: 8 }}><div style={{ display: 'flex', gap: 8 }}><button type="button" className="vm-btn soft" style={{ minHeight: 38 }} aria-expanded={open === 'size'} onClick={() => setOpen(v => (v === 'size' ? null : 'size'))}>Ölçü ve muadil</button><button type="button" className="vm-btn soft" style={{ minHeight: 38 }} aria-expanded={open === 'units'} onClick={() => setOpen(v => (v === 'units' ? null : 'units'))}>Koli / birimler{item.units?.length ? ' (' + item.units.length + ')' : ''}</button></div>
       {open === 'size' && <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 6 }}>
