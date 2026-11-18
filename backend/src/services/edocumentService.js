@@ -11,8 +11,9 @@ const uyumsoftProvider = {
   test: credentials => uyumsoft.invoke('connection', {}, credentials),
   taxpayer: (vkn, credentials) => uyumsoft.invoke('taxpayer', { vknTckn: vkn }, credentials),
 };
-let provider = uyumsoftProvider;
-const setProvider = next => { provider = next || uyumsoftProvider; };
+const defaultProvider = () => (process.env.VENIUX_EDOCUMENT_PROVIDER === 'mock' && process.env.NODE_ENV !== 'production' ? require('../integrations/mockEdocumentProvider') : uyumsoftProvider);
+let provider = defaultProvider();
+const setProvider = next => { provider = next || defaultProvider(); };
 
 function key() {
   const { JWT_SECRET } = require('../middlewares/authMiddleware');
@@ -88,6 +89,35 @@ async function event(tx, tenant, id, name, detail, userId) {
   await tx.query('INSERT INTO edocument_events (tenant_id,document_id,event,detail,user_id) VALUES ($1,$2,$3,$4,$5)', [tenant, id, name, detail ? JSON.stringify(detail) : null, userId || null]);
 }
 const view = row => ({ id: row.id, sale_id: row.sale_id, document_type: row.document_type, status: row.status, created_at: row.created_at, updated_at: row.updated_at, payload: JSON.parse(row.payload) });
+// Resmî belge numarası: 3 harfli seri + yıl + 9 haneli sıra (ör. VNX2027000000001). İşletme+seri+yıl içinde ardışıktır,
+// aynı belgeye her zaman aynı numara verilir (yeniden gönderimde değişmez) ve UNIQUE kısıtı çift numarayı engeller.
+const SERIES = /^[A-Z]{3}$/;
+const seriesCode = () => (SERIES.test(process.env.VENIUX_EDOCUMENT_SERIES || '') ? process.env.VENIUX_EDOCUMENT_SERIES : 'VNX');
+const formatNumber = (series, year, seq) => series + String(year) + String(seq).padStart(9, '0');
+async function assignNumber(tenant, documentId) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      return await db.transaction(async tx => {
+        const have = (await tx.query('SELECT number FROM edocument_numbers WHERE document_id=$1 AND tenant_id=$2', [documentId, tenant])).rows[0];
+        if (have) return have.number;
+        const series = seriesCode(), year = new Date().getUTCFullYear();
+        const last = (await tx.query('SELECT MAX(seq) AS last FROM edocument_numbers WHERE tenant_id=$1 AND series=$2 AND year=$3', [tenant, series, year])).rows[0];
+        const seq = Number(last?.last || 0) + 1, number = formatNumber(series, year, seq);
+        await tx.query('INSERT INTO edocument_numbers (document_id,tenant_id,series,year,seq,number) VALUES ($1,$2,$3,$4,$5,$6)', [documentId, tenant, series, year, seq, number]);
+        return number;
+      });
+    } catch (error) {
+      if (attempt === 5 || !/UNIQUE|Duplicate|constraint/i.test(String(error?.message || error?.code))) throw error;
+    }
+  }
+  return null;
+}
+async function numbersOf(tenant, ids) {
+  if (!ids.length) return new Map();
+  const rows = (await db.query('SELECT document_id,number FROM edocument_numbers WHERE tenant_id=$1', [tenant])).rows;
+  return new Map(rows.filter(r => ids.includes(r.document_id)).map(r => [r.document_id, r.number]));
+}
+const withNumber = async (user, row) => ({ ...view(row), number: (await numbersOf(user.tenantId, [row.id])).get(row.id) || null });
 async function find(user, id) {
   const row = (await db.query('SELECT * FROM edocuments WHERE id=$1 AND tenant_id=$2', [id, user.tenantId])).rows[0];
   if (!row) fail('Belge bulunamadı.', 404);
@@ -112,7 +142,8 @@ async function draftFromSale(user, saleId, body = {}) {
 async function list(user) {
   guard(user);
   const rows = (await db.query('SELECT * FROM edocuments WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 100', [user.tenantId])).rows;
-  return rows.map(view);
+  const numbers = await numbersOf(user.tenantId, rows.map(r => r.id));
+  return rows.map(r => ({ ...view(r), number: numbers.get(r.id) || null }));
 }
 async function setState(user, id, status, detail, release) {
   await db.transaction(async tx => {
@@ -132,23 +163,24 @@ async function send(user, id) {
   const claim = await db.query("UPDATE edocuments SET status='sending',updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND tenant_id=$2 AND status IN ('draft','retry')", [id, user.tenantId]);
   if (claim.rowCount !== 1) fail('Bu belge şu durumda gönderilemez. Sonucu belirsizse önce durumunu sorgulayın.', 409);
   const secret = await credentials(user.tenantId);
+  const number = await assignNumber(user.tenantId, row.id);
   let outcome = null;
-  try { outcome = await provider.send({ uuid: row.id, document_type: row.document_type, ...JSON.parse(row.payload) }, secret); } catch { outcome = null; }
+  try { outcome = await provider.send({ uuid: row.id, number, document_type: row.document_type, ...JSON.parse(row.payload) }, secret); } catch { outcome = null; }
   const [state, release] = applyOutcome(outcome);
   await setState(user, id, state, outcome?.detail ? { detail: String(outcome.detail).slice(0, 500) } : null, release);
-  return view(await find(user, id));
+  return withNumber(user, await find(user, id));
 }
 // Yalnız entegratör belgeyi almadığını açıkça söylerse aynı UUID ile yeniden gönderime açılır.
 async function refresh(user, id) {
   guard(user);
   const row = await find(user, id);
-  if (!['unknown', 'sent'].includes(row.status)) return view(row);
+  if (!['unknown', 'sent'].includes(row.status)) return withNumber(user, row);
   if (typeof provider.status !== 'function') fail('Durum sorgusu bu sağlayıcıda henüz bağlı değil.', 503);
   const outcome = await provider.status(row.id, await credentials(user.tenantId));
   if (outcome?.state === 'not_found' && row.status === 'unknown') await setState(user, id, 'retry', null, false);
   else if (outcome?.state === 'rejected') await setState(user, id, 'rejected', outcome.detail ? { detail: String(outcome.detail).slice(0, 500) } : null, true);
   else if (outcome?.state === 'accepted' && row.status === 'unknown') await setState(user, id, 'sent', null, false);
-  return view(await find(user, id));
+  return withNumber(user, await find(user, id));
 }
 // Taslak XML önizlemesi: gerçek fatura numarası verilmez (TSL...0), imzalanmaz ve gönderilmez.
 async function draftXml(user, id) {
@@ -163,4 +195,4 @@ async function draftXml(user, id) {
     uuid: row.id, number: `TSL${year}000000000`, issued_at: new Date(row.created_at.includes('T') ? row.created_at : row.created_at.replace(' ', 'T') + 'Z'), note: 'TASLAK - resmî belge değildir, gönderilmedi'
   });
 }
-module.exports = { draftXml, status, saveConnection, removeConnection, testConnection, checkTaxpayer, createDraft, draftFromSale, list, send, refresh, setProvider, readTaxpayer };
+module.exports = { assignNumber, formatNumber, draftXml, status, saveConnection, removeConnection, testConnection, checkTaxpayer, createDraft, draftFromSale, list, send, refresh, setProvider, readTaxpayer };
