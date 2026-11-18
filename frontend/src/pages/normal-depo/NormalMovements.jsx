@@ -1,6 +1,7 @@
 import { Dropdown } from '../../components/ui';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import apiClient, { useDataSync } from '../../api/client';
+import { movementLabel, quantityText, inPeriod, countPeriods, PERIODS } from '../../lib/movementView.mjs';
 import {
   ArrowRightLeft,
   ArrowUpRight,
@@ -39,6 +40,7 @@ export default function NormalMovements() {
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [search, setSearch] = useState('');
+  const [period, setPeriod] = useState('all');
 
   // Modals
   const [stockModalOpen, setStockModalOpen] = useState(false);
@@ -129,7 +131,7 @@ export default function NormalMovements() {
         const type = info.getValue();
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-            {({ inbound: 'Giriş', outbound: 'Çıkış', transfer: 'Transfer', adjustment: 'Düzeltme', sale: 'Satış', return: 'İade' })[type] || type}
+            {movementLabel(type)}
           </span>
         );
       }
@@ -172,12 +174,13 @@ export default function NormalMovements() {
       cell: (info) => {
         const val = info.getValue();
         const isPositive = val > 0;
+        const unit = info.row.original.unit;
         return (
           <div className="text-right">
             <span className={`font-mono text-sm font-bold tabular-nums ${
               isPositive ? 'text-emerald-600' : 'text-rose-600'
             }`}>
-              {isPositive ? `+${val}` : val}
+              {quantityText(val, unit)}
             </span>
           </div>
         );
@@ -201,7 +204,9 @@ export default function NormalMovements() {
     }
   ];
 
+  const periodCounts = useMemo(() => countPeriods(movements), [movements]);
   const filteredMovements = movements.filter(m => {
+    if (!inPeriod(m, period)) return false;
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -210,10 +215,6 @@ export default function NormalMovements() {
       (m.note && m.note.toLowerCase().includes(q))
     );
   });
-
-  const totalInbound = movements.filter(m => m.change_amount > 0).reduce((sum, m) => sum + m.change_amount, 0);
-  const totalOutbound = movements.filter(m => m.change_amount < 0).reduce((sum, m) => sum + Math.abs(m.change_amount), 0);
-  const totalTransfers = movements.filter(m => m.movement_type === 'TRANSFER').length;
 
   return (
     <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto text-slate-800 font-sans pb-12">
@@ -253,30 +254,13 @@ export default function NormalMovements() {
       </div>
 
       {/* Metric Strip */}
-      <div className="vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam işlem</span>
-          <p className="text-3xl font-light text-slate-800">{movements.length}</p>
-          <span className="text-xs text-slate-400 mt-1">Deftere işlenen hareketler</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam giriş</span>
-          <p className="text-3xl font-light text-emerald-600">+{totalInbound.toLocaleString('tr-TR')}</p>
-          <span className="text-xs text-slate-400 mt-1">Mal kabul ve iadeler</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam çıkış</span>
-          <p className="text-3xl font-light text-rose-600">-{totalOutbound.toLocaleString('tr-TR')}</p>
-          <span className="text-xs text-slate-400 mt-1">Toplama ve sevkiyat</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Raf transferleri</span>
-          <p className="text-3xl font-light text-slate-800">{totalTransfers}</p>
-          <span className="text-xs text-slate-400 mt-1">Raflar arası hareketler</span>
-        </div>
+      <div className="vx-view-chips" role="tablist" aria-label="Dönem">
+        {PERIODS.map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={period === key} className="vx-view-chip" onClick={() => setPeriod(key)}>
+            {label}<b>{periodCounts[key]}</b>
+          </button>
+        ))}
+        <span className="vx-view-note">Gösterilen: {filteredMovements.length} hareket</span>
       </div>
 
       {/* Main Table Container */}
@@ -338,7 +322,7 @@ export default function NormalMovements() {
             columns={columns}
             data={filteredMovements}
             loading={loading}
-            emptyMessage={search || selectedType ? "Kriterlere uygun stok hareketi bulunamadı." : "Hareket bulunamadı."}
+            emptyMessage={search || selectedType || period !== 'all' ? "Kriterlere uygun stok hareketi bulunamadı." : "Hareket bulunamadı."}
           />
         </div>
       </div>
