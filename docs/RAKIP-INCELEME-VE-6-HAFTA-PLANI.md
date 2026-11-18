@@ -53,3 +53,11 @@ Restoran/masa/mutfak/garson, depo yönetimi (raf, toplama, sayım), online mağa
 - Rakip 9 yıllık; 6 haftada her özellikte geçmek gerçekçi değil. Hedef: market/bakkal/restoran için daha basit, daha hızlı ve daha güvenilir olmak.
 - Hazır katalog, yazarkasa ve e-fatura dış ortak ister; takvim bizde değil.
 - Ekran kalabalığı: her özellik varsayılan olarak gizli/sade başlar, işletme türüne göre açılır.
+
+## Tasarım ilkesi: sade ekran (kullanıcı gözlemi + Play yorumları)
+Rakibin ekranlarında çok sayıda menü ve düğme aynı anda görünüyor. Bizim kuralımız:
+- Satış ekranında yalnız o an gereken görünür: barkod alanı, sepet, toplam, "Ödeme al". Diğer işlemler tek bir "Diğer" menüsünde.
+- Yeni özellik varsayılan olarak gizli gelir; işletme türüne ve yetkiye göre açılır (market, restoran ve butik aynı menüyü görmez).
+- Bir ekranda en çok 1 birincil düğme; ikincil işlemler daha sönük ve gruplanmış.
+- Her ekran eklenmeden önce "bu olmadan satış yapılır mı?" sorusu sorulur; yapılıyorsa ana ekrana konmaz.
+- Başarı ölçütü: ilk satış 5 dokunuşu geçmez; yeni çalışan 10 dakikada kasayı kullanır.
