@@ -9,6 +9,7 @@ import {
 import api, { useDataSync } from '../api/client';
 import BusinessChart from '../components/BusinessChart';
 import RevealText from '../components/RevealText';
+import TodaySales from '../components/dashboard/TodaySales';
 import StockHealthPanel from '../components/StockHealthPanel';
 import './DashboardPro.css';
 import { BarList, CountUp, Kpi, Legend, Panel, ScoreRing, Segmented } from '../components/dashboard/AnalyticsKit';
@@ -173,6 +174,8 @@ export default function Dashboard() {
     {loading && !a && <div role="status" className="space-y-4"><div className="skeleton h-56 w-full rounded-xl" /><div className="skeleton h-96 w-full rounded-xl" /></div>}
 
     {a && <>
+      <TodaySales warehouses={raw.warehouses} revision={revision} />
+
       <section className="dx-hero">
         <div className="dx-hero-main">
           <span>{canViewCosts ? 'Toplam stok değeri' : 'Toplam stok'}</span>
@@ -196,7 +199,6 @@ export default function Dashboard() {
         <Link to="/normal-depo/products" data-tone={a.health.groups.out.length + a.health.groups.critical.length ? 'bad' : 'good'}><i><AlertTriangle size={18} /></i><span><b>{a.health.groups.out.length + a.health.groups.critical.length}</b> ürün kritik seviyede<small>{a.health.groups.out.length} ürün tükendi · sipariş planlayın</small></span><ArrowUpRight size={16} /></Link>
         <Link to="/alerts" data-tone={a.openAlerts.length ? 'mid' : 'good'}><i><Bell size={18} /></i><span><b>{a.openAlerts.length}</b> açık uyarı<small>{raw.alerts.length} toplam bildirim</small></span><ArrowUpRight size={16} /></Link>
         <Link to="/crm/dashboard" data-tone={a.overdueTasks.length ? 'mid' : 'info'}><i><Handshake size={18} /></i><span><b>{a.openDeals.length}</b> açık fırsat<small>{a.overdueTasks.length} geciken görev</small></span><ArrowUpRight size={16} /></Link>
-        <Link to="/magaza/kasa" data-tone="go"><i><ShoppingCart size={18} /></i><span><b>Kasayı aç</b><small>Satışa hemen başlayın</small></span><ArrowUpRight size={16} /></Link>
       </section>
 
       <section className="ax-grid ax-2-1 ax-reveal">

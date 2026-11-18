@@ -106,9 +106,9 @@ export default function AppearanceTab() {
         <Panel icon={Square} title="Kart biçimi" subtitle="Paneller ve bilgi kartlarının köşe görünümü">
           <div className="appearance-size-options" role="radiogroup" aria-label="Kart köşeleri">{[['sharp','Keskin',8],['balanced','Dengeli',14],['soft','Yumuşak',22]].map(([id,label,radius])=><button key={id} role="radio" aria-checked={prefs.corners===id} className="appearance-option" onClick={()=>update({corners:id})}><span className="appearance-corner-preview" style={{borderRadius:radius}} aria-hidden="true"/><b>{label}</b></button>)}</div>
         </Panel>
-        <Panel icon={Gauge} title="Hareket ve performans" subtitle="Dekoratif geçişleri kişiselleştirin">
+        {!window.veniuxDesktop&&<Panel icon={Gauge} title="Hareket ve performans" subtitle="Dekoratif geçişleri kişiselleştirin">
           <div className="appearance-density" role="radiogroup" aria-label="Arayüz hareketleri">{[['subtle','Hafif geçişler','Kısa sayfa ve düğme geçişleri.'],['off','Hareketleri kapat','Dekoratif animasyonlar ve tıklama efektleri kapalı.']].map(([id,label,hint])=><button key={id} role="radio" aria-checked={prefs.motion===id} className="appearance-option appearance-option-row" onClick={()=>update({motion:id})}><span className="appearance-radio"/><span><b>{label}</b><small>{hint}</small></span></button>)}</div><p className="text-xs text-gray-500 mt-3">İşletim sisteminin azaltılmış hareket tercihi de korunur. Bu ayar veri yenilemeyi ve güvenlik kontrollerini kapatmaz.</p>
-        </Panel>
+        </Panel>}
         <Panel icon={Volume2} title="Tarama sesleri" subtitle="Barkod, kasa ve el terminali">
           <div className="appearance-sound">
             <div>

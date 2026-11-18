@@ -1,7 +1,7 @@
 // Hareket tercihi: Ayarlar > Hareket ve performans kapalıysa ya da sistem "hareketi azalt" diyorsa animasyon çalışmaz.
 export function motionOn() {
   if (typeof document === 'undefined') return false;
-  if (document.documentElement.dataset.motion === 'off') return false;
+  if (window.veniuxDesktop || document.documentElement.dataset.motion === 'off') return false; // Windows programında animasyon yok
   try { return !window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return true; }
 }
 // Videodaki yumuşak çıkış eğrisi (framer-motion varsayılanına yakın).

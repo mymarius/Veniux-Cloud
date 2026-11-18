@@ -60,7 +60,7 @@ export function applyAppearance(prefs = readAppearance()) {
   root.dataset.theme = mode;
   root.dataset.density = prefs.density;
   root.style.colorScheme = mode;
-  root.dataset.textSize=prefs.textSize;root.dataset.corners=prefs.corners;root.dataset.motion=prefs.motion;
+  root.dataset.textSize=prefs.textSize;root.dataset.corners=prefs.corners;root.dataset.motion=(typeof window!=='undefined'&&window.veniuxDesktop)?'off':prefs.motion;
   root.dataset.style = prefs.style;
   if (prefs.easy) root.dataset.easy = 'true'; else delete root.dataset.easy;
   root.style.setProperty('--ui-scale', String(prefs.scale / 100));
