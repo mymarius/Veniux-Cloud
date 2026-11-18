@@ -1,7 +1,7 @@
 import ProductBulkImport from '../../components/ProductBulkImport';
 import StockHealthPanel from '../../components/StockHealthPanel';
 import { useSearchParams } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import apiClient from '../../api/client';
 import {
   Package,
@@ -17,6 +17,7 @@ import WMSDetailDrawer from '../../components/wms/WMSDetailDrawer';
 import { useToast } from '../../components/Toast';
 import { DataTable, StatusBadge, MetricCard, Modal, Input, Select, Dropdown } from '../../components/ui';
 import { money } from '../../lib/stockAnalytics';
+import { VIEWS, countViews, matchesView, sortProducts, nextSort } from '../../lib/productView.mjs';
 
 const MARK_COLORS = ['#2f6fe4', '#12a37f', '#f2711c', '#7c5ce0', '#d9488b', '#0e8fb3'];
 
@@ -31,6 +32,8 @@ export default function NormalProducts() {
 
   // Filters & Views
   const [search, setSearch] = useState('');
+  const [view, setView] = useState('all');
+  const [sort, setSort] = useState({ key: null, dir: 'asc' });
   const [categoryFilter, setCategoryFilter] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('');
 
@@ -171,10 +174,18 @@ export default function NormalProducts() {
     setDrawerOpen(true);
   };
 
+  const head = (key, text, align) => (
+    <button type="button" className="vx-sort" data-active={sort.key === key ? 'true' : undefined} data-align={align} onClick={() => setSort(current => nextSort(current, key))} aria-label={`${text} sütununa göre sırala`}>
+      {text}<span aria-hidden="true">{sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : ''}</span>
+    </button>
+  );
+  const counts = useMemo(() => countViews(products), [products]);
+  const shown = useMemo(() => sortProducts(products.filter(p => matchesView(p, view)), sort.key, sort.dir), [products, view, sort]);
+
   const columns = [
     {
       key: 'name',
-      label: 'Ürün ve SKU',
+      label: head('name', 'Ürün ve SKU'),
       render: (row) => (
         <div className="vx-product-cell">
           <span className="vx-product-mark" aria-hidden="true" style={{ background: MARK_COLORS[[...(row.category || row.name || '')].reduce((t, ch) => t + ch.charCodeAt(0), 0) % MARK_COLORS.length] }}>{(row.name || '?').slice(0, 2).toLocaleUpperCase('tr-TR')}</span>
@@ -187,7 +198,7 @@ export default function NormalProducts() {
     },
     {
       key: 'stock',
-      label: 'Stok',
+      label: head('stock', 'Stok', 'right'),
       align: 'right',
       render: (row) => {
         const qty = Number(row.total_quantity || 0), min = Number(row.min_stock_level || 0);
@@ -205,13 +216,13 @@ export default function NormalProducts() {
     { key: 'category', label: 'Kategori', render: (row) => <span className="vx-chip">{row.category || 'Genel'}</span> },
     {
       key: 'cost',
-      label: 'Maliyet',
+      label: head('cost', 'Maliyet', 'right'),
       align: 'right',
       render: (row) => <span className="text-slate-600">{money(row.purchase_price || row.cost_price)}</span>
     },
     {
       key: 'price',
-      label: 'Satış Fiyatı',
+      label: head('price', 'Satış Fiyatı', 'right'),
       align: 'right',
       render: (row) => <span className="font-semibold text-slate-800">{money(row.sale_price || row.kamu_fiyati)}</span>
     },
@@ -257,33 +268,14 @@ export default function NormalProducts() {
       {showImport&&<ProductBulkImport onCompleted={fetchProducts}/>}
       <details className="mobile-stock-details"><summary>Stok ve lot uyarılarını göster</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
       {lotDetail&&<section className="veniux-card p-4 mb-4" role="dialog" aria-label="Lot detayı"><div className="flex justify-between"><b>{lotDetail.name} · Lot {lotDetail.lot_number}</b><button onClick={()=>setLotDetail(null)}>Kapat</button></div><p>Depo: {lotDetail.warehouse_name} · Miktar: {lotDetail.quantity} · Son kullanma: {lotDetail.expiry_date||'Tarih yok'}</p><button className="btn-soft" data-size="sm" onClick={()=>{setSelectedProductId(lotDetail.product_id);setDrawerOpen(true);}}>Ürünü aç</button></section>}
-      {/* Metric Strip */}
-      <div className="product-stat-grid vx-metric-strip grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Toplam ürün</span>
-          <p className="text-3xl font-light text-slate-800">{products.length}</p>
-          <span className="text-xs text-slate-400 mt-1">Aktif sistem kayıtları</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Barkodlu ürün</span>
-          <p className="text-3xl font-light text-slate-800">
-            {products.filter(p => p.barcode || p.gtin).length} <span className="text-lg text-slate-400">/ {products.length}</span>
-          </p>
-          <span className="text-xs text-slate-400 mt-1">EAN-13 & GS1 Uyumlu</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Kategoriler</span>
-          <p className="text-3xl font-light text-slate-800">{categories.length}</p>
-          <span className="text-xs text-slate-400 mt-1">Farklı ürün grupları</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Tedarikçiler</span>
-          <p className="text-3xl font-light text-slate-800">{suppliers.length}</p>
-          <span className="text-xs text-slate-400 mt-1">Aktif tedarik ağları</span>
-        </div>
+      {/* Hızlı filtreler: ne yapılması gerektiğini söyler (biten, azalan, eksik bilgi) */}
+      <div className="vx-view-chips" role="tablist" aria-label="Ürün görünümü">
+        {VIEWS.map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={view === key} data-tone={key} className="vx-view-chip" onClick={() => setView(key)}>
+            {label}<b>{counts[key]}</b>
+          </button>
+        ))}
+        <span className="vx-view-note">{categories.length} kategori · {suppliers.length} tedarikçi</span>
       </div>
 
       {/* Main Table Container */}
@@ -332,10 +324,10 @@ export default function NormalProducts() {
           <DataTable 
             flush
             columns={columns}
-            data={products}
+            data={shown}
             loading={loading}
             onRowClick={handleOpenDetail}
-            emptyState={search || categoryFilter || supplierFilter ? 'Arama kriterlerinize uygun ürün bulunamadı.' : 'Henüz ürün yok. Sağ üstten Excel / CSV dosyanızı aktarın ya da Yeni Ürün Ekle ile başlayın.'}
+            emptyState={search || categoryFilter || supplierFilter || view !== 'all' ? 'Arama kriterlerinize uygun ürün bulunamadı.' : 'Henüz ürün yok. Sağ üstten Excel / CSV dosyanızı aktarın ya da Yeni Ürün Ekle ile başlayın.'}
           />
         </div>
       </div>

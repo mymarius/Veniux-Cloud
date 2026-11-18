@@ -113,3 +113,17 @@ html.dark .veniux-connection-blocked,[data-theme=dark] .veniux-connection-blocke
 .veniux-backup-health-error{border-color:#991b1b;background:#fef2f2;color:#7f1d1d}
 html.dark .veniux-backup-health,[data-theme=dark] .veniux-backup-health{background:#3a2a0a;color:#fde68a;border-color:#d97706}
 html.dark .veniux-backup-health-error,[data-theme=dark] .veniux-backup-health-error{background:#3b0d0d;color:#fecaca;border-color:#ef4444}
+
+/* Ürün listesi: hızlı filtre çipleri ve sıralanabilir başlıklar */
+.vx-view-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.vx-view-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--color-border,#d8d0c0);border-radius:999px;background:var(--color-surface,#fffdf8);color:var(--color-text,#1a2a44);font-size:14px;font-weight:600;cursor:pointer}
+.vx-view-chip b{min-width:22px;padding:1px 7px;border-radius:999px;background:#efe7d6;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+.vx-view-chip:hover{border-color:#f2711c}
+.vx-view-chip[aria-selected='true']{background:#1a2a44;border-color:#1a2a44;color:#fff}
+.vx-view-chip[aria-selected='true'] b{background:#f2711c;color:#fff}
+.vx-view-chip[data-tone='low'] b,.vx-view-chip[data-tone='out'] b{background:#fde4d4;color:#9f3a0a}
+.vx-view-chip[aria-selected='true'][data-tone] b{background:#f2711c;color:#fff}
+.vx-view-note{margin-left:auto;font-size:13px;color:var(--color-text-muted,#6b7280)}
+.vx-sort{display:inline-flex;align-items:center;gap:2px;padding:0;border:0;background:none;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
+.vx-sort[data-align='right']{justify-content:flex-end;width:100%}
+.vx-sort:hover,.vx-sort[data-active='true']{color:#f2711c}
