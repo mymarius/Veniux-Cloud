@@ -120,6 +120,17 @@ async function transition(u, id, body) {
     };
   });
 }
+// Raf kullanmayan işletmeler (market, bakkal, restoran) de siparişi teslim alabilsin: raf seçilmezse depoda tek bir "Genel" raf kullanılır.
+async function defaultLocation(tx, u, order) {
+  const code = 'GENEL-' + order.target_warehouse_id;
+  const find = async () => (await tx.query('SELECT id FROM warehouse_locations WHERE tenant_id=$1 AND warehouse_id=$2 AND location_code=$3', [u.tenantId, order.target_warehouse_id, code])).rows[0];
+  let row = await find();
+  if (!row) {
+    await tx.query("INSERT INTO warehouse_locations (tenant_id,warehouse_id,location_code,zone_name,aisle_code,rack_number,shelf_tier,bin_position) VALUES ($1,$2,$3,'Genel','GN',1,1,1)", [u.tenantId, order.target_warehouse_id, code]);
+    row = await find();
+  }
+  return row.id;
+}
 async function receive(u, id, body, key) {
   return keyed(u, 'receive:' + id, key, body, async tx => {
     const order = await owned(tx, 'purchase_orders', id, u);
@@ -136,7 +147,7 @@ async function receive(u, id, body, key) {
       if (item.order_id !== order.id) fail('Kalem bu siparişe ait değil.');
       const quantity = number(line.quantity, 'Teslim miktarı'),
         price = money(line.unit_price ?? item.unit_price),
-        loc = await owned(tx, 'warehouse_locations', line.location_id, u);
+        loc = await owned(tx, 'warehouse_locations', line.location_id || await defaultLocation(tx, u, order), u);
       if (loc.warehouse_id !== order.target_warehouse_id || loc.is_locked) fail('Raf yanlış depoda veya kilitli.');
       const lot = line.lot_number == null ? '' : String(line.lot_number).trim();
       if (lot.length > 120 || /[\x00-\x1f]/.test(lot)) fail('Lot numarası geçersiz.');

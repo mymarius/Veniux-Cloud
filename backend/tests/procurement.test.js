@@ -459,3 +459,21 @@ test('düşük stok önerileri yalnızca okunur; seçilen ürün kullanıcı kay
 });
 test('mevcut WMS mal kabulünde belge ve raf yerleştirme tekrarları tek stok hareketi bırakır',async()=>{const body={warehouse_id:wh.id,supplier_id:supplier.id,waybill_no:'DIRECT-'+crypto.randomUUID(),items:[{product_id:product.id,expected_qty:2,lot_number:'DIRECT-LOT',expiry_date:'2099-01-01',unit_purchase_price:6.25}]},key=crypto.randomUUID(),a=await post('wms/inbound/receipts',body,owner,key),b=await post('wms/inbound/receipts',body,owner,key);expect(a.status).toBe(201);expect(b.body.id).toBe(a.body.id);expect((await post('wms/inbound/receipts',body)).status).toBe(409);const place={receipt_id:a.body.id,item_id:a.body.items[0].id,actual_location_id:bin.id,quantity:2},pkey=crypto.randomUUID();expect((await post('wms/inbound/putaway',place,owner,pkey)).status).toBe(200);expect((await post('wms/inbound/putaway',place,owner,pkey)).status).toBe(200);expect(await stock()).toBe(2);expect((await db.query('SELECT purchase_price FROM products WHERE id=$1',[product.id])).rows[0].purchase_price).toBe(6.25);expect((await get('suppliers/'+supplier.id)).body.products.some(p=>p.id===product.id)).toBe(true);expect((await db.query("SELECT COUNT(*) n FROM audit_logs WHERE tenant_id=$1 AND entity_id=$2 AND action='wms.inbound.putaway'",[owner.tenantId,String(a.body.id)])).rows[0].n).toBe(1);});
 test('modül yetkisi değişse bile başka modülün sipariş kabulü ve onayı sunucuda kapalıdır',async()=>{const service=require('../src/services/procurementService'),u={tenantId:owner.tenantId,userId:owner.userId,email:owner.email,role:'admin',moduleType:'PHARMACY'};await expect(service.detail(u,order.id)).rejects.toMatchObject({status:403});await expect(service.transition(u,order.id,{action:'submit'})).rejects.toMatchObject({status:403});await expect(service.receive(u,order.id,payload(2),crypto.randomUUID())).rejects.toMatchObject({status:403});expect(await stock()).toBe(0);expect((await service.list(u)).some(o=>o.id===order.id)).toBe(false);});
+
+test('raf seçilmeden teslim alınır: depoda tek bir Genel raf otomatik oluşur ve yeniden kullanılır', async () => {
+  await approve();
+  const body = (q, ref) => ({ delivery_reference: ref, items: [{ order_item_id: line.id, quantity: q }] });
+  const first = await post('purchase-orders/' + order.id + '/receive', body(3, 'RAFSIZ-1'));
+  expect(first.status).toBe(200);
+  expect(first.body.status).toBe('partially_received');
+  expect(await stock()).toBe(3);
+  const second = await post('purchase-orders/' + order.id + '/receive', body(7, 'RAFSIZ-2'));
+  expect(second.status).toBe(200);
+  expect(second.body.status).toBe('completed');
+  expect(await stock()).toBe(10);
+  const generic = (await db.query("SELECT id FROM warehouse_locations WHERE tenant_id=$1 AND warehouse_id=$2 AND location_code=$3", [owner.tenantId, wh.id, 'GENEL-' + wh.id])).rows;
+  expect(generic.length).toBe(1);
+  // başka işletme bu rafı göremez
+  const foreign = (await db.query("SELECT id FROM warehouse_locations WHERE tenant_id=$1 AND location_code=$2", [other.tenantId, 'GENEL-' + wh.id])).rows;
+  expect(foreign.length).toBe(0);
+});
