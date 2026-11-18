@@ -1,8 +1,19 @@
 {
-  "version": "2.4.90",
+  "version": "2.4.91",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.91",
+      "date": "18 Kasım 2026",
+      "title": "Raporlar, tedarikçiler ve siparişler",
+      "items": [
+        "- Yeni Raporlar sayfası: günlük rapor, kâr ve satış analizi menüden tek yerde",
+        "- Tedarikçi kartından tek tıkla sipariş verme; siparişlerde sade dil ve Kritik stoktan sipariş taslağı",
+        "- Mal kabul, stok listesi, depo özeti ve stok analizi iyileştirmeleri",
+        "- Küçük metin düzeltmeleri"
+      ]
+    },
     {
       "version": "2.4.90",
       "date": "18 Kasım 2026",
