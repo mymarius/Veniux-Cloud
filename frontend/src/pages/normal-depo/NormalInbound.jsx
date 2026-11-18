@@ -1,6 +1,7 @@
 import { Dropdown } from '../../components/ui';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
+import { addScanned, cleanWaybill, shortReceiptNo } from '../../lib/inboundEntry.mjs';
 import {
   Inbox,
   Plus,
@@ -39,6 +40,18 @@ export default function NormalInbound() {
   });
 
   const { showToast } = useToast();
+  const [scanCode, setScanCode] = useState('');
+  const handleScan = (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const code = scanCode.trim();
+    if (!code) return;
+    const result = addScanned(form.items, products, code);
+    if (result.status === 'notfound') { showToast('Bu barkod veya ürün bulunamadı: ' + code, 'error'); return; }
+    setForm(prev => ({ ...prev, items: addScanned(prev.items, products, code).items }));
+    setScanCode('');
+    showToast(result.product.name + (result.status === 'incremented' ? ' miktarı artırıldı' : ' eklendi'), 'success');
+  };
 
   // Tarih ve miktar biçimleyicileri: API tarihleri 'YYYY-MM-DD' metni,
   // miktarlar ise sayı olarak döner; ekranda ham gösterilmemeli.
@@ -114,7 +127,7 @@ export default function NormalInbound() {
   const handleCreateReceipt = async (e) => {
     e.preventDefault();
     try {
-      await apiClient.post('/wms/inbound/receipts', form);
+      await apiClient.post('/wms/inbound/receipts', { ...form, supplier_id: form.supplier_id || null, waybill_no: cleanWaybill(form.waybill_no) });
       showToast('Mal kabul belgesi ve yerleştirme görevleri oluşturuldu.', 'success');
       setShowModal(false);
       fetchInitialData();
@@ -197,6 +210,8 @@ export default function NormalInbound() {
           <div className="p-12 text-center text-gray-400 text-xs">
             <Inbox className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p className="text-sm font-bold text-gray-700">Bekleyen mal kabul belgesi bulunmuyor.</p>
+            <p className="text-xs text-gray-500 mt-1">Mal geldiğinde barkodları okutun; ürünler stoğa ve rafa işlenir.</p>
+            <button type="button" className="vx-empty-cta" onClick={() => setShowModal(true)}>+ Yeni mal kabul başlat</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -216,7 +231,7 @@ export default function NormalInbound() {
               <tbody className="divide-y divide-gray-100">
                 {receipts.map(rec => (
                   <tr key={rec.id} className="hover:bg-brand-50/40 transition">
-                    <td className="px-4 py-3 font-bold text-gray-900">{rec.receipt_no}</td>
+                    <td className="px-4 py-3 font-bold text-gray-900">{shortReceiptNo(rec.receipt_no)}</td>
                     <td className="px-4 py-3 text-gray-500">{rec.warehouse_name}</td>
                     <td className="px-4 py-3 text-gray-500">{rec.supplier_name || 'Genel Tedarikçi'}</td>
                     <td className="px-4 py-3 text-brand-600 font-bold">{rec.waybill_no || '-'}</td>
@@ -272,7 +287,7 @@ export default function NormalInbound() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-gray-900">{selectedReceipt.receipt_no}</h2>
+                    <h2 className="text-base font-bold text-gray-900">{shortReceiptNo(selectedReceipt.receipt_no)}</h2>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                       selectedReceipt.status === 'stored'
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -405,10 +420,9 @@ export default function NormalInbound() {
                   </Dropdown>
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1 font-semibold">İrsaliye No *</label>
+                  <label className="block text-gray-700 mb-1 font-semibold">İrsaliye No <span className="font-normal text-gray-500">(isteğe bağlı)</span></label>
                   <input
                     type="text"
-                    required
                     value={form.waybill_no}
                     onChange={(e) => setForm({ ...form, waybill_no: e.target.value })}
                     placeholder="Örn: IRS-2026-001"
@@ -428,6 +442,11 @@ export default function NormalInbound() {
                   >
                     + Kalem Ekle
                   </button>
+                </div>
+
+                <div className="vx-scan-add">
+                  <label htmlFor="inbound-scan">Barkod okutun veya ürün adı/SKU yazıp Enter'a basın</label>
+                  <input id="inbound-scan" type="text" autoComplete="off" autoFocus value={scanCode} onChange={(e) => setScanCode(e.target.value)} onKeyDown={handleScan} placeholder="Barkod okut → kalem otomatik eklenir, aynı ürün tekrar okununca miktar artar" />
                 </div>
 
                 <div className="space-y-2.5">
