@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.veniux.companion" android:versionCode="328" android:versionName="2.4.88">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.veniux.companion" android:versionCode="329" android:versionName="2.4.89">
  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
  <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>

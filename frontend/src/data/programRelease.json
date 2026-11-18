@@ -1,8 +1,20 @@
 {
-  "version": "2.4.88",
+  "version": "2.4.89",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.89",
+      "date": "18 Kasım 2026",
+      "title": "Mal kabul, kasa ve stok listesi iyileştirmeleri",
+      "items": [
+        "- Mal kabul: barkod okutarak kalem ekleme, irsaliye numarası isteğe bağlı; tedarikçi seçilmeden kayıt oluşturulamama hatası giderildi",
+        "- Ana sayfa: üstte bugünkü satış, nakit, kart ve iade özeti",
+        "- Kasa: kart ödemesinde banka POS cihazına yazılacak tutar büyük gösterilir",
+        "- Ürünler: Kritik, Tükendi, Barkodsuz, Maliyetsiz hızlı filtreleri ve sıralanabilir başlıklar",
+        "- Windows programında animasyonlar kapatıldı"
+      ]
+    },
     {
       "version": "2.4.88",
       "date": "18 Kasım 2026",
