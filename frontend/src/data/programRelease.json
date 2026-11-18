@@ -1,8 +1,19 @@
 {
-  "version": "2.4.93",
+  "version": "2.4.94",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.94",
+      "date": "19 Kasım 2026",
+      "title": "Dokunmatik kasa: müşteri ekranı, 8 sepet, masa planı ve varyantlı ürün",
+      "items": [
+        "- Müşteri ekranı: kasadan tek tıkla açılan ikinci pencere; okutulan ürünler, adetler ve toplam müşteriye görünür, ödemeden sonra teşekkür eder",
+        "- Kasada en fazla 8 sepet bekletilebilir; F2 ile beklet, F4 ile bekleyen sepetler",
+        "- Restoran garson ekranı: masa planı durum rengi ve geçen dakika gösterir, bölge sekmeleri (Bahçe, Salon) eklendi, dokunmatik büyük düğmeler",
+        "- Varyantlı ürün: beden ve renk girilince her çeşit kendi barkodu ve stoğuyla ayrı ürün olarak açılır"
+      ]
+    },
     {
       "version": "2.4.93",
       "date": "19 Kasım 2026",
