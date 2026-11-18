@@ -43,6 +43,9 @@ Yedeklerin gerçekten açılabildiğini program kendisi de denemektedir (her aç
 ## 6. Sık karşılaşılanlar
 | Durum | Ne yapmalı |
 |---|---|
+| Yeni kasiyer giriş yapınca "Depo erişiminiz atanmamış" görüyor | **Ayarlar > Kullanıcılar** bölümünde kasiyerin yanındaki kalkan simgesine basın, çalışacağı depoyu seçip kaydedin. Güvenlik için yeni kullanıcıya hiçbir depo kendiliğinden verilmez |
+| Kasiyer indirim, iade veya vardiya açamıyor | Bunlar varsayılan olarak kapalıdır. **Ayarlar > Barkod okuyucular ve kasa > Kasiyer işlem yetkileri** bölümünden yönetici açar |
+| Siparişi teslim alırken raf istemiyor musunuz | Raf tanımlamadıysanız "Rafsız (genel depo)" seçili bırakın; mal depoya girer |
 | Barkod okutunca ürün bulunamıyor | **Ürün bul**'dan adıyla arayın, ürünün barkodunu ürün kartına ekleyin |
 | Stok yanlış görünüyor | **Stok Sayımı** menüsünden sayım yapın |
 | Program güncellenirken kayboldu | Birkaç dakika bekleyin, sonra masaüstü kısayolundan açın |
