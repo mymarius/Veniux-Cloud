@@ -1,8 +1,18 @@
 {
-  "version": "2.4.89",
+  "version": "2.4.90",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.90",
+      "date": "18 Kasım 2026",
+      "title": "Stok hareketleri, depo özeti ve stok analizi yenilendi",
+      "items": [
+        "- Stok hareketleri: Türkçe tür adları, birimli miktar (kg, adet), Bugün/Son 7 gün/Son 30 gün filtreleri",
+        "- Depo özeti: stok değeri, kritik ürün ve giriş/çıkış işlem sayısı kartları; ayrıntılı analiz grafikleri açılır bölüme alındı",
+        "- Stok analizi: hareket gören ürünler öne çıkar, hareketsiz ürünler istenince listelenir"
+      ]
+    },
     {
       "version": "2.4.89",
       "date": "18 Kasım 2026",
