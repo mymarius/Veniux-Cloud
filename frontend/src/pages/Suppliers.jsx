@@ -184,7 +184,7 @@ export default function Suppliers() {
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">AKTİF TEDARİKÇİ</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-gray-900 text-gray-900">{suppliers.length}</p>
-          <span className="text-[10px] text-gray-500 block">Kayıtlı ecza deposu</span>
+          <span className="text-[10px] text-gray-500 block">Kayıtlı tedarikçi</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
@@ -204,7 +204,7 @@ export default function Suppliers() {
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Sipariş geçmişi</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-gray-900 text-gray-900">{suppliers.reduce((n,s)=>n+Number(s.order_count||0),0)}</p>
-          <span className="text-[10px] text-gray-500 block">Otomatik dış gönderim kapalı</span>
+          <span className="text-[10px] text-gray-500 block">Tedarikçilere verilen siparişler</span>
         </div>
       </div>
 
@@ -281,7 +281,7 @@ export default function Suppliers() {
         })}
       </div>
 
-      {selectedSupplierDetail&&<section className="veniux-card p-5 space-y-5"><div className="flex justify-between gap-3"><div><h2 className="text-lg font-semibold">{selectedSupplierDetail.name} · Tedarikçi kartı</h2><p className="text-sm text-gray-500">{selectedSupplierDetail.contact_name||'Yetkili belirtilmedi'} · {selectedSupplierDetail.phone||'Telefon yok'} · {selectedSupplierDetail.email||'E-posta yok'}</p><p className="text-sm text-gray-500">{selectedSupplierDetail.address||'Adres belirtilmedi'}</p></div><button className="btn-soft" onClick={()=>handleViewDetail(selectedSupplierDetail)}>Yenile</button></div><div className="grid lg:grid-cols-2 gap-5"><div><h3 className="font-semibold text-sm mb-2">Tedarik edilen ürünler</h3>{selectedSupplierDetail.products?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.products.map(p=><div key={p.id} className="border-b py-2 text-sm"><b>{p.name}</b><p className="text-xs text-gray-500">{p.sku} · Alış {money(p.purchase_price)}</p></div>)}</div>:<p className="text-sm text-gray-500">Henüz ürün bağlantısı yok.</p>}</div><div><h3 className="font-semibold text-sm mb-2">Sipariş geçmişi</h3>{selectedSupplierDetail.orders?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.orders.map(o=><Link key={o.id} className="block border-b py-2 text-sm" to={'/purchase-orders?order='+o.id}><b className="break-all">{o.order_no}</b><p className="text-xs text-gray-500">{purchaseStatus[o.status]||o.status} · Alınan {o.received_quantity} · Kalan {o.remaining_quantity} · {money(o.total_amount)}</p></Link>)}</div>:<p className="text-sm text-gray-500">Henüz sipariş yok.</p>}</div></div>{!!selectedSupplierDetail.deliveries?.length&&<div><h3 className="font-semibold text-sm">Mal kabul geçmişi</h3><div className="max-h-72 overflow-auto">{selectedSupplierDetail.deliveries.map(i=><p key={i.id} className="text-sm border-b py-2">{i.product_name} · {i.waybill_no||i.receipt_no} · Alınan {i.received_qty}, iade {i.returned_qty} · Lot {i.lot_number||'Yok'} · {i.expiry_date||'Tarih yok'} · {i.location_code||'Rafsız'}</p>)}</div></div>}{canManage&&<SupplierReturnPanel key={selectedSupplierDetail.id} deliveries={selectedSupplierDetail.deliveries||[]} endpoint={'/suppliers/'+selectedSupplierDetail.id+'/returns'} onDone={async()=>{await handleViewDetail(selectedSupplierDetail);showToast('Tedarikçiye iade kaydedildi.','success');}}/>}{!!selectedSupplierDetail.returns?.length&&<div><h3 className="font-semibold text-sm">Tedarikçiye iade geçmişi</h3>{selectedSupplierDetail.returns.map(r=><p key={r.id} className="text-sm border-b py-2">{new Date(r.created_at).toLocaleString('tr-TR')} · {r.reason}</p>)}</div>}</section>}
+      {selectedSupplierDetail&&<section className="veniux-card p-5 space-y-5"><div className="flex justify-between gap-3"><div><h2 className="text-lg font-semibold">{selectedSupplierDetail.name} · Tedarikçi kartı</h2><p className="text-sm text-gray-500">{selectedSupplierDetail.contact_name||'Yetkili belirtilmedi'} · {selectedSupplierDetail.phone||'Telefon yok'} · {selectedSupplierDetail.email||'E-posta yok'}</p><p className="text-sm text-gray-500">{selectedSupplierDetail.address||'Adres belirtilmedi'}</p></div><div className="flex gap-2">{canManage&&<Link className="btn-primary" to={'/purchase-orders?supplier='+selectedSupplierDetail.id}>Bu tedarikçiden sipariş ver</Link>}<button className="btn-soft" onClick={()=>handleViewDetail(selectedSupplierDetail)}>Yenile</button></div></div><div className="grid lg:grid-cols-2 gap-5"><div><h3 className="font-semibold text-sm mb-2">Tedarik edilen ürünler</h3>{selectedSupplierDetail.products?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.products.map(p=><div key={p.id} className="border-b py-2 text-sm"><b>{p.name}</b><p className="text-xs text-gray-500">{p.sku} · Alış {money(p.purchase_price)}</p></div>)}</div>:<p className="text-sm text-gray-500">Henüz ürün bağlantısı yok.</p>}</div><div><h3 className="font-semibold text-sm mb-2">Sipariş geçmişi</h3>{selectedSupplierDetail.orders?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.orders.map(o=><Link key={o.id} className="block border-b py-2 text-sm" to={'/purchase-orders?order='+o.id}><b className="break-all">{o.order_no}</b><p className="text-xs text-gray-500">{purchaseStatus[o.status]||o.status} · Alınan {o.received_quantity} · Kalan {o.remaining_quantity} · {money(o.total_amount)}</p></Link>)}</div>:<p className="text-sm text-gray-500">Henüz sipariş yok.</p>}</div></div>{!!selectedSupplierDetail.deliveries?.length&&<div><h3 className="font-semibold text-sm">Mal kabul geçmişi</h3><div className="max-h-72 overflow-auto">{selectedSupplierDetail.deliveries.map(i=><p key={i.id} className="text-sm border-b py-2">{i.product_name} · {i.waybill_no||i.receipt_no} · Alınan {i.received_qty}, iade {i.returned_qty} · Lot {i.lot_number||'Yok'} · {i.expiry_date||'Tarih yok'} · {i.location_code||'Rafsız'}</p>)}</div></div>}{canManage&&<SupplierReturnPanel key={selectedSupplierDetail.id} deliveries={selectedSupplierDetail.deliveries||[]} endpoint={'/suppliers/'+selectedSupplierDetail.id+'/returns'} onDone={async()=>{await handleViewDetail(selectedSupplierDetail);showToast('Tedarikçiye iade kaydedildi.','success');}}/>}{!!selectedSupplierDetail.returns?.length&&<div><h3 className="font-semibold text-sm">Tedarikçiye iade geçmişi</h3>{selectedSupplierDetail.returns.map(r=><p key={r.id} className="text-sm border-b py-2">{new Date(r.created_at).toLocaleString('tr-TR')} · {r.reason}</p>)}</div>}</section>}
 
       {/* Add / Edit Supplier Modal */}
       {showModal && (
@@ -303,7 +303,7 @@ export default function Suppliers() {
                 <input
                   type="text"
                   required
-                  placeholder="Örn: Selçuk Ecza Deposu A.Ş."
+                  placeholder="Örn: Örnek Toptan Gıda A.Ş."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-2.5 bg-gray-100 dark:bg-gray-100 border border-gray-200 border-gray-200 rounded-xl outline-none focus:border-indigo-500"
@@ -350,7 +350,7 @@ export default function Suppliers() {
                   <label className="block text-gray-500 mb-1">E-Posta</label>
                   <input
                     type="email"
-                    placeholder="siparis@selcukecza.com.tr"
+                    placeholder="siparis@ornektoptan.com.tr"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full p-2.5 bg-gray-100 dark:bg-gray-100 border border-gray-200 border-gray-200 rounded-xl outline-none focus:border-indigo-500"

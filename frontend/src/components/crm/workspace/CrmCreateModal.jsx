@@ -40,7 +40,7 @@ const LEAD_SOURCES = [
   'Tavsiye & Referans',
   'Sektörel Fuar',
   'Soğuk Arama',
-  'Ecza Deposu Yönlendirmesi',
+  'Bayi / Distribütör Yönlendirmesi',
   'Mevcut Müşteri Genişlemesi'
 ];
 
@@ -189,7 +189,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
         {kind === 'deal' && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <FormInput label="Fırsat başlığı" required value={form.title} onChange={set('title')} placeholder="Örn. Selçuk Ecza İTS Entegrasyon Lisansı" />
+              <FormInput label="Fırsat başlığı" required value={form.title} onChange={set('title')} placeholder="Örn. Yıllık program lisansı" />
             </div>
             <FormSelect label="Şirket" value={form.companyId} onChange={set('companyId')}>
               <option value="">Bağımsız fırsat</option>
@@ -216,7 +216,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormInput label="Ad Soyad" required value={form.name} onChange={set('name')} placeholder="Örn. Ecz. Halil İbrahim" />
             <FormInput label="Kurum" required value={form.company} onChange={set('company')} placeholder="Örn. Deniz Ticaret" />
-            <FormInput label="Ünvan" value={form.jobTitle} onChange={set('jobTitle')} placeholder="Mesul Müdür Eczacı" />
+            <FormInput label="Ünvan" value={form.jobTitle} onChange={set('jobTitle')} placeholder="Satın Alma Sorumlusu" />
             <FormSelect label="Kaynak" value={form.source} onChange={set('source')}>
               {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
             </FormSelect>
@@ -258,7 +258,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
             <FormInput label="Alan adı" value={form.domain} onChange={set('domain')} placeholder="ornek.com.tr" />
             <FormInput label="Sektör" value={form.industry} onChange={set('industry')} placeholder="İlaç Dağıtım & Lojistik" />
             <FormInput label="Konum" value={form.location} onChange={set('location')} placeholder="İstanbul, TR" />
-            <FormInput label="Segment" value={form.tier} onChange={set('tier')} placeholder="Stratejik Ecza Deposu" />
+            <FormInput label="Segment" value={form.tier} onChange={set('tier')} placeholder="Stratejik Müşteri" />
             <FormSelect label="Hesap sorumlusu" value={form.accountOwner} onChange={set('accountOwner')}>
               <option value="">Otomatik ata</option>
               {owners.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -274,7 +274,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
         {kind === 'task' && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <FormInput label="Görev" required value={form.title} onChange={set('title')} placeholder="Örn. İTS webhook testi yapılacak" />
+              <FormInput label="Görev" required value={form.title} onChange={set('title')} placeholder="Örn. Kurulum ve eğitim planı yapılacak" />
             </div>
             <FormSelect label="Öncelik" value={form.priority} onChange={set('priority')}>
               {PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -292,7 +292,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
               <option value="">Yok</option>
               {deals.map((d) => <option key={d.id} value={d.title}>{d.title}</option>)}
             </FormSelect>
-            <FormInput label="Etiketler" value={form.tags} onChange={set('tags')} placeholder="Teknik Test, İTS" />
+            <FormInput label="Etiketler" value={form.tags} onChange={set('tags')} placeholder="Teknik Test, Kurulum" />
           </div>
         )}
 

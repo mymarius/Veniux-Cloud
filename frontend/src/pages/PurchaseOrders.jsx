@@ -93,8 +93,11 @@ export default function PurchaseOrders() {
       const prods = prodRes.data.products || prodRes.data || [];
       setProducts(prods);
 
-      if (supRes.data?.length > 0) setSupplierId(supRes.data[0].id);
+      const wantedSupplier = new URLSearchParams(location.search).get('supplier');
+      const preferred = (supRes.data || []).find(s => String(s.id) === wantedSupplier);
+      if (supRes.data?.length > 0) setSupplierId(preferred ? preferred.id : supRes.data[0].id);
       if (whRes.data?.length > 0) setTargetWarehouseId(whRes.data[0].id);
+      if (preferred) setShowModal(true);
       if(location.state?.stockSuggestions?.length){
         setOrderItems(location.state.stockSuggestions.map(p=>({product_id:p.id,quantity:p.suggested_quantity,unit_price:prods.find(x=>x.id===p.id)?.purchase_price||0})));
         setNotes('Düşük stok önerisi — miktar, tedarikçi ve depo onaylanmalıdır.');setSupplierId('');setTargetWarehouseId('');setShowModal(true);

@@ -42,7 +42,7 @@
       "items": [
         "- MySQL kullanan kurulumlarda yedekten geri yükleme çok hızlandı (dakikalar yerine saniyeler)",
         "- Hırdavat, züccaciye ve restoran için iade ve sektör derinleştirme iyileştirmeleri",
-        "- Kullanılmayan eski eczane kodları programdan tamamen çıkarıldı; program daha hafif",
+        "- Kullanılmayan eski kodlar programdan çıkarıldı; program daha hafif",
         "- Küçük hata düzeltmeleri ve iç temizlik"
       ]
     },
@@ -53,7 +53,7 @@
       "items": [
         "- MySQL kullanan kurulumlarda yedekten geri yükleme çok hızlandı (dakikalar yerine saniyeler)",
         "- Hırdavat, züccaciye ve restoran için iade ve sektör derinleştirme iyileştirmeleri",
-        "- Kullanılmayan eski eczane kodları programdan tamamen çıkarıldı; program daha hafif",
+        "- Kullanılmayan eski kodlar programdan çıkarıldı; program daha hafif",
         "- Küçük hata düzeltmeleri ve iç temizlik"
       ]
     },
