@@ -1,8 +1,18 @@
 {
-  "version": "2.4.87",
+  "version": "2.4.88",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.88",
+      "date": "18 Kasım 2026",
+      "title": "Cihaz testi ve e-Belge numara serisi",
+      "items": [
+        "- Ayarlar > Sistem: yeni Cihaz testi (yazıcı, COM port, USB/barkod okuyucu algılama ve barkod okuyucu deneme kutusu)",
+        "- e-Belge: resmî numara serisi ve gönderim durumu takibi hazırlandı (gerçek gönderim için entegratör anlaşması gerekir, kapalıdır)",
+        "- Küçük iç iyileştirmeler"
+      ]
+    },
     {
       "version": "2.4.87",
       "date": "17 Kasım 2026",
