@@ -13,8 +13,8 @@ const round = (v, d = 2) => Math.round(Number(v) * 10 ** d) / 10 ** d;
 // ---------- Masalar ve menü ----------
 async function tables(user) {
   const rows = (await db.query('SELECT id,name,active FROM restaurant_tables WHERE tenant_id=$1 ORDER BY name', [user.tenantId])).rows;
-  const open = (await db.query("SELECT id,table_id,total_amount FROM restaurant_orders WHERE tenant_id=$1 AND status='open' AND table_id IS NOT NULL", [user.tenantId])).rows;
-  return { items: rows.map(t => { const o = open.find(x => Number(x.table_id) === Number(t.id)); return { id: Number(t.id), name: t.name, active: Number(t.active) === 1, open_order_id: o ? Number(o.id) : null, open_total: o ? round(o.total_amount) : 0 }; }) };
+  const open = (await db.query("SELECT id,table_id,total_amount,created_at FROM restaurant_orders WHERE tenant_id=$1 AND status='open' AND table_id IS NOT NULL", [user.tenantId])).rows;
+  return { items: rows.map(t => { const o = open.find(x => Number(x.table_id) === Number(t.id)); return { id: Number(t.id), name: t.name, active: Number(t.active) === 1, open_order_id: o ? Number(o.id) : null, open_total: o ? round(o.total_amount) : 0, opened_at: o ? o.created_at : null }; }) };
 }
 
 async function saveTable(user, id, body = {}) {

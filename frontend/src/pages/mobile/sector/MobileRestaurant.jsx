@@ -120,6 +120,9 @@ export function MobileWaiter() {
   const categories = useMemo(() => [...new Set((menu.data?.items || []).map(i => i.category))], [menu.data]);
   const shown = (menu.data?.items || []).filter(i => !category || i.category === category);
   const hot = useMemo(() => (menu.data?.items || []).filter(i => i.sold > 0 && i.stock_state !== 'out').slice(0, 8), [menu.data]);
+  const [zone, setZone] = useState('');
+  const zoneOf = t => (String(t.name).trim().split(/\s+/)[0] || '');
+  const zones = useMemo(() => { const z = [...new Set((tables.data || []).filter(t => t.active).map(zoneOf))]; return z.length > 1 ? z : []; }, [tables.data]);
   const [ready, setReady] = useState([]); const seenReady = useRef(null);
   const checkReady = async () => {
     const list = (await api.get('/sector/restaurant/orders')).data.items;
@@ -158,8 +161,9 @@ export function MobileWaiter() {
   });
   const tablesBlock = <>
         <div className="vm-label" style={{ marginTop: 0 }}><span>Masalar</span></div>
-        <div className="vm-modgrid">{(tables.data || []).filter(t => t.active).map(t => <button key={t.id} type="button" className="vm-mod" style={{ cursor: 'pointer', textAlign: 'left', borderColor: t.open_order_id ? 'var(--vm-accent)' : undefined }} onClick={() => choose({ type: 'masa', id: t.id, label: t.name, open_order_id: t.open_order_id })}>
-          <i className={t.open_order_id ? 'vm-tone-orange' : 'vm-tone-blue'}><Utensils size={22} /></i><b>{t.name}</b><span className="vm-note">{t.open_order_id ? 'Açık · ' + money(t.open_total) : 'Boş'}</span></button>)}</div>
+        {zones.length > 0 && <div className="rs-zones" role="tablist" aria-label="Bölgeler"><button type="button" role="tab" aria-selected={!zone} className={!zone ? 'on' : ''} onClick={() => setZone('')}>Tümü</button>{zones.map(z => <button key={z} type="button" role="tab" aria-selected={zone === z} className={zone === z ? 'on' : ''} onClick={() => setZone(z)}>{z}</button>)}</div>}
+        <div className="vm-modgrid rs-plan">{(tables.data || []).filter(t => t.active && (!zone || zoneOf(t) === zone)).map(t => { const mins = t.open_order_id ? waitMinutes(t.opened_at) : 0, lvl = !t.open_order_id ? 'free' : mins >= 90 ? 'late' : mins >= 45 ? 'warn' : 'ok'; return <button key={t.id} type="button" data-state={lvl} className={'vm-mod rs-tile' + (target?.id === t.id && target?.type === 'masa' ? ' on' : '')} style={{ cursor: 'pointer', textAlign: 'left', borderColor: t.open_order_id ? 'var(--vm-accent)' : undefined }} onClick={() => choose({ type: 'masa', id: t.id, label: t.name, open_order_id: t.open_order_id })}>
+          <b>{t.name}</b>{t.open_order_id ? <><span className="rs-min">{mins} dk</span><span className="vm-note">{money(t.open_total)}</span></> : <span className="vm-note">Boş</span>}</button>; })}</div>
         {tables.data?.length === 0 && <EmptyState icon={<Utensils size={34} />} title="Masa tanımlı değil" text="Önce Restoran ayarlarından masa ekleyin ya da aşağıdan paket/motor siparişi girin." />}
         <div className="vm-label"><span>Masasız</span></div>
         <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'paket', label: 'Paket servisi' })}>Paket</button><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'motor', label: 'Motor kurye' })}>Motor</button></div></>;
@@ -195,7 +199,7 @@ export function MobileWaiter() {
     <PackGate pack="restaurant"><div className="vm-body" style={{ marginTop: 0, paddingTop: 14 }}>
       {tables.error && <p role="alert" className="vm-err">{tables.error}</p>}
       {ready.length > 0 && <section className="vm-card rs-ready" role="status" aria-label="Hazır siparişler">{ready.map(r => <div key={r.id}><span><b>{r.where}</b> · {r.qty}× {r.name} hazır</span><button type="button" className="vm-btn" style={{ width: 'auto', minHeight: 40, padding: '0 14px' }} onClick={() => served(r)}>Servis edildi</button></div>)}</section>}
-      {desktop ? <div className="rs-split"><aside className="rs-tables">{tablesBlock}</aside><div className="rs-main">{!target && <p className="vm-note rs-pick">Soldan bir masa seçin, ürüne basınca adisyona eklenir.</p>}{menuBlock}</div><aside className="rs-bill">{target ? <>{adisyonBlock}{cart.size > 0 && <section className="vm-card rs-cart" aria-label="Yeni sipariş"><b>Yeni sipariş</b>{cartInner}</section>}</> : <p className="vm-note rs-pick">Adisyon burada görünür.</p>}</aside></div> : <>{!target && tablesBlock}{targetBlock}</>}
+      {desktop ? <div className="rs-split"><aside className="rs-tables">{tablesBlock}</aside><div className="rs-main">{!target && <p className="vm-note rs-pick">Bir masa seçin, ürüne basınca adisyona eklenir.</p>}{menuBlock}</div><aside className="rs-bill">{target ? <>{adisyonBlock}{cart.size > 0 && <section className="vm-card rs-cart" aria-label="Yeni sipariş"><b>Yeni sipariş</b>{cartInner}</section>}</> : <p className="vm-note rs-pick">Adisyon burada görünür.</p>}</aside></div> : <>{!target && tablesBlock}{targetBlock}</>}
     </div></PackGate>
     {choosing && <OptionSheet product={choosing} onClose={() => setChoosing(null)} onAdd={opts => { setCart(c => cartAdd(c, choosing, 1, opts)); setChoosing(null); }} />}
     {!desktop && target && cart.size > 0 && <div className="vm-sheet-back" style={{ background: 'none', pointerEvents: 'none', alignItems: 'flex-end' }}><div className="vm-sheet" style={{ pointerEvents: 'auto', boxShadow: '0 -8px 30px #0003', padding: '12px 16px calc(env(safe-area-inset-bottom,0px) + 14px)' }}>

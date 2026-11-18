@@ -1,3 +1,4 @@
+import VariantWizard from '../../components/VariantWizard';
 import ProductBulkImport from '../../components/ProductBulkImport';
 import StockHealthPanel from '../../components/StockHealthPanel';
 import { useSearchParams } from 'react-router-dom';
@@ -39,6 +40,7 @@ export default function NormalProducts() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [showVariants, setShowVariants] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [scaleCode, setScaleCode] = useState('');
   const [karekodModalOpen, setKarekodModalOpen] = useState(false);
@@ -259,12 +261,13 @@ export default function NormalProducts() {
           <p className="text-sm text-slate-500 mt-1">Ürün tanımları, barkod eşleşmeleri ve tedarikçi bağlantıları.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
+        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button><button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
           <Plus className="w-4 h-4" />
           <span>Yeni Ürün Ekle</span>
         </button></div>
       </div>
 
+      <VariantWizard isOpen={showVariants} onClose={()=>setShowVariants(false)} onDone={fetchProducts} />
       {showImport&&<ProductBulkImport onCompleted={fetchProducts}/>}
       <details className="mobile-stock-details"><summary>Stok ve lot uyarılarını göster</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
       {lotDetail&&<section className="veniux-card p-4 mb-4" role="dialog" aria-label="Lot detayı"><div className="flex justify-between"><b>{lotDetail.name} · Lot {lotDetail.lot_number}</b><button onClick={()=>setLotDetail(null)}>Kapat</button></div><p>Depo: {lotDetail.warehouse_name} · Miktar: {lotDetail.quantity} · Son kullanma: {lotDetail.expiry_date||'Tarih yok'}</p><button className="btn-soft" data-size="sm" onClick={()=>{setSelectedProductId(lotDetail.product_id);setDrawerOpen(true);}}>Ürünü aç</button></section>}

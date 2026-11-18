@@ -119,3 +119,27 @@ html[data-theme='dark'] .rs-tables .vm-mod[style*='accent']{background:#4a1f1a!i
 :root[data-theme=dark] .update-pop{background:#1e293b;color:#f1f5f9;border-color:#334155}
 :root[data-theme=dark] .update-pop p{color:#94a3b8}
 @keyframes update-pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}50%{box-shadow:0 0 0 6px rgba(22,163,74,0)}}
+/* Dokunmatik masa planı: durum rengi + geçen dakika, büyük dokunma alanı (15" 1024x768 kasa ekranı) */
+.rs-plan .rs-tile{min-height:92px;gap:4px;align-items:flex-start;justify-content:center}
+.rs-plan .rs-tile b{font-size:18px}
+.rs-plan .rs-min{font-weight:800;font-size:15px}
+.rs-plan .rs-tile[data-state='free']{background:#eaf6ef;border-color:#0d7a57}
+.rs-plan .rs-tile[data-state='ok']{background:#e6effa!important;border-color:#165da4!important}
+.rs-plan .rs-tile[data-state='warn']{background:#fdf0d5!important;border-color:#c77a00!important}
+.rs-plan .rs-tile[data-state='late']{background:#fbe0dc!important;border-color:#b92c1c!important}
+.rs-plan .rs-tile.on{outline:3px solid #17263a;outline-offset:1px}
+html[data-theme='dark'] .rs-plan .rs-tile[data-state='ok']{background:#14304f!important}
+html[data-theme='dark'] .rs-plan .rs-tile[data-state='warn']{background:#4a3510!important}
+html[data-theme='dark'] .rs-plan .rs-tile[data-state='late']{background:#4a1f1a!important}
+@media(min-width:900px) and (max-width:1280px){.rs-split{grid-template-columns:minmax(0,1fr) 300px;gap:16px}.rs-tables{grid-column:1 / -1;position:static;max-height:none;padding:0}.rs-tables .vm-modgrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.rs-plan .rs-tile{min-height:78px}.rs-bill{grid-column:auto}}
+.rs-zones{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.rs-zones button{min-height:44px;padding:0 16px;border-radius:10px;border:2px solid #17263a;background:#fffdf8;color:#17263a;font-weight:800;font-size:15px;cursor:pointer}
+.rs-zones button.on{background:#17263a;color:#fff}
+html[data-theme='dark'] .rs-zones button{background:#14243a;color:#eef2f7;border-color:#3a506e}
+html[data-theme='dark'] .rs-zones button.on{background:#eef2f7;color:#14243a}
+/* Dokunmatik sipariş paneli: büyük düğmeler */
+.rs-bill .vm-btn,.rs-bill .rs-cart .vm-btn{min-height:56px;font-size:17px;font-weight:800}
+.rs-bill .vm-iconbtn{width:48px;height:48px}
+.rs-main .vm-mod{min-height:104px}
+.rs-main .vm-mod button[aria-label$='ekle']{width:100%}
+.rs-main .vm-iconbtn{width:44px!important;height:44px!important}

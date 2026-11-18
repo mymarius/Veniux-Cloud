@@ -10,6 +10,8 @@ const {
 } = require('../controllers/productController');
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
 
+const variants = require('../services/productVariantService');
+router.post('/variants', authMiddleware, requireRole('admin', 'manager'), async (req, res) => { try { res.status(201).json(await variants.create(req.user, req.body)); } catch (e) { res.status(e.status || 500).json({ error: e.status ? e.message : 'Varyantlar oluşturulamadı.' }); } });
 router.get('/categories', authMiddleware, getCategories);
 router.get('/', authMiddleware, getAllProducts);
 router.get('/:id', authMiddleware, getProductById);

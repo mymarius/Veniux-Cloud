@@ -26,6 +26,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const BusinessPortal = lazy(() => import('./pages/BusinessPortal'));
 const BusinessInvite = lazy(() => import('./pages/BusinessInvite'));
 const NormalDashboard = lazy(() => import('./pages/normal-depo/NormalDashboard'));
+const CustomerDisplay = lazy(() => import('./pages/CustomerDisplay'));
 const RetailPos = lazy(() => import('./pages/RetailPos'));
 const RetailQuickAdd = lazy(() => import('./pages/RetailQuickAdd'));
 const NormalWarehouses = lazy(() => import('./pages/normal-depo/NormalWarehouses'));
@@ -246,6 +247,7 @@ function AppContent() {
 
             {/* NORMAL DEPO */}
             <Route path="/magaza/etiketler" element={<ProtectedRoute><LabelCenter /></ProtectedRoute>} />
+            <Route path="/musteri-ekrani" element={<CustomerDisplay />} />
             <Route path="/magaza/kasa" element={<ProtectedRoute><RetailPos /></ProtectedRoute>} />
             <Route path="/magaza/hizli-ekle" element={<ProtectedRoute><RetailQuickAdd /></ProtectedRoute>} />
             <Route path="/normal-depo/analytics" element={<ProtectedRoute><StockMovementInsights /></ProtectedRoute>} />
