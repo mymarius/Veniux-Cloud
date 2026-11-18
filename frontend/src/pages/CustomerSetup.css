@@ -1,7 +1,9 @@
-.customer-setup progress{height:8px;border:0;border-radius:999px;overflow:hidden;background:#e8eef8;color:#2563eb}
-.customer-setup progress::-webkit-progress-bar{background:#e8eef8;border-radius:999px}
-.customer-setup progress::-webkit-progress-value{background:#2563eb;border-radius:999px}
-.customer-setup progress::-moz-progress-bar{background:#2563eb;border-radius:999px}
-.customer-setup input[type=checkbox],.customer-setup input[type=radio]{accent-color:#2563eb}
+.customer-setup progress{height:8px;border:0;border-radius:999px;overflow:hidden;background:#efe7d6;color:#f2711c}
+.customer-setup progress::-webkit-progress-bar{background:#efe7d6;border-radius:999px}
+.customer-setup progress::-webkit-progress-value{background:#f2711c;border-radius:999px}
+.customer-setup progress::-moz-progress-bar{background:#f2711c;border-radius:999px}
+.customer-setup input[type=checkbox],.customer-setup input[type=radio]{accent-color:#f2711c}
 .customer-setup nav[aria-label="Kurulum adımları"]{scrollbar-width:thin}
 .customer-setup button:focus-visible,.customer-setup a:focus-visible{outline:3px solid #f97316;outline-offset:3px}
+/* Başlık kartı: iç boşluk (yardımcı sınıflar bu kartta uygulanmıyordu) */
+html:root .customer-setup>header.veniux-card{padding:24px 28px!important}
