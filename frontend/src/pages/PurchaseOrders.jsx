@@ -81,6 +81,21 @@ export default function PurchaseOrders() {
     }
   };
 
+  // Kritik ve tükenen ürünler için önerilen miktarlarla sipariş taslağı açar (tedarikçiyi ve depoyu kullanıcı onaylar).
+  const draftFromLowStock = async () => {
+    try {
+      const { data } = await apiClient.get('/normal-depo/stock-health', { params: { days: 30 } });
+      const suggestions = data?.suggestions || [];
+      if (!suggestions.length) { showToast('Kritik stokta ürün yok; şimdilik sipariş gerekmiyor.', 'success'); return; }
+      setOrderItems(suggestions.map(p => ({ product_id: p.id, quantity: p.suggested_quantity, unit_price: products.find(x => x.id === p.id)?.purchase_price || 0 })));
+      setNotes('Düşük stok önerisi: miktar, tedarikçi ve depo onaylanmalıdır.');
+      setSupplierId('');
+      setShowModal(true);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Kritik stok önerileri alınamadı.', 'error');
+    }
+  };
+
   const fetchMetadata = async () => {
     try {
       const [supRes, whRes, prodRes] = await Promise.all([
@@ -161,7 +176,7 @@ export default function PurchaseOrders() {
       };
 
       await send('/purchase-orders', payload);
-      showToast('Tedarik emri başarıyla oluşturuldu.', 'success');
+      showToast('Sipariş oluşturuldu.', 'success');
       setShowModal(false);
       fetchOrders();
     } catch (err) {
@@ -298,7 +313,7 @@ export default function PurchaseOrders() {
                 Satın alma siparişleri
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/10 text-brand-500 border border-brand-500/20 font-mono">
-                {orders.length} SİPARİŞ EMRİ
+                {orders.length} SİPARİŞ
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -307,21 +322,30 @@ export default function PurchaseOrders() {
           </div>
         </div>
 
+<div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={!canManage}
+          onClick={draftFromLowStock}
+          className="px-4 py-2 bg-white border border-brand-500 text-brand-500 rounded-xl text-xs font-bold transition hover:bg-brand-500/10"
+        >
+          Kritik stoktan taslak
+        </button>
         <button
           disabled={!canManage}
           onClick={() => setShowModal(true)}
           className="flex items-center space-x-1.5 px-4 py-2 bg-brand-500 hover:bg-brand-500/90 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary/20"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Satınalma Emri</span>
-        </button>
+          <span>Yeni sipariş</span>
+        </button></div>
       </div>
 
       {/* Main Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-            TÜM SATINALMA EMİRLERİ LİSTESİ
+            SİPARİŞLERİNİZ
           </h2>
           <span className="text-xs font-mono text-gray-500">{orders.length} Kayıt</span>
         </div>
@@ -330,7 +354,7 @@ export default function PurchaseOrders() {
             columns={columns} 
             data={orders} 
             isLoading={loading} 
-            emptyMessage="Henüz kayıtlı satınalma emri bulunmamaktadır."
+            emptyMessage="Henüz sipariş yok. “Yeni sipariş” ya da “Kritik stoktan taslak” ile başlayın."
           />
         </div>
       </div>
@@ -424,12 +448,12 @@ export default function PurchaseOrders() {
       <Drawer
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title="Yeni Satınalma & Tedarik Emri"
+        title="Yeni sipariş"
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center space-x-2 mb-4">
             <ShoppingBag className="w-5 h-5 text-brand-500" />
-            <span className="text-base font-bold text-gray-900">Yeni Satınalma & Tedarik Emri</span>
+            <span className="text-base font-bold text-gray-900">Yeni sipariş</span>
           </div>
 
           <form onSubmit={handleCreateOrder} className="space-y-4 text-xs font-medium flex-1 flex flex-col">
@@ -478,6 +502,11 @@ export default function PurchaseOrders() {
                 </button>
               </div>
 
+              <div className="grid grid-cols-12 gap-2 px-2.5 text-[11px] font-bold text-gray-500" aria-hidden="true">
+                <span className="col-span-6">Ürün</span>
+                <span className="col-span-3">Miktar</span>
+                <span className="col-span-2">Birim fiyat (₺)</span>
+              </div>
               {orderItems.map((item, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-xl border border-gray-200">
                   <div className="col-span-6">
