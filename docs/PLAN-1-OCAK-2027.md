@@ -16,13 +16,12 @@ Kural: yeni büyük özellik 20 Aralık'ta durur; son 11 gün yalnız test, düz
 ## B. Ürün: 1 Ocak'a kadar bitmesi gerekenler
 1. **Pilot müşteri (pide restoranı):** deneme listesi `docs/RESTORAN-DENEME-LISTESI.md`; bulgular tek listede toplanır, aynı hafta düzeltilir.
 2. **Kod imzalama:** sertifika şirket adına alınır (kuruluştan sonra); yayın aracı imzalı derlemeyi destekliyor.
-3. **Performans:** Android ve Windows'ta yavaş ekranların ölçümü (adb/CDP), 510 KB CSS'in sadeleştirilmesi, zayıf cihazda efekt kapatma.
-4. **Windows animasyonlarının kaldırılması** ve **Windows + Android tasarım yenilemesi** (kapsam: kasa, ana sayfa, stok, raporlar, ayarlar; önce ekran listesi onayı).
-5. **E-Arşiv/E-Fatura (2027):** basit usul mükelleflerinde 2027'den itibaren e-arşiv zorunluluğu geliyor (kaynaklar aşağıda). Taslak XML hazır; gerçek gönderim için **özel entegratör anlaşması** gerekiyor. Aralık başında entegratör seçilir (API'si ve fiyatı karşılaştırılır), sandbox bağlantısı yapılır.
-6. **Yazarkasa (YN ÖKC):** cihaz üreticisi/yazılım entegrasyonu GİB teknik rehberine bağlı; ilk müşteriler cihazlarını kendileri kullanıyor, Q1 2027 işi.
-7. **Bildirimler (Firebase):** sunucu ve Android hazır, canlıya almak için Firebase ayar dosyası gerekiyor.
-8. **Online mağaza:** iyzico ödeme (şirket gerekir) ve özel alan adı; sandbox denemesi şirket kurulunca.
-9. **business.veniux.com emekliliği** ve bulut stage temizliği (Plesk).
+3. **Windows animasyonlarının kaldırılması** ve **Windows + Android tasarım yenilemesi** (kapsam: kasa, ana sayfa, stok, raporlar, ayarlar; önce ekran listesi onayı).
+4. **E-Arşiv/E-Fatura (2027):** basit usul mükelleflerinde 2027'den itibaren e-arşiv zorunluluğu geliyor (kaynaklar aşağıda). Taslak XML hazır; gerçek gönderim için **özel entegratör anlaşması** gerekiyor. Aralık başında entegratör seçilir (API'si ve fiyatı karşılaştırılır), sandbox bağlantısı yapılır.
+5. **Yazarkasa (YN ÖKC):** cihaz üreticisi/yazılım entegrasyonu GİB teknik rehberine bağlı; ilk müşteriler cihazlarını kendileri kullanıyor, Q1 2027 işi.
+6. **Bildirimler (Firebase):** sunucu ve Android hazır, canlıya almak için Firebase ayar dosyası gerekiyor.
+7. **Online mağaza:** iyzico ödeme (şirket gerekir) ve özel alan adı; sandbox denemesi şirket kurulunca.
+8. **business.veniux.com emekliliği** ve bulut stage temizliği (Plesk).
 
 ## C. Sağlamlık (her hafta tekrarlanır)
 - Tam testler (SQLite + MySQL), yedekten geri yükleme denemesi, canlı sağlık kontrolü.
@@ -34,7 +33,7 @@ Kural: yeni büyük özellik 20 Aralık'ta durur; son 11 gün yalnız test, düz
 ## D. Haftalık takvim
 | Hafta | Odak |
 |---|---|
-| 1 (18–24 Kas) | Pilot restoran denemesi; performans ölçümü; yasal sayfa e-postaları; şirket başvurusu |
+| 1 (18–24 Kas) | Pilot restoran denemesi; yasal sayfa e-postaları; şirket başvurusu |
 | 2 (25 Kas–1 Ara) | Pilot bulguları; animasyon kaldırma; Windows tasarım ekran listesi |
 | 3 (2–8 Ara) | Windows tasarım yenileme (kasa, ana sayfa); entegratör seçimi |
 | 4 (9–15 Ara) | Android tasarım; e-arşiv sandbox bağlantısı; sertifika başvurusu |
@@ -46,3 +45,5 @@ Kural: yeni büyük özellik 20 Aralık'ta durur; son 11 gün yalnız test, düz
 - **E-arşiv süresi dar:** 1 Ocak'ta zorunluluk başlıyorsa müşteriler fatura ister; entegratör seçilmezse "yakında" diye söylenir.
 - **Tek kişi/tek asistan** ile 6 haftada tasarım yenileme + entegrasyon çakışır: tasarım yenilemeyi kasa ve ana sayfayla sınırlamak önerilir.
 - Pilot sonuçları planı değiştirebilir; her hafta başı bu dosya güncellenir.
+
+_18 Kasım: performans sorunu olmadığı bildirildi; performans işi plandan çıkarıldı (yalnız Windows animasyonları kaldırılacak)._
