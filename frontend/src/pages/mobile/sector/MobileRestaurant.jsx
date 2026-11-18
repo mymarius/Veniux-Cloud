@@ -48,6 +48,7 @@ function OrderPanel({ order, tables, onChanged, onClosed }) {
   const payButtons = items => { const total = items ? selectedTotal : order.total; return <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 8, marginTop: 8 }}>
     <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'cash' }, items)}>Nakit · {money(total)}{!items && <kbd className="rs-key">F9</kbd>}</button>
     <button type="button" className="vm-btn" disabled={busy || (items && !items.length)} onClick={() => pay({ payment_method: 'card' }, items)}>Kart · {money(total)}{!items && <kbd className="rs-key">F10</kbd>}</button>
+    <p className="vm-note" style={{ margin: 0 }}>Kart: {money(total)} tutarını banka POS cihazına yazın, ödeme onayı çıkınca “Kart” düğmesine basın.</p>
     {!items && <><div className="vm-price-in"><input inputMode="decimal" aria-label="Nakit tutar" placeholder="Nakit" value={split.cash} onChange={e => setSplit(v => ({ ...v, cash: e.target.value }))} /><input inputMode="decimal" aria-label="Kart tutar" placeholder="Kart" value={split.card} onChange={e => setSplit(v => ({ ...v, card: e.target.value }))} /></div>
       <button type="button" className="vm-btn ghost" disabled={busy || (!split.cash && !split.card)} onClick={() => pay({ payments: { cash: num(split.cash || 0), card: num(split.card || 0) } })}>Nakit + kart ile kapat</button></>}
     <button type="button" className="vm-btn ghost" onClick={() => { setMode(null); setSelected([]); }}>Vazgeç</button></div>; };
@@ -163,7 +164,7 @@ export function MobileWaiter() {
         <div className="vm-label"><span>Masasız</span></div>
         <div style={{ display: 'flex', gap: 10 }}><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'paket', label: 'Paket servisi' })}>Paket</button><button type="button" className="vm-btn soft" onClick={() => choose({ type: 'motor', label: 'Motor kurye' })}>Motor</button></div></>;
   const adisyonBlock = target && <>
-        {sent && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Sipariş mutfağa gitti · {money(sent.total)}</b>
+        {sent && !(closed && !closed.split_from) && <section className="vm-card" role="status" style={{ borderColor: 'var(--vm-good)' }}><b style={{ color: 'var(--vm-good)' }}><Check size={16} /> Sipariş mutfağa gitti · {money(sent.total)}</b>
           {sent.shortages.length > 0 && <p className="vm-err" role="alert" style={{ marginTop: 6 }}>Stok yetersiz: {sent.shortages.flatMap(s => s.missing.map(m => m.name)).join(', ')} (siparişe devam edilir, stok eksiye düşmez).</p>}
           <button type="button" className="vm-btn ghost" style={{ marginTop: 8 }} onClick={() => setTarget(null)}>Masalara dön</button></section>}
         {sent && sent.type !== 'masa' && !delivered && <DeliveryForm order={sent} onSaved={() => setDelivered(true)} />}
