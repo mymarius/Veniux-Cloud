@@ -160,3 +160,7 @@ html[data-touch='true'] table td,html[data-touch='true'] table th{padding-top:12
 html[data-touch='true'] nav a,html[data-touch='true'] aside a{min-height:48px;display:flex;align-items:center}
 html[data-touch='true'] input[type='checkbox'],html[data-touch='true'] input[type='radio']{width:22px;height:22px}
 html[data-touch='true'] *{-webkit-tap-highlight-color:transparent}
+.pos-quick-cash{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.pos-quick-cash button{min-height:52px;min-width:84px;padding:0 16px;border:2px solid #17263a;border-radius:10px;background:#fffdf8;color:#17263a;font-weight:800;font-size:17px;cursor:pointer}
+.pos-quick-cash button:hover:not(:disabled){background:#17263a;color:#fff}
+html[data-theme='dark'] .pos-quick-cash button{background:#14243a;color:#eef2f7;border-color:#3a506e}

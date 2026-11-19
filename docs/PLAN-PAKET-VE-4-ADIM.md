@@ -48,3 +48,12 @@ Plan matrisindeki özellikler ekrana düğme olarak dökülmez; işletme türün
 Projede zaten bir paket kataloğu var (`backend/src/config/productPackages.json` + veritabanındaki katalog; aileler retail/warehouse/unified, modül ve limit sözleşmeli, fiyatı platform sahibi panelden girer, site `/api/public/prices` ile okur). `shared/planMatrix.mjs` içindeki fiyatlar bu yüzden **öneridir**, ikinci bir kaynak değildir.
 - Hak hesabı artık katalog sözleşmesinin modüllerinden türetilir (wms → İşletme WMS, gelişmiş rapor/cari → Pro, yalnız stok+kasa → Lite hak kümesi); sözleşmesiz eski lisans İşletme WMS sayılır (özellik kaybı yok).
 - Yeni 4 paket, onayınızla kataloğa plan olarak eklenecek (yapı uyuyor); fiyatlar o zaman panelden girilir ve site otomatik okur. Sitede eski paket adları (Başlangıç, Hırdavat, Züccaciye, Pide) o zamana kadar kalır.
+
+## Hafta 1 durumu ve şema 028 paketi (20 Kasım)
+Kontrol sonucu düzeltme: kasada **para üstü hesabı ve sayısal klavye zaten var**; eksik olan hızlı nakit düğmeleriydi (eklendi: Tam tutar + 50/100/200/500).
+**Çekmece açma** donanım ister (ESC/POS pulsu yazıcı üzerinden); bu makinede denenemez, pilotta gerçek yazıcıyla yapılacak.
+**Para mantığına ve şemaya dokunan, tek pakette yapılacak işler (şema 028, yalnız yeni tablolar):**
+- `sale_payment_labels` (satış, etiket: yemek kartı / havale): ana ödeme yöntemi cash/credit_card/on_account kalır, muhasebe ve iade mantığı bozulmaz; gün sonu raporu etikete göre ayrıştırır.
+- `product_price_tiers` (ürün, kademe 2/3, fiyat) + müşteri kartında fiyat kademesi ve iskonto (`customer_price_rules`).
+- `product_currency_prices` (dövizli fiyat) ve `product_group_tree` (iki seviyeli grup).
+Süreç: yerel test + eski kurulum yükseltme provası (canlı döküm kopyasında) + `SHIPPABLE_MYSQL_SCHEMA` 028 + bulutta `upgradeAdditive`; Plesk girişi ve onayınız gerekir.
