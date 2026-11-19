@@ -1,8 +1,19 @@
 {
-  "version": "2.4.97",
+  "version": "2.4.98",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.98",
+      "date": "19 Kasım 2026",
+      "title": "Birleşik paketler, Lite ve ömür boyu lisans altyapısı",
+      "items": [
+        "- Hırdavat ve züccaciye özellikleri perakende, depo ve işletme paketlerine dahil edildi; ayrı sektör paketi gerekmez",
+        "- Ücretsiz Lite ve tek ödemeli Ömür Boyu Masaüstü lisans türleri eklendi (satışa açılana kadar kullanıcıya görünmez)",
+        "- Lite lisanslı işletmelerde premium özellikler sunucuda kilitlenir ve paket yükseltme mesajı verilir",
+        "- Süresi dolan lisansın veri silinmeden Lite'a düşmesi hazırlandı (varsayılan kapalı)"
+      ]
+    },
     {
       "version": "2.4.97",
       "date": "19 Kasım 2026",
