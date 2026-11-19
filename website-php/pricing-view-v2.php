@@ -17,7 +17,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <p class="pr-eyebrow" data-pr>Fiyatlandırma</p>
       <h1 data-pr>Kasanız, stoğunuz ve deponuz için sade fiyat.</h1>
       <p class="hx-lead" data-pr>Küçük işletme için ücretsiz başlangıç, büyüyen işletme için tek lisans. Hırdavat ve züccaciye özellikleri ayrı paket değil; Pro ve üstünde dahil. Cihaz veya personel başına ek ücret yok.</p>
-      <p data-pr><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="#karsilastirma">Paketleri karşılaştırın</a></p>
+      <p class="pr-cta-row" data-pr><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="#karsilastirma">Paketleri karşılaştırın</a></p>
     </div>
     <ul class="pr-trust" data-pr aria-label="Fiyatlandırma ilkeleri">
       <li><b>KDV dahil</b><span>Yazan tutar, ödeyeceğiniz toplam tutardır.</span></li>
@@ -76,8 +76,8 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 <section class="pr-value" id="sektorler" data-pr><div class="hx-wrap">
   <h2>İşletmeniz hangisi?</h2>
   <p>Her işletmenin kasası başka türlü işler. Aynı çekirdek; ihtiyacınız olan özellikler paketle birlikte gelir.</p>
-  <ul class="pr-sector-chips" style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
-  <?php foreach($sectors as $s):?><li style="border:2px solid currentColor;border-radius:10px;padding:10px 12px"><b><?=e($s)?></b><br><small><?=e($sectorNotes[$s])?></small></li><?php endforeach;?>
+  <ul class="pr-sector-chips">
+  <?php foreach($sectors as $s):?><li><b><?=e($s)?></b><small><?=e($sectorNotes[$s])?></small></li><?php endforeach;?>
   </ul>
 </div></section>
 
@@ -133,6 +133,6 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 <section class="pr-value" data-pr><div class="hx-wrap">
   <h2>Hangi paketin uygun olduğundan emin değil misiniz?</h2>
   <p><?=$trial?> gün boyunca tüm özellikleri kendi ürünlerinizle ücretsiz deneyin.</p>
-  <p><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="/#iletisim">Bize yazın</a></p>
+  <p class="pr-cta-row"><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="/#iletisim">Bize yazın</a></p>
 </div></section>
 </div>

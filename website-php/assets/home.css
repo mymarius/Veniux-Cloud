@@ -1301,3 +1301,16 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .cm-table .cm-us{background:#fff1e6}.cm-table thead th.cm-us{background:var(--orange);color:#fff}
 .cm-feat{min-width:760px}.cm-foot{margin:14px 0 0;color:var(--ink-soft);font-size:15px}
 .cm-sources{display:flex;flex-wrap:wrap;gap:10px 22px;list-style:none;padding:0;margin:12px 0 0}
+
+/* Fiyat sayfası: sektör kartları ve çağrı düğmeleri (CSP satır içi stile izin vermediği için sınıfla) */
+.pr-page .pr-sector-chips{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.pr-page .pr-sector-chips li{display:grid;gap:4px;align-content:start;padding:16px 18px 16px 22px;background:var(--white);border-left:3px solid var(--orange);border-radius:0 var(--pr-r) var(--pr-r) 0;box-shadow:var(--pr-sh)}
+.pr-page .pr-sector-chips b{font-size:19px;font-weight:800;line-height:1.2}
+.pr-page .pr-sector-chips small{font-size:15px;color:var(--ink-soft);line-height:1.4}
+.pr-page .pr-cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin:26px 0 0}
+.pr-page .pr-cta-row .hx-textlink{font-size:17px}
+.pr-page .pr-value .pr-cta-row{margin-top:20px}
+.pr-page .pr-tag .hx-textlink{display:inline-block;margin-top:12px;font-size:16px}
+.pr-page .pr-excluded{margin-top:24px;padding:18px 22px;background:var(--white);border-left:3px solid var(--orange);border-radius:0 var(--pr-r) var(--pr-r) 0;box-shadow:var(--pr-sh)}
+.pr-page .pr-excluded ul{margin:8px 0;padding-left:20px}
+@media(max-width:640px){.pr-page .pr-cta-row{flex-direction:column;align-items:stretch}.pr-page .pr-cta-row .hx-btn{text-align:center}}
