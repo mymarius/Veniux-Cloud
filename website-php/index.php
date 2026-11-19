@@ -32,7 +32,7 @@ $pages = [
 $sectorPages = array_filter(require __DIR__.'/sector-pages.php', fn($p) => ($p['status'] ?? '') === 'published');
 // Her sektör sayfasında sorulan ortak sorular (arama niyetini karşılar; yalnız bugün gerçekten olan özellikler).
 $commonFaq=[
-    ['Veniux’u denemek için ne yapmalıyım?','/deneme sayfasından e-posta adresinizle 30 günlük deneme hesabı açabilirsiniz; kendi ürünlerinizi ekleyip kasayı ve stoku deneyin.'],
+    ['Veniux’u denemek için ne yapmalıyım?','Deneme sayfasından (app.veniux.com/deneme) e-posta adresinizle 30 günlük deneme hesabı açabilirsiniz; kendi ürünlerinizi ekleyip kasayı ve stoku deneyin.'],
     ['Ürünlerimi Excel’den aktarabilir miyim?','Evet. Excel veya CSV dosyanızı yüklersiniz, sütunları eşleştirir ve önizlemeyi görürsünüz. Barkodu olmayan ürünler ve başlangıç stoğu da aktarılabilir.'],
     ['İnternet kesilirse satış yapabilir miyim?','Evet. Bağlantı yokken nakit ve kart satışı cihazda saklanır, bağlantı gelince kendiliğinden gönderilir. Bu sırada indirim, iade, veresiye ve sadakat puanı kapalıdır.'],
     ['Telefonumu barkod okuyucu olarak kullanabilir miyim?','Evet. Android uygulamasında telefon kamerasıyla barkod okuyup fiyat ve stok görebilir, sayım yapabilirsiniz.'],
@@ -89,6 +89,7 @@ if(!empty($analyticsIds['ga'])){$cspScript.=' https://www.googletagmanager.com';
 if(!empty($analyticsIds['clarity'])){$cspScript.=' https://www.clarity.ms https://scripts.clarity.ms';$cspConnect.=' https://*.clarity.ms https://c.bing.com';$cspImg.=' https://*.clarity.ms https://c.bing.com';}
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{$nonce}'{$cspScript}; connect-src 'self'{$cspConnect}; style-src 'self' 'nonce-{$nonce}'; img-src 'self' data:{$cspImg}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
 
+if ($path === '/deneme') { header('Location: '.VENIUX_TRIAL_URL, true, 302); exit; }
 if ($path === '/robots.txt') { header('Content-Type: text/plain; charset=utf-8'); echo siteRobots($config); exit; }
 if ($path === '/sitemap.xml') { header('Content-Type: application/xml; charset=utf-8'); echo siteSitemap($config,$pages); exit; }
 

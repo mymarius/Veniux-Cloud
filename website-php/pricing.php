@@ -15,6 +15,8 @@ function sitePlansV2(): array {
     if($data===null){$raw=@file_get_contents(__DIR__.'/plans.json');$data=$raw===false?null:json_decode($raw,true);if(!is_array($data)||!is_array($data['plans']??null))$data=['trial_days'=>30,'plans'=>[],'labels'=>[],'groups'=>[]];}
     return $data;
 }
+// Deneme hesabı uygulamada açılır (app.veniux.com/deneme); sitedeki tüm deneme bağlantıları bunu kullanır.
+const VENIUX_TRIAL_URL='https://app.veniux.com/deneme';
 // Yeni birleşik fiyat sayfası varsayılan AÇIK; VENIUX_PRICING_V2=0 ile eski sayfaya dönülür.
 function sitePricingV2(): bool { return getenv('VENIUX_PRICING_V2')!=='0'; }
 function sitePlanSelection($value): ?array {

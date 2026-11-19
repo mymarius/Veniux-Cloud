@@ -17,7 +17,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <p class="pr-eyebrow" data-pr>Fiyatlandırma</p>
       <h1 data-pr>Kasanız, stoğunuz ve deponuz için sade fiyat.</h1>
       <p class="hx-lead" data-pr>Küçük işletme için ücretsiz başlangıç, büyüyen işletme için tek lisans. Hırdavat ve züccaciye özellikleri ayrı paket değil; Pro ve üstünde dahil. Cihaz veya personel başına ek ücret yok.</p>
-      <p class="pr-cta-row" data-pr><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="#karsilastirma">Paketleri karşılaştırın</a></p>
+      <p class="pr-cta-row" data-pr><a class="hx-btn" href="<?=VENIUX_TRIAL_URL?>"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="#karsilastirma">Paketleri karşılaştırın</a></p>
     </div>
     <ul class="pr-trust" data-pr aria-label="Fiyatlandırma ilkeleri">
       <li><b>KDV dahil</b><span>Yazan tutar, ödeyeceğiniz toplam tutardır.</span></li>
@@ -48,7 +48,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <?php if($id==='lite'):?><p class="pr-why">Kâr ve maliyet raporu, geçmiş raporlar, Excel, personel, alış faturası ve stok analizi ücretli paketlerde açılır.</p><?php endif;?>
       <?php if($id==='lifetime_desktop'):?><p class="pr-why">İlk yıl web ve mobil erişim hediyedir. Sonrasında bulut, mobil ve yapay zekâ için yıllık abonelik gerekir; masaüstü özellikleri çalışmaya devam eder.</p><?php endif;?>
       <a class="hx-btn" href="<?=$free?'/#iletisim':'/?request_type=quote&amp;plan='.e($id).'#iletisim'?>"><?=$free?'Lite için görüşelim':e($plan['name']).' için görüşelim'?></a>
-      <?php if(!$free):?><a class="hx-textlink" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a><?php endif;?>
+      <?php if(!$free):?><a class="hx-textlink" href="<?=VENIUX_TRIAL_URL?>"><?=$trial?> gün ücretsiz deneyin</a><?php endif;?>
     </article>
   <?php endforeach;?>
   </div>
@@ -116,7 +116,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa hx-qaacc">
   <details><summary>Kaç farklı paket var?</summary><p>Dört: ücretsiz Lite, yıllık Pro, tek ödemeli Ömür Boyu Masaüstü ve çok depolu işletmeler için İşletme WMS. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
-  <details><summary>Ne kadar süre ücretsiz deneyebilirim?</summary><p><?=$trial?> gün boyunca tüm özellikler açıktır; kredi kartı gerekmez. Deneme hesabını <a href="/deneme">/deneme</a> sayfasından e-posta adresinizle açarsınız.</p></details>
+  <details><summary>Ne kadar süre ücretsiz deneyebilirim?</summary><p><?=$trial?> gün boyunca tüm özellikler açıktır; kredi kartı gerekmez. Deneme hesabını <a href="<?=VENIUX_TRIAL_URL?>">/deneme</a> sayfasından e-posta adresinizle açarsınız.</p></details>
   <details><summary>Lite paketin kısıtlamaları nelerdir?</summary><p>Lite, tek bilgisayarda ve web’de, tek yöneticiyle çalışır: satış, ürün ve stok, müşteri veresiyesi, son 7 günlük rapor ve günlük yedek vardır. Kâr ve maliyet raporu, geçmiş raporlar, Excel aktarma, personel ve yetkilendirme, alış faturası, mobil uygulama, e-Fatura ve yapay zekâ ücretli paketlerde açılır. Lite şu an talep üzerine açılıyor; görüşme formundan yazın.</p></details>
   <details><summary>Hırdavat ve züccaciye için ayrı paket almam gerekir mi?</summary><p>Hayır. Ölçü ve raf araması, takım ve set takibi, beden ve renk gibi özellikler Pro ve üstündeki paketlere dahildir.</p></details>
   <details><summary>Yıllık ile aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır. Pro’yu yıllık ödemek <?=$yearSaving>0?$money($yearSaving).' ':''?>daha avantajlıdır. Aylık seçenek talep üzerine sunulur.</p></details>
@@ -133,6 +133,6 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 <section class="pr-value" data-pr><div class="hx-wrap">
   <h2>Hangi paketin uygun olduğundan emin değil misiniz?</h2>
   <p><?=$trial?> gün boyunca tüm özellikleri kendi ürünlerinizle ücretsiz deneyin.</p>
-  <p class="pr-cta-row"><a class="hx-btn" href="/deneme"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="/#iletisim">Bize yazın</a></p>
+  <p class="pr-cta-row"><a class="hx-btn" href="<?=VENIUX_TRIAL_URL?>"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="/#iletisim">Bize yazın</a></p>
 </div></section>
 </div>

@@ -58,6 +58,6 @@ $questions=[
     <div><p><b>Birlikte de kullanılır:</b> yasal fişinizi yazarkasanızdan kesmeye devam edip adisyon, mutfak ve stok için Veniux’u kullanabilirsiniz. Yükümlülüğünüzü mali müşavirinizle netleştirin.</p></div>
     <div><p><b>Önce deneyin:</b> kendi ürünlerinizle 30 günlük deneme hesabı açın, kasayı ve stoku birlikte görün.</p></div>
   </div>
-  <p class="hx-cta"><a class="hx-btn" href="/deneme">30 gün deneyin</a><a class="hx-textlink" href="/fiyatlandirma#hesapla">Toplam maliyeti hesaplayın</a></p>
+  <p class="hx-cta"><a class="hx-btn" href="<?=VENIUX_TRIAL_URL?>">30 gün deneyin</a><a class="hx-textlink" href="/fiyatlandirma#hesapla">Toplam maliyeti hesaplayın</a></p>
 </div></section>
 </article>
