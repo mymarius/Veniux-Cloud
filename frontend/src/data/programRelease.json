@@ -1,8 +1,20 @@
 {
-  "version": "2.4.95",
+  "version": "2.4.96",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.96",
+      "date": "19 Kasım 2026",
+      "title": "Kasada hızlı nakit, beden/renk seçimi ve kasiyer hareketleri raporu",
+      "items": [
+        "- Ödeme penceresinde hızlı nakit düğmeleri: tam tutar ve 50, 100, 200, 500 TL",
+        "- Kasada ürün aramasında beden ve renk çeşitleri tablo olarak gelir, dokununca doğru çeşit sepete girer",
+        "- Raporlar'a Kasiyer hareketleri eklendi: fişten silinen ürünler kasiyer bazında listelenir",
+        "- Raporlar'a Birlikte satılanlar eklendi: bir ürünle aynı fişte en çok satılan ürünler",
+        "- Müşteri ekranında işletme adı gösterilir, restoranda yeni sipariş kartı adisyonun üstünde"
+      ]
+    },
     {
       "version": "2.4.95",
       "date": "19 Kasım 2026",
