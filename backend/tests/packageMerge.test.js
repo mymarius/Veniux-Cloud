@@ -20,6 +20,11 @@ describe('Paket birleştirme', () => {
     expect(byCode(c, 'RETAIL_PIDE').available).toBe(true);
   });
 
+  it('platform sahibi kaydettiyse satış durumu onun kararıdır', () => {
+    const c = base(); c.revision = 4;
+    expect(byCode(normalise(c), 'RETAIL_HIRDAVAT').available).toBe(true);
+  });
+
   it('önerilen fiyat yalnız fiyat girilmemişse görünür; sahibin fiyatı korunur', () => {
     const c = base();
     expect(normalise(c) && byCode(normalise(c), 'RETAIL_PRO').annual_cents).toBe(549000);

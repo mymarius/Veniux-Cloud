@@ -74,8 +74,8 @@ describe('katalog fiyatı', () => {
     expect((await plan('RETAIL_ONLINE', { revision: now.revision, annual_cents: 50, reason: 'çok düşük fiyat' })).body.code).toBe('BAD_PRICE');
     expect((await plan('RETAIL_ONLINE', { revision: now.revision, annual_cents: 1599900, reason: 'aynı değer' })).body.code).toBe('NO_CHANGE');
     expect((await plan('YOK_BOYLE', { revision: now.revision, annual_cents: 1000, reason: 'olmayan paket' })).status).toBe(404);
-    expect((await plan('RETAIL_ONLINE', { revision: now.revision, available: false, reason: 'satıştan kaldır' })).body.plan.available).toBe(false);
-    expect((await plan('RETAIL_ONLINE', { revision: (await call('GET', '/api/owner-console/catalogue')).body.revision, annual_cents: online.annual_cents, available: true, reason: 'eski haline getir' })).body.plan).toMatchObject({ available: true });
+    expect((await plan('RETAIL_PIDE', { revision: now.revision, available: false, reason: 'satıştan kaldır' })).body.plan.available).toBe(false);
+    expect((await plan('RETAIL_PIDE', { revision: (await call('GET', '/api/owner-console/catalogue')).body.revision, available: true, reason: 'eski haline getir' })).body.plan).toMatchObject({ available: true });
     expect((await plan('RETAIL_ONLINE', { revision: 1, annual_cents: 1000, reason: '' })).body.code).toBe('BAD_REASON');
   });
 });

@@ -14,7 +14,8 @@ function normalise(catalogue) {
     const add = m => { if (!next.modules.includes(m)) next.modules.push(m); };
     if (INCLUDE_MERGED.includes(next.code)) MERGED.forEach(add);
     if (WITH_ONLINE.includes(next.code)) add('online_store');
-    if (RETIRED.includes(next.code)) next.available = false;
+    // Satıştan kaldırma yalnız varsayılan katalogda (henüz kaydedilmiş katalog yokken); platform sahibi kaydettiyse karar onundur.
+    if (RETIRED.includes(next.code) && !catalogue.revision) next.available = false;
     const price = DEFAULT_PRICES[next.code];
     if (price && next.monthly_cents == null && next.annual_cents == null) { next.monthly_cents = price.monthly_cents; next.annual_cents = price.annual_cents; }
     return next;
