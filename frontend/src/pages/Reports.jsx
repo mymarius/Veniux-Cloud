@@ -6,12 +6,16 @@ import { readSessionUser } from '../lib/sessionUser';
 import RetailDayReport from '../components/RetailDayReport';
 import RetailGrossProfitReport from '../components/RetailGrossProfitReport';
 import RetailInsights from '../components/RetailInsights';
+import CashierEvents from '../components/CashierEvents';
+import TogetherReport from '../components/TogetherReport';
 
 // Raporlar: kasada çekmece içinde duran günlük, kâr ve satış analizi raporlarını menüden tek yerde toplar.
 const TABS = [
   ['gunluk', 'Günlük rapor', 'Bugünün satışı, nakit ve kart toplamları, iadeler'],
   ['kar', 'Kâr', 'Brüt kâr; maliyeti bilinen satışlar üzerinden', true],
-  ['analiz', 'Satış analizi', 'En çok satanlar, kasiyer ve saat bazlı dağılım, ölü stok', true]
+  ['analiz', 'Satış analizi', 'En çok satanlar, kasiyer ve saat bazlı dağılım, ölü stok', true],
+  ['birlikte', 'Birlikte satılanlar', 'Bir ürünle aynı fişte en çok satılan ürünler', true],
+  ['hareket', 'Kasiyer hareketleri', 'Fişten silinen ürünler ve sepet işlemleri; kasa açığını erken görün', true]
 ];
 
 export default function Reports() {
@@ -66,6 +70,8 @@ export default function Reports() {
       {current === 'gunluk' && warehouse && <p className="text-xs text-slate-500">Günü kapatmak için kasa ekranındaki “Satış geçmişi ve gün sonu” bölümünü kullanın.</p>}
       {current === 'kar' && manager && warehouse && <RetailGrossProfitReport key={'profit-' + warehouse} warehouse={warehouse} />}
       {current === 'analiz' && manager && <RetailInsights />}
+      {current === 'birlikte' && manager && <TogetherReport />}
+      {current === 'hareket' && manager && <CashierEvents />}
       {!warehouse && !error && <p>Önce bir depo oluşturun.</p>}
     </div>
   );

@@ -152,4 +152,37 @@ async function deadStock(user, query = {}) {
   return { days, items: items.slice(0, 500), total_value_cents: items.reduce((t, i) => t + i.value_cents, 0), count: items.length };
 }
 
-module.exports = { expiryDiscounts, reorderForecast, insights, deadStock };
+// Birlikte satılan ürünler: seçilen ürünle aynı fişte en çok hangi ürünlerin satıldığı (fiş sayısı, adet, tutar).
+async function together(user, query = {}) {
+  if (!['admin', 'manager'].includes(user.role)) fail('Raporlar için yönetici yetkisi gerekli.', 403);
+  const { from, to } = range(query);
+  const target = Number(query.product_id);
+  if (!Number.isInteger(target) || target <= 0) fail('Ürün seçin.');
+  const list = await sales(user, from, to);
+  const others = new Map();
+  let receipts = 0, name = null;
+  for (const sale of list) {
+    const s = sale.snapshot;
+    if (s.status === 'cancelled') continue;
+    const lines = s.items || [];
+    const mine = lines.find(l => Number(l.product_id) === target);
+    if (!mine) continue;
+    name = name || mine.name;
+    receipts++;
+    const seen = new Set();
+    for (const line of lines) {
+      const key = Number(line.product_id);
+      if (key === target) continue;
+      const o = others.get(key) || { product_id: key, name: line.name, receipts: 0, quantity: 0, net_cents: 0 };
+      if (!seen.has(key)) { o.receipts++; seen.add(key); }
+      o.quantity = Number((o.quantity + Number(line.quantity || 0) - Number(line.returned_quantity || 0)).toFixed(6));
+      o.net_cents += Number(line.net_cents || 0) - Number(line.refunded_cents || 0);
+      others.set(key, o);
+    }
+  }
+  const items = [...others.values()].sort((a, b) => b.receipts - a.receipts || b.net_cents - a.net_cents).slice(0, 10)
+    .map(o => ({ ...o, share_percent: receipts ? Math.round((o.receipts / receipts) * 100) : 0 }));
+  return { from, to, product_id: target, product_name: name, receipts, items };
+}
+
+module.exports = { expiryDiscounts, reorderForecast, insights, deadStock, together };

@@ -5,6 +5,9 @@ router.use(authMiddleware);
 const pro=require('../services/retailProService'),credit=require('../services/retailCreditService'),external=require('../services/retailExternalService');
 const action=fn=>async(req,res,next)=>{try{res.json(await fn(req));}catch(e){next(e);}};
 const promo=require('../services/retailPromoService');
+const posEvents=require('../services/posEventService');
+router.post('/pos-events',requireRole('admin','manager','cashier'),action(req=>posEvents.record(req.user,req.body||{})));
+router.get('/pos-events',requireRole('admin','manager'),action(req=>posEvents.list(req.user,req.query||{})));
 router.get('/pro/campaigns',requireRole('admin','manager'),action(req=>promo.list(req.user)));
 router.post('/pro/campaigns',requireRole('admin','manager'),action(req=>promo.create(req.user,req.body||{})));
 router.put('/pro/campaigns/:id/active',requireRole('admin','manager'),action(req=>promo.setActive(req.user,req.params.id,req.body?.active===true)));
@@ -15,6 +18,7 @@ router.get('/pro/insights',requireRole('admin','manager'),action(req=>require('.
 router.get('/pro/categories',requireRole('admin','manager','cashier'),action(req=>pro.categories(req.user)));
 router.get('/pro/catalog',requireRole('admin','manager','cashier'),action(req=>pro.catalog(req.user,req.query)));
 router.get('/pro/top-products',requireRole('admin','manager','cashier'),action(req=>pro.topProducts(req.user,req.query||{})));
+router.get('/pro/together',requireRole('admin','manager'),action(req=>require('../services/retailInsightsService').together(req.user,req.query||{})));
 router.get('/pro/reorder-forecast',requireRole('admin','manager'),action(req=>require('../services/retailInsightsService').reorderForecast(req.user,req.query||{})));
 router.get('/pro/expiry-discounts',requireRole('admin','manager'),action(req=>require('../services/retailInsightsService').expiryDiscounts(req.user,req.query||{})));
 router.post('/pro/vision/product',requireRole('admin','manager','cashier'),action(req=>require('../services/visionService').recognizeProduct(req.user,req.body||{})));
@@ -109,7 +113,7 @@ router.get('/gross-profit',requireRole('admin','manager'),async(req,res,next)=>{
   }catch(e){next(e);}
 });
 router.post('/day-close',async(req,res,next)=>{try{res.json(await require('../services/retailReportingService').closeDay(req.user,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
-router.get('/search',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{const q=String(req.query.q||'').trim();if(q.length<2||q.length>100)return res.json([]);const {ciLike}=require('../services/sqlSearch');const rows=(await db.query("SELECT id,name,barcode,sku,sale_price,unit FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND ("+ciLike('name','$2')+" OR "+ciLike('sku','$2')+" OR "+ciLike('barcode','$2')+") ORDER BY name LIMIT 20",[req.user.tenantId,'%'+q+'%'])).rows;
+router.get('/search',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{const q=String(req.query.q||'').trim();if(q.length<2||q.length>100)return res.json([]);const {ciLike}=require('../services/sqlSearch');const rows=(await db.query("SELECT id,name,barcode,sku,sale_price,unit,COALESCE((SELECT SUM(quantity) FROM stock_records WHERE product_id=products.id),0) AS total_quantity FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND ("+ciLike('name','$2')+" OR "+ciLike('sku','$2')+" OR "+ciLike('barcode','$2')+") ORDER BY name LIMIT 20",[req.user.tenantId,'%'+q+'%'])).rows;
   // Adet stoklu ama kiloyla/metreyle satılabilen ürün: kasada ölçü penceresi açılsın diye ölçü birimi bildirilir.
   const units=await require('../services/productUnits').unitsFor(req.user.tenantId,rows.map(r=>Number(r.id)));
   res.json(rows.map(r=>{const m=(units.get(Number(r.id))||[]).find(u=>['kg','litre','metre'].includes(u.unit)&&u.unit!==r.unit);return m?{...r,measure_unit:{unit:m.unit,factor:m.factor,price:m.custom_price??Math.round(Number(r.sale_price)*m.factor*100)/100}}:r;}));}catch(e){next(e);}});
