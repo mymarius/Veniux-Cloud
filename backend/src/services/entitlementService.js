@@ -8,6 +8,8 @@ const LEGACY = {
   ENTERPRISE_ANNUAL: 'business_wms', ENTERPRISE_SUITE_ANNUAL: 'business_wms'
 };
 const TRIAL_PREFIX = 'Veniux Demo';
+// Katalog modüllerinden plan: depo (wms) varsa İşletme WMS, gelişmiş rapor/cari varsa Pro, yalnız stok+kasa ise Lite hak kümesi.
+const fromModules = mods => (mods.includes('wms') ? 'business_wms' : (mods.includes('reports_pro') || mods.includes('credit')) ? 'pro' : 'lite');
 let matrix;
 const load = async () => matrix || (matrix = await import('../../../shared/planMatrix.mjs'));
 const parse = v => { const t = Date.parse(String(v || '').includes('T') ? v : String(v || '').replace(' ', 'T') + 'Z'); return Number.isFinite(t) ? t : null; };
@@ -22,7 +24,13 @@ async function forTenant(user, central, now = Date.now()) {
   const active = Boolean(lic) && expiry != null && expiry > now;
   const isTrial = String(company).startsWith(TRIAL_PREFIX);
   let plan = 'lite', trialEndsAt = null, source = active ? 'license' : 'none';
-  if (active) plan = LEGACY[lic.plan_id] || (m.PLANS[lic.plan_id] ? lic.plan_id : 'business_wms');
+  if (active) {
+    // Paket sözleşmesi (modül listeli katalog paketi) varsa hak, sözleşmenin modüllerinden türetilir; yoksa eski plan eşlemesi.
+    let contract = null;
+    try { contract = require('./productPackages').parse(central?.product_package ? { product_package: central.product_package } : JSON.parse(lic.enabled_features_json || '{}')); } catch { contract = null; }
+    if (contract) plan = fromModules(contract.modules);
+    else plan = LEGACY[lic.plan_id] || (m.PLANS[lic.plan_id] ? lic.plan_id : 'business_wms');
+  }
   if (isTrial && active) { plan = 'lite'; trialEndsAt = expiry; source = 'trial'; }
   const addons = (await require('./sectorPacks').has(user, 'restaurant', central).catch(() => false)) ? ['restaurant_addon'] : [];
   const e = m.entitlement({ plan, addons, now, trialEndsAt });
@@ -39,4 +47,4 @@ const requireFeature = feature => async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { forTenant, requireFeature, LEGACY, enforced };
+module.exports = { fromModules, forTenant, requireFeature, LEGACY, enforced };

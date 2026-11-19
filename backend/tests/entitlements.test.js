@@ -42,6 +42,13 @@ describe('Paket hakları (entitlements)', () => {
     expect(res.body.trial_ends_at).toBeTruthy();
   });
 
+  it('katalog paketi modüllerden türetilir', () => {
+    const { fromModules } = require('../src/services/entitlementService');
+    expect(fromModules(['stock', 'pos'])).toBe('lite');
+    expect(fromModules(['stock', 'pos', 'credit', 'reports_pro'])).toBe('pro');
+    expect(fromModules(['stock', 'pos', 'wms'])).toBe('business_wms');
+  });
+
   it('kimlik doğrulaması ister', async () => {
     expect((await request(app).get('/api/entitlements/me')).statusCode).toBe(401);
   });

@@ -43,3 +43,8 @@ Plan matrisindeki özellikler ekrana düğme olarak dökülmez; işletme türün
 ## Bu oturumda yapılanlar
 - `shared/planMatrix.mjs` + testler (lisansa bağlı değil, canlıya etkisi yok).
 - Bu plan belgesi.
+
+## Düzeltme (19 Kasım, geç): fiyatın gerçek kaynağı paket kataloğu
+Projede zaten bir paket kataloğu var (`backend/src/config/productPackages.json` + veritabanındaki katalog; aileler retail/warehouse/unified, modül ve limit sözleşmeli, fiyatı platform sahibi panelden girer, site `/api/public/prices` ile okur). `shared/planMatrix.mjs` içindeki fiyatlar bu yüzden **öneridir**, ikinci bir kaynak değildir.
+- Hak hesabı artık katalog sözleşmesinin modüllerinden türetilir (wms → İşletme WMS, gelişmiş rapor/cari → Pro, yalnız stok+kasa → Lite hak kümesi); sözleşmesiz eski lisans İşletme WMS sayılır (özellik kaybı yok).
+- Yeni 4 paket, onayınızla kataloğa plan olarak eklenecek (yapı uyuyor); fiyatlar o zaman panelden girilir ve site otomatik okur. Sitede eski paket adları (Başlangıç, Hırdavat, Züccaciye, Pide) o zamana kadar kalır.
