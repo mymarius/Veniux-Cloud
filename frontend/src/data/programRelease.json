@@ -1,8 +1,20 @@
 {
-  "version": "2.4.94",
+  "version": "2.4.95",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.95",
+      "date": "19 Kasım 2026",
+      "title": "Varyant tablosu, ikinci monitörde müşteri ekranı ve dokunmatik mod",
+      "items": [
+        "- Ürün listesinde beden ve renk çeşitleri tek satırda toplanır; satıra basınca beden × renk stok tablosu açılır",
+        "- Windows programında müşteri ekranı ikinci monitörde tam ekran açılır",
+        "- Ayarlar > Görünüm'e dokunmatik ekran modu eklendi: düğmeler ve alanlar büyür",
+        "- Restoran garson ekranı 15 inç dokunmatik kasada masa planı, menü ve adisyonu ilk ekranda gösterir",
+        "- Paket hakları altyapısı hazırlandı (henüz kullanıcıya görünmez)"
+      ]
+    },
     {
       "version": "2.4.94",
       "date": "19 Kasım 2026",
