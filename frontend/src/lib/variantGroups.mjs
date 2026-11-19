@@ -7,6 +7,17 @@ export function parseVariant(name) {
   return { base: parts[0], size: parts[1], color: parts[2] || null };
 }
 
+// Beden sırası: XXS…XXXL harf bedenleri, sayılar küçükten büyüğe, bilinmeyenler gelen sırada sona.
+const LETTER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', 'XXXL', '3XL', '4XL'];
+export function sizeRank(size) {
+  const t = String(size).trim().toLocaleUpperCase('tr-TR');
+  const i = LETTER.indexOf(t);
+  if (i >= 0) return [0, i];
+  const n = Number(t.replace(',', '.'));
+  return Number.isFinite(n) ? [1, n] : [2, 0];
+}
+export const compareSizes = (a, b) => { const x = sizeRank(a), y = sizeRank(b); return x[0] - y[0] || x[1] - y[1]; };
+
 // En az iki çeşidi olan taban adlar grup sayılır; tek başına kalan ürün normal ürün gibi görünür.
 export function groupVariants(products) {
   const byBase = new Map();
@@ -14,14 +25,14 @@ export function groupVariants(products) {
     const v = parseVariant(p.name);
     if (!v) continue;
     if (!byBase.has(v.base)) byBase.set(v.base, []);
-    byBase.get(v.base).push({ ...v, id: p.id, sku: p.sku, qty: Number(p.total_quantity || 0), price: Number(p.sale_price || 0) });
+    byBase.get(v.base).push({ ...v, id: p.id, sku: p.sku, barcode: p.barcode || null, qty: p.total_quantity == null ? null : Number(p.total_quantity), price: Number(p.sale_price || 0) });
   }
   const groups = [];
   for (const [base, rows] of byBase) {
     if (rows.length < 2) continue;
     const hasColor = rows.some(r => r.color);
-    groups.push({ base, rows, hasColor, total: rows.reduce((s, r) => s + r.qty, 0),
-      sizes: [...new Set(rows.map(r => r.size))], colors: hasColor ? [...new Set(rows.map(r => r.color || '-'))] : [] });
+    groups.push({ base, rows, hasColor, total: rows.reduce((s, r) => s + (r.qty || 0), 0),
+      sizes: [...new Set(rows.map(r => r.size))].sort(compareSizes), colors: hasColor ? [...new Set(rows.map(r => r.color || '-'))] : [] });
   }
   return groups;
 }
