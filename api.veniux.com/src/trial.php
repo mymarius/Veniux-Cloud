@@ -2,8 +2,8 @@
 declare(strict_types=1);
 // Kendi kendine açılan deneme: yalnız bulut uygulaması (app.veniux.com) gizli servis anahtarıyla çağırır.
 // Anahtarın SHA-256 özeti veri klasöründe trial-service.sha256 dosyasındadır; dosya yoksa uç kapalıdır.
-// Yalnız İşletme paketi, 14 gün, 2 cihaz; günde en fazla TRIAL_DAILY, aynı anda en fazla TRIAL_OPEN açık deneme.
-const TRIAL_DAILY=20, TRIAL_OPEN=100, TRIAL_DAYS=14, TRIAL_PREFIX='Veniux Demo – ';
+// Yalnız İşletme paketi, 30 gün, 2 cihaz; günde en fazla TRIAL_DAILY, aynı anda en fazla TRIAL_OPEN açık deneme.
+const TRIAL_DAILY=20, TRIAL_OPEN=100, TRIAL_DAYS=30, TRIAL_PREFIX='Veniux Demo – ';
 // Bulut uygulaması deneme işletmesini bitişten 30 gün sonra siler; merkezdeki anahtarı da aynı anda kalıcı sonlandırılır.
 // Yalnız adı "Veniux Demo – " ile başlayan, bitişi en az TRIAL_REVOKE_AFTER_DAYS gün geçmiş ACTIVE/SUSPENDED lisanslar.
 const TRIAL_REVOKE_AFTER_DAYS=30;

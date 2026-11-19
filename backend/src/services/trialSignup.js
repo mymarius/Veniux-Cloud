@@ -1,5 +1,5 @@
 'use strict';
-// Kendi kendine açılan 14 günlük deneme (docs/DENEME-OTOMASYONU-TASARIMI.md).
+// Kendi kendine açılan 30 günlük deneme (docs/DENEME-OTOMASYONU-TASARIMI.md).
 // 1) İstek: e-posta + işletme adı → imzalı, 24 saat geçerli doğrulama bağlantısı e-postayla gider. Kayıt oluşmaz.
 // 2) Onay: bağlantıdaki belirteç doğrulanır → merkezde deneme lisansı (VNX-) üretilir → demo işletme açılır.
 //    Şifre ve lisans anahtarı yalnız bu yanıtta bir kez döner; e-postayla gönderilmez, kayda düz yazılmaz.
@@ -92,7 +92,7 @@ async function confirm(db, token, { central, demoAccount, now = Date.now() } = {
     try { issued = await central.request('/trial', { service_key: serviceKey(), company: data.company }); }
     catch { throw fail(503, 'AUTHORITY', 'Lisans merkezine şu anda ulaşılamadı. Biraz sonra bu sayfayı yenileyin.'); }
     if (!issued || issued.ok !== true || !/^VNX-[A-F0-9]{48}$/.test(issued.license_key || '')) throw fail(429, issued && issued.code === 'OPEN_QUOTA' ? 'OPEN_QUOTA' : 'DAILY_QUOTA', 'Deneme kontenjanı şu anda dolu. Bize yazın, hesabınızı açalım.');
-    const account = await demoAccount.create(db, { email: data.email, company: data.company, days: 14, sample: false });
+    const account = await demoAccount.create(db, { email: data.email, company: data.company, days: 30, sample: false });
     return { email: account.email, password: account.password, license_key: issued.license_key, expires_at: account.expiresAt, activate_url: `${appUrl()}/activate`, login_url: `${appUrl()}/login` };
   } finally {
     inFlight.delete(data.email);

@@ -1,4 +1,4 @@
-# Kendi kendine açılan 14 günlük deneme: tasarım
+# Kendi kendine açılan 30 günlük deneme: tasarım
 
 Bugün: ziyaretçi demo ister, siz elle üç iş yaparsınız: (1) api.veniux.com panelinde `VNX-` lisansı üretmek, (2) Plesk'te demo hesap betiğini çalıştırmak, (3) e-posta, şifre ve anahtarı güvenli kanaldan iletmek. Demo hesap ve örnek veri hazırdır (`backend/src/services/demoAccount.js`); eksik olan elle işler.
 
@@ -6,7 +6,7 @@ Bugün: ziyaretçi demo ister, siz elle üç iş yaparsınız: (1) api.veniux.co
 1. Ziyaretçi sitede e-posta ve işletme adı girer ("Ücretsiz deneyin").
 2. Sunucu doğrulama bağlantısı gönderir (kayıt oluşmaz, yalnız bekleyen istek).
 3. Bağlantıya tıklayınca: demo hesap açılır, merkezi lisans üretilir, ziyaretçi bir sayfada şifresini **yalnız bir kez** görür (e-postayla düz şifre gönderilmez).
-4. Ziyaretçi `/activate` ve girişe yönlendirilir; 14 gün sonra giriş kapanır, 30 gün sonra işletme otomatik silinir (temizlik işi hazır).
+4. Ziyaretçi `/activate` ve girişe yönlendirilir; 30 gün sonra giriş kapanır, 60 gün sonra işletme otomatik silinir (temizlik işi hazır).
 
 ## Güvenlik gereksinimleri (zorunlu)
 - **Kötüye kullanım:** IP başına ve e-posta alanı başına günlük sınır; tek kullanımlık, süreli doğrulama bağlantısı; tek e-posta bir kez; tek kullanımlık e-posta alan adı listesi engeli; CAPTCHA kararı sizin (gizlilik ve erişilebilirlik etkisi var).

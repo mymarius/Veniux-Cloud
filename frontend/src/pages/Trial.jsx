@@ -4,7 +4,7 @@ import { Copy, Mail, ShieldAlert, Store } from 'lucide-react';
 import apiClient from '../api/client';
 import { AuthShell } from '../components/AuthShell';
 
-// Kendi kendine açılan 14 günlük deneme: /deneme (istek) ve /deneme/onay#t=… (onay).
+// Kendi kendine açılan 30 günlük deneme: /deneme (istek) ve /deneme/onay#t=… (onay).
 // Belirteç adres çubuğunun # kısmında gelir; sunucu günlüklerine düşmez. Onay bir düğmeyle yapılır ki
 // e-posta tarayıcılarının bağlantıyı önceden açması hesabı tüketmesin.
 const errorBox = text => <div role="alert" className="mb-5 flex items-center gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-xs font-semibold text-red-600"><ShieldAlert className="h-4 w-4 shrink-0" />{text}</div>;
@@ -23,7 +23,7 @@ function TrialRequest() {
     finally { setLoading(false); }
   };
   return (
-    <AuthShell title="14 gün ücretsiz deneyin" description="İşletme paketiyle boş bir hesap: ürünlerinizi Excel dosyanızdan aktarıp kendi verinizle deneyin. Kart bilgisi istenmez." footer={<Link to="/login" className="font-bold text-brand-500 hover:underline">Hesabım var, giriş yap</Link>}>
+    <AuthShell title="30 gün ücretsiz deneyin" description="İşletme paketiyle boş bir hesap: ürünlerinizi Excel dosyanızdan aktarıp kendi verinizle deneyin. Kart bilgisi istenmez." footer={<Link to="/login" className="font-bold text-brand-500 hover:underline">Hesabım var, giriş yap</Link>}>
       {error && errorBox(error)}
       {sent ? (
         <p role="status" className="rounded-lg border border-green-200 bg-green-50 px-3.5 py-3 text-sm font-semibold text-green-700">E-postanıza bir onay bağlantısı gönderdik. 24 saat içinde bağlantıyı açıp hesabınızı oluşturun. Gelmediyse istenmeyen (spam) klasörüne bakın.</p>
@@ -37,7 +37,7 @@ function TrialRequest() {
           <label className="flex items-start gap-2.5 text-xs text-gray-600"><input type="checkbox" required checked={form.consent} onChange={set('consent')} className="mt-0.5" />
             <span><a href="https://veniux.com/kvkk-aydinlatma" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-500 hover:underline">Aydınlatma metnini</a> okudum. E-postam yalnız deneme hesabı için kullanılır.</span></label>
           <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 rounded-full disabled:cursor-wait disabled:opacity-60">{loading ? 'Gönderiliyor...' : 'Onay bağlantısı gönder'}</button>
-          <p className="text-xs text-gray-500">Deneme 14 gün sürer. Süre bitince giriş kapanır, 30 gün sonra deneme verileri silinir.</p>
+          <p className="text-xs text-gray-500">Deneme 30 gün sürer. Süre bitince giriş kapanır, 30 gün sonra deneme verileri silinir.</p>
         </form>
       )}
     </AuthShell>
@@ -85,7 +85,7 @@ function TrialConfirm() {
     </AuthShell>
   );
   return (
-    <AuthShell title="Deneme hesabınızı açın" description="Düğmeye bastığınızda İşletme paketiyle 14 günlük hesabınız oluşturulur." footer={<Link to="/deneme" className="font-bold text-brand-500 hover:underline">Yeni deneme isteği</Link>}>
+    <AuthShell title="Deneme hesabınızı açın" description="Düğmeye bastığınızda İşletme paketiyle 30 günlük hesabınız oluşturulur." footer={<Link to="/deneme" className="font-bold text-brand-500 hover:underline">Yeni deneme isteği</Link>}>
       {error && errorBox(error)}
       {token.current && <button type="button" onClick={confirm} disabled={loading} className="btn-primary w-full py-3.5 rounded-full disabled:cursor-wait disabled:opacity-60">{loading ? 'Hesabınız hazırlanıyor...' : 'Hesabımı oluştur'}</button>}
     </AuthShell>

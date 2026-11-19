@@ -28,7 +28,7 @@ $plan = [
 ];
 $chips = ['yes' => ['Bugün var', 'yes'], 'limited' => ['Bugün var, sınırlı', 'limited'], 'untested' => ['Denenmedi', 'untested'], 'build' => ['Yapım aşamasında', 'build'], 'plan' => ['Planlanıyor', 'plan'], 'no' => ['Yok', 'no']];
 $faq = [
-    ['Veniux’u denemek için ne yapmalıyım?', '14 günlük deneme hesabı açabilir, kendi ürünlerinizi ekleyip kasayı ve stoku deneyebilirsiniz. Önce bir iki gün gerçek ürünlerinizle deneyin, sonra karar verin.'],
+    ['Veniux’u denemek için ne yapmalıyım?', '30 günlük deneme hesabı açabilir, kendi ürünlerinizi ekleyip kasayı ve stoku deneyebilirsiniz. Önce bir iki gün gerçek ürünlerinizle deneyin, sonra karar verin.'],
     ['Verilerim nerede duruyor?', 'Windows kurulumunda kendi bilgisayarınızda ya da ayrı bir sunucuda. Bulut kullanıyorsanız bulut sunucusunda. Seçenekler için <a href="/sunucu-kurulumu">kurulum seçenekleri</a> sayfasına bakın.'],
     ['Bilgisayarım bozulursa verilerimi kaybeder miyim?', 'Yedeğin ikinci bir kopyasını harici diske yazdırıyorsanız ve kurtarma kodunu sakladıysanız hayır. İkisini de yapmadıysanız evet, risk vardır. Aşağıdaki yedekleme bölümünü okuyun.'],
     ['Kasa yazarkasa yerine geçer mi?', 'Hayır. Veniux satış ve stok takibi yapar; yeni nesil yazarkasa entegrasyonu henüz yoktur.'],

@@ -57,7 +57,7 @@ test('confirm issues central key then creates the account and returns secrets on
   const demoAccount = { create: jest.fn(async () => ({ email: 'a@b.com', password: 'Pw123456789abc', expiresAt: '2026-11-27T00:00:00.000Z' })) };
   const out = await trial.confirm(fakeDb(), token, { central, demoAccount });
   expect(central.request).toHaveBeenCalledWith('/trial', { service_key: 'k'.repeat(40), company: 'Market' });
-  expect(demoAccount.create.mock.calls[0][1]).toEqual({ email: 'a@b.com', company: 'Market', days: 14, sample: false });
+  expect(demoAccount.create.mock.calls[0][1]).toEqual({ email: 'a@b.com', company: 'Market', days: 30, sample: false });
   expect(out).toMatchObject({ email: 'a@b.com', password: 'Pw123456789abc', license_key: KEY });
 });
 

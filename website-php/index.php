@@ -32,7 +32,7 @@ $pages = [
 $sectorPages = array_filter(require __DIR__.'/sector-pages.php', fn($p) => ($p['status'] ?? '') === 'published');
 // Her sektör sayfasında sorulan ortak sorular (arama niyetini karşılar; yalnız bugün gerçekten olan özellikler).
 $commonFaq=[
-    ['Veniux’u denemek için ne yapmalıyım?','/deneme sayfasından e-posta adresinizle 14 günlük deneme hesabı açabilirsiniz; kendi ürünlerinizi ekleyip kasayı ve stoku deneyin.'],
+    ['Veniux’u denemek için ne yapmalıyım?','/deneme sayfasından e-posta adresinizle 30 günlük deneme hesabı açabilirsiniz; kendi ürünlerinizi ekleyip kasayı ve stoku deneyin.'],
     ['Ürünlerimi Excel’den aktarabilir miyim?','Evet. Excel veya CSV dosyanızı yüklersiniz, sütunları eşleştirir ve önizlemeyi görürsünüz. Barkodu olmayan ürünler ve başlangıç stoğu da aktarılabilir.'],
     ['İnternet kesilirse satış yapabilir miyim?','Evet. Bağlantı yokken nakit ve kart satışı cihazda saklanır, bağlantı gelince kendiliğinden gönderilir. Bu sırada indirim, iade, veresiye ve sadakat puanı kapalıdır.'],
     ['Telefonumu barkod okuyucu olarak kullanabilir miyim?','Evet. Android uygulamasında telefon kamerasıyla barkod okuyup fiyat ve stok görebilir, sayım yapabilirsiniz.'],

@@ -20,7 +20,7 @@ $questions=[
  ['Birden çok depo ya da şube yönetilebilir mi?','Evet: İşletme paketinde 3, Kurumsal’da 50 depo.'],
  ['Telefon kamerasıyla barkod okunur mu?','Evet, Android uygulamasında.'],
  ['Fiyata neler dahil, neler ayrı?','Fiyatlar KDV dahil ve yıllık sabit. Ek kullanıcı, depo, cihaz ve kasa ayrı; sektör paketleri genel pakete ek.'],
- ['Önce denenebilir mi?','Evet, kendi ürünlerinizle 14 günlük deneme hesabı.'],
+ ['Önce denenebilir mi?','Evet, kendi ürünlerinizle 30 günlük deneme hesabı.'],
 ];
 ?>
 <article class="cm-page">
@@ -55,8 +55,8 @@ $questions=[
     <div><p><b>Uyabilir:</b> depo, raf, lot ve son kullanma tarihini kasayla aynı yerde tutmak istiyorsanız; hırdavat, züccaciye ya da pide/restoran gibi bir sektörün ayrıntısı (koli ve birim, takım ve set, masa ve reçete) önemliyse; birden çok şube ya da depo varsa.</p></div>
     <div><p><b>Şimdilik uymayabilir:</b> yazarkasa (ÖKC) ya da e-Arşiv ve e-Fatura işlemlerini aynı programdan yapmanız gerekiyorsa. Bunlar yol haritasında. Yalnızca ücretsiz ya da tek ödemeli basit bir masaüstü kasa arıyorsanız da başka seçenekler daha ucuz olabilir.</p></div>
     <div><p><b>Birlikte de kullanılır:</b> yasal fişinizi yazarkasanızdan kesmeye devam edip adisyon, mutfak ve stok için Veniux’u kullanabilirsiniz. Yükümlülüğünüzü mali müşavirinizle netleştirin.</p></div>
-    <div><p><b>Önce deneyin:</b> kendi ürünlerinizle 14 günlük deneme hesabı açın, kasayı ve stoku birlikte görün.</p></div>
+    <div><p><b>Önce deneyin:</b> kendi ürünlerinizle 30 günlük deneme hesabı açın, kasayı ve stoku birlikte görün.</p></div>
   </div>
-  <p class="hx-cta"><a class="hx-btn" href="/deneme">14 gün deneyin</a><a class="hx-textlink" href="/fiyatlandirma#hesapla">Toplam maliyeti hesaplayın</a></p>
+  <p class="hx-cta"><a class="hx-btn" href="/deneme">30 gün deneyin</a><a class="hx-textlink" href="/fiyatlandirma#hesapla">Toplam maliyeti hesaplayın</a></p>
 </div></section>
 </article>
