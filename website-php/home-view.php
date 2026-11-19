@@ -13,7 +13,13 @@ $steps=[
     <div>
       <h1>Raf boşalmadan haberin&nbsp;olsun.</h1>
       <p class="hx-lead">Veniux, market ve depolar için stok programı. Kasadan çıkanı stoktan düşer, biteni bitmeden söyler, sayımda eksik çıkanı önüne getirir.</p>
-      <p class="hx-cta"><a class="hx-btn" href="/?request_type=demo#iletisim">Demo isteyin</a><a class="hx-btn hx-btn-ghost" href="/program-indir">Programı indirin</a><a class="hx-textlink" href="#yolculuk">Nasıl çalışır?</a></p>
+      <ul class="hx-points" aria-label="Veniux ne işinize yarar">
+        <li>Sayımı telefonla barkod okutarak yaparsınız; kâğıt ve not defteri gerekmez.</li>
+        <li>Son kullanma tarihi yaklaşan ürünü önceden haber verir.</li>
+        <li>Hangi depoda ne var, telefondan görürsünüz.</li>
+      </ul>
+      <p class="hx-cta hx-cta-main"><a class="hx-btn" href="/deneme">30 gün ücretsiz deneyin</a><a class="hx-btn hx-btn-wa" href="<?=e(whatsappUrl())?>" rel="noopener"><?=whatsappIcon(20)?> WhatsApp’tan yazın</a><a class="hx-btn hx-btn-ghost hx-btn-call" href="tel:+<?=VENIUX_WHATSAPP_INTL?>">Hemen arayın</a></p>
+      <p class="hx-cta-note">Kredi kartı istemiyoruz. <a href="/fiyatlandirma"><?php $__p=sitePlansV2()["plans"]??[]; foreach($__p as $__x){if($__x["id"]==="pro"){echo "Pro paket yılda ".number_format((float)$__x["price_try"],0,",",".")." ₺’den başlar";}}?>, KDV dahil</a> · <a href="/stok-programlari-karsilastirma">Diğer programlarla karşılaştırın</a> · <a href="#yolculuk">Nasıl çalışır?</a> · <a href="/program-indir">Programı indirin</a></p>
     </div>
     <div class="hx-shelf" role="img" aria-label="Raf etiketi çizimi: filtre kahve, 46 lira, üzerinde 3 günde bitiyor uyarısı">
       <div class="hx-label">
