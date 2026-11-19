@@ -1,8 +1,18 @@
 {
-  "version": "2.4.98",
+  "version": "2.4.99",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.99",
+      "date": "19 Kasım 2026",
+      "title": "Kart türü seçimi ve yapay zekâ kotası",
+      "items": [
+        "- Ödeme penceresinde kart türü seçilir: banka kartı, yemek kartı, havale/EFT; gün sonu raporu kart tutarını türe göre ayırır",
+        "- Yapay zekâ asistanı için aylık kota uygulanır; kota dolunca yenilenme tarihiyle birlikte uyarı gösterilir",
+        "- Yeni paket fiyatları ve birleşik paket altyapısı"
+      ]
+    },
     {
       "version": "2.4.98",
       "date": "19 Kasım 2026",
