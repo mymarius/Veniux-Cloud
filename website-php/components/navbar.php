@@ -35,50 +35,6 @@ $navSolutionActive=in_array($path,array_merge(array_column($navProduct,0),array_
                 <p class="vs-mega-title vs-mega-title-2">Bilgi</p>
                 <?php foreach($navInfo as [$url,$label]):?><a class="vs-mega-link" href="<?=e($url)?>" <?=$path===$url?'aria-current="page"':''?>><?=e($label)?></a><?php endforeach;?>
               </div>
-              <aside class="vs-prev" aria-hidden="true" data-prev="stok">
-                <div class="vs-tag" data-pv="stok">
-                  <i class="vs-hole"></i>
-                  <p class="tg-k">VENİUX · RAF A-02</p>
-                  <p class="tg-name">Filtre kahve 250 g</p>
-                  <div class="tg-code"><i class="tg-laser"></i></div>
-                  <div class="tg-num"><b>118</b><span>adet</span></div>
-                  <div class="tg-low"><span>Zeytinyağı 1 L · 4 adet</span><u class="tg-stamp">KRİTİK</u></div>
-                </div>
-                <div class="vs-tag" data-pv="depo">
-                  <i class="vs-hole"></i>
-                  <p class="tg-k">MAL KABUL · HEDEF RAF</p>
-                  <div class="tg-shelf"><i></i><i></i><i></i><i></i><i></i><i class="tg-hit"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                  <div class="tg-num"><b>A-02</b><span>+120 adet</span></div>
-                  <div class="tg-low"><span>Kim, nereye, ne zaman: kayıtta.</span></div>
-                </div>
-                <div class="vs-tag vs-fis" data-pv="kasa">
-                  <p class="tg-k">VENİUX · FİŞ 20261117-00001</p>
-                  <div class="tg-row"><span>Süt 1 L</span><b>38,00</b></div>
-                  <div class="tg-row"><span>Ekmek</span><b>12,00</b></div>
-                  <div class="tg-row"><span>Peynir 200 g</span><b>94,00</b></div>
-                  <div class="tg-row"><span>Domates 1 kg</span><b>36,00</b></div>
-                  <div class="tg-total"><span>TOPLAM</span><b>180,00 ₺</b></div>
-                  <u class="tg-stamp tg-ok">ÖDENDİ</u>
-                </div>
-                <div class="vs-tag" data-pv="lot">
-                  <i class="vs-hole"></i>
-                  <p class="tg-k">LOT 18 · SON KULLANMA</p>
-                  <p class="tg-name">Yoğurt 500 g</p>
-                  <div class="tg-num"><b>3</b><span>gün kaldı</span></div>
-                  <div class="tg-row"><span>Süt · Lot 22</span><b>12 gün</b></div>
-                  <div class="tg-row"><span>Peynir · Lot 03</span><b>21 gün</b></div>
-                  <u class="tg-stamp">20.11.2026</u>
-                </div>
-                <div class="vs-tag vs-note" data-pv="ai">
-                  <i class="vs-hole"></i>
-                  <p class="tg-k">ASİSTAN</p>
-                  <p class="tg-q">Bu hafta hangi ürünler bitiyor?</p>
-                  <p class="tg-a">Zeytinyağı 1 L ve Un 1 kg kritik seviyede. Sipariş taslağı hazırlayayım mı?</p>
-                  <span class="tg-btn">Onayla ve uygula</span>
-                  <div class="tg-low"><span>Siz onaylamadan işlem yapmaz.</span></div>
-                </div>
-                <p class="pv-note">Örnek veriler.</p>
-              </aside>
             </div>
             <div class="vs-mega-foot"><span>Hangisi size uygun? Birlikte bakalım.</span><a href="/?request_type=demo#iletisim">Demo isteyin <i aria-hidden="true">→</i></a></div>
           </div>

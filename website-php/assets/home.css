@@ -1326,3 +1326,10 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-cta-note{margin:14px 0 0;font-size:16px;color:var(--ink-soft);line-height:1.6}
 .hx-cta-note a{font-weight:600;text-underline-offset:3px}
 @media(max-width:640px){.hx-cta-main{flex-direction:column;align-items:stretch}.hx-cta-main .hx-btn{text-align:center;justify-content:center;font-size:19px;padding:15px 20px}.hx-points li{font-size:18px}}
+
+/* Üç adımlı bağlantı kartları: numara dairesi başlığın üstüne binmesin */
+.terminal-guide .terminal-steps>li{grid-template-columns:56px minmax(0,1fr);column-gap:14px;align-items:start;padding:24px 22px}
+.terminal-guide .terminal-step-number{width:52px;height:52px;margin:0;font-size:30px;font-weight:800;align-self:start}
+.terminal-guide .terminal-steps h3{margin:0 0 14px;min-height:52px;display:flex;align-items:center;font-size:21px;line-height:1.25}
+.terminal-guide .terminal-steps p{font-size:16px;line-height:1.65}
+@media(max-width:900px){.terminal-guide .terminal-steps{grid-template-columns:1fr}}
