@@ -1,8 +1,20 @@
 {
-  "version": "2.4.99",
+  "version": "2.4.100",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.100",
+      "date": "19 Kasım 2026",
+      "title": "Fiyat türleri, dövizli fiyat, ürün grupları ve yazarkasa durumu",
+      "items": [
+        "- Ürünlere toptan ve özel fiyat girilebilir; kasada Perakende, Toptan, Özel fiyat türü seçilir (yalnız fiyat girilmişse görünür)",
+        "- Dövizli fiyat: ürün fiyatını dolar, euro veya sterlin olarak girin, kasada güncel kurla TL'ye çevrilir; kurlar Ürünler ekranından girilir",
+        "- Ürün grupları iki seviyeli: \"Ana grup › Alt grup\" yazın, ana grubu seçince alt grup ürünleri de listelenir",
+        "- Kasada yazarkasaya gönderilemeyen satışlar için \"Mali fiş bekliyor\" göstergesi eklendi",
+        "- Ödeme penceresinde yemek kartı ve havale/EFT seçimi, gün sonu raporunda kart türüne göre kırılım"
+      ]
+    },
     {
       "version": "2.4.99",
       "date": "19 Kasım 2026",
