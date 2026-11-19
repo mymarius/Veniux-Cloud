@@ -171,6 +171,7 @@ async function sale(user,body,key,device,offline=null){
     if(campaign.applied.length||manual||redeem.cents)snapshot.discounts={manual_cents:manual,campaign_cents:campaign.total,loyalty_cents:redeem.cents,campaigns:campaign.applied};
     const loyalty=await require('./retailPromoService').settle(tx,user.tenantId,redeem,pos.id,net);if(loyalty)snapshot.loyalty=loyalty;
     await tx.query('INSERT INTO retail_sales (sale_id,tenant_id,warehouse_id,user_id,business_date,snapshot_json,shift_id,register_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',[pos.id,user.tenantId,body.warehouse_id,user.userId,date,JSON.stringify(snapshot),shift.id,shift.register_id]);
+    await require('./ecrService').enqueueSale(tx,user.tenantId,pos.id,shift.register_id);
     await audit(tx,user,'scanner.sale',pos.id,{receipt:no,gross_cents:gross,discount_cents:discount,payments,price_overrides:body.items.filter(i=>i.price_override!==undefined).map(i=>({barcode:i.barcode,price:i.price_override}))});
     await devices.record(tx,user,{saleId:pos.id,clientUuid:key,device:posDevice,receiptNo:localNo});
     if(offline)await require('./offlineSaleService').record(tx,user,{saleId:pos.id,warehouseId:body.warehouse_id,offline,shortages,movedFromShift:shift.movedFrom,productId:lines[0]?.product_id});

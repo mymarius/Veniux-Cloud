@@ -93,6 +93,7 @@ app.use('/api/public', require('./routes/publicPrices'));
 app.use('/api/trial', require('./routes/trialRoutes'));
 app.use('/api/packages', require('./routes/packageRoutes'));
 app.use('/api/entitlements', require('./routes/entitlementRoutes'));
+app.use('/api/ecr', require('./routes/ecrRoutes'));
 app.use('/api/platform', require('./routes/platformRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/warehouses', require('./routes/warehouseRoutes'));

@@ -93,3 +93,12 @@ Kasa (React) ─HTTP→ Yerel API ─→ ecr_jobs (kuyruk, idempotent)
 - **Hangi ÖKC markasıyla başlayalım?** Pilot mağazanın kullandığı marka en doğrusu. Üreticiden SDK ve test cihazı istenecek.
 - **Pilot mağaza** (gerçek ödeme ve eşitleme testleri için).
 - Çevrimdışı satışın 7 gün sınırı yeterli mi (şimdi 7).
+
+## 6. Uygulama durumu (19 Kasım, gece)
+Bekleyen kararlar şöyle ele alındı (itirazınız yoksa böyle kalır):
+- **ÖKC markası:** Marka belli olmadan başlandı. Köprü marka bağımsız çalışır; ilk sürücü **simülatör**. Üretici sürücüleri (Ingenico, Beko, Hugin, Pavo, Ödeal) tanımlı ama "henüz kurulu değil" hatası verir; gerçek marka SDK'sı ve test cihazı geldiğinde yalnız o sürücü yazılır.
+- **Pilot mağaza:** Pide restoranı yalnız banka POS'u kullanıyor (yazarkasa yok); ÖKC denemesi için ayrı bir market/kırtasiye pilotu gerekir.
+- **Çevrimdışı sınır:** 7 gün olarak kaldı.
+
+Yazıldı ve test edildi (backend, `tests/ecrBridge.test.js`): `ecr_devices` ve `ecr_jobs` tabloları (SQLite migrasyonu 058 + MySQL manifest 028), `ecrService` (cihaz tanımı, satışta iş üretme, işleme, yeniden deneme, 5 deneme sınırı, gün sonu engeli sayacı), `/api/ecr/*` uçları. Cihaz yokken satış hiç etkilenmez; cihaz hata verirse satış tamamlanır, iş `failed` kalır. İşler satış anlık görüntüsüne dokunmaz.
+**Henüz yok:** kasa arayüzünde "mali fiş bekliyor" rozeti ve cihaz ekranı, masaüstü alt süreci ve üretici sürücüleri. **Şema 028 canlıya alınmadı**: `SHIPPABLE_MYSQL_SCHEMA` 027'de duruyor; MySQL'de eski-kurulum yükseltme provası ve bulut `upgradeAdditive` adımı yapılmadan yayınlanmaz. Kod şema yokken de güvenlidir (iş yazımı hata verirse yutulur, satış sürer).
