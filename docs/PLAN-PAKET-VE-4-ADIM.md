@@ -62,3 +62,8 @@ Süreç: yerel test + eski kurulum yükseltme provası (canlı döküm kopyasın
 - **Yemek kartı ve havale/EFT etiketi şema gerektirmedi:** satış anlık görüntüsüne (snapshot) `card_label` yazılıyor; ana ödeme yöntemi kart kalır, muhasebe ve iade mantığı değişmedi. Kasada kart türü seçimi ve gün sonu raporunda türe göre kırılım var.
 - Şema 028'de kalanlar: üç fiyat türü (`product_price_tiers`, müşteri kuralı), dövizli fiyat, iki seviyeli grup ağacı. Hepsi yeni tablo; yükseltme provası ve bulut adımı gerekir.
 - Lite ve ömür boyu lisans türleri, Lite özellik kapısı ve süre dolunca Lite'a düşme (varsayılan kapalı) tamamlandı; lisans merkezi ve bulut 30 günlük denemeye geçti.
+
+## Fiyat güncellemesi (19 Kasım, gece) ve yapay zekâ kotası
+Kullanıcı kararıyla yapay zekâ maliyeti gerekçesiyle fiyatlar artırıldı (KDV dahil): Pro 6.490 ₺/yıl (aylık 699 ₺), Ömür Boyu 12.990 ₺, İşletme WMS 16.900 ₺, Lite 0 ₺. Kaynak: `shared/planMatrix.mjs` → `plans.json` → site; katalogda sahibin girdiği fiyat önceliklidir.
+Yapay zekâ kotası artık sunucuda uygulanır (`backend/src/services/aiQuota.js`): Lite yok, Pro ve Ömür Boyu aylık 100 sorgu, sınırsız paketlerde adil kullanım tavanı 3000 (VENIUX_AI_FAIR_USE). Sayaç denetim günlüğündeki `ai.query` kayıtlarıdır; kota dolunca 402 ve yenilenme tarihi döner. Önceden yalnız dakikalık hız sınırı vardı, aylık maliyet tavanı yoktu.
+Maliyet tahmini (doğrulanmadı): sorgu başına yaklaşık 0,15–0,5 ₺ (Gemini 2.5 Flash yedeği, 3 bin girdi + 1 bin çıktı jetonu varsayımıyla). Gerçek değer sağlayıcı faturasından ölçülmeli; NVIDIA API'nin ücretsiz katmanı üretim için kullanılamaz, üretim sağlayıcısı netleşmeli.

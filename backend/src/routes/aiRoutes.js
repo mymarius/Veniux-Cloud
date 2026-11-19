@@ -23,14 +23,16 @@ router.post('/actions/files',rateLimit({windowMs:60000,max:5}),uploadSize,requir
 router.get('/actions/result-files/:id',(req,res,next)=>{try{const file=require('../services/assistantSystemOperations').download(req.user,req.params.id);res.download(file.path,file.filename,{dotfiles:'allow'});}catch(e){next(e);}});
 router.get('/briefing',async(req,res,next)=>{try{res.json(await require('../services/assistantBriefing').briefing(req.user,req.query.since));}catch(e){next(e);}});
 router.get('/overview',async(req,res,next)=>{try{res.json(await monitor.overview(req.user));}catch(e){next(e);}});
-router.post('/actions/prepare',rateLimit({windowMs:60000,max:20}),async(req,res,next)=>{try{res.json(await monitor.prepare(req.user,req.body,{headers:req.headers}));}catch(e){next(e);}});
+router.post('/actions/prepare',rateLimit({windowMs:60000,max:20}),require('../services/aiQuota').guard,async(req,res,next)=>{try{res.json(await monitor.prepare(req.user,req.body,{headers:req.headers}));}catch(e){next(e);}});
 router.post('/actions/execute',rateLimit({windowMs:60000,max:10}),async(req,res,next)=>{try{res.json(await monitor.execute(req.user,req.body,{headers:req.headers}));}catch(e){next(e);}});
 router.use(rateLimit({windowMs:60000,max:20,message:{error:'AI istek sınırı aşıldı. Bir dakika sonra deneyin.'}}));
 const { chatWithAI, getInventoryForecast } = require('../controllers/aiController');
 const { runAIAnalysis } = require('../services/aiAnalysisService');
 
-router.post('/transcribe',authMiddleware,requireRole('admin','manager'),rateLimit({windowMs:60000,max:10,message:{error:'Ses istek sınırına ulaşıldı. Biraz sonra deneyin.'}}),express.raw({type:()=>true,limit:'5mb'}),async(req,res,next)=>{try{res.set('Cache-Control','no-store').json({text:await require('../services/speechToText').transcribe(req.body,req.get('content-type'))});}catch(e){next(e);}});
-router.post('/chat', chatWithAI);
+router.post('/transcribe',authMiddleware,requireRole('admin','manager'),require('../services/aiQuota').guard,rateLimit({windowMs:60000,max:10,message:{error:'Ses istek sınırına ulaşıldı. Biraz sonra deneyin.'}}),express.raw({type:()=>true,limit:'5mb'}),async(req,res,next)=>{try{res.set('Cache-Control','no-store').json({text:await require('../services/speechToText').transcribe(req.body,req.get('content-type'))});}catch(e){next(e);}});
+const aiQuota=require('../services/aiQuota');
+router.get('/quota',async(req,res,next)=>{try{res.json(await aiQuota.status(req.user,req.centralLicense));}catch(e){next(e);}});
+router.post('/chat', aiQuota.guard, chatWithAI);
 router.get('/forecast', getInventoryForecast);
 
 // Manual trigger for background AI Health check
