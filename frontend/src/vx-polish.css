@@ -181,3 +181,5 @@ html[data-theme='dark'] .pos-card-kind button{background:#14243a;color:#eef2f7;b
 .pos-tier button[aria-checked='true']{background:#17263a;color:#fff}
 .pos-tier button:disabled{opacity:.55;cursor:not-allowed}
 html[data-theme='dark'] .pos-tier button{background:#14243a;color:#eef2f7;border-color:#3a506e}
+.pos-ecr-badge{margin-left:8px;min-height:32px;padding:0 12px;border:2px solid #b92c1c;border-radius:8px;background:#fbe0dc;color:#7a1c12;font-weight:800;font-size:14px;cursor:pointer}
+.pos-ecr-badge:hover{background:#b92c1c;color:#fff}
