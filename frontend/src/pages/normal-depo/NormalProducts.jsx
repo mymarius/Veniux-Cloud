@@ -19,6 +19,7 @@ import { useToast } from '../../components/Toast';
 import { DataTable, StatusBadge, MetricCard, Modal, Input, Select, Dropdown } from '../../components/ui';
 import { money } from '../../lib/stockAnalytics';
 import { collapseVariants, cellQty } from '../../lib/variantGroups.mjs';
+import { categoryOptions, normalizeCategory } from '../../lib/categoryTree.mjs';
 import { VIEWS, countViews, matchesView, sortProducts, nextSort } from '../../lib/productView.mjs';
 
 const MARK_COLORS = ['#2f6fe4', '#12a37f', '#f2711c', '#7c5ce0', '#d9488b', '#0e8fb3'];
@@ -42,6 +43,7 @@ export default function NormalProducts() {
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [tiers, setTiers] = useState({ tier2: '', tier3: '' }), [tiersTouched, setTiersTouched] = useState(false);
+  const [fx, setFx] = useState({ currency: '', price: '' }), [fxTouched, setFxTouched] = useState(false), [showRates, setShowRates] = useState(false), [rates, setRates] = useState({ USD: '', EUR: '', GBP: '' });
   const [showVariants, setShowVariants] = useState(false), [openGroup, setOpenGroup] = useState(null), [grouped, setGrouped] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [scaleCode, setScaleCode] = useState('');
@@ -113,14 +115,15 @@ export default function NormalProducts() {
       max_stock_level: 200,
       supplier_id: suppliers.length > 0 ? suppliers[0].id : ''
     });
-    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false); setShowModal(true);
+    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false); setFx({ currency: '', price: '' }); setFxTouched(false); setShowModal(true);
   };
 
   const handleOpenEdit = (p, e) => {
     e.stopPropagation();
     setEditingProduct(p);
     setScaleCode('');
-    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false);
+    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false); setFx({ currency: '', price: '' }); setFxTouched(false);
+    apiClient.get(`/products/${p.id}/currency-price`).then(r => setFx({ currency: r.data?.currency || '', price: r.data?.price ?? '' })).catch(() => {});
     apiClient.get(`/products/${p.id}/price-tiers`).then(r => setTiers({ tier2: r.data?.tier2 ?? '', tier3: r.data?.tier3 ?? '' })).catch(() => {});
     apiClient.get(`/products/${p.id}/scale-code`).then(r => setScaleCode(r.data?.plu || '')).catch(() => {});
     setFormData({
@@ -140,16 +143,19 @@ export default function NormalProducts() {
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
+    formData.category = normalizeCategory(formData.category) || formData.category;
     try {
       if (editingProduct) {
         await apiClient.put(`/products/${editingProduct.id}`, formData);
         if (['kg', 'g', 'litre'].includes(formData.unit) || scaleCode) await apiClient.put(`/products/${editingProduct.id}/scale-code`, { plu: ['kg', 'g', 'litre'].includes(formData.unit) ? scaleCode : '' });
         if (tiersTouched) await apiClient.put(`/products/${editingProduct.id}/price-tiers`, { tier2: tiers.tier2 === '' ? null : Number(tiers.tier2), tier3: tiers.tier3 === '' ? null : Number(tiers.tier3) });
+        if (fxTouched && editingProduct.id) await apiClient.put(`/products/${editingProduct.id}/currency-price`, fx.currency ? { currency: fx.currency, price: Number(fx.price) } : { currency: null });
         showToast('Ürün güncellendi.', 'success');
       } else {
         const created = await apiClient.post('/products', formData);
         if (scaleCode && ['kg', 'g', 'litre'].includes(formData.unit) && created.data?.id) await apiClient.put(`/products/${created.data.id}/scale-code`, { plu: scaleCode });
         if (tiersTouched && created.data?.id) await apiClient.put(`/products/${created.data.id}/price-tiers`, { tier2: tiers.tier2 === '' ? null : Number(tiers.tier2), tier3: tiers.tier3 === '' ? null : Number(tiers.tier3) });
+        if (fxTouched && created.data?.id) await apiClient.put(`/products/${created.data?.id}/currency-price`, fx.currency ? { currency: fx.currency, price: Number(fx.price) } : { currency: null });
         showToast('Ürün oluşturuldu.', 'success');
       }
       setShowModal(false);
@@ -269,7 +275,7 @@ export default function NormalProducts() {
           <p className="text-sm text-slate-500 mt-1">Ürün tanımları, barkod eşleşmeleri ve tedarikçi bağlantıları.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button>{hasGroups&&<button type="button" className="btn-secondary" aria-pressed={grouped} onClick={()=>setGrouped(g=>!g)}>{grouped?'Varyantları aç':'Varyantları grupla'}</button>}<button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
+        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button><button type="button" className="btn-secondary" onClick={()=>{apiClient.get('/products/currency-rates').then(r=>setRates({USD:r.data.rates.USD?.rate??'',EUR:r.data.rates.EUR?.rate??'',GBP:r.data.rates.GBP?.rate??''})).catch(()=>{});setShowRates(true);}}>Döviz kurları</button>{hasGroups&&<button type="button" className="btn-secondary" aria-pressed={grouped} onClick={()=>setGrouped(g=>!g)}>{grouped?'Varyantları aç':'Varyantları grupla'}</button>}<button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
           <Plus className="w-4 h-4" />
           <span>Yeni Ürün Ekle</span>
         </button></div>
@@ -280,6 +286,11 @@ export default function NormalProducts() {
           <div className="overflow-auto"><table className="w-full text-sm" aria-label="Beden renk stok tablosu"><thead><tr><th className="p-2 text-left">Beden</th>{(openGroup.hasColor ? openGroup.colors : ['Stok']).map(c => <th key={c} className="p-2">{c}</th>)}</tr></thead>
             <tbody>{openGroup.sizes.map(sz => <tr key={sz} className="border-t"><th className="p-2 text-left">{sz}</th>{(openGroup.hasColor ? openGroup.colors : [null]).map(c => { const q = cellQty(openGroup, sz, c); return <td key={c || 'x'} className="p-2 text-center" style={{ fontWeight: 700, background: q === null ? 'transparent' : q <= 0 ? '#fbe0dc' : undefined, color: q === null ? '#94a3b8' : undefined }}>{q === null ? '—' : q.toLocaleString('tr-TR')}</td>; })}</tr>)}</tbody></table></div>
           <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={() => setOpenGroup(null)}>Kapat</button></div></div>}
+      </Modal>
+      <Modal isOpen={showRates} onClose={() => setShowRates(false)} title="Döviz kurları" size="md">
+        <div className="space-y-3"><p className="text-sm text-slate-500">Dövizli fiyatlı ürünler kasada bu kurla TL'ye çevrilir. Kuru günlük güncelleyin; boş bırakırsanız o para birimindeki ürünler normal TL fiyatından satılır.</p>
+          <div className="grid grid-cols-3 gap-3">{[['USD','Dolar'],['EUR','Euro'],['GBP','Sterlin']].map(([c,l]) => <Input key={c} type="number" step="0.0001" min="0" label={l+' (1 '+c+' = ? TL)'} value={rates[c]} onChange={(e) => setRates(r => ({ ...r, [c]: e.target.value }))} />)}</div>
+          <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={() => setShowRates(false)}>Vazgeç</button><button type="button" className="btn-primary" onClick={async () => { try { await apiClient.put('/products/currency-rates', { USD: rates.USD === '' ? null : Number(rates.USD), EUR: rates.EUR === '' ? null : Number(rates.EUR), GBP: rates.GBP === '' ? null : Number(rates.GBP) }); showToast('Kurlar kaydedildi.', 'success'); setShowRates(false); } catch (err) { showToast(err.response?.data?.error || 'Kurlar kaydedilemedi.', 'error'); } }}>Kaydet</button></div></div>
       </Modal>
       <VariantWizard isOpen={showVariants} onClose={()=>setShowVariants(false)} onDone={fetchProducts} />
       {showImport&&<ProductBulkImport onCompleted={fetchProducts}/>}
@@ -317,10 +328,7 @@ export default function NormalProducts() {
               className="bg-white border border-slate-200 text-sm rounded-md px-3 py-2 outline-none focus:border-slate-400 cursor-pointer transition-colors text-slate-700"
             >
               <option value="">Tüm Kategoriler</option>
-              {categories.map((c, i) => {
-                const name = typeof c === 'string' ? c : c.category || c.name;
-                return <option key={i} value={name}>{name}</option>;
-              })}
+              {categoryOptions(categories.map(c => (typeof c === 'string' ? c : c.category || c.name))).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </Dropdown>
 
             <Dropdown
@@ -367,7 +375,7 @@ export default function NormalProducts() {
           <Input label="Ürün adı" required placeholder="Örn. Termal etiket 100 × 150 mm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
 
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Kategori" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+            <Input label="Kategori (alt grup için: Ana grup › Alt grup)" placeholder="İçecek › Gazlı İçecek" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} onBlur={() => setFormData(f => ({ ...f, category: normalizeCategory(f.category) || f.category }))} />
             <Select 
               label="Tedarikçi"
               value={formData.supplier_id} 
@@ -383,6 +391,7 @@ export default function NormalProducts() {
             <Input type="number" step="0.01" label="Alış fiyatı (TL)" value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} /><label className="text-sm">Alış fiyatı KDV temeli<select aria-label="Alış fiyatı KDV temeli" className="w-full border rounded-lg p-2" value={formData.purchase_price_tax_basis||''} onChange={e=>setFormData({...formData,purchase_price_tax_basis:e.target.value||null})}><option value="">Doğrulanmadı — maliyet belirsiz</option><option value="exclusive">KDV hariç</option><option value="inclusive">KDV dahil</option></select></label><Input label="Ürün KDV oranı (%)" type="number" min="0" max="100" value={formData.kdv_orani} onChange={e=>setFormData({...formData,kdv_orani:e.target.value})}/>
             <Input type="number" step="0.01" required label="Satış fiyatı (TL, KDV dahil)" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} />
             <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">Toptan ve özel fiyat (isteğe bağlı)</summary><p className="text-xs text-slate-500 mt-1">Boş bırakılan fiyat için kasada normal satış fiyatı kullanılır. Kasada fiyat türünü seçince bu fiyatlar geçerli olur.</p><div className="grid grid-cols-2 gap-4 mt-2"><Input type="number" step="0.01" min="0" label="Toptan fiyatı (TL)" value={tiers.tier2} onChange={(e) => { setTiers(t => ({ ...t, tier2: e.target.value })); setTiersTouched(true); }} /><Input type="number" step="0.01" min="0" label="Özel fiyat (TL)" value={tiers.tier3} onChange={(e) => { setTiers(t => ({ ...t, tier3: e.target.value })); setTiersTouched(true); }} /></div></details>
+            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">Dövizli fiyat (isteğe bağlı)</summary><p className="text-xs text-slate-500 mt-1">Fiyatı dövizle girerseniz kasada, girdiğiniz güncel kurla TL'ye çevrilir. Kur girilmemişse normal TL fiyatı kullanılır.</p><div className="grid grid-cols-2 gap-4 mt-2"><label className="text-sm">Para birimi<select className="block w-full border rounded-lg p-2 mt-1" value={fx.currency} onChange={(e) => { setFx(v => ({ ...v, currency: e.target.value })); setFxTouched(true); }}><option value="">Yok (yalnız TL)</option><option value="USD">Dolar (USD)</option><option value="EUR">Euro (EUR)</option><option value="GBP">Sterlin (GBP)</option></select></label><Input type="number" step="0.01" min="0" label="Döviz fiyatı" disabled={!fx.currency} value={fx.price} onChange={(e) => { setFx(v => ({ ...v, price: e.target.value })); setFxTouched(true); }} /></div></details>
             <Input type="number" min="0" max="1000000" step="0.001" label="Minimum stok" value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
             <Input type="number" min="0" step="0.001" label="Hedef stok (sipariş önerisi)" value={formData.max_stock_level} onChange={e=>setFormData({...formData,max_stock_level:e.target.value})}/>
           </div>

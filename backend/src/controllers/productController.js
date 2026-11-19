@@ -22,8 +22,11 @@ const getAllProducts = async (req, res) => {
     let paramIndex = 2;
 
     if (category) {
-      query += ` AND LOWER(TRIM(p.category)) = LOWER(TRIM($${paramIndex}))`;
-      params.push(category.trim());
+      // Üst grup seçilince "Üst › Alt" biçimindeki alt grupların ürünleri de gelir.
+      const catText = category.trim();
+      query += ` AND (LOWER(TRIM(p.category)) = LOWER(TRIM($${paramIndex})) OR LOWER(TRIM(p.category)) LIKE LOWER($${paramIndex + 1}) ESCAPE '!')`;
+      params.push(catText, catText.replace(/[!%_]/g, m => '!' + m) + ' › %');
+      paramIndex++;
       paramIndex++;
     }
 

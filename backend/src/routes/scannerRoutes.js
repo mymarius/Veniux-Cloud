@@ -68,7 +68,7 @@ router.post('/weighted-detect',requireRole('admin','manager'),async(req,res,next
   candidates.push({label:layout.label,rule:layout.rule,product:r.product?{id:r.product.id,name:r.product.name,unit:r.product.unit}:null,product_code:r.product?undefined:r.product_code,quantity:r.quantity??null,line_total:r.line_total??null});}catch{}}
  res.json({barcode:code,prefix,candidates});
 }catch(e){next(e);}});
-router.post('/lookup',async(req,res,next)=>{try{const scan=await service.lookup(req.user.tenantId,req.body.barcode,req.body.warehouse_id);const tier=require('../services/priceTierService').parseTier(req.body.price_tier);if(tier>1)await require('../services/priceTierService').apply(db,req.user.tenantId,scan,tier);res.json(scan);}catch(e){next(e);}});
+router.post('/lookup',async(req,res,next)=>{try{const scan=await service.lookup(req.user.tenantId,req.body.barcode,req.body.warehouse_id);const tier=require('../services/priceTierService').parseTier(req.body.price_tier);if(tier>1)await require('../services/priceTierService').apply(db,req.user.tenantId,scan,tier);await require('../services/currencyService').apply(db,req.user.tenantId,scan);res.json(scan);}catch(e){next(e);}});
 router.get('/price-tiers/status',async(req,res,next)=>{try{res.json(await require('../services/priceTierService').status(req.user));}catch(e){next(e);}});
 router.get('/sale-status',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{
  const key=req.query.operation_key;if(typeof key!=='string'||!key||key.length>120)service.fail('Geçerli işlem anahtarı gerekli.');

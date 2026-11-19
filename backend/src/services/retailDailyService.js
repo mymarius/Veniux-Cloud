@@ -85,6 +85,7 @@ async function price(tx,user,body,rights,settings,date){
       const scan=await scanner.lookup(user.tenantId,item.barcode,body.warehouse_id,tx,settings);
       if(!scan.product||scan.product.module_type!=='NORMAL')fail('Market ürünü bulunamadı.',404);
       if(priceTier>1)await require('./priceTierService').apply(tx,user.tenantId,scan,priceTier);
+      await require('./currencyService').apply(tx,user.tenantId,scan);
       let qty=Number((scan.quantity*item.count).toFixed(6));
       // Adet stoklu ürünü kiloyla (veya metre/litre) satmak: üründe "1 kg = 250 adet" birimi tanımlıysa girilen kilo adede çevrilir.
       let sellUnit=null;
