@@ -41,6 +41,7 @@ export default function NormalProducts() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [tiers, setTiers] = useState({ tier2: '', tier3: '' }), [tiersTouched, setTiersTouched] = useState(false);
   const [showVariants, setShowVariants] = useState(false), [openGroup, setOpenGroup] = useState(null), [grouped, setGrouped] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [scaleCode, setScaleCode] = useState('');
@@ -112,13 +113,15 @@ export default function NormalProducts() {
       max_stock_level: 200,
       supplier_id: suppliers.length > 0 ? suppliers[0].id : ''
     });
-    setShowModal(true);
+    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false); setShowModal(true);
   };
 
   const handleOpenEdit = (p, e) => {
     e.stopPropagation();
     setEditingProduct(p);
     setScaleCode('');
+    setTiers({ tier2: '', tier3: '' }); setTiersTouched(false);
+    apiClient.get(`/products/${p.id}/price-tiers`).then(r => setTiers({ tier2: r.data?.tier2 ?? '', tier3: r.data?.tier3 ?? '' })).catch(() => {});
     apiClient.get(`/products/${p.id}/scale-code`).then(r => setScaleCode(r.data?.plu || '')).catch(() => {});
     setFormData({
       sku: p.sku || '',
@@ -141,10 +144,12 @@ export default function NormalProducts() {
       if (editingProduct) {
         await apiClient.put(`/products/${editingProduct.id}`, formData);
         if (['kg', 'g', 'litre'].includes(formData.unit) || scaleCode) await apiClient.put(`/products/${editingProduct.id}/scale-code`, { plu: ['kg', 'g', 'litre'].includes(formData.unit) ? scaleCode : '' });
+        if (tiersTouched) await apiClient.put(`/products/${editingProduct.id}/price-tiers`, { tier2: tiers.tier2 === '' ? null : Number(tiers.tier2), tier3: tiers.tier3 === '' ? null : Number(tiers.tier3) });
         showToast('Ürün güncellendi.', 'success');
       } else {
         const created = await apiClient.post('/products', formData);
         if (scaleCode && ['kg', 'g', 'litre'].includes(formData.unit) && created.data?.id) await apiClient.put(`/products/${created.data.id}/scale-code`, { plu: scaleCode });
+        if (tiersTouched && created.data?.id) await apiClient.put(`/products/${created.data.id}/price-tiers`, { tier2: tiers.tier2 === '' ? null : Number(tiers.tier2), tier3: tiers.tier3 === '' ? null : Number(tiers.tier3) });
         showToast('Ürün oluşturuldu.', 'success');
       }
       setShowModal(false);
@@ -377,6 +382,7 @@ export default function NormalProducts() {
           <div className="grid grid-cols-2 gap-4">
             <Input type="number" step="0.01" label="Alış fiyatı (TL)" value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} /><label className="text-sm">Alış fiyatı KDV temeli<select aria-label="Alış fiyatı KDV temeli" className="w-full border rounded-lg p-2" value={formData.purchase_price_tax_basis||''} onChange={e=>setFormData({...formData,purchase_price_tax_basis:e.target.value||null})}><option value="">Doğrulanmadı — maliyet belirsiz</option><option value="exclusive">KDV hariç</option><option value="inclusive">KDV dahil</option></select></label><Input label="Ürün KDV oranı (%)" type="number" min="0" max="100" value={formData.kdv_orani} onChange={e=>setFormData({...formData,kdv_orani:e.target.value})}/>
             <Input type="number" step="0.01" required label="Satış fiyatı (TL, KDV dahil)" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} />
+            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">Toptan ve özel fiyat (isteğe bağlı)</summary><p className="text-xs text-slate-500 mt-1">Boş bırakılan fiyat için kasada normal satış fiyatı kullanılır. Kasada fiyat türünü seçince bu fiyatlar geçerli olur.</p><div className="grid grid-cols-2 gap-4 mt-2"><Input type="number" step="0.01" min="0" label="Toptan fiyatı (TL)" value={tiers.tier2} onChange={(e) => { setTiers(t => ({ ...t, tier2: e.target.value })); setTiersTouched(true); }} /><Input type="number" step="0.01" min="0" label="Özel fiyat (TL)" value={tiers.tier3} onChange={(e) => { setTiers(t => ({ ...t, tier3: e.target.value })); setTiersTouched(true); }} /></div></details>
             <Input type="number" min="0" max="1000000" step="0.001" label="Minimum stok" value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
             <Input type="number" min="0" step="0.001" label="Hedef stok (sipariş önerisi)" value={formData.max_stock_level} onChange={e=>setFormData({...formData,max_stock_level:e.target.value})}/>
           </div>

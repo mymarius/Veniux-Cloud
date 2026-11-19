@@ -26,9 +26,8 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   await c.query("INSERT INTO edocuments (id,tenant_id,sale_id,document_type,status,payload) VALUES ('eski-1',?,'S1','E_ARSIV','draft','{}')", [tenant.id]);
   const [triggersBefore] = await c.query('SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() ORDER BY 1');
 
-  // "Eski kurulum": son sürümün tabloları ve kaydı yok (028: ÖKC köprüsü)
-  await c.query('DROP TABLE ecr_jobs');
-  await c.query('DROP TABLE ecr_devices');
+  // "Eski kurulum": son sürümün tablosu ve kaydı yok (029: fiyat türleri)
+  await c.query('DROP TABLE product_price_tiers');
   await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
   const migrator = new MySQLMigrator(c);
   expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
@@ -36,8 +35,8 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   const state = await migrator.upgradeAdditive();
   expect(state).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
 
-  const [[table]] = await c.query("SELECT COUNT(*) n FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('ecr_devices','ecr_jobs')");
-  expect(Number(table.n)).toBe(2);
+  const [[table]] = await c.query("SELECT COUNT(*) n FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('ecr_devices','ecr_jobs','product_price_tiers')");
+  expect(Number(table.n)).toBe(3);
   const [[doc]] = await c.query("SELECT status,sale_id FROM edocuments WHERE id='eski-1'");
   expect(doc).toEqual({ status: 'draft', sale_id: 'S1' });
   const [[owner]] = await c.query('SELECT company_name FROM tenants WHERE id=?', [tenant.id]);
@@ -45,7 +44,12 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   const [triggersAfter] = await c.query('SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() ORDER BY 1');
   expect(triggersAfter).toEqual(triggersBefore);
 
-  // Yükseltilmiş ÖKC tabloları çalışıyor: cihaz ve iş eklenir, aynı satış için ikinci iş eklenemez
+  // Yükseltilmiş fiyat türü tablosu çalışıyor: ürün ve kademe eklenir, aynı kademe ikinci kez eklenemez
+  const [prod] = await c.query("INSERT INTO products (tenant_id,sku,name,unit,sale_price,module_type) VALUES (?,'PT-1','Fiyat türü ürünü','adet',100,'NORMAL')", [tenant.id]);
+  await c.query('INSERT INTO product_price_tiers (tenant_id,product_id,tier,price) VALUES (?,?,2,80.5)', [tenant.id, prod.insertId]);
+  await expect(c.query('INSERT INTO product_price_tiers (tenant_id,product_id,tier,price) VALUES (?,?,2,70)', [tenant.id, prod.insertId])).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
+
+  // ÖKC tabloları (028) hâlâ çalışıyor: cihaz ve iş eklenir, aynı satış için ikinci iş eklenemez
   const [dev] = await c.query("INSERT INTO ecr_devices (tenant_id,brand,connection,name) VALUES (?,'simulator','simulated','Deneme')", [tenant.id]);
   await c.query("INSERT INTO ecr_jobs (tenant_id,device_id,sale_id,kind,status) VALUES (?,?,501,'sale','pending')", [tenant.id, dev.insertId]);
   await expect(c.query("INSERT INTO ecr_jobs (tenant_id,device_id,sale_id,kind,status) VALUES (?,?,501,'sale','pending')", [tenant.id, dev.insertId])).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
