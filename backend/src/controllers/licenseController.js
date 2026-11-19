@@ -3,7 +3,7 @@ const licenseService = require('../services/licenseService');
 class LicenseController {
   async getPlans(req, res) {
     try {
-      const plans = licenseService.getPlans();
+      const plans = licenseService.getPlans().filter(p => p.listed !== false);
       res.json(plans);
     } catch (err) {
       console.error('Get plans error:', err);

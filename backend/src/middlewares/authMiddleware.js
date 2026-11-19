@@ -80,11 +80,13 @@ const authMiddleware = async (req, res, next) => {
       if(security.requireAdminMfa&&!(await require('../services/mfaService').status({id:dbUser.id,tenant_id:dbUser.tenant_id})).enabled)return res.status(403).json({error:'Bu firmada yöneticiler için iki aşamalı doğrulama zorunludur. Güvenlik ayarlarından kurun.',code:'MFA_SETUP_REQUIRED'});
     }
     await require('../services/productPackages').authorize(req.user,path,req.centralLicense);
+    await require('../services/entitlementService').liteGuard(req.user,path);
     const portalMember=(await pool.query('SELECT portal_role,active FROM business_members WHERE tenant_id=$1 AND user_id=$2',[req.user.tenantId,req.user.id])).rows[0];
     if(portalMember&&!req.user.isPlatformAdmin&&!['admin','manager'].includes(req.user.role)&&!/^\/api\/(business|auth\/(me|mfa))(\/|$)/.test(path))return res.status(403).json({error:'Bu hesap yalnız saha/bayi ekranlarına erişebilir.'});
     require('./costVisibility')(req, res);
     return require('./accessScope')(req, res, next);
   } catch (error) {
+    if(error.code==='FEATURE_LOCKED')return res.status(402).json({error:error.message,code:error.code,feature:error.feature});
     if(error.code==='PACKAGE_ACCESS_DENIED')return res.status(error.status||403).json({error:error.message,code:error.code});
     if(error.status===423)return res.status(423).json({error:error.message,code:'LICENSE_REQUIRED'});
     if (error.status === 503) return res.status(503).json({error:'Yedekleme/geri yükleme bakımı sürüyor. Biraz sonra tekrar deneyin.'});

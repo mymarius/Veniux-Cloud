@@ -117,6 +117,33 @@ const ANNUAL_PLANS = {
       pda: true
     }
   },
+  // Ücretsiz süresiz paket: süresi dolan ücretli lisans buna iner (VENIUX_LITE_DOWNGRADE=1). Listede satışa sunulmaz.
+  LITE_FOREVER: {
+    id: 'LITE_FOREVER',
+    name: 'Veniux Lite (ücretsiz)',
+    price_usd: 0,
+    listed: false,
+    term: 'forever',
+    max_warehouses: 1,
+    max_users: 1,
+    max_devices: 1,
+    max_pdas: 0,
+    features: { module_type: 'NORMAL' }
+  },
+  // Tek ödemeli masaüstü: yerel özellikler süresiz; bulut ve yapay zekâ cloud_until (ilk yıl hediye) tarihine kadar.
+  LIFETIME_DESKTOP: {
+    id: 'LIFETIME_DESKTOP',
+    name: 'Veniux Ömür Boyu Masaüstü',
+    price_usd: 0,
+    listed: false,
+    term: 'lifetime',
+    cloud_years: 1,
+    max_warehouses: 1,
+    max_users: 50,
+    max_devices: 1,
+    max_pdas: 0,
+    features: { module_type: 'NORMAL' }
+  },
   ENTERPRISE_ANNUAL: {
     id: 'ENTERPRISE_ANNUAL',
     name: 'Enterprise WMS Lisansı',
@@ -235,7 +262,10 @@ class LicenseService {
       // 2. Generate Annual License Key
       const licenseKey = this.generateKey();
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 365); // Strictly 1 Year Validity
+      // Yıllık lisans 365 gün; Lite ve Ömür Boyu süresizdir (100 yıl). Ömür boyuda bulut yılı cloud_until ile ayrıca sınırlanır.
+      expiresAt.setDate(expiresAt.getDate() + (plan.term ? 36500 : 365));
+      const planFeatures = { ...plan.features };
+      if (plan.cloud_years) { const cloud = new Date(); cloud.setFullYear(cloud.getFullYear() + plan.cloud_years); planFeatures.cloud_until = cloud.toISOString().slice(0, 10); }
 
       const licRes = await client.query(`
         INSERT INTO licenses (
@@ -251,7 +281,7 @@ class LicenseService {
         plan.max_warehouses,
         plan.max_devices,
         plan.max_pdas,
-        JSON.stringify(plan.features),
+        JSON.stringify(planFeatures),
         expiresAt.toISOString().replace('T', ' ').replace('Z', '')
       ]);
 

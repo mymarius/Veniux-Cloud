@@ -44,6 +44,8 @@ const ownerAutomationJob=cron.createTask('* * * * *',()=>require('../services/ow
 // Denetim kaydı zinciri dakikada bir mühürlenir; saklama süresi dolanlar günde bir kez silinir.
 const auditIntegrityJob=cron.createTask('* * * * *',()=>require('../services/auditIntegrityService').tick(),{timezone:'Europe/Istanbul',noOverlap:true});
 const alertDeliveryJob=cron.createTask('*/10 * * * *',()=>require('../services/alertDeliveryService').tick(),{timezone:'Europe/Istanbul',noOverlap:true});
+// Süresi dolan ücretli lisansı Lite'a indirir; yalnız VENIUX_LITE_DOWNGRADE=1 iken çalışır.
+const liteDowngradeJob=cron.createTask('30 3 * * *',async()=>{const d=require('../services/liteDowngrade');if(d.enabled())await d.run();},{timezone:'Europe/Istanbul',noOverlap:true});
 const startCronJobs = () => {
   if (started) return;
   started = true;
@@ -53,6 +55,7 @@ const startCronJobs = () => {
     ownerAutomationJob.start();
     alertDeliveryJob.start();
     auditIntegrityJob.start();
+    liteDowngradeJob.start();
     console.log('[Cron] Scheduled tasks started: Rule Engine (6h) | AI Health Check (08:00)');
   } catch (error) {
     console.error('Failed to start cron jobs:', error.message);
@@ -61,5 +64,5 @@ const startCronJobs = () => {
 
 module.exports = {
   startCronJobs,
-  stopCronJobs: () => { for(const job of [ruleEngineJob,aiAnalysisJob,ownerAutomationJob,alertDeliveryJob,auditIntegrityJob]) job?.stop(); started=false; }
+  stopCronJobs: () => { for(const job of [ruleEngineJob,aiAnalysisJob,ownerAutomationJob,alertDeliveryJob,auditIntegrityJob,liteDowngradeJob]) job?.stop(); started=false; }
 };
