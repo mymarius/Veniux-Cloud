@@ -57,3 +57,8 @@ Kontrol sonucu düzeltme: kasada **para üstü hesabı ve sayısal klavye zaten 
 - `product_price_tiers` (ürün, kademe 2/3, fiyat) + müşteri kartında fiyat kademesi ve iskonto (`customer_price_rules`).
 - `product_currency_prices` (dövizli fiyat) ve `product_group_tree` (iki seviyeli grup).
 Süreç: yerel test + eski kurulum yükseltme provası (canlı döküm kopyasında) + `SHIPPABLE_MYSQL_SCHEMA` 028 + bulutta `upgradeAdditive`; Plesk girişi ve onayınız gerekir.
+
+## Güncelleme (19 Kasım, akşam): 028 paketi küçüldü
+- **Yemek kartı ve havale/EFT etiketi şema gerektirmedi:** satış anlık görüntüsüne (snapshot) `card_label` yazılıyor; ana ödeme yöntemi kart kalır, muhasebe ve iade mantığı değişmedi. Kasada kart türü seçimi ve gün sonu raporunda türe göre kırılım var.
+- Şema 028'de kalanlar: üç fiyat türü (`product_price_tiers`, müşteri kuralı), dövizli fiyat, iki seviyeli grup ağacı. Hepsi yeni tablo; yükseltme provası ve bulut adımı gerekir.
+- Lite ve ömür boyu lisans türleri, Lite özellik kapısı ve süre dolunca Lite'a düşme (varsayılan kapalı) tamamlandı; lisans merkezi ve bulut 30 günlük denemeye geçti.

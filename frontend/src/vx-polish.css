@@ -171,3 +171,7 @@ html[data-theme='dark'] .pos-quick-cash button{background:#14243a;color:#eef2f7;
 .pos-variants button[data-out='1']{background:#fbe0dc;border-color:#b92c1c;color:#7a1c12}
 .pos-variants button:hover:not(:disabled){background:#17263a;color:#fff}
 html[data-theme='dark'] .pos-variants button{background:#14243a;color:#eef2f7;border-color:#3a506e}
+.pos-card-kind{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.pos-card-kind button{min-height:48px;padding:0 14px;border:2px solid #17263a;border-radius:10px;background:#fffdf8;color:#17263a;font-weight:800;cursor:pointer}
+.pos-card-kind button[aria-checked='true']{background:#17263a;color:#fff}
+html[data-theme='dark'] .pos-card-kind button{background:#14243a;color:#eef2f7;border-color:#3a506e}
