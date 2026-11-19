@@ -111,7 +111,7 @@ def backend_changed():
 
 # Masaüstü yalnız yeni tablo ekleyen şema adımlarını kendisi uygular (local-server upgradeSchema). Yeni şema,
 # eski bir kurulumu yeni sürümle açarak denenmeden buraya yazılmamalı.
-SHIPPABLE_MYSQL_SCHEMA = '027-edocument-numbers'
+SHIPPABLE_MYSQL_SCHEMA = '028-ecr-bridge'
 
 
 def schema_guard():
