@@ -245,7 +245,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
 <?php elseif($path==="/program-indir"): ?>
     <?php require __DIR__."/program-view.php"; ?>
 <?php elseif($path==="/fiyatlandirma"): ?>
-    <?php require __DIR__."/pricing-view.php"; ?>
+    <?php require __DIR__.(sitePricingV2()?"/pricing-view-v2.php":"/pricing-view.php"); ?>
 <?php else: ?>
 
     <?php if($path==="/"){require __DIR__."/home-view.php";}else{require __DIR__."/solution-view.php";} ?>

@@ -1,0 +1,262 @@
+{
+ "trial_days": 30,
+ "plans": [
+  {
+   "id": "lite",
+   "name": "Veniux Lite",
+   "tagline": "Mikro işletmeler için. Masraf yok, süre sınırı yok.",
+   "price_try": 0,
+   "monthly_try": null,
+   "period": "forever",
+   "limits": {
+    "desktop": 1,
+    "warehouses": 1,
+    "admins": 1,
+    "staff": 0,
+    "ai_monthly": 0
+   },
+   "bundled_cloud_years": 0,
+   "features": [
+    "offline_sales",
+    "products_stock",
+    "customer_credit",
+    "report_7d",
+    "auto_backup",
+    "ecr_bridge",
+    "web_app"
+   ]
+  },
+  {
+   "id": "pro",
+   "name": "Veniux Pro",
+   "tagline": "Satış, stok ve cariyi profesyonelce yöneten işletmeler için.",
+   "price_try": 5490,
+   "monthly_try": 599,
+   "period": "year",
+   "limits": {
+    "desktop": 1,
+    "warehouses": 1,
+    "admins": null,
+    "staff": null,
+    "ai_monthly": 100
+   },
+   "bundled_cloud_years": 0,
+   "features": [
+    "offline_sales",
+    "products_stock",
+    "customer_credit",
+    "report_7d",
+    "auto_backup",
+    "ecr_bridge",
+    "web_app",
+    "cost_reports",
+    "excel_import",
+    "multi_staff",
+    "purchase_invoices",
+    "shared_catalog",
+    "lot_expiry",
+    "credit_reminders",
+    "loyalty",
+    "edocument",
+    "customer_display",
+    "retail_depth",
+    "mobile_app",
+    "ai_assistant"
+   ]
+  },
+  {
+   "id": "lifetime_desktop",
+   "name": "Veniux Ömür Boyu Masaüstü",
+   "tagline": "Tek bilgisayarda ömür boyu kullanmak isteyenler için; ilk yıl web ve mobil hediye.",
+   "price_try": 11490,
+   "monthly_try": null,
+   "period": "once",
+   "limits": {
+    "desktop": 1,
+    "warehouses": 1,
+    "admins": null,
+    "staff": null,
+    "ai_monthly": 100
+   },
+   "bundled_cloud_years": 1,
+   "features": [
+    "offline_sales",
+    "products_stock",
+    "customer_credit",
+    "report_7d",
+    "auto_backup",
+    "ecr_bridge",
+    "web_app",
+    "cost_reports",
+    "excel_import",
+    "multi_staff",
+    "purchase_invoices",
+    "shared_catalog",
+    "lot_expiry",
+    "credit_reminders",
+    "loyalty",
+    "edocument",
+    "customer_display",
+    "retail_depth",
+    "mobile_app",
+    "ai_assistant"
+   ]
+  },
+  {
+   "id": "business_wms",
+   "name": "Veniux İşletme WMS",
+   "tagline": "Birden çok depo, şube ve kasa: depo yönetimi ve büyüme araçları.",
+   "price_try": 14900,
+   "monthly_try": null,
+   "period": "year",
+   "limits": {
+    "desktop": null,
+    "warehouses": 3,
+    "admins": null,
+    "staff": null,
+    "ai_monthly": null
+   },
+   "bundled_cloud_years": 0,
+   "features": [
+    "offline_sales",
+    "products_stock",
+    "customer_credit",
+    "report_7d",
+    "auto_backup",
+    "ecr_bridge",
+    "web_app",
+    "cost_reports",
+    "excel_import",
+    "multi_staff",
+    "purchase_invoices",
+    "shared_catalog",
+    "lot_expiry",
+    "credit_reminders",
+    "loyalty",
+    "edocument",
+    "customer_display",
+    "retail_depth",
+    "mobile_app",
+    "ai_assistant",
+    "ai_unlimited",
+    "wms_map",
+    "inbound_waybill",
+    "picking_shipping",
+    "transfers",
+    "count_approval",
+    "marketplace",
+    "online_store",
+    "accounting_export",
+    "open_api"
+   ]
+  }
+ ],
+ "addon": {
+  "id": "restaurant_addon",
+  "name": "Pide ve Restoran",
+  "requires": [
+   "pro",
+   "lifetime_desktop",
+   "business_wms"
+  ]
+ },
+ "labels": {
+  "offline_sales": "İnternetsiz barkodlu satış",
+  "products_stock": "Ürün ve stok takibi",
+  "customer_credit": "Müşteri veresiye takibi",
+  "report_7d": "Günlük rapor (son 7 gün)",
+  "auto_backup": "Otomatik günlük yedek",
+  "ecr_bridge": "Yazarkasa köprüsü",
+  "cost_reports": "Kâr, maliyet ve tüm geçmiş raporlar",
+  "excel_import": "Excel ile ürün aktarma ve dışa aktarma",
+  "multi_staff": "Sınırsız personel ve yetkilendirme",
+  "purchase_invoices": "Alış faturası ve firma yönetimi",
+  "shared_catalog": "Hazır barkodlu ürün kataloğu",
+  "lot_expiry": "Lot ve son kullanma tarihi (miat)",
+  "credit_reminders": "Veresiye vade hatırlatması",
+  "loyalty": "Sadakat puanı ve damga kartı",
+  "edocument": "e-Fatura ve e-Arşiv",
+  "customer_display": "Müşteri ekranı (ikinci monitör)",
+  "retail_depth": "Hırdavat, züccaciye ve butik özellikleri (ölçü/raf, takım, beden/renk)",
+  "mobile_app": "Mobil uygulama (Android)",
+  "web_app": "Web uygulaması",
+  "ai_assistant": "İşletme asistanı (aylık 100 sorgu)",
+  "ai_unlimited": "Sınırsız asistan ve fatura okuma",
+  "wms_map": "Koridor, raf ve göz haritası",
+  "inbound_waybill": "İrsaliyeli mal kabul",
+  "picking_shipping": "Toplama ve sevkiyat",
+  "transfers": "Depolar ve şubeler arası transfer",
+  "count_approval": "Yönetici onaylı sayım farkı",
+  "marketplace": "Pazaryeri bağlantıları",
+  "online_store": "Online mağaza",
+  "accounting_export": "Muhasebe aktarımı",
+  "open_api": "Açık API ve webhook"
+ },
+ "groups": [
+  {
+   "name": "Satış ve stok",
+   "keys": [
+    "offline_sales",
+    "products_stock",
+    "lot_expiry",
+    "retail_depth",
+    "shared_catalog",
+    "excel_import"
+   ]
+  },
+  {
+   "name": "Cari ve finans",
+   "keys": [
+    "customer_credit",
+    "credit_reminders",
+    "purchase_invoices",
+    "loyalty",
+    "edocument",
+    "accounting_export"
+   ]
+  },
+  {
+   "name": "Raporlama",
+   "keys": [
+    "report_7d",
+    "cost_reports"
+   ]
+  },
+  {
+   "name": "Personel ve cihaz",
+   "keys": [
+    "multi_staff",
+    "customer_display",
+    "ecr_bridge"
+   ]
+  },
+  {
+   "name": "Erişim",
+   "keys": [
+    "web_app",
+    "mobile_app",
+    "auto_backup"
+   ]
+  },
+  {
+   "name": "Depo ve büyüme",
+   "keys": [
+    "wms_map",
+    "inbound_waybill",
+    "picking_shipping",
+    "transfers",
+    "count_approval",
+    "marketplace",
+    "online_store",
+    "open_api"
+   ]
+  },
+  {
+   "name": "Yapay zekâ",
+   "keys": [
+    "ai_assistant",
+    "ai_unlimited"
+   ]
+  }
+ ]
+}

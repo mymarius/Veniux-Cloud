@@ -21,7 +21,7 @@ router.get('/prices', async (req, res) => {
     if (!cache.body || Date.now() - cache.at > TTL_MS) {
       let catalogue;
       // Katalog kaydı henüz yoksa (ör. platform sahibi tanımlı değil) varsayılan katalog fiyatsız döner.
-      try { catalogue = await packages.catalogue(); } catch { catalogue = { ...structuredClone(packages.seed), revision: 0 }; }
+      try { catalogue = await packages.catalogue(); } catch { catalogue = require('../services/packageMerge').normalise({ ...structuredClone(packages.seed), revision: 0 }); }
       cache = { at: Date.now(), body: shape(catalogue) };
     }
     res.set('Cache-Control', 'public, max-age=60');

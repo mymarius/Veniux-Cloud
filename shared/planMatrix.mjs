@@ -38,3 +38,30 @@ export function entitlement({ plan, addons = [], now = Date.now(), cloudUntil = 
 }
 
 export const withinLimit = (value, limit) => limit == null || value <= limit;
+
+// ---- Web sitesi için Türkçe etiketler ve karşılaştırma grupları (tools/site/export-plans.mjs bunu JSON'a döker) ----
+export const FEATURE_LABELS = {
+  offline_sales: 'İnternetsiz barkodlu satış', products_stock: 'Ürün ve stok takibi', customer_credit: 'Müşteri veresiye takibi', report_7d: 'Günlük rapor (son 7 gün)',
+  auto_backup: 'Otomatik günlük yedek', ecr_bridge: 'Yazarkasa köprüsü', cost_reports: 'Kâr, maliyet ve tüm geçmiş raporlar', excel_import: 'Excel ile ürün aktarma ve dışa aktarma',
+  multi_staff: 'Sınırsız personel ve yetkilendirme', purchase_invoices: 'Alış faturası ve firma yönetimi', shared_catalog: 'Hazır barkodlu ürün kataloğu', lot_expiry: 'Lot ve son kullanma tarihi (miat)',
+  credit_reminders: 'Veresiye vade hatırlatması', loyalty: 'Sadakat puanı ve damga kartı', edocument: 'e-Fatura ve e-Arşiv', customer_display: 'Müşteri ekranı (ikinci monitör)',
+  retail_depth: 'Hırdavat, züccaciye ve butik özellikleri (ölçü/raf, takım, beden/renk)', mobile_app: 'Mobil uygulama (Android)', web_app: 'Web uygulaması', ai_assistant: 'İşletme asistanı (aylık 100 sorgu)',
+  ai_unlimited: 'Sınırsız asistan ve fatura okuma', wms_map: 'Koridor, raf ve göz haritası', inbound_waybill: 'İrsaliyeli mal kabul', picking_shipping: 'Toplama ve sevkiyat',
+  transfers: 'Depolar ve şubeler arası transfer', count_approval: 'Yönetici onaylı sayım farkı', marketplace: 'Pazaryeri bağlantıları', online_store: 'Online mağaza',
+  accounting_export: 'Muhasebe aktarımı', open_api: 'Açık API ve webhook'
+};
+export const FEATURE_GROUPS = [
+  ['Satış ve stok', ['offline_sales', 'products_stock', 'lot_expiry', 'retail_depth', 'shared_catalog', 'excel_import']],
+  ['Cari ve finans', ['customer_credit', 'credit_reminders', 'purchase_invoices', 'loyalty', 'edocument', 'accounting_export']],
+  ['Raporlama', ['report_7d', 'cost_reports']],
+  ['Personel ve cihaz', ['multi_staff', 'customer_display', 'ecr_bridge']],
+  ['Erişim', ['web_app', 'mobile_app', 'auto_backup']],
+  ['Depo ve büyüme', ['wms_map', 'inbound_waybill', 'picking_shipping', 'transfers', 'count_approval', 'marketplace', 'online_store', 'open_api']],
+  ['Yapay zekâ', ['ai_assistant', 'ai_unlimited']]
+];
+export const TAGLINES = {
+  lite: 'Mikro işletmeler için. Masraf yok, süre sınırı yok.',
+  pro: 'Satış, stok ve cariyi profesyonelce yöneten işletmeler için.',
+  lifetime_desktop: 'Tek bilgisayarda ömür boyu kullanmak isteyenler için; ilk yıl web ve mobil hediye.',
+  business_wms: 'Birden çok depo, şube ve kasa: depo yönetimi ve büyüme araçları.'
+};

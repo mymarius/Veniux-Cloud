@@ -9,6 +9,13 @@ function sitePlans(): array {
         'kurumsal'=>['name'=>'Kurumsal','license'=>'UNIFIED_ENTERPRISE','tag'=>'Çok şube, çok kullanıcı.','description'=>'Çok şubeli ve çok depolu operasyonlar için.','quarter'=>null,'from'=>true,'annual'=>53988,'warehouses'=>50,'users'=>250,'devices'=>100,'features'=>['İşletme paketindeki her şey (50 kasa)','Kurulum ve veri aktarımı desteği','Kapsam büyüdükçe fiyat teklifle netleşir','Daha yüksek depo, kullanıcı ve cihaz sınırları','Geniş ekiplerle ortak çalışma alanı']],
     ];
 }
+// Birleşik paket verisi: shared/planMatrix.mjs → tools/site/export-plans.mjs → plans.json (tek kaynak).
+function sitePlansV2(): array {
+    static $data=null;
+    if($data===null){$raw=@file_get_contents(__DIR__.'/plans.json');$data=$raw===false?null:json_decode($raw,true);if(!is_array($data)||!is_array($data['plans']??null))$data=['trial_days'=>30,'plans'=>[],'labels'=>[],'groups'=>[]];}
+    return $data;
+}
+function sitePricingV2(): bool { return getenv('VENIUX_PRICING_V2')==='1'; }
 function sitePlanSelection($value): ?array {
     if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide):yillik$/D',$value,$pack)) {
         $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)','online'=>'Online mağaza paketi (ek)'];

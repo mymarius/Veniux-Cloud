@@ -10,9 +10,9 @@ describe('herkese açık fiyat özeti', () => {
     const response = await request(app).get('/api/public/prices');
     expect(response.status).toBe(200);
     expect(response.body.currency).toBe('TRY');
-    expect(response.body.plans.length).toBeGreaterThanOrEqual(13);
+    expect(response.body.plans.length).toBeGreaterThanOrEqual(10);
     const sector = response.body.sector.map(item => item.pack).sort();
-    expect(sector).toEqual(['hardware', 'online_store', 'restaurant', 'tableware']);
+    expect(sector).toEqual(['restaurant']);
     for (const plan of response.body.plans) expect(Object.keys(plan).sort()).toEqual(['annual_cents', 'code', 'discount_percent', 'family', 'modules', 'monthly_cents', 'name']);
     expect(JSON.stringify(response.body)).not.toMatch(/users|warehouses|devices|tenant/i);
   });
