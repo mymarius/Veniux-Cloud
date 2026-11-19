@@ -4,11 +4,12 @@
 $asOf='Kasım 2026';
 $plans=sitePlans();
 $vPrice=fn(string $k)=>siteMoney($plans[$k]['annual']);
+$veniuxRange=sitePricingV2()?(function(){$d=sitePlansV2();$by=[];foreach($d['plans'] as $p)$by[$p['id']]=$p;return 'Lite ücretsiz · Pro '.siteMoney((int)$by['pro']['price_try']).' · Ömür boyu '.siteMoney((int)$by['lifetime_desktop']['price_try']).' tek ödeme · İşletme WMS '.siteMoney((int)$by['business_wms']['price_try']).', yıllık, KDV dahil';})():null;
 $ranges=[
  ['Tek ödemeli masaüstü kasa programları','Yaklaşık 16.000 – 58.000 ₺, bir kez','Süresiz lisans; destek ve ek şube çoğunlukla ayrı ücretli. İnternet olmadan da çalışır.'],
  ['Bulut kasa programları (abonelik)','Yaklaşık 6.000 – 7.500 ₺, yıllık, KDV dahil','Tarayıcıdan ya da uygulamadan; bazılarının ücretsiz sınırlı bir sürümü var.'],
  ['Bulut ön muhasebe programları','Yaklaşık 8.000 – 12.000 ₺, yıllık, çoğunda KDV hariç','e-Fatura, cari ve banka odaklı; kasa ve depo derinliği sınırlı olabilir.'],
- ['Veniux Cloud','Başlangıç '.$vPrice('baslangic').' · İşletme '.$vPrice('isletme').' · Kurumsal '.$vPrice('kurumsal').'’den, yıllık, KDV dahil','Kasa, depo, lot/miat ve sektör paketleri (hırdavat, züccaciye, restoran) ek.'],
+ ['Veniux Cloud',($veniuxRange??('Başlangıç '.$vPrice('baslangic').' · İşletme '.$vPrice('isletme').' · Kurumsal '.$vPrice('kurumsal').'’den, yıllık, KDV dahil')),'Kasa, depo, lot/miat ve sektör paketleri (hırdavat, züccaciye, restoran) ek.'],
 ];
 $questions=[
  ['İnternet kesilince satış yapılır mı?','Evet, sınırlı: nakit ve kart satışı cihazda saklanır, bağlantı gelince gönderilir. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalı.'],

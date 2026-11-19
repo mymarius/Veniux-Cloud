@@ -15,8 +15,18 @@ function sitePlansV2(): array {
     if($data===null){$raw=@file_get_contents(__DIR__.'/plans.json');$data=$raw===false?null:json_decode($raw,true);if(!is_array($data)||!is_array($data['plans']??null))$data=['trial_days'=>30,'plans'=>[],'labels'=>[],'groups'=>[]];}
     return $data;
 }
-function sitePricingV2(): bool { return getenv('VENIUX_PRICING_V2')==='1'; }
+// Yeni birleşik fiyat sayfası varsayılan AÇIK; VENIUX_PRICING_V2=0 ile eski sayfaya dönülür.
+function sitePricingV2(): bool { return getenv('VENIUX_PRICING_V2')!=='0'; }
 function sitePlanSelection($value): ?array {
+    if (sitePricingV2() && is_string($value) && preg_match('/^(lite|pro|lifetime_desktop|business_wms|restaurant_addon)(:yillik)?$/D',$value,$m)) {
+        $data=sitePlansV2();
+        if ($m[1]==='restaurant_addon') return ['code'=>'restaurant_addon','name'=>(string)($data['addon']['name']??'Pide ve Restoran').' (eklenti)','period'=>'Yıllık','amount_try'=>null,'tax'=>'Fiyat teklifle netleşir'];
+        foreach ($data['plans'] as $plan) if ($plan['id']===$m[1]) {
+            $period=$plan['period']==='once'?'Tek ödeme':($plan['period']==='forever'?'Süresiz':'Yıllık (12 ay)');
+            return ['code'=>$plan['id'],'name'=>(string)$plan['name'],'period'=>$period,'amount_try'=>(int)$plan['price_try'],'tax'=>'%20 KDV dahil'];
+        }
+        return null;
+    }
     if (is_string($value) && preg_match('/^(hirdavat|zuccaciye|pide):yillik$/D',$value,$pack)) {
         $names=['hirdavat'=>'Hırdavat paketi (ek)','zuccaciye'=>'Züccaciye paketi (ek)','pide'=>'Pide ve restoran paketi (ek)','online'=>'Online mağaza paketi (ek)'];
         return ['code'=>$value,'name'=>$names[$pack[1]],'period'=>'Yıllık (12 ay)','amount_try'=>siteSectorPrices()[$pack[1]],'tax'=>'%20 KDV dahil'];

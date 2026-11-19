@@ -74,7 +74,7 @@ function contactSubmit(array $config): array {
     if ($config['mail_enabled'] && filter_var($config['contact_email'],FILTER_VALIDATE_EMAIL) && filter_var($config['mail_from'],FILTER_VALIDATE_EMAIL) && !preg_match('/[\r\n]/',$config['contact_email'].$config['mail_from'].$email)) {
         $subject='=?UTF-8?B?'.base64_encode('Veniux — Yeni görüşme talebi').'?=';
         $body="Yeni görüşme talebi\n\nAd: {$name}\nE-posta: {$email}\nİşletme: {$company}\nÇözüm: {$interest}\nTalep: {$record['id']}\n".siteDemoDetails($record);
-        if ($selectedPlan) $body.="Paket: {$selectedPlan['name']} / {$selectedPlan['period']} / {$selectedPlan['amount_try']} TRY + KDV\n";
+        if ($selectedPlan) $body.="Paket: {$selectedPlan['name']} / {$selectedPlan['period']} / ".(($selectedPlan['amount_try']??null)===null?'teklifle':$selectedPlan['amount_try'].' TRY (KDV dahil)')."\n";
         $accepted=@mail($config['contact_email'],$subject,$body,['From'=>$config['mail_from'],'Reply-To'=>$email,'MIME-Version'=>'1.0','Content-Type'=>'text/plain; charset=UTF-8']);
         $record['notification_status']=$accepted?'transport_accepted':'failed';
         $record['notification_attempted_at']=gmdate('c');

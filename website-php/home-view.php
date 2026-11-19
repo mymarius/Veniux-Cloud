@@ -113,13 +113,21 @@ $steps=[
     <div id="fiyatlandirma" class="hx-ratecard">
       <div class="hx-rate-top"><span>VENİUX · FİYAT ETİKETİ</span><span>KDV DAHİL</span></div>
       <h2>Fiyat etiketi</h2>
+<?php if(sitePricingV2()): $pv=sitePlansV2(); ?>
+      <div class="hx-table-scroll"><table class="hx-table hx-ratetable">
+        <thead><tr><th scope="col">Paket</th><th scope="col">Fiyat</th><th scope="col">Depo</th><th scope="col">Personel</th></tr></thead>
+        <tbody><?php foreach($pv["plans"] as $plan): $price=$plan["price_try"]===0?"Ücretsiz":number_format((float)$plan["price_try"],0,",",".")." ₺".($plan["period"]==="once"?" tek ödeme":" / yıl"); ?><tr><th scope="row"><?=e($plan["name"])?></th><td><?=e($price)?></td><td><?=$plan["limits"]["warehouses"]===null?"Sınırsız":e((string)$plan["limits"]["warehouses"])?></td><td><?=$plan["limits"]["staff"]===0?"Yalnız yönetici":"Sınırsız"?></td></tr><?php endforeach;?></tbody>
+        <tbody class="hx-ratepacks"><tr><th scope="row">Pide ve restoran</th><td colspan="3">Eklenti · teklifle</td></tr></tbody>
+      </table></div>
+<?php else: ?>
       <div class="hx-table-scroll"><table class="hx-table hx-ratetable">
         <thead><tr><th scope="col">Paket</th><th scope="col">Yıllık</th><th scope="col">3 aylık</th><th scope="col">Depo</th><th scope="col">Kullanıcı</th></tr></thead>
         <tbody><?php foreach(sitePlans() as $plan):?><tr><th scope="row"><?=e($plan['name'])?></th><td><?=e(sitePrice($plan,true))?></td><td><?=e(sitePrice($plan,false))?></td><td><?=e((string)$plan['warehouses'])?></td><td><?=e((string)$plan['users'])?></td></tr><?php endforeach;?></tbody>
         <tbody class="hx-ratepacks"><tr><th scope="rowgroup" colspan="5">Sektör paketleri · genel pakete ek, yıllık</th></tr>
         <?php foreach(['hirdavat'=>'Hırdavat','zuccaciye'=>'Züccaciye','pide'=>'Pide ve restoran'] as $key=>$label):?><tr><th scope="row"><?=e($label)?></th><td colspan="4"><?=e(siteMoney(siteSectorPrices()[$key]))?> <small>· aylık <?=number_format(siteSectorPrices()[$key]/12,0,',','.')?> ₺</small></td></tr><?php endforeach;?></tbody>
       </table></div>
-      <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları ve sektör paketleri</a></p>
+<?php endif; ?>
+      <p class="hx-aside">%20 KDV dahil. <a href="/fiyatlandirma">Paketlerin farkları ve karşılaştırma</a></p>
       <?=homeBarcode('fiyat-etiketi',26)?>
     </div>
     <div class="hx-limits">

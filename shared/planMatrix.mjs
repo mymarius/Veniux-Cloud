@@ -59,6 +59,7 @@ export const FEATURE_GROUPS = [
   ['Depo ve büyüme', ['wms_map', 'inbound_waybill', 'picking_shipping', 'transfers', 'count_approval', 'marketplace', 'online_store', 'open_api']],
   ['Yapay zekâ', ['ai_assistant', 'ai_unlimited']]
 ];
+export const ADDON_LABELS = { tables: 'Masa ve salon planı', waiter: 'Garson sipariş ekranı (telefon ve dokunmatik)', kds: 'Mutfak ekranı ve sesli uyarı', courier: 'Paket ve motor kurye takibi', recipe_stock: 'Reçeteye göre hammadde stok düşümü' };
 export const TAGLINES = {
   lite: 'Mikro işletmeler için. Masraf yok, süre sınırı yok.',
   pro: 'Satış, stok ve cariyi profesyonelce yöneten işletmeler için.',
