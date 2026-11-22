@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const { redactString } = require('./diagnostics.cjs');
 
 const MAX_BYTES = 512 * 1024;
 
@@ -14,7 +15,7 @@ function createLogger(dir, now = () => new Date()) {
     try {
       fs.mkdirSync(dir, { recursive: true });
       try { if (fs.statSync(file).size > MAX_BYTES) fs.renameSync(file, old); } catch { /* dosya yok */ }
-      const text = args.map(a => (typeof a === 'string' ? a : util.inspect(a, { depth: 3, breakLength: Infinity }))).join(' ').slice(0, 4000);
+      const text = redactString(args.map(a => (typeof a === 'string' ? a : util.inspect(a, { depth: 3, breakLength: Infinity }))).join(' ')).slice(0, 4000);
       fs.appendFileSync(file, `${now().toISOString()} ${level} ${text}\n`);
     } catch { /* günlük yazılamazsa sessiz geç */ }
   }

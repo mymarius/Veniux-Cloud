@@ -32,3 +32,11 @@ test('install konsolu yansıtır, yazılamayan klasörde çökmez', () => {
   const bad = createLogger(path.join(dir, 'desktop.log', 'altinda'));
   assert.doesNotThrow(() => bad.write('INFO', ['x']));
 });
+
+test('günlük kişisel veriyi diske yazmadan maskeler', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vnx-log-'));
+  const log = createLogger(dir);
+  log.write('INFO', ['ali@example.com 0532 123 45 67 token=abc123secretXYZ Bearer abcdefgh12345678 TR330006100519786457841326']);
+  const text = fs.readFileSync(log.file, 'utf8');
+  for (const leak of ['ali@example.com', '123 45 67', 'abc123secretXYZ', 'abcdefgh12345678', '0006100519786457841326']) assert.ok(!text.includes(leak), leak);
+});

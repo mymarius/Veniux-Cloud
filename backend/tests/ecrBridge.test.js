@@ -59,6 +59,30 @@ test('cihaz hata verirse satış yine tamamlanır, iş failed kalır ve gün son
   expect(last.status).toBe(409);
 });
 
+test('hata veren cihaz düzelince iş tamamlanır; gün sonu engeli kalkar (hata -> düzelme)', async () => {
+  const t = await f.createTenant(); const w = await f.createWarehouse(t.tenantId); await f.openTestShift(t, w.id);
+  const A = r => r.set('Authorization', 'Bearer ' + t.token);
+  const dev = await A(request(app).post('/api/ecr/devices')).send({ brand: 'simulator', connection: 'simulated', name: 'Hata cihazı' });
+  expect(dev.status).toBe(201);
+  const code = 'ECR3-' + crypto.randomUUID();
+  const p = (await db.query("INSERT INTO products(tenant_id,sku,barcode,name,unit,sale_price,kdv_orani,module_type) VALUES($1,$2,$3,$4,'adet',10,10,'NORMAL') RETURNING id,barcode", [t.tenantId, code, code, 'Y'])).rows[0];
+  await db.query('INSERT INTO stock_records(tenant_id,warehouse_id,product_id,quantity) VALUES($1,$2,$3,5)', [t.tenantId, w.id, p.id]);
+  const sale = await A(request(app).post('/api/scanner/sale')).set('Idempotency-Key', crypto.randomUUID()).send({ warehouse_id: w.id, payment_method: 'cash', items: [{ barcode: p.barcode, count: 1 }] });
+  expect(sale.status).toBe(201);
+  expect((await A(request(app).post('/api/ecr/process'))).body).toMatchObject({ done: 0, failed: 1 });
+  expect((await A(request(app).get('/api/ecr/jobs'))).body.blocking).toBe(1);
+  // cihaz onarıldı (simülatörde adın değişmesi = hatanın kalkması)
+  await db.query("UPDATE ecr_devices SET name='Onarılmış cihaz' WHERE tenant_id=$1", [t.tenantId]);
+  const fixed = (await A(request(app).post('/api/ecr/process'))).body;
+  expect(fixed).toMatchObject({ done: 1, failed: 0 });
+  expect(fixed.results[0].fiscal_receipt_no).toMatch(/^SIM-\d{6}$/);
+  const jobs = (await A(request(app).get('/api/ecr/jobs'))).body;
+  expect(jobs.blocking).toBe(0);
+  expect(jobs.counts).toMatchObject({ failed: 0, done: 1 });
+  const meta = (await db.query('SELECT okc_status FROM pos_sale_meta WHERE sale_id=$1', [Number(sale.body.sale_id)])).rows[0];
+  expect(meta.okc_status).toBe('done');
+});
+
 test('üretici sürücüsü kurulu değilse açık hata; yetki ve doğrulama', async () => {
   expect((await auth(request(app).post('/api/ecr/devices')).send({ brand: 'bilinmeyen', connection: 'usb', name: 'X1' })).status).toBe(400);
   expect((await auth(request(app).post('/api/ecr/devices')).send({ brand: 'hugin', connection: 'serial', name: 'Hugin 1' })).status).toBe(201);

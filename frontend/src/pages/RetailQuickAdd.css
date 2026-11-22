@@ -15,7 +15,7 @@
 .rq-steps li[data-state='done'] { background: #e6f6f3; color: #1b8e83; }
 
 .rq-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
-.rq-main { display: grid; gap: 16px; min-width: 0; }
+.rq-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
 .rq-card { padding: 20px 22px; border-radius: 16px; background: #fff; border: 1px solid #e3e9f0; box-shadow: 0 4px 16px rgba(35,51,78,.04); }
 .rq-alert { margin: 0 0 16px; padding: 13px 16px; border-radius: 12px; background: #fdeeee; color: #a23f3f; font-size: 13px; }
 .rq-empty-store { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 16px; color: var(--color-brand-500); }
@@ -95,7 +95,7 @@
 @keyframes rq-scan { from { left: 0; } to { left: 60%; } }
 
 @media (max-width: 960px) {
-  .rq-grid { grid-template-columns: 1fr; }
+  .rq-grid { grid-template-columns: minmax(0, 1fr); }
   .rq-side { position: static; }
 }
 @media (max-width: 560px) {
