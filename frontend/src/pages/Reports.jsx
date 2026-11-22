@@ -5,6 +5,7 @@ import api from '../api/client';
 import { readSessionUser } from '../lib/sessionUser';
 import RetailDayReport from '../components/RetailDayReport';
 import RetailGrossProfitReport from '../components/RetailGrossProfitReport';
+import ProfitAnalysis from '../components/ProfitAnalysis';
 import RetailInsights from '../components/RetailInsights';
 import CashierEvents from '../components/CashierEvents';
 import TogetherReport from '../components/TogetherReport';
@@ -69,6 +70,7 @@ export default function Reports() {
       {current === 'gunluk' && warehouse && <RetailDayReport key={'day-' + warehouse} warehouse={warehouse} canClose={false} />}
       {current === 'gunluk' && warehouse && <p className="text-xs text-slate-500">Günü kapatmak için kasa ekranındaki “Satış geçmişi ve gün sonu” bölümünü kullanın.</p>}
       {current === 'kar' && manager && warehouse && <RetailGrossProfitReport key={'profit-' + warehouse} warehouse={warehouse} />}
+      {current === 'kar' && manager && warehouse && <ProfitAnalysis key={'analysis-' + warehouse} warehouse={warehouse} />}
       {current === 'analiz' && manager && <RetailInsights />}
       {current === 'birlikte' && manager && <TogetherReport />}
       {current === 'hareket' && manager && <CashierEvents />}

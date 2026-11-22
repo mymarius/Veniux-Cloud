@@ -28,3 +28,11 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 - Arayüz: `pages/BusinessTasks.jsx`, rota `/gorevler`, menüde "İş görevleri" (Genel grubu; CRM "Görevler"inden ayrı). Gerçek tarayıcıda atama, vade vurgusu ve "Bitti" denendi.
 - Test: `backend/tests/businessTasks.test.js` (6 test).
 - Sınır: bildirim/WhatsApp hatırlatması yok (yalnız ekranda vurgu); menü rozeti için `GET /tasks/badge` hazır, arayüze bağlanmadı.
+
+## 4. Kâr raporları — YAPILDI
+- Zaten vardı: günlük/haftalık/aralık brüt kâr (`retailProfitService`, `GET /scanner/gross-profit`, CSV/Excel). Maliyet, KDV ve lot ağırlıklı ortalama (satışta sabitlenen `cost_snapshot`) hesabı **yeniden yazılmadı**; yeni katman bu satırları toplar.
+- Yeni: `profitAnalysisService` + `GET /api/scanner/profit-analysis` (admin/manager; kasiyer 403): tarih aralığı (varsayılan son 30 gün, en çok 1 yıl), depo/kategori/ürün süzgeci, gruplama ürün/kategori/gün/hafta(pazartesi)/ay, KDV hariç net satış, maliyet, brüt kâr, **kâr marjı %**, en kârlı ve zarar eden ürünler, `format=csv` dışa aktarma (BOM, `;`, formül enjeksiyonu kaçışı).
+- Maliyeti/KDV temeli bilinmeyen satırlar kâra ve marja katılmaz (sıfır sanılmasın), "eksik maliyet" olarak sayılır ve KDV dahil net satışları uyarıda gösterilir.
+- Arayüz: Raporlar › Kâr sekmesinde mevcut brüt kâr tablosunun altına `ProfitAnalysis` bölümü. Gerçek tarayıcıda 2 ürünle (kârlı/zararlı) denendi, sayılar elle hesapla tuttu.
+- Paket kısıtı (Pro ve üstü) ve `VENIUX_PLAN_ENFORCE` değiştirilmedi. Yeni tablo yok.
+- Test: `backend/tests/profitAnalysis.test.js` (5 test) + mevcut `retailProfit.test.js` yeşil.

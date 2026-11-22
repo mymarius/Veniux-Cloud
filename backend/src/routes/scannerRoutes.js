@@ -117,6 +117,15 @@ router.get('/gross-profit',requireRole('admin','manager'),async(req,res,next)=>{
     }
   }catch(e){next(e);}
 });
+router.get('/profit-analysis',requireRole('admin','manager'),async(req,res,next)=>{
+  try {
+    const s=require('../services/profitAnalysisService'),data=await s.analyze(req.user,req.query);
+    if(req.query.format===undefined)return res.json(data);
+    if(req.query.format!=='csv')service.fail('Dışa aktarma biçimi CSV olmalıdır.');
+    const cell=v=>'"'+(typeof v==='number'?v.toFixed(2).replace('.',','):String(typeof v==='string'&&/^[=+@\-\t\r\n]/.test(v.trimStart())?"'"+v:v)).replace(/"/g,'""')+'"';
+    res.attachment(`kar-analizi_${data.group_by}_${data.from}_${data.to}.csv`).type('text/csv; charset=utf-8').send('﻿'+s.exportRows(data).map(r=>r.map(cell).join(';')).join('\r\n'));
+  }catch(e){next(e);}
+});
 router.post('/day-close',async(req,res,next)=>{try{res.json(await require('../services/retailReportingService').closeDay(req.user,req.body,req.get('Idempotency-Key')));}catch(e){next(e);}});
 router.get('/search',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{const q=String(req.query.q||'').trim();if(q.length<2||q.length>100)return res.json([]);const {ciLike}=require('../services/sqlSearch');const rows=(await db.query("SELECT id,name,barcode,sku,sale_price,unit,COALESCE((SELECT SUM(quantity) FROM stock_records WHERE product_id=products.id),0) AS total_quantity FROM products WHERE tenant_id=$1 AND module_type='NORMAL' AND ("+ciLike('name','$2')+" OR "+ciLike('sku','$2')+" OR "+ciLike('barcode','$2')+") ORDER BY name LIMIT 20",[req.user.tenantId,'%'+q+'%'])).rows;
   // Adet stoklu ama kiloyla/metreyle satılabilen ürün: kasada ölçü penceresi açılsın diye ölçü birimi bildirilir.
