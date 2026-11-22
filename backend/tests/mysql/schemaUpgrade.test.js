@@ -26,9 +26,8 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   await c.query("INSERT INTO edocuments (id,tenant_id,sale_id,document_type,status,payload) VALUES ('eski-1',?,'S1','E_ARSIV','draft','{}')", [tenant.id]);
   const [triggersBefore] = await c.query('SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() ORDER BY 1');
 
-  // "Eski kurulum": son sürümün tabloları ve kaydı yok (030: dövizli fiyat)
-  await c.query('DROP TABLE product_currency_prices');
-  await c.query('DROP TABLE exchange_rates');
+  // "Eski kurulum": son sürümün tablosu ve kaydı yok (031: müşteri fiyat kuralı)
+  await c.query('DROP TABLE customer_price_rules');
   await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
   const migrator = new MySQLMigrator(c);
   expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
@@ -36,14 +35,19 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   const state = await migrator.upgradeAdditive();
   expect(state).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
 
-  const [[table]] = await c.query("SELECT COUNT(*) n FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('ecr_devices','ecr_jobs','product_price_tiers','exchange_rates','product_currency_prices')");
-  expect(Number(table.n)).toBe(5);
+  const [[table]] = await c.query("SELECT COUNT(*) n FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('ecr_devices','ecr_jobs','product_price_tiers','exchange_rates','product_currency_prices','customer_price_rules')");
+  expect(Number(table.n)).toBe(6);
   const [[doc]] = await c.query("SELECT status,sale_id FROM edocuments WHERE id='eski-1'");
   expect(doc).toEqual({ status: 'draft', sale_id: 'S1' });
   const [[owner]] = await c.query('SELECT company_name FROM tenants WHERE id=?', [tenant.id]);
   expect(owner.company_name).toBe('Eski Müşteri');
   const [triggersAfter] = await c.query('SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() ORDER BY 1');
   expect(triggersAfter).toEqual(triggersBefore);
+
+  // Yükseltilmiş müşteri fiyat kuralı tablosu çalışıyor: cari hesap başına tek kural
+  const [acc] = await c.query("INSERT INTO retail_credit_accounts (tenant_id,name) VALUES (?,'Kural Müşterisi')", [tenant.id]);
+  await c.query('INSERT INTO customer_price_rules (tenant_id,account_id,price_tier,discount_percent) VALUES (?,?,2,10)', [tenant.id, acc.insertId]);
+  await expect(c.query('INSERT INTO customer_price_rules (tenant_id,account_id,price_tier,discount_percent) VALUES (?,?,3,5)', [tenant.id, acc.insertId])).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
 
   // Yükseltilmiş dövizli fiyat tabloları çalışıyor: kur ve ürün fiyatı eklenir, aynı kur/ürün ikinci kez eklenemez
   await c.query("INSERT INTO exchange_rates (tenant_id,currency,rate_try) VALUES (?,'USD',38.5)", [tenant.id]);

@@ -1,8 +1,22 @@
 {
-  "version": "2.4.100",
+  "version": "2.4.101",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.101",
+      "date": "22 Kasım 2026",
+      "title": "Kasa açılış düzeltmesi, müşteri fiyat kuralı ve kasada döviz seçimi",
+      "items": [
+        "- Kasa ekranının bazı kurulumlarda açılmaması düzeltildi",
+        "- Müşteri fiyat kuralı: cari hesaba fiyat türü (perakende, toptan, özel) ve yüzde iskonto bağlanır; kasada müşteri seçilince fiyatlar kendiliğinden uygulanır",
+        "- Kasada para birimi seçimi: toplamın döviz karşılığı görünür, fişe yazılır",
+        "- Çevrimdışı satışta fiyat türü, müşteri kuralı ve dövizli fiyat da uygulanır; eşitlemede sunucu fiyatı farklıysa uyuşmazlık kaydedilir",
+        "- Ana grup seçilince alt grup ürünleri de kasada listelenir",
+        "- Yazarkasadan dönen mali fiş numarası satış kaydına yazılır",
+        "- Hızlı nakit düğmesinden sonra tuş takımı tutarı bozmaz; dar ekranda ödeme penceresi düzeltildi"
+      ]
+    },
     {
       "version": "2.4.100",
       "date": "19 Kasım 2026",
