@@ -1,8 +1,19 @@
 {
-  "version": "2.4.102",
+  "version": "2.4.103",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.103",
+      "date": "22 Kasım 2026",
+      "title": "Veniux Tanılama",
+      "items": [
+        "- Ayarlar › Sistem sekmesine \"Veniux Tanılama\" eklendi: bellek, disk, veritabanı, yedek, internet, bulut ve lisans merkezi erişimi, lisans durumu, eşitleme ve çevrimdışı kuyruğu gerçek ölçümlerle denetler",
+        "- Hızlı ve tam tarama, tek testi yeniden deneme, iptal; ölçülemeyen şeyler hata sayılmaz, her sorunun yanında öneri görünür; son 20 tarama saklanır",
+        "- Barkod okuyucu testi, yazıcıya deneme fişi ve ÖKC simülatörü denemesi",
+        "- Destek paketi: sonuçlar tek dosyada, parola, anahtar, e-posta, telefon, IBAN ve müşteri bilgileri silinerek kaydedilir; dosya kendiliğinden gönderilmez"
+      ]
+    },
     {
       "version": "2.4.102",
       "date": "22 Kasım 2026",
