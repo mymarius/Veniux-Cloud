@@ -14,7 +14,7 @@ function e(string $value): string { return htmlspecialchars($value, ENT_QUOTES |
 require_once __DIR__.'/whatsapp.php';
 
 $pages = [
- '/surum-arsivi' => ['title'=>'Windows ve Android Sürüm Arşivi | Veniux Cloud','description'=>'Veniux Windows ve Android kurulum paketlerini sürüm numarası, dosya boyutu ve SHA-256 özetiyle inceleyin.','label'=>'Sürüm arşivi','headline'=>'','intro'=>''],
+ '/surum-arsivi' => ['indexable'=>false,'title'=>'Windows ve Android Sürüm Arşivi | Veniux Cloud','description'=>'Veniux Windows ve Android kurulum paketlerini sürüm numarası, dosya boyutu ve SHA-256 özetiyle inceleyin.','label'=>'Sürüm arşivi','headline'=>'','intro'=>''],
  '/sunucu-kurulumu' => ['title'=>'Veniux Kurulum Seçenekleri | Otomatik ve Ayrı Sunucu','description'=>'Veniux Windows kurulumunda otomatik yerel kurulum veya ayrı sunucu bağlantısını seçin. Hostimux sponsorlu tanıtımı ve sunucu hazırlık adımları.','label'=>'Sunucu kurulumu','headline'=>'','intro'=>''],
  '/guncelleme-notlari' => ['title'=>'Güncelleme Notları | Veniux Windows ve Android','description'=>'Veniux Windows, Android, site ve API güncelleme geçmişi. Yeni özellikleri, güncellenen işlevleri ve sürüm düzeltmelerini tarihleriyle inceleyin.','label'=>'Güncelleme notları','headline'=>'','intro'=>''],
  '/program-indir' => ['title'=>'Veniux İndir | Windows Stok Programı ve Android Uygulaması','description'=>'Veniux Windows stok ve depo programını, Android telefon/tablet uygulamasını indirin. Aynı işletme kayıtları, yerel ağ bağlantısı ve lisanslı kullanım.','label'=>'PROGRAM İNDİR','headline'=>'Bilgisayarda yönet.<br>Mobilde <em>takip et.</em>','intro'=>'Windows stok ve depo programı. Bilgisayardaki aynı verilere bağlanan Android telefon ve tablet uygulaması.'],
@@ -181,7 +181,7 @@ if ($notFound) {
     $page=$pages[$path];
 }
 
-$indexable = $config['indexable'] && !$notFound;
+$indexable = $config['indexable'] && !$notFound && (($page['indexable'] ?? true) !== false);
 header('X-Robots-Tag: '.($indexable?'index, follow':'noindex, nofollow'));
 
 $solutions=[

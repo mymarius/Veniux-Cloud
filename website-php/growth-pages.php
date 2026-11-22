@@ -13,7 +13,7 @@ return [
    ['Okuma ile stok hareketini ayırın','Barkodu bulmak tek başına giriş, satış veya transfer değildir. Veniux’ta ilgili ürünün kaydını inceleyip yapılacak işlemi ayrıca seçersiniz. Kabulde depo ve miktarı; satışta ürün ve adedi kontrol edin.'],
    ['İlk denemeyi küçük bir ürün grubunda yapın','Bir ürünün barkodunu eşleştirin, açılış miktarını doğrulayın ve bir kabul örneği kaydedin. Ardından satış ve iade hareketlerini inceleyin. Aynı gönderimi tekrar denemek yeni stok düşümü oluşturmamalıdır.'],
    ['Hangi bağlantı kullanılacak?','USB/HID, seri okuyucu ve telefon kamerası farklı kullanım yollarıdır. Veniux’un Android ve Windows akışları geçerli lisans ve yetkilere bağlıdır. Kullanacağınız okuyucunun modeli, bağlantısı ve sonlandırma ayarı gerçek cihazda ayrıca doğrulanmalıdır.'],
-  ],'related'=>['/stok-yonetimi'=>'Ürün ve stok yönetimi','/depo-yonetimi'=>'Mal kabul ve depo','/el-terminali-depo-yonetimi'=>'Terminal iş akışı'],
+  ],'related'=>['/stok-yonetimi'=>'Ürün ve stok yönetimi','/depo-yonetimi'=>'Mal kabul ve depo','/el-terminali-depo-yonetimi'=>'Terminal iş akışı','/stok-programlari-karsilastirma'=>'Program seçerken'],
  ],
  '/son-kullanma-tarihi-takibi'=>[
   'title'=>'Son Kullanma Tarihi Takibi ve Stok Kontrolü | Veniux',
@@ -41,7 +41,7 @@ return [
    ['Konum bilgisini hareketle birlikte kaydedin','Raf transferinde kaynak ve hedef lokasyonun doğru olması gerekir. Yanlış depoya ait bir konum seçilirse işlem kaydını düzeltmeden devam etmeyin. Sayımda güncel kayıtla fiziksel miktarı karşılaştırın.'],
    ['Telefon bağlantısı ve lisans sınırını planlayın','Android bağlantısını işletmenizin yerel veya ayrı sunucu kurulumuna göre değerlendirin. Merkezi lisans doğrulanamadığında işlemler kapanır; kesintisiz çevrimdışı çalışma vaadi verilmez. Kullanıcı ve depo yetkileri terminal işlemlerinde de geçerlidir.'],
    ['Gerçek cihaz kabulünü ayrı yapın','Cihazın Android sürümü, okuyucu bağlantısı, klavye sonlandırması ve ekran ölçüsünü test edin. Eldivenle kullanım, bağlantı kopması ve tekrar gönderim senaryolarını doğrulayın. Bu sayfa bütün cihazlarda sürücüsüz uyumluluk iddia etmez.'],
-  ],'related'=>['/depo-yonetimi'=>'Depo yönetimi','/barkodlu-stok-takibi'=>'Barkod eşleştirme','/program-indir'=>'Windows ve Android kurulumu'],
+  ],'related'=>['/depo-yonetimi'=>'Depo yönetimi','/barkodlu-stok-takibi'=>'Barkod eşleştirme','/program-indir'=>'Windows ve Android kurulumu','/stok-programlari-karsilastirma'=>'Program seçerken'],
  ],
  '/sayim-farki-nasil-bulunur'=>[
   'title'=>'Mağaza ve Depoda Sayım Farkı Nasıl Bulunur? | Veniux',
@@ -87,6 +87,6 @@ return [
    ['4. Raf etiketlerini basın','Etiket Atölyesi’nde barkodu okutun, 100 × 40 mm raf etiketini bilgisayardaki yazıcıya gönderin. Yazıcının Windows sürücüsü kurulu olmalıdır.'],
    ['5. İlk sayımı yapın','Bir koridoru kör sayımla sayın, farkı yetkili onayıyla işleyin. Fark az çıkıyorsa kalan koridorlara geçin.'],
    ['6. Kasayı ve uyarıları açın','Barkodlu satışı küçük bir sepetle deneyin; minimum stok seviyelerini girin ki kritik stok uyarısı ve sipariş önerisi çalışsın.'],
-  ],'related'=>['/stok-yonetimi'=>'Stok yönetimi','/barkodlu-stok-takibi'=>'Barkodlu stok takibi','/sayim-farki-nasil-bulunur'=>'Sayım farkı rehberi','/fiyatlandirma'=>'Fiyatlar'],
+  ],'related'=>['/stok-yonetimi'=>'Stok yönetimi','/barkodlu-stok-takibi'=>'Barkodlu stok takibi','/sayim-farki-nasil-bulunur'=>'Sayım farkı rehberi','/fiyatlandirma'=>'Fiyatlar','/stok-programlari-karsilastirma'=>'Program seçerken'],
  ],
 ];
