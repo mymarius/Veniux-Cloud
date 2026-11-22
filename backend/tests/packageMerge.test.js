@@ -27,7 +27,7 @@ describe('Paket birleştirme', () => {
 
   it('önerilen fiyat yalnız fiyat girilmemişse görünür; sahibin fiyatı korunur', () => {
     const c = base();
-    expect(normalise(c) && byCode(normalise(c), 'RETAIL_PRO').annual_cents).toBe(649000);
+    expect(normalise(c) && byCode(normalise(c), 'RETAIL_PRO').annual_cents).toBe(799000);
     byCode(c, 'RETAIL_PRO').annual_cents = 400000;
     byCode(c, 'RETAIL_PRO').monthly_cents = 40000;
     const n = normalise(c);

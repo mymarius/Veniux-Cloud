@@ -46,8 +46,8 @@
    "id": "pro",
    "name": "Veniux Pro",
    "tagline": "Satış, stok ve cariyi profesyonelce yöneten işletmeler için.",
-   "price_try": 6490,
-   "monthly_try": 699,
+   "price_try": 7990,
+   "monthly_try": 849,
    "period": "year",
    "limits": {
     "desktop": 1,
@@ -84,7 +84,7 @@
    "id": "lifetime_desktop",
    "name": "Veniux Ömür Boyu Masaüstü",
    "tagline": "Tek bilgisayarda ömür boyu kullanmak isteyenler için; ilk yıl web ve mobil hediye.",
-   "price_try": 12990,
+   "price_try": 15990,
    "monthly_try": null,
    "period": "once",
    "limits": {
@@ -122,7 +122,7 @@
    "id": "business_wms",
    "name": "Veniux İşletme WMS",
    "tagline": "Birden çok depo, şube ve kasa: depo yönetimi ve büyüme araçları.",
-   "price_try": 16900,
+   "price_try": 21900,
    "monthly_try": null,
    "period": "year",
    "limits": {

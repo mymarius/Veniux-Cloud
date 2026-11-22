@@ -79,6 +79,12 @@ function vp_migrate(PDO $pdo): void {
         $pdo->exec("UPDATE products SET active=0, featured=0 WHERE code='lite'");
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','5') ON DUPLICATE KEY UPDATE svalue='5'");
     }
+    if($version<6){
+        // v6: yeni fiyatlar (KDV dahil, kuruş). Yalnız eski varsayılan fiyatta duran paketler güncellenir; yönetici elle değiştirdiyse dokunulmaz.
+        $upd=$pdo->prepare('UPDATE products SET price=? WHERE code=? AND price=?');
+        foreach([['pro',799000,649000],['lifetime_desktop',1599000,1299000],['business_wms',2190000,1690000]] as [$code,$new,$old])$upd->execute([$new,$code,$old]);
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','6') ON DUPLICATE KEY UPDATE svalue='6'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {
