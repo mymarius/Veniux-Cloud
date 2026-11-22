@@ -52,3 +52,13 @@ Demo hesap betiği (`panel-demo.php`) güvenlik nedeniyle bu yayın paketine kon
 - Müşteriler sitedeki `/giris` ve `/kayit` hesaplarıyla panele girer; eski `/hesap` ve `/indir` adresleri yeni panele yönlenir.
 - Kart bilgisi sunucuya gelmez (iyzico ödeme sayfası, PayTR iframe). Kartla ödeme onaylanınca fatura ödenir ve lisans kendiliğinden açılır/uzar.
 - Güvenlik duvarında tek istisna: `/odeme/iyzico/donus` adresine iyzico'dan gelen yönlendirme; sonuç sunucudan iyzico'ya sorularak doğrulanır.
+
+## Lisans merkezi bağlantısı (programda etkinleşen anahtarlar)
+
+Panelde ödenen lisans, lisans merkezinde (api.veniux.com) gerçek `VNX-` anahtarıyla açılır; yenileme, yükseltme, askıya alma, iptal ve cihaz sıfırlama merkeze otomatik yansır. Bunun için panelin veri klasörüne (`.local/veniux-panel/`) `authority.json` koyun:
+
+```json
+{"dsn":"mysql:host=127.0.0.1;dbname=veniux_authority;charset=utf8mb4","user":"panel_lisans","password":"..."}
+```
+
+Kullanıcıya yalnız `licenses` (SELECT, INSERT, UPDATE), `devices` (SELECT, DELETE) ve `audit` (INSERT) tablolarında yetki verin; root kullanmayın. Dosya yoksa köprü kapalıdır ve panelin ürettiği anahtarlar programda **etkinleşmez**. Merkeze ulaşılamazsa lisans yine açılır, saatlik `panel-cron.php` eksik kalanı tamamlar. Paket eşlemesi: Lite → STARTER_ANNUAL, Pro ve Ömür Boyu → BUSINESS_ANNUAL, İşletme WMS → ENTERPRISE_ANNUAL; sınırsız cihaz 50 terminal olarak yazılır.

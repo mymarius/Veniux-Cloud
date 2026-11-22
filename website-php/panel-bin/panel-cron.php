@@ -5,6 +5,7 @@ declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require __DIR__.'/../panel-core/bootstrap.php';
 require __DIR__.'/../panel-core/payments.php';
+require __DIR__.'/../panel-core/authority-sync.php';
 require __DIR__.'/../panel-core/notify.php';
 $r=vp_automation(true);
 echo 'Yenileme faturası: '.$r['renewals'].', süresi dolan: '.$r['expired'].', askıya alınan: '.$r['suspended']."\n";

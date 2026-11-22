@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Şifre terminalden sorulur (ekrana yazılmaz) veya VENIUX_ADMIN_PASSWORD ortam değişkeninden okunur.
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require __DIR__.'/../panel-core/bootstrap.php';
+require __DIR__.'/../panel-core/authority-sync.php';
 [$_, $email, $name, $role]=array_pad($argv,4,null);
 $email=strtolower(trim((string)$email));$role=$role?:'yonetici';
 if(!filter_var($email,FILTER_VALIDATE_EMAIL)||!in_array($role,['yonetici','muhasebe','destek'],true)){fwrite(STDERR,"Kullanım: php bin/panel-admin.php eposta \"Ad Soyad\" [yonetici|muhasebe|destek]\n");exit(1);}

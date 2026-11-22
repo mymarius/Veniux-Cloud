@@ -67,6 +67,13 @@ function vp_migrate(PDO $pdo): void {
         if(!in_array('notify_whatsapp',$cols,true))$pdo->exec('ALTER TABLE clients ADD notify_whatsapp TINYINT(1) NOT NULL DEFAULT 1 AFTER notify_email');
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','3') ON DUPLICATE KEY UPDATE svalue='3'");
     }
+    if($version<4){
+        // v4: lisans merkezi köprüsü. Merkezin anahtarı VNX- + 48 onaltılık (52 karakter); merkezdeki kayıt numarası ve son eşitlenen durum özeti.
+        $cols=array_column($pdo->query('SHOW COLUMNS FROM licenses')->fetchAll(PDO::FETCH_ASSOC),'Field');
+        $pdo->exec('ALTER TABLE licenses MODIFY license_key VARCHAR(64) NOT NULL');
+        if(!in_array('authority_id',$cols,true))$pdo->exec("ALTER TABLE licenses ADD authority_id INT UNSIGNED NULL, ADD authority_hash VARCHAR(40) NOT NULL DEFAULT ''");
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','4') ON DUPLICATE KEY UPDATE svalue='4'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {
@@ -149,6 +156,11 @@ function vp_insert(string $table,array $data): int {
 function vp_update(string $table,int $id,array $data): void {
     if(!$data)return;
     vp_q('UPDATE '.$table.' SET '.implode(',',array_map(fn($c)=>$c.'=?',array_keys($data))).' WHERE id=?',[...array_values($data),$id]);
+    // Lisans değişince lisans merkezine yansıt (merkez ayarlı değilse hiçbir şey yapmaz).
+    if($table==='licenses'&&function_exists('vp_authority_sync')&&!array_key_exists('authority_hash',$data)){
+        if(array_key_exists('devices_used',$data)&&(int)$data['devices_used']===0)vp_authority_reset_devices($id);
+        if(array_intersect(array_keys($data),['status','expires_at','device_limit','product_id','period']))vp_authority_sync($id);
+    }
 }
 function vp_setting(string $key,string $default=''): string {
     if(!isset($GLOBALS['vp_settings']))$GLOBALS['vp_settings']=array_column(vp_all('SELECT skey,svalue FROM settings'),'svalue','skey');
@@ -301,6 +313,7 @@ function vp_fulfil_order(int $orderId): void {
     $now=vp_now();
     if($o['kind']==='yeni'){
         $lid=vp_insert('licenses',['client_id'=>$o['client_id'],'product_id'=>$p['id'],'license_key'=>vp_license_key(),'status'=>'aktif','period'=>$p['period'],'price'=>$p['renew_price']??$p['price'],'starts_at'=>$now,'expires_at'=>vp_add_period($now,$p['period']),'device_limit'=>$p['device_limit'],'created_at'=>$now]);
+        if(function_exists('vp_authority_issue'))vp_authority_issue($lid); // merkezde gerçek anahtar üretir; başarısızsa cron yeniden dener
         vp_update('orders',$orderId,['license_id'=>$lid,'status'=>'onaylandi']);
         vp_q('UPDATE invoices SET license_id=? WHERE id=?',[$lid,$o['invoice_id']]);
         if(function_exists('vp_notify_license'))vp_notify_license('license_activated',$lid,['dedupe'=>'lic:'.$lid]);
@@ -359,6 +372,7 @@ function vp_automation(bool $force=false): array {
     if(function_exists('vp_notify_license'))foreach($expIds as $lid)vp_notify_license('license_suspended',(int)$lid,['dedupe'=>'lsus:'.$lid.':'.gmdate('Ymd')]);
     $grace=gmdate('Y-m-d H:i:s',time()-86400*max(0,(int)vp_setting('suspend_after_days','10')));
     $done['suspended']=vp_q("UPDATE licenses SET status='askida' WHERE status='suresi_doldu' AND expires_at<?",[$grace])->rowCount();
+    if(function_exists('vp_authority_sync_all')){try{vp_authority_sync_all();}catch(Throwable $t){error_log('[veniux-panel] lisans merkezi eşitleme: '.$t->getMessage());}}
     if(function_exists('vp_notify_reminders')){try{vp_notify_reminders();}catch(Throwable $t){error_log('[veniux-panel] reminders: '.$t->getMessage());}}
     if(array_sum($done)>0)vp_log('sistem',null,'Otomasyon','Otomasyon çalıştı',"Yenileme faturası: {$done['renewals']}, süresi dolan: {$done['expired']}, askıya alınan: {$done['suspended']}");
     return $done;

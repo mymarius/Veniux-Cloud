@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/bootstrap.php';
 require_once __DIR__.'/ui.php';
 require_once __DIR__.'/accounts-bridge.php';
+require_once __DIR__.'/authority-sync.php';
 require_once __DIR__.'/payments.php';
 require_once __DIR__.'/notify.php';
 require_once __DIR__.'/admin.php';
