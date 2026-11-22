@@ -34,7 +34,12 @@ router.get('/whatsapp',requireRole('admin'),(req,res)=>res.set('Cache-Control','
 router.post('/whatsapp/connect',requireRole('admin'),whatsappLimit,(req,res)=>res.set('Cache-Control','no-store').json(whatsapp().connect(req.user.tenantId)));
 router.post('/whatsapp/disconnect',requireRole('admin'),whatsappLimit,async(req,res,next)=>{try{await whatsapp().disconnect(req.user.tenantId);res.json({status:'disconnected'});}catch(e){next(e);}});
 router.post('/whatsapp/test',requireRole('admin'),whatsappLimit,async(req,res,next)=>{try{
- const result=await whatsapp().send(req.user.tenantId,'Veniux WhatsApp bildirim bağlantınız hazır. İşlem tamamlanma ve hata bildirimlerini bu numaradan alabilirsiniz.');
+ const testText='Veniux WhatsApp bildirim bağlantınız hazır. İşlem tamamlanma ve hata bildirimlerini bu numaradan alabilirsiniz.';
+ const cloud=require('../services/whatsappCloudService');
+ // Resmî Cloud API ayarlıysa deneme de onunla gider (gerçek bildirimlerle aynı yol); yoksa eski bağlı oturum.
+ const result=cloud.configured()
+  ?await cloud.send((await require('../config/database').query('SELECT owner_phone FROM tenants WHERE id=$1',[req.user.tenantId])).rows[0]?.owner_phone,testText)
+  :await whatsapp().send(req.user.tenantId,testText);
  await require('../config/database').query('INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,details) VALUES ($1,$2,$3,$4,$5)',[req.user.tenantId,req.user.email,'owner_whatsapp_test','notification',JSON.stringify({status:result.status})]);
  res.json(result);
 }catch(e){next(e);}});
