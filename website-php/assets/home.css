@@ -1350,3 +1350,16 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 /* Ana sayfa CTA: üç düğme aynı yükseklikte ve ortalı hizalı ("Hemen arayın" kayması) */
 .hx-cta-main .hx-btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:54px;line-height:1.2}
 @media(min-width:641px){.hx-cta-main{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;max-width:588px}.hx-cta-main .hx-btn-call{grid-column:1/-1}}
+
+/* Örnek senaryolar ve pilot programı (gerçek müşteri anlatımı değildir) */
+.hx-scen{padding:64px 0}
+.hx-scen-note{display:inline-block;margin:0 0 14px;padding:6px 12px;border:1px dashed var(--ink);font-size:12.5px;font-weight:700;letter-spacing:.14em;color:var(--ink)}
+.hx-scen-lead{max-width:46em;color:var(--ink-soft);font-size:18px}
+.hx-scen-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:28px 0}
+.hx-scen-card{padding:24px;background:var(--white);border:1px solid var(--ink);box-shadow:6px 6px 0 var(--kraft)}
+.hx-scen-card h3{margin:10px 0 8px;font-size:clamp(24px,2.4vw,30px)}
+.hx-scen-card p{margin:0;font-size:16px;color:var(--ink-soft)}
+.hx-scen-cta{display:flex;flex-wrap:wrap;gap:14px 16px;margin:8px 0 28px}
+.hx-scen-pilot{display:flex;flex-direction:column;gap:6px;padding:18px 22px;background:var(--kraft);border:1px solid var(--line);font-size:16px}
+.hx-scen-pilot a{font-weight:700}
+@media(max-width:900px){.hx-scen-grid{grid-template-columns:1fr}.hx-scen{padding:44px 0}}

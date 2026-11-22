@@ -243,7 +243,7 @@ function accountRoutes(string $path,array $config):bool {
     <link rel="stylesheet" href="/assets/precision.css">
     <link rel="stylesheet" href="/assets/<?=e($manifest['accounts'])?>">
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="stylesheet" href="/assets/home.css?v=20261122e"><link rel="stylesheet" href="/assets/nav.css?v=20261122c"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="stylesheet" href="/assets/home.css?v=20261122f"><link rel="stylesheet" href="/assets/nav.css?v=20261122c"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
 </head>
 <body>
 <?php if(!$account): $path=$register?'/kayit':'/giris'; $sectorPages=$GLOBALS['sectorPages']??[]; require __DIR__.'/components/navbar.php'; else:?>

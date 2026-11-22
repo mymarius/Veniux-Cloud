@@ -173,6 +173,21 @@ $steps=[
   </div>
 </section>
 
+<section class="hx-plain hx-scen" id="senaryolar" aria-labelledby="scen-title">
+  <div class="hx-wrap">
+    <p class="hx-scen-note">ÖRNEK SENARYOLAR · gerçek müşteri anlatımı değildir</p>
+    <h2 id="scen-title">Bir gün nasıl geçer?</h2>
+    <p class="hx-scen-lead">Aşağıdakiler, programın özellikleriyle kurguladığımız örnek günlerdir. Kendi işinize uyup uymadığını demo hesabında kendiniz görebilirsiniz.</p>
+    <div class="hx-scen-grid">
+      <article class="hx-scen-card"><span class="hx-tagtop">ÖRNEK · MARKET</span><h3>Kalabalık akşam kasası</h3><p>Kasiyer barkodu okutur, kasa satışı hemen kaydeder; internet kesilse de satış sürer. Gün sonunda nakit, kart ve yemek kartı ayrı görünür. Son kullanma tarihi yaklaşan ürünler önceden listelenir.</p></article>
+      <article class="hx-scen-card"><span class="hx-tagtop">ÖRNEK · HIRDAVAT</span><h3>Ölçüye göre ürün bulma</h3><p>Aynı ürünün farklı ölçüleri tek kartta tutulur, raf bilgisi barkodla aranır. Usta carisine veresiye yazılır, vade yaklaşınca hatırlatma çıkar.</p></article>
+      <article class="hx-scen-card"><span class="hx-tagtop">ÖRNEK · PİDE VE RESTORAN</span><h3>Masadan mutfağa sipariş</h3><p>Garson siparişi telefondan girer, mutfak ekranında görünür; hesap masaya göre kapatılır. Restoran özellikleri ayrı bir eklentidir, teklifle sunulur.</p></article>
+    </div>
+    <p class="hx-cta hx-scen-cta"><a class="hx-btn" href="<?=VENIUX_TRIAL_URL?>">30 gün ücretsiz demo hesabı açın</a><a class="hx-btn hx-btn-ghost" href="/?request_type=demo#iletisim">Birlikte inceleyelim</a></p>
+    <div class="hx-scen-pilot"><b>Pilot işletme programı</b><span>İlk işletmelerle birlikte çalışıyoruz. Koşullarını görüşmede netleştiririz; geri bildirimleriniz ancak sizin izninizle ve adınızla yayınlanır. <a href="/?request_type=contact#iletisim">Pilot için yazın</a></span></div>
+  </div>
+</section>
+
 <section class="hx-plain hx-roadmap" id="yol-haritasi">
   <div class="hx-wrap">
     <h2>Yol haritası</h2>
