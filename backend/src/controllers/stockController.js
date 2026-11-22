@@ -299,7 +299,7 @@ const importStock = async (req, res) => {
 // Get stock records (Multi-warehouse matrix)
 const getStockRecords = async (req, res) => {
   try {
-    const { warehouse_id, category, search } = req.query;
+    const { warehouse_id, category, search, product_id } = req.query;
 
     let query = `
       SELECT 
@@ -327,6 +327,12 @@ const getStockRecords = async (req, res) => {
     if (warehouse_id) {
       query += ` AND sr.warehouse_id = $${paramIndex}`;
       params.push(warehouse_id);
+      paramIndex++;
+    }
+
+    if (product_id) {
+      query += ` AND sr.product_id = $${paramIndex}`;
+      params.push(product_id);
       paramIndex++;
     }
 
@@ -369,6 +375,7 @@ const getStockMovements = async (req, res) => {
         p.sku, 
         p.name as product_name, 
         p.unit,
+        p.purchase_price as unit_cost,
         w.name as warehouse_name,
         tw.name as target_warehouse_name
       FROM stock_movements sm 
@@ -409,109 +416,169 @@ const getStockMovements = async (req, res) => {
   }
 };
 
+// Ürün başına stok toplamı (tek geçişte gruplanmış). İlişkili alt sorgu yerine türetilmiş tablo kullanılır:
+// 50 bin üründe ürün başına bir stock_records araması yerine stock_records bir kez taranır.
+const PER_PRODUCT_QTY = `
+  FROM products p
+  LEFT JOIN (SELECT product_id, SUM(quantity) AS qty FROM stock_records WHERE tenant_id = $1 GROUP BY product_id) s ON s.product_id = p.id
+  WHERE p.tenant_id = $1`;
+
+// Depo dağılımı: yalnız çağıranın depoları ve kayıtları (önceden tüm kiracıların depoları toplanıyordu).
+const warehouseDistributionRows = async tenantId => (await pool.query(`
+  SELECT w.id, w.name, w.capacity,
+    COALESCE(x.stored_quantity, 0) AS stored_quantity,
+    COALESCE(x.total_value, 0) AS total_value
+  FROM warehouses w
+  LEFT JOIN (
+    SELECT sr.warehouse_id, SUM(sr.quantity) AS stored_quantity, SUM(sr.quantity * p.purchase_price) AS total_value
+    FROM stock_records sr JOIN products p ON p.id = sr.product_id
+    WHERE sr.tenant_id = $1 GROUP BY sr.warehouse_id
+  ) x ON x.warehouse_id = w.id
+  WHERE w.tenant_id = $1`, [tenantId])).rows;
+
 // Get comprehensive analytics dashboard data
 const getStockAnalytics = async (req, res) => {
   try {
-    // 1. Total valuation and inventory count
-    const totalStats = await pool.query(`
-      SELECT 
-        COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_valuation,
-        COALESCE(SUM(sr.quantity * p.sale_price), 0) as total_potential_revenue,
-        COALESCE(SUM(sr.quantity), 0) as total_units_stored,
-        COUNT(DISTINCT p.id) as total_products,
-        COUNT(DISTINCT w.id) as total_warehouses
-      FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
-      LEFT JOIN warehouses w ON sr.warehouse_id = w.id
-      WHERE p.tenant_id = $1
-    `, [req.user.tenantId]);
-
-    // 2. Critical / Low Stock counts
-    const criticalCount = await pool.query(`
-      SELECT COUNT(*) as count FROM (
-        SELECT p.id, SUM(sr.quantity) as total_qty, p.min_stock_level
-        FROM products p
-        JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
-        WHERE p.tenant_id = $1 AND p.min_stock_level > 0
-        GROUP BY p.id, p.min_stock_level
-        HAVING SUM(sr.quantity) <= p.min_stock_level
-      )
-    `, [req.user.tenantId]);
-
-    const outOfStockCount = await pool.query(`
-      SELECT COUNT(*) as count FROM products p
-      WHERE p.tenant_id = $1 AND (SELECT COALESCE(SUM(quantity), 0) FROM stock_records WHERE product_id = p.id) = 0
-    `, [req.user.tenantId]);
-
-    // 3. Category Breakdown
+    const tenantId = req.user.tenantId;
+    // 1-3. Kategori kırılımı ve toplamlar tek geçişte (ürün başına bir kez gruplanan stok toplamı); özet kalemleri kategorilerden toplanır
+    const warehouseCount = await pool.query('SELECT COUNT(DISTINCT warehouse_id) AS count FROM stock_records WHERE tenant_id = $1', [tenantId]);
     const categoryBreakdown = await pool.query(`
-      SELECT 
-        COALESCE(NULLIF(TRIM(p.category), ''), 'Genel') as category,
-        COUNT(DISTINCT p.id) as product_count,
-        COALESCE(SUM(sr.quantity), 0) as total_quantity,
-        COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_value
-      FROM products p
-      LEFT JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
-      WHERE p.tenant_id = $1
+      SELECT
+        COALESCE(NULLIF(TRIM(p.category), ''), 'Genel') AS category,
+        COUNT(*) AS product_count,
+        COALESCE(SUM(COALESCE(s.qty, 0)), 0) AS total_quantity,
+        COALESCE(SUM(COALESCE(s.qty, 0) * p.purchase_price), 0) AS total_value,
+        COALESCE(SUM(COALESCE(s.qty, 0) * p.sale_price), 0) AS potential_revenue,
+        COALESCE(SUM(CASE WHEN s.product_id IS NOT NULL AND p.min_stock_level > 0 AND s.qty <= p.min_stock_level THEN 1 ELSE 0 END), 0) AS critical_count,
+        COALESCE(SUM(CASE WHEN COALESCE(s.qty, 0) = 0 THEN 1 ELSE 0 END), 0) AS out_count
+      ${PER_PRODUCT_QTY}
       GROUP BY COALESCE(NULLIF(TRIM(p.category), ''), 'Genel')
       ORDER BY total_value DESC
-    `, [req.user.tenantId]);
+    `, [tenantId]);
+    const sumOf = key => categoryBreakdown.rows.reduce((t, r) => t + Number(r[key] || 0), 0);
+    const summary = {
+      total_valuation: sumOf('total_value'), total_potential_revenue: sumOf('potential_revenue'), total_units_stored: sumOf('total_quantity'),
+      total_products: sumOf('product_count'), total_warehouses: Number(warehouseCount.rows[0]?.count || 0),
+      critical_stock_count: sumOf('critical_count'), out_of_stock_count: sumOf('out_count')
+    };
 
     // 4. Warehouse Distribution
-    const warehouseDistribution = await pool.query(`
-      SELECT 
-        w.id,
-        w.name,
-        w.capacity,
-        COALESCE(SUM(sr.quantity), 0) as stored_quantity,
-        COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_value
-      FROM warehouses w
-      LEFT JOIN stock_records sr ON w.id = sr.warehouse_id
-      LEFT JOIN products p ON sr.product_id = p.id
-      GROUP BY w.id, w.name, w.capacity
-    `);
+    const warehouseDistribution = await warehouseDistributionRows(tenantId);
 
-    // 5. Recent Movements Trend (Last 7 days daily in/out)
+    // 5. Son 14 günün günlük giriş/çıkışı (kiracı + tarih aralığı; indeks stock_movements(tenant_id, created_at))
+    const since = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 19).replace('T', ' ');
     const recentMovementsTrend = await pool.query(`
-      SELECT 
-        date(sm.created_at) as date,
-        SUM(CASE WHEN sm.change_amount > 0 THEN sm.change_amount ELSE 0 END) as inbound,
-        SUM(CASE WHEN sm.change_amount < 0 THEN ABS(sm.change_amount) ELSE 0 END) as outbound
-      FROM stock_movements sm
-      GROUP BY date(sm.created_at)
-      ORDER BY date ASC
-      LIMIT 14
-    `);
+      SELECT * FROM (
+        SELECT
+          date(sm.created_at) AS date,
+          SUM(CASE WHEN sm.change_amount > 0 THEN sm.change_amount ELSE 0 END) AS inbound,
+          SUM(CASE WHEN sm.change_amount < 0 THEN ABS(sm.change_amount) ELSE 0 END) AS outbound
+        FROM stock_movements sm
+        WHERE sm.tenant_id = $1 AND sm.created_at >= $2
+        GROUP BY date(sm.created_at)
+        ORDER BY date DESC
+        LIMIT 14
+      ) recent ORDER BY date ASC
+    `, [tenantId, since]);
 
     // 6. Top 5 Highest Value Products
     const topValueProducts = await pool.query(`
-      SELECT 
-        p.sku,
-        p.name,
-        p.category,
-        COALESCE(SUM(sr.quantity), 0) as total_quantity,
-        COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_valuation
-      FROM products p
-      JOIN stock_records sr ON p.id = sr.product_id AND sr.tenant_id = p.tenant_id
-      WHERE p.tenant_id = $1
+      SELECT p.sku, p.name, p.category,
+        COALESCE(SUM(sr.quantity), 0) AS total_quantity,
+        COALESCE(SUM(sr.quantity * p.purchase_price), 0) AS total_valuation
+      FROM stock_records sr JOIN products p ON p.id = sr.product_id
+      WHERE sr.tenant_id = $1 AND p.tenant_id = $1
       GROUP BY p.id, p.sku, p.name, p.category
       ORDER BY total_valuation DESC
       LIMIT 5
-    `, [req.user.tenantId]);
+    `, [tenantId]);
 
     res.json({
-      summary: {
-        ...totalStats.rows[0],
-        critical_stock_count: criticalCount.rows[0]?.count || 0,
-        out_of_stock_count: outOfStockCount.rows[0]?.count || 0
-      },
-      category_breakdown: categoryBreakdown.rows,
-      warehouse_distribution: warehouseDistribution.rows,
+      summary,
+      category_breakdown: categoryBreakdown.rows.map(({ product_count, total_quantity, total_value, category }) => ({ category, product_count, total_quantity, total_value })),
+      warehouse_distribution: warehouseDistribution,
       movements_trend: recentMovementsTrend.rows,
       top_value_products: topValueProducts.rows
     });
   } catch (error) {
     console.error('Get stock analytics error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Pano özeti: ürün/stok kayıtlarının tamamını indirmeden stok sağlığı, değer ve "en çok" listeleri.
+// ?warehouse_id= verilirse yalnız o depoda kaydı olan ürünler ve o depodaki miktar sayılır (NormalDashboard ile aynı kural).
+// Ürün başına stok toplamı tek geçişte hesaplanır (kategori sorgusu); liste sorguları yalnız ilk 8 satırı üretir.
+const getDashboardSummary = async (req, res) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const warehouseId = req.query.warehouse_id ? Number.parseInt(req.query.warehouse_id, 10) : null;
+    if (req.query.warehouse_id && !Number.isInteger(warehouseId)) return res.status(400).json({ error: 'Geçersiz depo.' });
+    const params = warehouseId ? [tenantId, warehouseId] : [tenantId];
+    const wh = warehouseId ? ' AND warehouse_id = $2' : '';
+    const num = v => Number(v || 0);
+    const qtyOf = `COALESCE((SELECT SUM(sr.quantity) FROM stock_records sr WHERE sr.product_id = p.id AND sr.tenant_id = $1${warehouseId ? ' AND sr.warehouse_id = $2' : ''}), 0)`;
+    const hasRecord = warehouseId ? ' AND EXISTS (SELECT 1 FROM stock_records x WHERE x.product_id = p.id AND x.tenant_id = $1 AND x.warehouse_id = $2)' : '';
+
+    // 1. Kategori başına toplamlar (özet, sağlık sayıları ve kategori listeleri bunlardan türetilir)
+    const cats = (await pool.query(`
+      SELECT COALESCE(NULLIF(p.category, ''), 'Diğer') AS name,
+        COUNT(*) AS product_count,
+        COALESCE(SUM(s.n), 0) AS record_count,
+        COALESCE(SUM(COALESCE(s.qty, 0)), 0) AS qty,
+        COALESCE(SUM(COALESCE(s.qty, 0) * p.purchase_price), 0) AS value,
+        COALESCE(SUM(COALESCE(s.qty, 0) * p.sale_price), 0) AS sale_value,
+        COALESCE(SUM(CASE WHEN COALESCE(s.qty, 0) <= 0 THEN 1 ELSE 0 END), 0) AS out_count,
+        COALESCE(SUM(CASE WHEN COALESCE(s.qty, 0) > 0 AND p.min_stock_level > 0 AND s.qty <= p.min_stock_level THEN 1 ELSE 0 END), 0) AS critical_count,
+        COALESCE(SUM(CASE WHEN COALESCE(s.qty, 0) > 0 AND NOT (p.min_stock_level > 0 AND s.qty <= p.min_stock_level) AND p.max_stock_level > 0 AND s.qty > p.max_stock_level THEN 1 ELSE 0 END), 0) AS excess_count
+      FROM products p
+      ${warehouseId ? 'JOIN' : 'LEFT JOIN'} (SELECT product_id, SUM(quantity) AS qty, COUNT(*) AS n FROM stock_records WHERE tenant_id = $1${wh} GROUP BY product_id) s ON s.product_id = p.id
+      WHERE p.tenant_id = $1
+      GROUP BY COALESCE(NULLIF(p.category, ''), 'Diğer')`, params)).rows;
+    const sum = key => cats.reduce((t, r) => t + num(r[key]), 0);
+    const health = { out: sum('out_count'), critical: sum('critical_count'), excess: sum('excess_count') };
+    health.healthy = sum('product_count') - health.out - health.critical - health.excess;
+
+    // 2. Dikkat gerektirenler: önce tükenenler, sonra kritikler (ilk 8)
+    const pick = (cond, limit) => pool.query(`
+      SELECT p.id, p.sku, p.name, p.min_stock_level, ${qtyOf} AS qty
+      FROM products p
+      WHERE p.tenant_id = $1${hasRecord} AND ${cond}
+      ORDER BY p.id LIMIT ${limit}`, params);
+    const outRows = (await pick(`${qtyOf} <= 0`, 8)).rows;
+    const criticalRows = outRows.length < 8
+      ? (await pick(`p.min_stock_level > 0 AND ${qtyOf} > 0 AND ${qtyOf} <= p.min_stock_level`, 8 - outRows.length)).rows : [];
+
+    // 3. En değerli / en yüksek stoklu ürünler (ilk 8)
+    const top = async order => (await pool.query(`
+      SELECT p.name, p.sku, SUM(sr.quantity) AS qty, SUM(sr.quantity) * p.purchase_price AS value,
+        SUM(sr.quantity) * (p.sale_price - p.purchase_price) AS margin
+      FROM stock_records sr JOIN products p ON p.id = sr.product_id
+      WHERE sr.tenant_id = $1 AND p.tenant_id = $1${warehouseId ? ' AND sr.warehouse_id = $2' : ''}
+      GROUP BY p.id, p.name, p.sku, p.purchase_price, p.sale_price
+      HAVING SUM(sr.quantity) > 0
+      ORDER BY ${order}, p.id LIMIT 8`, params)).rows;
+    const topByValue = await top('SUM(sr.quantity) * p.purchase_price DESC');
+    const topByQty = await top('SUM(sr.quantity) DESC');
+
+    // 4. Depo kırılımı seçili depodan bağımsız: tüm depolar ("depoya göre değer" paneli)
+    const byWarehouse = (await pool.query(`
+      SELECT w.name, SUM(sr.quantity * p.purchase_price) AS value, SUM(sr.quantity) AS qty
+      FROM stock_records sr JOIN products p ON p.id = sr.product_id JOIN warehouses w ON w.id = sr.warehouse_id
+      WHERE sr.tenant_id = $1 GROUP BY w.id, w.name ORDER BY value DESC`, [tenantId])).rows;
+
+    const row = r => ({ ...r, qty: num(r.qty), value: num(r.value), margin: num(r.margin) });
+    const by = key => [...cats].sort((a, b) => num(b[key]) - num(a[key])).slice(0, 8).map(r => [r.name, num(r[key])]);
+    res.json({
+      product_count: sum('product_count'), record_count: sum('record_count'), units: sum('qty'),
+      value: sum('value'), sale_value: sum('sale_value'), health,
+      attention: [...outRows, ...criticalRows].map(r => ({ ...r, qty: num(r.qty), min_stock_level: num(r.min_stock_level) })),
+      top_by_value: topByValue.map(row), top_by_qty: topByQty.map(row),
+      categories: by('value'), categories_qty: by('qty'),
+      by_warehouse: byWarehouse.map(r => ({ name: r.name || 'Depo', value: num(r.value), qty: num(r.qty) }))
+    });
+  } catch (error) {
+    console.error('Get dashboard summary error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -592,19 +659,7 @@ const getDashboardMetrics = async (req, res) => {
     `);
 
     // 7. Warehouse distribution
-    const warehouseDist = await pool.query(`
-      SELECT 
-        w.id,
-        w.name,
-        w.capacity,
-        COALESCE(SUM(sr.quantity), 0) as stored_quantity,
-        COALESCE(SUM(sr.quantity * p.purchase_price), 0) as total_value
-      FROM warehouses w
-      LEFT JOIN stock_records sr ON w.id = sr.warehouse_id
-      LEFT JOIN products p ON sr.product_id = p.id
-      GROUP BY w.id, w.name, w.capacity
-      ORDER BY stored_quantity DESC
-    `);
+    const warehouseDist = { rows: (await warehouseDistributionRows(req.user.tenantId)).sort((x, y) => Number(y.stored_quantity) - Number(x.stored_quantity)) };
 
     res.json({
       total_sku: totalStats.rows[0]?.total_sku || 0,
@@ -631,5 +686,6 @@ module.exports = {
   getStockRecords,
   getStockMovements,
   getStockAnalytics,
-  getDashboardMetrics
+  getDashboardMetrics,
+  getDashboardSummary
 };

@@ -13,7 +13,7 @@ import { BarList, Heatmap, Kpi, Legend, Panel, Segmented } from '../../component
 import { chartColors } from '../../lib/chartPalette';
 import {
   activityHeatmap, asList, change, compact, hourlyProfile, movementLabel, movementTimeline, movementTypes,
-  num, parseDate, periodTotals, stockHealth, sumBy, tl, topMovers
+  num, parseDate, periodTotals, tl, topMovers
 } from '../../lib/stockAnalytics';
 
 const IN = '#0d7a57', OUT = '#cf4b06', BLUE = '#17263a';
@@ -21,6 +21,7 @@ const PERIODS = [[7, '7 gün'], [14, '14 gün'], [30, '30 gün'], [90, '90 gün'
 
 export default function NormalDashboard() {
   const [data, setData] = useState(null);
+  const [summary, setSummary] = useState(null);
   const [locations, setLocations] = useState([]);
   const [warehouseId, setWarehouseId] = useState('all');
   const [days, setDays] = useState(14);
@@ -35,12 +36,21 @@ export default function NormalDashboard() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    Promise.all(['/warehouses', '/products', '/stock/records', '/stock/movements?limit=5000'].map(url => apiClient.get(url)))
-      .then(([w, p, r, m]) => { if (active) { setData({ warehouses: asList(w.data), products: asList(p.data), records: asList(r.data), movements: asList(m.data) }); setError(''); } })
+    Promise.all(['/warehouses', '/stock/movements?limit=5000'].map(url => apiClient.get(url)))
+      .then(([w, m]) => { if (active) { setData({ warehouses: asList(w.data), movements: asList(m.data) }); setError(''); } })
       .catch(() => { if (active) setError('Depo verileri yüklenemedi. Yenile düğmesiyle tekrar deneyin.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [tick]);
+
+  // Stok sağlığı/değer özeti sunucuda hesaplanır: 50 bin ürünü ve tüm stok kayıtlarını indirmeden (seçili depoya göre).
+  useEffect(() => {
+    let active = true;
+    apiClient.get('/stock/dashboard-summary', { params: warehouseId === 'all' ? {} : { warehouse_id: warehouseId } })
+      .then(res => { if (active) { setSummary(res.data); setError(''); } })
+      .catch(() => { if (active) setError('Depo verileri yüklenemedi. Yenile düğmesiyle tekrar deneyin.'); });
+    return () => { active = false; };
+  }, [warehouseId, tick]);
 
   // Raf doluluğu yalnızca tek bir depo seçiliyken anlamlıdır.
   useEffect(() => {
@@ -54,11 +64,9 @@ export default function NormalDashboard() {
 
   const [more, setMore] = useState(false);
   const view = useMemo(() => {
-    if (!data) return null;
+    if (!data || !summary) return null;
     const inWarehouse = row => warehouseId === 'all' || String(row.warehouse_id) === warehouseId || String(row.target_warehouse_id) === warehouseId;
     const movements = data.movements.filter(inWarehouse);
-    const records = data.records.filter(row => warehouseId === 'all' || String(row.warehouse_id) === warehouseId);
-    const products = warehouseId === 'all' ? data.products : data.products.filter(p => records.some(r => r.product_id === p.id));
     const since = Date.now() - days * 864e5;
     const periodMovements = movements.filter(row => (parseDate(row.created_at)?.getTime() || 0) >= since);
     const totals = periodTotals(movements, days);
@@ -67,26 +75,25 @@ export default function NormalDashboard() {
     const countOps = (rows, sign) => rows.filter(row => (sign > 0 ? Number(row.change_amount || 0) > 0 : Number(row.change_amount || 0) < 0)).length;
     const ops = { inbound: countOps(periodMovements, 1), outbound: countOps(periodMovements, -1), prevInbound: countOps(prevMovements, 1), prevOutbound: countOps(prevMovements, -1) };
     const timeline = movementTimeline(movements, days);
-    const health = stockHealth(products, records);
-    const value = records.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.purchase_price || 0), 0);
-    const units = records.reduce((s, r) => s + Number(r.quantity || 0), 0);
+    const health = { counts: { healthy: 0, critical: 0, out: 0, excess: 0, ...summary.health }, attention: summary.attention || [] };
+    const value = Number(summary.value || 0), units = Number(summary.units || 0);
     const busiest = timeline.reduce((best, d) => (d.inbound + d.outbound > best.inbound + best.outbound ? d : best), timeline[0]);
     return {
-      movements, records, totals, timeline, health, value, units, busiest, ops,
+      movements, recordCount: Number(summary.record_count || 0), totals, timeline, health, value, units, busiest, ops,
       types: movementTypes(periodMovements),
       movers: topMovers(periodMovements),
       hourly: hourlyProfile(periodMovements),
       heat: activityHeatmap(periodMovements),
-      categories: sumBy(records, r => r.category || 'Diğer', r => Number(r.quantity || 0) * Number(r.purchase_price || 0)).slice(0, 8),
-      byWarehouse: sumBy(data.records, r => r.warehouse_name || 'Depo', r => Number(r.quantity || 0) * Number(r.purchase_price || 0))
+      categories: (summary.categories || []).slice(0, 8),
+      byWarehouse: (summary.by_warehouse || []).map(w => [w.name, w.value])
     };
-  }, [data, warehouseId, days]);
+  }, [data, summary, warehouseId, days]);
 
   const occupied = locations.filter(l => !l.is_empty).length;
   const occupancy = locations.length ? Math.round((occupied / locations.length) * 100) : null;
   const warehouseName = warehouseId === 'all' ? 'Tüm depolar' : data?.warehouses.find(w => String(w.id) === warehouseId)?.name;
 
-  if (loading && !data) return <div className="space-y-5" data-testid="dashboard-loading"><div className="skeleton h-10 w-64" /><div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-32" />)}</div><div className="skeleton h-96 w-full" /></div>;
+  if ((loading && !data) || (!view && !error)) return <div className="space-y-5" data-testid="dashboard-loading"><div className="skeleton h-10 w-64" /><div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-32" />)}</div><div className="skeleton h-96 w-full" /></div>;
 
   const { current, previous } = view?.totals || { current: {}, previous: {} };
   const spark = key => view?.timeline.slice(-14).map(d => d[key]) || [];
@@ -115,8 +122,8 @@ export default function NormalDashboard() {
     {view && <>
       <StockHealthPanel compact/>
       <section className="ax-grid ax-kpis ax-reveal">
-        <Kpi label="Stok değeri" value={view.value} format={tl} icon={Wallet} tone="violet" detail={`${num(view.units)} birim · ${num(view.records.length)} kayıt`} />
-        <Kpi label={occupancy === null ? 'Kritik ürün' : 'Raf doluluğu'} value={occupancy ?? view.health.groups.critical.length + view.health.groups.out.length} format={occupancy === null ? undefined : v => `%${Math.round(v)}`} icon={occupancy === null ? AlertTriangle : Layers} tone="amber" detail={occupancy === null ? 'kritik + tükenen' : `${num(occupied)} / ${num(locations.length)} raf dolu`} />
+        <Kpi label="Stok değeri" value={view.value} format={tl} icon={Wallet} tone="violet" detail={`${num(view.units)} birim · ${num(view.recordCount)} kayıt`} />
+        <Kpi label={occupancy === null ? 'Kritik ürün' : 'Raf doluluğu'} value={occupancy ?? view.health.counts.critical + view.health.counts.out} format={occupancy === null ? undefined : v => `%${Math.round(v)}`} icon={occupancy === null ? AlertTriangle : Layers} tone="amber" detail={occupancy === null ? 'kritik + tükenen' : `${num(occupied)} / ${num(locations.length)} raf dolu`} />
         <Kpi label="Giriş işlemi" value={view.ops.inbound} icon={ArrowDownLeft} tone="teal" trend={change(view.ops.inbound, view.ops.prevInbound)} />
         <Kpi label="Çıkış / satış işlemi" value={view.ops.outbound} icon={ArrowUpRight} tone="red" trend={change(view.ops.outbound, view.ops.prevOutbound)} />
       </section>
@@ -150,8 +157,8 @@ export default function NormalDashboard() {
         </Panel>
         <Panel icon={AlertTriangle} title="Stok sağlığı" subtitle="Minimum ve maksimum seviyelere göre" action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
           {(() => {
-            const g = view.health.groups;
-            const rows = [['Sağlıklı', g.healthy.length, IN], ['Kritik', g.critical.length, '#e9ad51'], ['Tükendi', g.out.length, OUT], ['Fazla stok', g.excess.length, '#9b8cdb']];
+            const g = view.health.counts;
+            const rows = [['Sağlıklı', g.healthy, IN], ['Kritik', g.critical, '#e9ad51'], ['Tükendi', g.out, OUT], ['Fazla stok', g.excess, '#9b8cdb']];
             return <>
               <BusinessChart key={`health-${warehouseId}`} type="doughnut" title="Stok sağlığı" height={190} legend={false} center={{ value: num(rows.reduce((s, r) => s + r[1], 0)), label: 'ürün' }}
                 labels={rows.map(r => r[0])} datasets={[{ label: 'Ürün', data: rows.map(r => r[1]), backgroundColor: rows.map(r => r[2]) }]} />
@@ -169,7 +176,7 @@ export default function NormalDashboard() {
         <Panel icon={Warehouse} title="Depolara göre stok değeri" subtitle="Tüm depoların karşılaştırması">
           <BarList rows={view.byWarehouse.map(([label, value], i) => ({ label, value, color: warehouseName === label ? BLUE : chartColors[(i + 1) % chartColors.length] }))} format={tl} empty="Henüz depoda stok yok." />
           <h3 className="mb-3 mt-6 text-[12px] font-semibold text-slate-600">Öncelikli ürünler</h3>
-          <BarList rows={[...view.health.groups.out, ...view.health.groups.critical].slice(0, 5).map(p => ({ label: p.name, value: p.qty, hint: `Minimum ${num(p.min_stock_level)} · ${p.sku}`, color: p.qty <= 0 ? OUT : '#e9ad51' }))} format={num} empty="Kritik seviyede ürün yok." />
+          <BarList rows={view.health.attention.slice(0, 5).map(p => ({ label: p.name, value: p.qty, hint: `Minimum ${num(p.min_stock_level)} · ${p.sku}`, color: p.qty <= 0 ? OUT : '#e9ad51' }))} format={num} empty="Kritik seviyede ürün yok." />
         </Panel>
       </section>
 

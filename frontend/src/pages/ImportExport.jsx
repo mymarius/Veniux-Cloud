@@ -1,3 +1,4 @@
+import { fetchAllPages } from '../lib/productSearch';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
@@ -17,7 +18,8 @@ export default function ImportExport() {
     if (exporting) return;
     setExporting(true);
     try {
-      const {data} = await apiClient.get('/stock/records');
+      // Dışa aktarma gerçekten tüm kaydı ister: tek dev yanıt yerine 2000'lik sayfalarla çekilir.
+      const data = await fetchAllPages(apiClient, '/stock/records');
       if (!Array.isArray(data)) throw new Error('INVALID_REPORT');
       if (!data.length) { showToast('Dışa aktarılacak stok kaydı yok.', 'info'); return; }
       const sensitive = data.some(row => Object.hasOwn(row, 'purchase_price'));

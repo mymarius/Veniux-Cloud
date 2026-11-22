@@ -13,6 +13,8 @@ import { QuickStockModal, QuickTransferModal, KarekodModal } from '../components
 import WMSDetailDrawer from '../components/wms/WMSDetailDrawer';
 import { useToast } from '../components/Toast';
 import { DataTable, StatusBadge, MetricCard, Dropdown } from '../components/ui';
+import Pager from '../components/Pager';
+import { pageSlice } from '../lib/productSearch';
 
 export default function Inventory() {
   const [stockRecords, setStockRecords] = useState([]);
@@ -25,6 +27,7 @@ export default function Inventory() {
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [quickFilter, setQuickFilter] = useState('all');
+  const [page, setPage] = useState(0);
 
   // Modals & Drawer state
   const [stockModalOpen, setStockModalOpen] = useState(false);
@@ -49,6 +52,7 @@ export default function Inventory() {
   useEffect(() => {
     fetchData();
   }, [selectedWarehouse, selectedCategory, search]);
+  useEffect(() => { setPage(0); }, [selectedWarehouse, selectedCategory, search, quickFilter]);
 
   const fetchData = async () => {
     try {
@@ -105,6 +109,7 @@ export default function Inventory() {
     return true;
   });
 
+  const pageInfo = pageSlice(filteredRecords, page);
   const totalSKUCount = stockRecords.length;
   const totalUnitCount = stockRecords.reduce((sum, r) => sum + (r.quantity || 0), 0);
   const criticalCount = stockRecords.filter((r) => r.min_stock_level > 0 && r.quantity <= r.min_stock_level && r.quantity > 0).length;
@@ -309,12 +314,13 @@ export default function Inventory() {
           <DataTable 
             flush
             columns={columns}
-            data={filteredRecords}
+            data={pageInfo.rows}
             loading={loading}
             onRowClick={handleOpenDrawer}
             emptyState="Stok kaydı bulunamadı."
           />
         </div>
+        <Pager info={pageInfo} onPage={setPage} />
       </div>
 
       <QuickStockModal

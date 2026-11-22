@@ -1,4 +1,5 @@
 import { Dropdown } from '../../components/ui';
+import ProductSelect from '../../components/ProductSelect';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import {
@@ -26,7 +27,6 @@ export default function WMSInbound() {
   const [receipts, setReceipts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
@@ -60,17 +60,15 @@ export default function WMSInbound() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [recRes, whRes, supRes, prodRes] = await Promise.all([
+      const [recRes, whRes, supRes] = await Promise.all([
         apiClient.get('/wms/inbound/receipts'),
         apiClient.get('/warehouses'),
-        apiClient.get('/suppliers'),
-        apiClient.get('/products')
+        apiClient.get('/suppliers')
       ]);
 
       setReceipts(recRes.data || []);
       setWarehouses(whRes.data || []);
       setSuppliers(supRes.data || []);
-      setProducts(prodRes.data || []);
 
       if (whRes.data?.length > 0) {
         setForm(prev => ({ ...prev, warehouse_id: whRes.data[0].id }));
@@ -458,15 +456,7 @@ export default function WMSInbound() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 items-center">
                         <div className="sm:col-span-3">
-                          <Dropdown
-                            required
-                            value={item.product_id}
-                            onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                            className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium focus:border-brand-500 text-xs"
-                          >
-                            <option value="">Ürün Seçiniz...</option>
-                            {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-                          </Dropdown>
+                          <ProductSelect required value={item.product_id} onChange={(id) => handleItemChange(idx, 'product_id', id)} className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium focus:border-brand-500 text-xs" />
                         </div>
                         <div>
                           <input

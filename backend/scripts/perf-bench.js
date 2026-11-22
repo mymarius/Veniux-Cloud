@@ -12,6 +12,7 @@ const jwt=require('jsonwebtoken');
  const date=(await db.query("SELECT business_date d FROM retail_sales WHERE tenant_id=$1 ORDER BY sale_id DESC LIMIT 1 OFFSET 700",[U.tenant_id])).rows[0].d;
  const mid=(await db.query("SELECT barcode FROM products WHERE tenant_id=$1 AND id=(SELECT max(id)-12345 FROM products)",[U.tenant_id])).rows[0].barcode;
  const midPrice=Number((await db.query('SELECT sale_price FROM products WHERE tenant_id=$1 AND barcode=$2',[U.tenant_id,mid])).rows[0].sale_price),total=Math.round((midPrice+10)*100)/100;
+ const midId=(await db.query('SELECT id FROM products WHERE tenant_id=$1 AND barcode=$2',[U.tenant_id,mid])).rows[0].id;
  let n=0;
  const cases={
   'katalog ilk sayfa (limit 100)':()=>A(request(app).get('/api/scanner/pro/catalog?limit=100')),
@@ -35,6 +36,10 @@ const jwt=require('jsonwebtoken');
   'denetim günlüğü':()=>A(request(app).get('/api/audit-logs')),
   'pano metrikleri':()=>A(request(app).get('/api/stock/dashboard-metrics')),
   'stok analizi':()=>A(request(app).get('/api/stock/analytics')),
+  'pano özeti /stock/dashboard-summary':()=>A(request(app).get('/api/stock/dashboard-summary')),
+  'pano özeti depo filtreli':()=>A(request(app).get('/api/stock/dashboard-summary?warehouse_id='+wh)),
+  'stok hareketleri limit=5000':()=>A(request(app).get('/api/stock/movements?limit=5000')),
+  'ürün stok kaydı (product_id)':()=>A(request(app).get('/api/stock/records?product_id='+(midId))),
   'kasa içgörü /pro/insights':()=>A(request(app).get('/api/scanner/pro/insights')),
   'en çok satanlar':()=>A(request(app).get('/api/scanner/pro/top-products')),
  };

@@ -2,7 +2,10 @@ import { Dropdown } from '../../components/ui';
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/client';
 import { cleanWaybill, shortReceiptNo } from '../../lib/inboundEntry.mjs';
-import { scanIntoLines } from '../../lib/serialScan.mjs';
+import { scanIntoLines, normalizeScan } from '../../lib/serialScan.mjs';
+import { findProduct } from '../../lib/inboundEntry.mjs';
+import { mergeProducts, searchProducts } from '../../lib/productSearch';
+import ProductSelect from '../../components/ProductSelect';
 import SerialScanInput from '../../components/SerialScanInput';
 import {
   Inbox,
@@ -45,8 +48,16 @@ export default function NormalInbound() {
   // Seri okutma: her okutma kalem ekler ya da miktarı artırır (hızlı peş peşe okutmada eski durum kullanılmasın diye ref).
   const itemsRef = useRef(form.items);
   itemsRef.current = form.items;
-  const handleScanCode = (raw, cfg) => {
-    const result = scanIntoLines(itemsRef.current, products, raw, { qtyKey: 'expected_qty', cfg, make: (p, q) => ({ product_id: p.id, expected_qty: q, lot_number: '', expiry_date: '' }) });
+  const productsRef = useRef(products);
+  productsRef.current = products;
+  const handleScanCode = async (raw, cfg) => {
+    // Katalog tarayıcıya indirilmez: okutulan kod yerelde yoksa sunucudan aranır (barkod/SKU/ad).
+    let known = productsRef.current;
+    const code = normalizeScan(raw, cfg);
+    if (code && !findProduct(known, code)) {
+      try { known = mergeProducts(known, await searchProducts(apiClient, code, { limit: 10 })); productsRef.current = known; setProducts(known); } catch { /* bulunamadı olarak işlenir */ }
+    }
+    const result = scanIntoLines(itemsRef.current, known, raw, { qtyKey: 'expected_qty', cfg, make: (p, q) => ({ product_id: p.id, expected_qty: q, lot_number: '', expiry_date: '' }) });
     if (result.status === 'added' || result.status === 'incremented') { itemsRef.current = result.lines; setForm(prev => ({ ...prev, items: result.lines })); }
     return result;
   };
@@ -68,17 +79,15 @@ export default function NormalInbound() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [recRes, whRes, supRes, prodRes] = await Promise.all([
+      const [recRes, whRes, supRes] = await Promise.all([
         apiClient.get('/wms/inbound/receipts'),
         apiClient.get('/warehouses'),
-        apiClient.get('/suppliers'),
-        apiClient.get('/products')
+        apiClient.get('/suppliers')
       ]);
 
       setReceipts(recRes.data || []);
       setWarehouses(whRes.data || []);
       setSuppliers(supRes.data || []);
-      setProducts(prodRes.data || []);
 
       if (whRes.data?.length > 0) {
         setForm(prev => ({ ...prev, warehouse_id: whRes.data[0].id }));
@@ -466,15 +475,7 @@ export default function NormalInbound() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 items-center">
                         <div className="sm:col-span-3">
-                          <Dropdown
-                            required
-                            value={item.product_id}
-                            onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                            className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium focus:border-brand-500 text-xs"
-                          >
-                            <option value="">Ürün Seçiniz...</option>
-                            {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-                          </Dropdown>
+                          <ProductSelect required value={item.product_id} onChange={(id) => handleItemChange(idx, 'product_id', id)} className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium focus:border-brand-500 text-xs" selected={products.find(p => String(p.id) === String(item.product_id)) || null} />
                         </div>
                         <div>
                           <input

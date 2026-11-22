@@ -96,3 +96,51 @@ Masaüstü kurulumu yerel **MySQL** (`veniux_local`) kullanıyor; SQLite gelişt
 **Kilit/süre riski:** 9 indeksin toplam kurulumu 6,1 sn (en uzunu `pos_sale_items(tenant_id,product_id)` 1,8 sn, `stock_movements` 1,4 sn) bu büyüklükte. Kurulum sürerken başka bağlantıdan yazma: boşta ortanca 2,6 ms; kurulum sırasında ortanca 2,8 ms, p99 12,8 ms, en yavaş tek yazma 59 ms (457 yazma) — `LOCK=NONE` ile yazmalar engellenmedi. Disk maliyeti: yeni indekslerin tek başına boyutu ayrı ölçülmedi; sekiz tablonun toplam indeks boyutu 033 sonrası ≈202 MB (veri ≈237 MB). **Ölçülemeyen:** bulut app.veniux.com'un gerçek veri büyüklüğü ve yükü (bakılmadı); gerçek kullanıcı trafiğiyle yarışma.
 
 **Bulutta uygulama adımları (yapılmadı, onay + Plesk girişi gerekir):** (1) yedek al (mevcut akış); (2) sunucu kodunu 033 bildirimiyle güncelle; (3) `MySQLMigrator#upgradeAdditive` çalıştır (bulutta yükseltme komutu mevcut `mysql_migrate.js` akışıyla aynı; kilit `GET_LOCK` ile korunur); (4) `information_schema.STATISTICS` ile 9 indeksin varlığını doğrula; (5) `--record-deployment` ile dağıtım kaydını yaz. Düşük trafik saatinde çalıştırılması önerilir. Geri alma: `ALTER TABLE … DROP INDEX …` (veri etkilenmez; sürüm kaydı ayrıca geri alınmalı).
+
+
+## Arayüz sayfalaması ve `/stock/analytics` (kalan riskler 1 ve 2) — sonuç
+
+Ölçüm: `perf-seed.js` ile yeni sentetik veritabanı (50.002 ürün, 50.001 stok kaydı, 175 bin hareket, `TEST_SQLITE_PATH` ile; gerçek veriye dokunulmadı), `perf-bench.js` (süreç içi, supertest; 5 tekrar, ortanca ms). SQLite'tır; MySQL'de yalnız doğruluk sınandı, süre **ölçülmedi**.
+
+### Ölçümler
+| Uç nokta | Önce | Sonra |
+|---|---|---|
+| `GET /stock/analytics` | 450 ms | **162–175 ms** (2,6 KB, aynı içerik) |
+| Pano verisi: `/products` + `/stock/records` (+ `/stock/movements?limit=5000`) | 1.098 ms + 521 ms; **32,4 MB + 19,1 MB** (+1,7 MB) | `GET /stock/dashboard-summary`: **258 ms, 2 KB** (+ aynı 1,7 MB hareket) |
+| Depo filtreli pano özeti | (yoktu; istemci tüm kaydı süzüyordu) | 281 ms, 1,9 KB |
+| Ürün seçiminde tek ürünün stoku (`/stock/records?product_id=`) | 521 ms, 19 MB (tümü) | 18,6 ms, 380 B |
+| `GET /stock/dashboard-metrics` | 104 ms | 103 ms (değişmedi; depo dağılımı kiracıya bağlandı) |
+
+Sorgu düzeyi (`EXPLAIN QUERY PLAN`): analytics'te ürün başına ilişkili alt sorgu ve `COUNT(DISTINCT)` yerine ürün başına bir kez gruplanmış türetilmiş tablo kullanıldı; 4 ayrı geçiş (toplam, kritik, tükenen, kategori) tek kategori sorgusuna indi (özet kalemleri kategori satırlarından toplanıyor). Depo dağılımı 76 → 20 ms (`stock_records` bir kez gruplanıp `warehouses`'a bağlanıyor). Hareket trendi 124 ms tüm tabloyu tarıyordu; artık `stock_movements(tenant_id, created_at)` indeksiyle 1–3 ms. **Yeni indeks eklenmedi** (064/033 yeterli).
+
+**Davranış düzeltmeleri (analytics/dashboard-metrics):** (1) `warehouse_distribution` ve `movements_trend` kiracı süzgeci taşımıyordu: **başka kiracıların depo adları/miktarları ve hareketleri karışıyordu** (`dashboard-metrics` depo dağılımı da). Artık yalnız çağıranın verisi. (2) `movements_trend` "son 7 gün" diye yazılıydı ama **en eski 14 günü** döndürüyordu; artık son 14 günü tarih sırasıyla verir. Ön yüzde `/stock/analytics`'i çağıran ekran yok (yalnız API), bu yüzden görünür bir kırılma yok. Çıktı karşılaştırması: özet, kategori kırılımı, en değerli 5 ürün ve depo dağılımı eski sürümle birebir aynı (tek ayrım trend).
+
+### Yeni uç nokta ve filtre
+- `GET /stock/dashboard-summary[?warehouse_id=]`: ürün sayısı, kayıt sayısı, birim, değer, satış değeri, stok sağlığı sayıları (sağlıklı/kritik/tükenen/fazla), öncelikli 8 ürün, değere ve adede göre ilk 8 ürün, kategori ve depo kırılımı. Depo verilirse yalnız o depoda kaydı olan ürünler ve o depodaki miktar sayılır (eski istemci kuralıyla aynı).
+- `GET /stock/records?product_id=` filtresi eklendi (limit yoksa eski davranış sürer). `GET /stock/movements` yanıtına `unit_cost` (ürün alış fiyatı) eklendi (pano "stok değeri trendi" bunu kullanıyor).
+
+### Ekran kararları
+| Ekran | Karar |
+|---|---|
+| `Dashboard.jsx`, `NormalDashboard.jsx` | Ürün ve stok kayıtlarının tamamı artık inmiyor; `dashboard-summary` + `movements?limit=5000` (sunucu zaten sınırlı). NormalDashboard depo seçince özeti sunucudan yeniden ister. Önce 52 MB, sonra ≈1,7 MB. |
+| `QuickModals` (stok giriş/çıkış, transfer) | Tüm ürün + tüm stok kaydı yerine yeni `ProductSelect` (yazdıkça sunucuda arama, en fazla 20 sonuç) ve yalnız seçili ürünün stok kayıtları. |
+| `NormalPicking`, `WMSPicking`, `WMSInbound`, `WMSCycleCount` | `/products` indirmesi kaldırıldı; seçim kutusu `ProductSelect`. |
+| `NormalInbound`, `PurchaseOrders` | Seçim `ProductSelect`; **seri barkod okutma** artık yerelde bulamazsa sunucuda arıyor (`SerialScanInput` eşzamansız sonucu destekler). PurchaseOrders varsayılan ilk satır için ilk 20 ürünü alır. |
+| `Movements`, `NormalMovements` | Kullanılmayan `/products` çağrısı silindi (veri hiç çizilmiyordu). |
+| `RetailQuickAdd` | Tüm depo stok kaydı yerine `?product_id=`. |
+| `VirtualTerminal` | Örnek kod için `limit=20`. |
+| `Inventory` (`/inventory`), `NormalProducts` | **Çizim sayfalaması (100 satır) + Önceki/Sonraki**; arama/depo/kategori filtresi sunucuda zaten vardı. Veri hâlâ tek seferde iniyor (bkz. kalan riskler); 50 bin satırlık DOM yerine 100 satır çiziliyor (tarayıcıda 100 satır/501 sayfa doğrulandı). |
+| `ImportExport` (stok dışa aktarma) | Gerçekten tüm kaydı istediği için **eski davranış korundu ama 2000'lik sayfalarla** çekiliyor (tek 19 MB yanıt yok). |
+| `Products.jsx` | Hiçbir yola bağlı değil (ölü dosya); dokunulmadı. |
+
+### Doğrulama
+- Backend `npm test`: 188 paket / 1380 test geçti; yeni `dashboardSummary.test.js` (6 test: sayılar elle hesaplanan değerlerle, depo filtresi, başka kiracı/geçersiz depo reddi, analytics özet/kiracı yalıtımı, trend penceresi, `product_id` ve `category` süzgeçleri) ve aynısı **gerçek MySQL 8.4'te** (`npm run test:mysql` altındaki `tests/mysql/dashboardSummary.test.js`, 6/6). MySQL testi `DECIMAL`'ın metin döndüğünü yakaladı; test buna göre `Number()` kullanıyor.
+- Frontend `node --test`: 192/192 (yeni `productSearch.test.mjs`: arama sınırı, birleştirme, sayfa sayfa çekme + sonsuz döngü koruması, 50 bin satırda 100'lük dilim); `vite build` temiz. Masaüstü `node --test *.test.cjs`: 32/32 (önceki rapordaki "43" farklı sayımdan; bu çalışmada masaüstü koduna dokunulmadı).
+- Tarayıcı (yerel arka uç + 50 bin ürünlük veri): Depo Özeti ve Genel Bakış doğru sayıları gösterdi, depo seçimi `?warehouse_id=` ile özeti yeniledi, 375 px'te yatay taşma yok; Hızlı stok hareketinde "SKU12345" araması tek sonuç döndürdü, seçilince `?product_id=` ile stok geldi; Ürünler ve Stok sayfaları 100 satır çizdi, sayfa 2'ye geçti, 375 px'te sayfalama sığdı. **Gerçek tarayıcıda denenmedi:** PurchaseOrders / NormalInbound / WMS formlarındaki yeni seçici ve eşzamansız seri okutma (yalnız derleme + birim testi), ImportExport indirmesi.
+- Tarayıcı denemesi **gerçek bir hatayı yakaladı**: `product_id` süzgecini eklerken yer tutucu `$` yanlış kaçtığı için sorgu `product_id = 2` sabitine dönüşmüştü (ve kategori süzgeci de bozulmuştu); testlerde kapsanmıyordu. Düzeltildi ve `product_id`/`category` için test eklendi.
+
+### Kalan riskler (otomatik uygulanmadı)
+1. `NormalProducts` ve `Inventory` veriyi hâlâ tek seferde indiriyor (`/products` ≈32 MB, `/stock/records` ≈19 MB / 50 bin kayıt): görünüm sekmeleri (kritik/tükenen/fazla), sütun sıralama, varyant gruplama ve üst kart sayıları istemcide hesaplanıyor. Bunları sunucu sayfalamasına almak için `products` ve `stock/records` uçlarına sıralama + görünüm süzgeçleri + özet sayıları eklenmeli (ayrı iş). Çizim sayfalaması DOM'u çözer, indirme süresini çözmez.
+2. `scanIntoLines` GTIN ile okutmayı yerel listede bulur; sunucu araması yalnız ad/SKU/barkodda arar. Yalnız GTIN'i olan (barkod alanı farklı) ürün, 20'lik başlangıç listesinde yoksa seri okutmada "bulunamadı" der. Çözüm: aramaya `gtin` ve koli barkodunu eklemek.
+3. Pano `movements?limit=5000` sınırı sürüyor: çok yoğun mağazada "dönem çıkışı" 5.000'de kesilir (önceki davranış; özet ucu yalnız stok tarafını değiştirdi).
+4. `warehouse_distribution` / `dashboard-metrics` depo etiketi adla eşleniyor; iki depo aynı adı taşırsa Genel Bakış'ta aynı sayı iki kez görünür (önceden de böyleydi).

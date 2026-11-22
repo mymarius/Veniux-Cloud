@@ -46,7 +46,7 @@ export default function RetailQuickAdd() {
     setStock(null);
     if (!product || !warehouse) return undefined;
     let active = true;
-    api.get('/stock/records', { params: { warehouse_id: warehouse } })
+    api.get('/stock/records', { params: { warehouse_id: warehouse, product_id: product.id } })
       .then(r => { if (active) setStock((Array.isArray(r.data) ? r.data : []).filter(x => x.product_id === product.id).reduce((s, x) => s + Number(x.quantity || 0), 0)); })
       .catch(() => {});
     return () => { active = false; };

@@ -32,7 +32,6 @@ const SOURCE_LABELS = { manual: 'Manuel', scanner_pos: 'Kasa satışı', SYSTEM:
 export default function NormalMovements() {
   const [movements, setMovements] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -65,15 +64,13 @@ export default function NormalMovements() {
       if (selectedWarehouse) params.append('warehouse_id', selectedWarehouse);
       if (selectedProduct) params.append('product_id', selectedProduct);
 
-      const [movRes, whRes, prodRes] = await Promise.all([
+      const [movRes, whRes] = await Promise.all([
         apiClient.get(`/stock/movements?${params.toString()}&limit=300`),
-        apiClient.get('/warehouses'),
-        apiClient.get('/products')
+        apiClient.get('/warehouses')
       ]);
 
       setMovements(movRes.data || []);
       setWarehouses(whRes.data || []);
-      setProducts(prodRes.data || []);
     } catch (err) {
       console.error(err);
       showToast('Hareketler yüklenirken hata oluştu.', 'error');

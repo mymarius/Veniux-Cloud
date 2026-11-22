@@ -4,25 +4,41 @@ import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, Minus, Plus, P
 import apiClient from '../api/client';
 import { useToast } from './Toast';
 import DialogShell from './ui/DialogShell';
+import ProductSelect from './ProductSelect';
+import { PRODUCT_PICK_LIMIT } from '../lib/productSearch';
 
 const list = data => (Array.isArray(data) ? data : data?.data || []);
 const num = value => new Intl.NumberFormat('tr-TR').format(value || 0);
 const QUICK_AMOUNTS = [1, 5, 10, 25, 50, 100];
 
-// Ürün, depo ve mevcut stok bilgisini pencere açıldığında yükler.
-function useStockOptions(isOpen) {
-  const [state, setState] = useState({ products: [], warehouses: [], records: [], loading: false });
+// Depo listesi ve ilk ürünler pencere açıldığında yüklenir. Ürün seçimi yazdıkça sunucudan aranır (ProductSelect);
+// mevcut stok tüm kayıtlar yerine yalnız seçili ürünün kayıtlarından okunur (/stock/records?product_id=).
+function useStockOptions(isOpen, productIds = []) {
+  const [state, setState] = useState({ products: [], warehouses: [], loading: false });
+  const [records, setRecords] = useState({});
   useEffect(() => {
     if (!isOpen) return undefined;
     let active = true;
+    setRecords({});
     setState(prev => ({ ...prev, loading: true }));
-    Promise.all([apiClient.get('/products'), apiClient.get('/warehouses'), apiClient.get('/stock/records').catch(() => ({ data: [] }))])
-      .then(([p, w, r]) => { if (active) setState({ products: list(p.data), warehouses: list(w.data), records: list(r.data), loading: false }); })
+    Promise.all([apiClient.get('/products', { params: { limit: PRODUCT_PICK_LIMIT } }), apiClient.get('/warehouses')])
+      .then(([p, w]) => { if (active) setState({ products: list(p.data), warehouses: list(w.data), loading: false }); })
       .catch(() => { if (active) setState(prev => ({ ...prev, loading: false })); });
     return () => { active = false; };
   }, [isOpen]);
-  const stockOf = (productId, warehouseId) => state.records
-    .filter(r => String(r.product_id) === String(productId) && String(r.warehouse_id) === String(warehouseId))
+  const wanted = productIds.filter(Boolean).map(String).join(',');
+  useEffect(() => {
+    if (!isOpen || !wanted) return undefined;
+    let active = true;
+    wanted.split(',').filter(id => !records[id]).forEach(id => {
+      apiClient.get('/stock/records', { params: { product_id: id } })
+        .then(r => { if (active) setRecords(prev => ({ ...prev, [id]: list(r.data) })); })
+        .catch(() => { if (active) setRecords(prev => ({ ...prev, [id]: [] })); });
+    });
+    return () => { active = false; };
+  }, [isOpen, wanted]); // eslint-disable-line react-hooks/exhaustive-deps
+  const stockOf = (productId, warehouseId) => (records[String(productId)] || [])
+    .filter(r => String(r.warehouse_id) === String(warehouseId))
     .reduce((sum, r) => sum + Number(r.quantity || 0), 0);
   return { ...state, stockOf };
 }
@@ -38,8 +54,9 @@ function Stepper({ value, onChange, min = 1 }) {
 
 // 1. Hızlı stok hareketi (giriş / çıkış)
 export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = null, defaultWarehouse = null, type = 'inbound' }) => {
-  const { products, warehouses, stockOf, loading: optionsLoading } = useStockOptions(isOpen);
   const [productId, setProductId] = useState('');
+  const [picked, setPicked] = useState(null);
+  const { products, warehouses, stockOf, loading: optionsLoading } = useStockOptions(isOpen, [productId]);
   const [warehouseId, setWarehouseId] = useState('');
   const [movementType, setMovementType] = useState('inbound');
   const [amount, setAmount] = useState('');
@@ -64,7 +81,7 @@ export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = n
   const qty = Math.abs(parseInt(amount, 10) || 0);
   const current = stockOf(productId, warehouseId);
   const after = current + (inbound ? qty : -qty);
-  const product = products.find(p => String(p.id) === String(productId));
+  const product = (picked && String(picked.id) === String(productId) ? picked : null) || products.find(p => String(p.id) === String(productId)) || (defaultProduct && String(defaultProduct.id || defaultProduct.product_id) === String(productId) ? defaultProduct : null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,10 +122,7 @@ export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = n
         </div>
 
         <label className="vx-field">Ürün
-          <select className="vx-input" value={productId} onChange={e => setProductId(e.target.value)} required>
-            {!products.length && <option value="">{optionsLoading ? 'Yükleniyor…' : 'Önce ürün tanımlayın'}</option>}
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} · {p.sku}</option>)}
-          </select>
+          <ProductSelect value={productId} onChange={(id, prod) => { setProductId(id); setPicked(prod); }} initial={products} selected={product} required placeholder={optionsLoading ? 'Yükleniyor…' : 'Ürün adı, SKU veya barkod ara…'} />
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -143,8 +157,9 @@ export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = n
 
 // 2. Depolar arası transfer
 export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct = null }) => {
-  const { products, warehouses, stockOf } = useStockOptions(isOpen);
   const [productId, setProductId] = useState('');
+  const [picked, setPicked] = useState(null);
+  const { products, warehouses, stockOf } = useStockOptions(isOpen, [productId]);
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
   const [amount, setAmount] = useState('');
@@ -197,9 +212,7 @@ export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct 
       <form id="quick-transfer-form" onSubmit={handleTransfer} className="grid gap-4">
         {warehouses.length < 2 && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-[12.5px] text-amber-800">Transfer için en az iki depo tanımlı olmalı.</p>}
         <label className="vx-field">Ürün
-          <select className="vx-input" value={productId} onChange={e => setProductId(e.target.value)} required>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} · {p.sku}</option>)}
-          </select>
+          <ProductSelect value={productId} onChange={(id, prod) => { setProductId(id); setPicked(prod); }} initial={products} selected={picked || initialProduct} required />
         </label>
         <div className="grid items-end gap-3 sm:grid-cols-[1fr_auto_1fr]">
           <label className="vx-field">Kaynak depo

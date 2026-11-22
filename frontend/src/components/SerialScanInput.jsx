@@ -19,9 +19,10 @@ export default function SerialScanInput({ onScan, id = 'serial-scan', label = 'B
     return () => { live = false; };
   }, []);
 
-  const submit = raw => {
+  const submit = async raw => {
     if (!String(raw).trim()) return;
-    const result = onScan(raw, cfg);
+    setValue('');
+    const result = await onScan(raw, cfg); // eşzamansız tarama (sunucuda ürün arama) da desteklenir
     const fb = feedbackFor(result);
     if (result.status !== 'empty') {
       playBeep(fb.beep);

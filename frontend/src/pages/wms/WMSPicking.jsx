@@ -1,4 +1,5 @@
 import { Dropdown } from '../../components/ui';
+import ProductSelect from '../../components/ProductSelect';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import {
@@ -25,7 +26,6 @@ import { useToast } from '../../components/Toast';
 export default function WMSPicking() {
   const [waves, setWaves] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWave, setSelectedWave] = useState(null);
 
@@ -46,15 +46,13 @@ export default function WMSPicking() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [wavesRes, whRes, prodRes] = await Promise.all([
+      const [wavesRes, whRes] = await Promise.all([
         apiClient.get('/wms/picking/waves'),
-        apiClient.get('/warehouses'),
-        apiClient.get('/products')
+        apiClient.get('/warehouses')
       ]);
 
       setWaves(wavesRes.data || []);
       setWarehouses(whRes.data || []);
-      setProducts(prodRes.data || []);
 
       if (whRes.data?.length > 0) {
         setForm(prev => ({ ...prev, warehouse_id: whRes.data[0].id }));
@@ -348,15 +346,7 @@ export default function WMSPicking() {
                 {form.items.map((item, idx) => (
                   <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100 grid grid-cols-3 gap-2 items-center">
                     <div className="col-span-2">
-                      <Dropdown
-                        required
-                        value={item.product_id}
-                        onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                        className="w-full bg-white p-2 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium"
-                      >
-                        <option value="">Ürün Seçiniz...</option>
-                        {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-                      </Dropdown>
+                      <ProductSelect required value={item.product_id} onChange={(id) => handleItemChange(idx, 'product_id', id)} className="w-full bg-white p-2 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium" />
                     </div>
                     <div>
                       <input

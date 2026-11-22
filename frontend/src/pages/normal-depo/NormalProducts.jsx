@@ -20,6 +20,8 @@ import { DataTable, StatusBadge, MetricCard, Modal, Input, Select, Dropdown } fr
 import { money } from '../../lib/stockAnalytics';
 import { collapseVariants, cellQty } from '../../lib/variantGroups.mjs';
 import { categoryOptions, normalizeCategory } from '../../lib/categoryTree.mjs';
+import Pager from '../../components/Pager';
+import { pageSlice } from '../../lib/productSearch';
 import { VIEWS, countViews, matchesView, sortProducts, nextSort } from '../../lib/productView.mjs';
 
 const MARK_COLORS = ['#2f6fe4', '#12a37f', '#f2711c', '#7c5ce0', '#d9488b', '#0e8fb3'];
@@ -39,6 +41,7 @@ export default function NormalProducts() {
   const [sort, setSort] = useState({ key: null, dir: 'asc' });
   const [categoryFilter, setCategoryFilter] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('');
+  const [page, setPage] = useState(0);
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -199,6 +202,8 @@ export default function NormalProducts() {
   );
   const counts = useMemo(() => countViews(products), [products]);
   const shown = useMemo(() => { const base = sortProducts(products.filter(p => matchesView(p, view)), sort.key, sort.dir); return grouped ? collapseVariants(base) : base; }, [products, view, sort, grouped]);
+  useEffect(() => { setPage(0); }, [search, categoryFilter, supplierFilter, view, sort, grouped]);
+  const pageInfo = pageSlice(shown, page);
   const hasGroups = useMemo(() => collapseVariants(products).some(p => p.__group), [products]);
 
   const columns = [
@@ -354,12 +359,13 @@ export default function NormalProducts() {
           <DataTable 
             flush
             columns={columns}
-            data={shown}
+            data={pageInfo.rows}
             loading={loading}
             onRowClick={handleOpenDetail}
             emptyState={search || categoryFilter || supplierFilter || view !== 'all' ? 'Arama kriterlerinize uygun ürün bulunamadı.' : 'Henüz ürün yok. Sağ üstten Excel / CSV dosyanızı aktarın ya da Yeni Ürün Ekle ile başlayın.'}
           />
         </div>
+        <Pager info={pageInfo} onPage={setPage} />
       </div>
 
       {/* Add / Edit Product Modal */}

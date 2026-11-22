@@ -1,6 +1,9 @@
 import PurchaseOrderSend from '../components/PurchaseOrderSend';
 import { money } from '../lib/stockAnalytics';
-import { scanIntoLines } from '../lib/serialScan.mjs';
+import { scanIntoLines, normalizeScan } from '../lib/serialScan.mjs';
+import { findProduct } from '../lib/inboundEntry.mjs';
+import { mergeProducts, searchProducts, PRODUCT_PICK_LIMIT } from '../lib/productSearch';
+import ProductSelect from '../components/ProductSelect';
 import SerialScanInput from '../components/SerialScanInput';
 import { Dropdown } from '../components/ui';
 import { useLocation } from 'react-router-dom';
@@ -103,7 +106,7 @@ export default function PurchaseOrders() {
       const [supRes, whRes, prodRes] = await Promise.all([
         apiClient.get('/suppliers'),
         apiClient.get('/warehouses'),
-        apiClient.get('/products')
+        apiClient.get('/products', { params: { limit: PRODUCT_PICK_LIMIT } })
       ]);
       setSuppliers(supRes.data || []);
       setWarehouses(whRes.data || []);
@@ -150,12 +153,13 @@ export default function PurchaseOrders() {
     setOrderItems(orderItems.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index, field, val) => {
+  const handleItemChange = (index, field, val, picked = null) => {
     const next = [...orderItems];
     next[index][field] = val;
     delete next[index]._default;
     if (field === 'product_id') {
-      const p = products.find((x) => x.id === parseInt(val, 10));
+      if (picked) setProducts(prev => mergeProducts(prev, [picked]));
+      const p = picked || products.find((x) => x.id === parseInt(val, 10));
       if (p) {
         next[index].unit_price = p.purchase_price || p.cost_price || 0;
       }
@@ -166,9 +170,17 @@ export default function PurchaseOrders() {
   // Seri okutma: okutulan ürün satır ekler ya da miktarı artırır. Dokunulmamış varsayılan ilk satır okutulan ürünle değiştirilir.
   const itemsRef = useRef(orderItems);
   itemsRef.current = orderItems;
-  const handleScanCode = (raw, cfg) => {
+  const productsRef = useRef(products);
+  productsRef.current = products;
+  const handleScanCode = async (raw, cfg) => {
+    // Katalog tarayıcıya indirilmez: okutulan kod yerelde yoksa sunucudan aranır (barkod/SKU/ad).
+    let known = productsRef.current;
+    const code = normalizeScan(raw, cfg);
+    if (code && !findProduct(known, code)) {
+      try { known = mergeProducts(known, await searchProducts(apiClient, code, { limit: 10 })); productsRef.current = known; setProducts(known); } catch { /* bulunamadı olarak işlenir */ }
+    }
     const lines = itemsRef.current.length === 1 && itemsRef.current[0]._default ? [{ ...itemsRef.current[0], product_id: '' }] : itemsRef.current;
-    const result = scanIntoLines(lines, products, raw, { qtyKey: 'quantity', cfg, make: (p, q) => ({ product_id: p.id, quantity: q, unit_price: p.purchase_price || p.cost_price || 0 }) });
+    const result = scanIntoLines(lines, known, raw, { qtyKey: 'quantity', cfg, make: (p, q) => ({ product_id: p.id, quantity: q, unit_price: p.purchase_price || p.cost_price || 0 }) });
     if (result.status === 'added' || result.status === 'incremented') { itemsRef.current = result.lines; setOrderItems(result.lines); }
     return result;
   };
@@ -525,16 +537,7 @@ export default function PurchaseOrders() {
               {orderItems.map((item, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-xl border border-gray-200">
                   <div className="col-span-6">
-                    <Dropdown
-                      required
-                      value={item.product_id}
-                      onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                      className="w-full p-2 bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-900"
-                    >
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
-                      ))}
-                    </Dropdown>
+                    <ProductSelect required value={item.product_id} onChange={(id, picked) => handleItemChange(idx, 'product_id', id, picked)} className="w-full p-2 bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-900" initial={products} selected={products.find(p => String(p.id) === String(item.product_id)) || null} />
                   </div>
 
                   <div className="col-span-3">

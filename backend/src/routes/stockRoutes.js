@@ -8,11 +8,13 @@ const {
   getStockRecords,
   getStockMovements,
   getStockAnalytics,
-  getDashboardMetrics
+  getDashboardMetrics,
+  getDashboardSummary
 } = require('../controllers/stockController');
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
 
 router.get('/dashboard-metrics', authMiddleware, getDashboardMetrics);
+router.get('/dashboard-summary', authMiddleware, getDashboardSummary);
 router.get('/analytics', authMiddleware, getStockAnalytics);
 router.get('/records', authMiddleware, getStockRecords);
 router.get('/movements', authMiddleware, getStockMovements);

@@ -194,7 +194,7 @@ export default function VirtualTerminal() {
     let active = true;
     Promise.all([
       apiClient.get('/wms/locations', { params: { warehouse_id: warehouseId } }).then(r => r.data).catch(() => []),
-      apiClient.get('/products').then(r => r.data).catch(() => [])
+      apiClient.get('/products', { params: { limit: 20 } }).then(r => r.data).catch(() => [])
     ]).then(([locations, products]) => {
       if (!active) return;
       const list = x => (Array.isArray(x) ? x : x?.data || x?.products || x?.locations || []);

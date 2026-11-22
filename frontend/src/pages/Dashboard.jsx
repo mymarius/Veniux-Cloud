@@ -16,7 +16,7 @@ import { BarList, CountUp, Kpi, Legend, Panel, ScoreRing, Segmented } from '../c
 import { chartColors } from '../lib/chartPalette';
 import { DEPARTMENTS } from '../mock/hrData';
 import {
-  asList, change, compact, dayKey, movementLabel, movementTimeline, num, parseDate, periodTotals, stockHealth, sumBy, tl
+  asList, change, compact, dayKey, movementLabel, movementTimeline, num, parseDate, periodTotals, sumBy, tl
 } from '../lib/stockAnalytics';
 
 const IN = '#0d7a57', OUT = '#cf4b06', BLUE = '#17263a', AMBER = '#b98a1e', VIOLET = '#6c7d96';
@@ -59,12 +59,12 @@ export default function Dashboard() {
     let active = true;
     setLoading(true); setError('');
     Promise.all([
-      Promise.all(['/products', '/warehouses', '/stock/records', '/stock/movements?limit=5000'].map(url => api.get(url))),
+      Promise.all(['/warehouses', '/stock/dashboard-summary', '/stock/movements?limit=5000'].map(url => api.get(url))),
       Promise.all([safe(api.get('/alerts')), safe(api.get('/purchase-orders')), safe(api.get('/suppliers')), safe(api.get('/workspaces/crm')), safe(api.get('/workspaces/hr'))])
     ]).then(([core, [alerts, orders, suppliers, crm, hr]]) => {
       if (!active) return;
       setRaw({
-        products: asList(core[0].data), warehouses: asList(core[1].data), records: asList(core[2].data), movements: asList(core[3].data),
+        warehouses: asList(core[0].data), summary: core[1].data || {}, movements: asList(core[2].data),
         alerts: asList(alerts), orders: asList(orders), suppliers: asList(suppliers),
         crm: crm?.data || null, hr: hr?.data || null
       });
@@ -76,31 +76,26 @@ export default function Dashboard() {
 
   const a = useMemo(() => {
     if (!raw) return null;
-    const { products, records, movements } = raw;
-    const value = records.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.purchase_price || 0), 0);
-    const saleValue = records.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.sale_price || 0), 0);
-    const units = records.reduce((s, r) => s + Number(r.quantity || 0), 0);
-    const health = stockHealth(products, records);
+    // Ürün/stok kayıtları tarayıcıya indirilmez: özet sunucuda hesaplanır (/stock/dashboard-summary).
+    const { summary, movements } = raw;
+    const value = Number(summary.value || 0), saleValue = Number(summary.sale_value || 0), units = Number(summary.units || 0);
+    const health = { counts: { healthy: 0, critical: 0, out: 0, excess: 0, ...summary.health }, attention: summary.attention || [] };
     const totals = periodTotals(movements, days);
     const timeline = movementTimeline(movements, days);
     const openAlerts = raw.alerts.filter(x => ['unread', 'active'].includes(x.status));
 
     // Stok değeri zaman serisi: bugünkü değerden geriye doğru hareketler geri alınarak bulunur.
-    const priceOf = new Map(products.map(p => [p.id, Number(p.purchase_price || 0)]));
     const dailyValueDelta = new Map();
     movements.forEach(m => {
       const date = parseDate(m.created_at); if (!date || /transfer/i.test(m.movement_type || '')) return;
       const key = dayKey(date);
-      dailyValueDelta.set(key, (dailyValueDelta.get(key) || 0) + Number(m.change_amount || 0) * (priceOf.get(m.product_id) || 0));
+      dailyValueDelta.set(key, (dailyValueDelta.get(key) || 0) + Number(m.change_amount || 0) * Number(m.unit_cost || 0));
     });
     let running = value;
     const valueSeries = [...timeline].reverse().map(d => { const v = running; running -= dailyValueDelta.get(d.key) || 0; return Math.max(0, v); }).reverse();
 
-    // Ürün bazında değer ve kâr potansiyeli
-    const productRows = products.map(p => {
-      const qty = health.totals.get(p.id) || 0;
-      return { name: p.name, sku: p.sku, qty, value: qty * Number(p.purchase_price || 0), margin: qty * (Number(p.sale_price || 0) - Number(p.purchase_price || 0)) };
-    });
+    // Ürün bazında değer: sunucu ilk 8'i hazır verir
+    const productRows = (canViewCosts ? summary.top_by_value : summary.top_by_qty) || [];
 
     // CRM
     const deals = raw.crm?.deals || [], tasks = raw.crm?.tasks || [], leads = raw.crm?.leads || [];
@@ -114,10 +109,10 @@ export default function Dashboard() {
     const expiry = null;
 
     // Sağlık skoru bileşenleri (0-100)
-    const productCount = products.length || 1;
+    const productCount = summary.product_count || 1;
     const turnover = units ? (totals.current.outbound / units) * (30 / days) : 0;
     const dims = [
-      ['Stok sağlığı', products.length ? clamp((health.groups.healthy.length + health.groups.excess.length * 0.5) / productCount * 100) : 100],
+      ['Stok sağlığı', summary.product_count ? clamp((health.counts.healthy + health.counts.excess * 0.5) / productCount * 100) : 100],
       ['Uyarı kontrolü', clamp(100 - openAlerts.length * 8)],
       ['Stok devri', clamp(turnover * 100)],
       ['Tedarik', raw.orders.length ? clamp(raw.orders.filter(o => o.status === 'completed').length / raw.orders.length * 100) : null],
@@ -131,10 +126,10 @@ export default function Dashboard() {
     return {
       value, saleValue, units, health, totals, timeline, valueSeries, openAlerts, productRows,
       deals, openDeals, won, closed, leads, tasks, overdueTasks, employees, expiry, dims, score,
-      byWarehouse: sumBy(records, r => r.warehouse_name || 'Depo', r => Number(r.quantity || 0) * (canViewCosts ? Number(r.purchase_price || 0) : 0)),
-      byWarehouseQty: sumBy(records, r => r.warehouse_name || 'Depo', r => Number(r.quantity || 0)),
-      byCategory: sumBy(records, r => r.category || 'Diğer', r => Number(r.quantity || 0) * (canViewCosts ? Number(r.purchase_price || 0) : 0)).slice(0, 6),
-      byCategoryQty: sumBy(records, r => r.category || 'Diğer', r => Number(r.quantity || 0)).slice(0, 6),
+      byWarehouse: (summary.by_warehouse || []).map(w => [w.name, canViewCosts ? w.value : 0]).sort((x, y) => y[1] - x[1]),
+      byWarehouseQty: (summary.by_warehouse || []).map(w => [w.name, w.qty]).sort((x, y) => y[1] - x[1]),
+      byCategory: (summary.categories || []).map(([n, v]) => [n, canViewCosts ? v : 0]).slice(0, 6),
+      byCategoryQty: (summary.categories_qty || []).slice(0, 6),
       alertTypes: sumBy(raw.alerts, x => (SEVERITY[x.severity] || ['Diğer'])[0], () => 1)
     };
   }, [raw, days, canViewCosts]);
@@ -180,7 +175,7 @@ export default function Dashboard() {
         <div className="dx-hero-main">
           <span>{canViewCosts ? 'Toplam stok değeri' : 'Toplam stok'}</span>
           <strong>{canViewCosts ? <CountUp value={a.value} format={tl} /> : <CountUp value={a.units} format={v => num(v) + ' birim'} />}</strong>
-          <small>{num(a.units)} birim · {raw.products.length} ürün · {raw.warehouses.length} depo</small>
+          <small>{num(a.units)} birim · {raw.summary.product_count} ürün · {raw.warehouses.length} depo</small>
           {canViewCosts && <HeroArea data={a.valueSeries} />}
         </div>
         <div className="dx-hero-stats">
@@ -196,7 +191,7 @@ export default function Dashboard() {
       </section>
 
       <section className="dx-todo" aria-label="Bugün yapılacaklar">
-        <Link to="/normal-depo/products" data-tone={a.health.groups.out.length + a.health.groups.critical.length ? 'bad' : 'good'}><i><AlertTriangle size={18} /></i><span><b>{a.health.groups.out.length + a.health.groups.critical.length}</b> ürün kritik seviyede<small>{a.health.groups.out.length} ürün tükendi · sipariş planlayın</small></span><ArrowUpRight size={16} /></Link>
+        <Link to="/normal-depo/products" data-tone={a.health.counts.out + a.health.counts.critical ? 'bad' : 'good'}><i><AlertTriangle size={18} /></i><span><b>{a.health.counts.out + a.health.counts.critical}</b> ürün kritik seviyede<small>{a.health.counts.out} ürün tükendi · sipariş planlayın</small></span><ArrowUpRight size={16} /></Link>
         <Link to="/alerts" data-tone={a.openAlerts.length ? 'mid' : 'good'}><i><Bell size={18} /></i><span><b>{a.openAlerts.length}</b> açık uyarı<small>{raw.alerts.length} toplam bildirim</small></span><ArrowUpRight size={16} /></Link>
         <Link to="/crm/dashboard" data-tone={a.overdueTasks.length ? 'mid' : 'info'}><i><Handshake size={18} /></i><span><b>{a.openDeals.length}</b> açık fırsat<small>{a.overdueTasks.length} geciken görev</small></span><ArrowUpRight size={16} /></Link>
       </section>
@@ -215,9 +210,9 @@ export default function Dashboard() {
               ...(canViewCosts ? [{ label: 'Stok değeri (₺)', data: a.valueSeries, borderColor: VIOLET, fill: false, borderDash: [5, 4], yAxisID: 'y1' }] : [])
             ]} />
         </Panel>
-        <Panel icon={Package} title="Stok sağlığı" subtitle={`${raw.products.length} ürünün durumu`} action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
+        <Panel icon={Package} title="Stok sağlığı" subtitle={`${raw.summary.product_count} ürünün durumu`} action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
           {(() => {
-            const g = a.health.groups, rows = [['Sağlıklı', g.healthy.length, IN], ['Kritik', g.critical.length, AMBER], ['Tükendi', g.out.length, OUT], ['Fazla stok', g.excess.length, VIOLET]];
+            const g = a.health.counts, rows = [['Sağlıklı', g.healthy, IN], ['Kritik', g.critical, AMBER], ['Tükendi', g.out, OUT], ['Fazla stok', g.excess, VIOLET]];
             const all = rows.reduce((t, r) => t + r[1], 0) || 1;
             return <>
               <div className="dx-stack" role="img" aria-label={rows.map(r => `${r[0]} ${r[1]}`).join(', ')}>{rows.filter(r => r[1]).map(r => <i key={r[0]} style={{ width: `${r[1] / all * 100}%`, background: r[2] }} />)}</div>
@@ -226,8 +221,8 @@ export default function Dashboard() {
           })()}
           <h3 className="dx-sub">Öncelikli ürünler</h3>
           <ul className="dx-priority">
-            {[...a.health.groups.out, ...a.health.groups.critical].slice(0, 4).map(p => <li key={p.id || p.sku}><div><b>{p.name}</b><span>{num(p.qty)} / {num(p.min_stock_level)}</span></div><i><u style={{ width: `${Math.min(100, p.qty / Math.max(1, p.min_stock_level) * 100)}%`, background: p.qty <= 0 ? OUT : AMBER }} /></i></li>)}
-            {!a.health.groups.out.length && !a.health.groups.critical.length && <li className="ax-empty">Kritik ürün yok.</li>}
+            {a.health.attention.slice(0, 4).map(p => <li key={p.id || p.sku}><div><b>{p.name}</b><span>{num(p.qty)} / {num(p.min_stock_level)}</span></div><i><u style={{ width: `${Math.min(100, p.qty / Math.max(1, p.min_stock_level) * 100)}%`, background: p.qty <= 0 ? OUT : AMBER }} /></i></li>)}
+            {!a.health.attention.length && <li className="ax-empty">Kritik ürün yok.</li>}
           </ul>
         </Panel>
       </section>
@@ -268,7 +263,7 @@ export default function Dashboard() {
         {['NORMAL','BOTH'].includes(user.module_type)&&<StockHealthPanel compact/>}
         <section className="ax-grid ax-kpis ax-reveal">
           <Kpi label="Satış değeri" value={a.saleValue} format={v => compact(v) + ' ₺'} icon={BadgeDollarSign} tone="teal" detail={canViewCosts ? (a.saleValue ? `potansiyel kâr ${compact(a.saleValue - a.value)} ₺` : 'satış fiyatı girilmemiş') : `${num(a.units)} birim satışta`} />
-          <Kpi label="Ürün çeşidi" value={raw.products.length} icon={Package} tone="violet" detail={`${num(a.units)} birim · ${raw.warehouses.length} depo`} to="/normal-depo/products" />
+          <Kpi label="Ürün çeşidi" value={raw.summary.product_count} icon={Package} tone="violet" detail={`${num(a.units)} birim · ${raw.warehouses.length} depo`} to="/normal-depo/products" />
           <Kpi label="Açık pipeline" value={a.openDeals.reduce((s, d) => s + Number(d.value || 0), 0)} format={v => compact(v) + ' ₺'} icon={Handshake} tone="blue" detail={`${a.openDeals.length} açık fırsat`} to="/crm/deals" />
         </section>
 
@@ -282,10 +277,10 @@ export default function Dashboard() {
         </Panel>
         <Panel icon={Package} title="Stok sağlığı" subtitle="Min / maks seviyelerine göre ürünler" action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
           {(() => {
-            const g = a.health.groups;
-            const rows = [['Sağlıklı', g.healthy.length, IN], ['Kritik', g.critical.length, AMBER], ['Tükendi', g.out.length, OUT], ['Fazla stok', g.excess.length, VIOLET]];
+            const g = a.health.counts;
+            const rows = [['Sağlıklı', g.healthy, IN], ['Kritik', g.critical, AMBER], ['Tükendi', g.out, OUT], ['Fazla stok', g.excess, VIOLET]];
             return <>
-              <BusinessChart type="doughnut" title="Stok sağlığı" height={200} legend={false} center={{ value: num(raw.products.length), label: 'ürün' }}
+              <BusinessChart type="doughnut" title="Stok sağlığı" height={200} legend={false} center={{ value: num(raw.summary.product_count), label: 'ürün' }}
                 labels={rows.map(r => r[0])} datasets={[{ label: 'Ürün', data: rows.map(r => r[1]), backgroundColor: rows.map(r => r[2]) }]} />
               <Legend items={rows.map(([l, v, c]) => [l, c, v])} />
             </>;
