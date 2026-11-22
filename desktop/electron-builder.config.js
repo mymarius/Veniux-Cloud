@@ -23,7 +23,7 @@ module.exports.afterPack=async context=>{
  require('child_process').execFileSync(helper,[require('path').join(context.appOutDir,context.packager.appInfo.productFilename+'.exe'),'--set-icon',require('path').join(__dirname,'assets/icon.ico')]);
  require('./distribution-safety.cjs').audit(require('path').join(context.appOutDir,'resources'));
 };
-module.exports.files=[...build.files,'runtime.js','printing.cjs','devices.cjs','customerDisplayWindow.cjs','assets/icon.ico','assets/label-logo.webp'];
+module.exports.files=[...build.files,'runtime.js','printing.cjs','devices.cjs','diagnostics.cjs','customerDisplayWindow.cjs','assets/icon.ico','assets/label-logo.webp'];
 module.exports.extraResources=[...(build.extraResources||[]),{from:'../shared',to:'shared',filter:['*.mjs','!*.test.mjs']}];
 {
  const url=new URL(process.env.VENIUX_LICENSE_AUTHORITY_URL || 'https://api.veniux.com/v1');

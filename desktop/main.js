@@ -132,6 +132,7 @@ function createWindow() {
 function registerIpcHandlers() {
   require('./printing.cjs').register(handle,{app,BrowserWindow,apiBase:runtime.apiBase});
   require('./devices.cjs').register(handle);
+  require('./diagnostics.cjs').register(handle, { app, dialog, BrowserWindow, getMainWindow: () => mainWindow, scanDevices: () => require('./devices.cjs').scan(), getPrinters: async () => (mainWindow ? (await mainWindow.webContents.getPrintersAsync()).map(p => ({ name: p.name, status: p.status })) : []) });
   handle('complete-first-setup', async (_event,input) => {
     if(!setupPending)throw Error('Mevcut sunucu seçimi bu ekrandan değiştirilemez.');
     const selection=require('./runtime').firstSetupSelection(input);

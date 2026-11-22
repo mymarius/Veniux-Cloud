@@ -46,6 +46,20 @@ contextBridge.exposeInMainWorld('veniuxDesktop', {
   saveCachedLicense: (tokenData) => ipcRenderer.invoke('save-cached-license', tokenData),
   clearCachedLicense: () => ipcRenderer.invoke('clear-cached-license'),
 
+  // Veniux Tanılama: katı kanal listesi (main.js tarafında doğrulanır); kabuk, dosya yolu ya da kod çalıştırma kanalı yoktur
+  diagList: () => ipcRenderer.invoke('diag-list'),
+  diagHistory: () => ipcRenderer.invoke('diag-history'),
+  diagRun: request => ipcRenderer.invoke('diag-run', request),
+  diagCancel: () => ipcRenderer.invoke('diag-cancel'),
+  diagExport: payload => ipcRenderer.invoke('diag-export', payload),
+  diagPrinters: () => ipcRenderer.invoke('diag-printers'),
+  diagTestPrint: printer => ipcRenderer.invoke('diag-test-print', { printer }),
+  onDiagProgress: callback => {
+    const subscription = (event, state) => callback(state);
+    ipcRenderer.on('diag-progress', subscription);
+    return () => ipcRenderer.removeListener('diag-progress', subscription);
+  },
+
   // System Diagnostics
   getSystemMetrics: () => ipcRenderer.invoke('get-system-metrics'),
   openExternal: (url) => ipcRenderer.send('open-external-url', url)
