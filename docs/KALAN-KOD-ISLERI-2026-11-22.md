@@ -36,3 +36,14 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 - Arayüz: Raporlar › Kâr sekmesinde mevcut brüt kâr tablosunun altına `ProfitAnalysis` bölümü. Gerçek tarayıcıda 2 ürünle (kârlı/zararlı) denendi, sayılar elle hesapla tuttu.
 - Paket kısıtı (Pro ve üstü) ve `VENIUX_PLAN_ENFORCE` değiştirilmedi. Yeni tablo yok.
 - Test: `backend/tests/profitAnalysis.test.js` (5 test) + mevcut `retailProfit.test.js` yeşil.
+
+## 5. Yazarkasa (ÖKC) sürücü katmanı — KISMEN (kasıtlı)
+**Yapıldı (gerçek cihaz gerektirmeyen kısım):**
+- `ecrService` sağlamlaştırıldı: cihaz çağrısına zaman aşımı (`VENIUX_ECR_TIMEOUT_MS`), `attempts` üzerinde iyimser kilitle aynı işin çift yazdırılmasının engellenmesi, **belirsiz sonuç** (zaman aşımı/yarıda kesilen süreç) `BELİRSİZ:` işaretiyle otomatik yeniden denenmez, `findSale` desteği, operatör onayı (`POST /api/ecr/jobs/:id/process {confirm_reprint:true}`), sürücüye sabit `idempotency_key`.
+- Yeni `backend/src/services/ecr/`: `errors.js`, `frames.js` (STX/ETX/LRC zarfı), `transport.js` (TCP, COM, kayıtlı çerçeve taşıyıcısı), `framedDriver.js` (iskelet).
+- `driverStatus` / `registerDriver`; `GET /api/ecr/devices` artık `driver_status` döner (`simulator` | `not_installed` | `unverified` | `verified`). `VERIFIED_BRANDS` **boş**; testte boş olduğu doğrulanıyor.
+- Rehber: `docs/ECR-SURUCU-REHBERI.md` (sözleşme, ekleme adımları, gerekli bilgi listesi, gerçek cihaz kabul listesi).
+- Test: `backend/tests/ecrDrivers.test.js` (12 test: zarf, kayıtlı çerçeve mutlu yol/NAK/zaman aşımı/sapma/red, gerçek yerel TCP, çift işleme, belirsiz iş, findSale, sürücü durumları) + mevcut `ecrBridge.test.js` yeşil.
+
+**ENGEL (kullanıcıdan gerekenler):** marka + model, protokol belgesi/SDK ve örnek bayt alışverişleri, test cihazı, üretici sözleşmesi, pilot işletme (rehber §3). Bunlar olmadan marka sürücüsü yazılmadı; hiçbir sürücü "hazır" işaretlenmedi.
+**Eksik ve ilk sürücüyle gelecek:** `ecr_devices` için bağlantı ayarı sütunu (şema adımı), cihaz kayıt ekranı, masaüstü alt süreci, kasada "mali fiş bekliyor" rozeti.

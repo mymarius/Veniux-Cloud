@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { EcrError } = require('./ecr/errors');
 const fail = (message, status = 400) => { throw Object.assign(new Error(message), { status }); };
 
 // ÖKC (yazarkasa) köprüsü: Veniux mali fiş düzenlemez; satış tamamlanınca cihaza "bu satışı yaz" işi bırakır, cihazın verdiği
@@ -19,8 +20,36 @@ const drivers = {
     }
   }
 };
-// Üretici sürücüleri üretici SDK'sı ve sözleşme gerektirir; gelene kadar net bir hata verilir.
-for (const brand of BRANDS) if (!drivers[brand]) drivers[brand] = { async openSale() { throw new Error(brand + ' sürücüsü henüz kurulu değil.'); } };
+// Üretici sürücüleri üretici SDK'sı/protokol belgesi ve gerçek cihaz gerektirir; gelene kadar net bir hata verilir.
+const NOT_INSTALLED = Symbol('not-installed');
+for (const brand of BRANDS) if (!drivers[brand]) drivers[brand] = { [NOT_INSTALLED]: true, async openSale() { throw new EcrError('NOT_INSTALLED', brand + ' sürücüsü henüz kurulu değil.', { retryable: false }); } };
+
+// Gerçek cihazla uçtan uca doğrulanmış markalar. BOŞ KALIR: bir sürücü yalnız docs/ECR-SURUCU-REHBERI.md'deki kabul listesi
+// gerçek cihazda geçilip burada elle işaretlenince "hazır" sayılır. Kod yazmak ya da kayıtlı çerçeveyle test etmek doğrulama değildir.
+const VERIFIED_BRANDS = [];
+function driverStatus(brand) {
+  const d = drivers[brand];
+  if (!d) return 'unknown';
+  if (brand === 'simulator') return 'simulator';
+  if (d[NOT_INSTALLED]) return 'not_installed';
+  return VERIFIED_BRANDS.includes(brand) ? 'verified' : 'unverified';
+}
+// Marka sürücüsünü takar (protokol belgesinden yazılmış sürücü). Doğrulanmış sayılmaz.
+function registerDriver(brand, driver) {
+  if (!BRANDS.includes(brand) || brand === 'simulator') throw new Error('Sürücü yalnız tanımlı marka için takılabilir.');
+  if (typeof driver?.openSale !== 'function') throw new Error('Sürücü openSale içermeli.');
+  drivers[brand] = driver;
+}
+
+// Bir cihaz çağrısının en çok ne kadar bekleneceği; kasa akışı cihaz yüzünden takılmasın.
+const timeoutMs = () => Math.max(1000, Number(process.env.VENIUX_ECR_TIMEOUT_MS) || 20000);
+function withTimeout(promise, ms) {
+  let timer;
+  const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new EcrError('TIMEOUT', 'Yazarkasa ' + Math.round(ms / 1000) + ' sn içinde yanıt vermedi.', { uncertain: true })), ms); });
+  return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+}
+const UNCERTAIN = 'BELİRSİZ: ';
+const isUncertain = job => String(job.last_error || '').startsWith(UNCERTAIN);
 
 async function registerDevice(user, body = {}) {
   if (!['admin', 'manager'].includes(user.role)) fail('Bu işlem için yetkiniz yok.', 403);
@@ -36,7 +65,7 @@ async function registerDevice(user, body = {}) {
 
 async function devices(user) {
   if (!['admin', 'manager'].includes(user.role)) fail('Bu işlem için yetkiniz yok.', 403);
-  return { items: (await db.query('SELECT id,register_id,brand,connection,name,active FROM ecr_devices WHERE tenant_id=$1 ORDER BY id', [user.tenantId])).rows.map(r => ({ ...r, id: Number(r.id), active: Number(r.active) === 1 })) };
+  return { items: (await db.query('SELECT id,register_id,brand,connection,name,active FROM ecr_devices WHERE tenant_id=$1 ORDER BY id', [user.tenantId])).rows.map(r => ({ ...r, id: Number(r.id), active: Number(r.active) === 1, driver_status: driverStatus(r.brand) })) };
 }
 
 // Satış işleminin içinden çağrılır (aynı tx). Etkin cihaz yoksa hiçbir şey yapmaz; hata satışı bozmaz.
@@ -49,7 +78,12 @@ async function enqueueSale(tx, tenantId, saleId, registerId) {
   } catch { return null; }
 }
 
-async function processJob(user, jobId) {
+// Bir işi cihaza yazdırır. Çift mali fiş olmasın diye:
+//  - iş, "attempts" üzerinde iyimser kilitle sahiplenilir (aynı anda iki işlem aynı işi yazdıramaz);
+//  - sahiplenirken last_error "BELİRSİZ" işaretlenir; süreç çökerse iş belirsiz kalır, kendiliğinden yeniden yazılmaz;
+//  - zaman aşımı / yanıt alınamadı gibi belirsiz sonuçlar da BELİRSİZ kalır; sürücü findSale destekliyorsa önce cihaza sorulur,
+//    desteklemiyorsa yalnız operatörün onayıyla (confirmReprint) yeniden denenir.
+async function processJob(user, jobId, options = {}) {
   const job = (await db.query('SELECT * FROM ecr_jobs WHERE id=$1 AND tenant_id=$2', [jobId, user.tenantId])).rows[0];
   if (!job) fail('İş bulunamadı.', 404);
   if (job.status === 'done') return { id: Number(job.id), status: 'done', fiscal_receipt_no: job.fiscal_receipt_no, z_no: job.z_no };
@@ -57,24 +91,41 @@ async function processJob(user, jobId) {
   const device = (await db.query('SELECT * FROM ecr_devices WHERE id=$1 AND tenant_id=$2', [job.device_id, user.tenantId])).rows[0];
   const sale = (await db.query('SELECT snapshot_json FROM retail_sales WHERE sale_id=$1 AND tenant_id=$2', [job.sale_id, user.tenantId])).rows[0];
   if (!device || !sale) fail('Cihaz veya satış kaydı yok.', 409);
-  const s = JSON.parse(sale.snapshot_json);
   const driver = drivers[device.brand];
-  try {
-    const r = await driver.openSale(device, { receipt_no: s.receipt_no, total_cents: s.net_cents, payments: s.payments, lines: (s.items || []).map(i => ({ name: i.name, quantity: i.quantity, net_cents: i.net_cents })) });
-    await db.query("UPDATE ecr_jobs SET status='done',attempts=attempts+1,last_error=NULL,fiscal_receipt_no=$1,z_no=$2,done_at=CURRENT_TIMESTAMP WHERE id=$3", [r.fiscal_receipt_no, r.z_no, job.id]);
+  const uncertainBefore = isUncertain(job);
+  if (uncertainBefore && !options.confirmReprint && typeof driver.findSale !== 'function') {
+    fail('Önceki deneme belirsiz kaldı: fişin yazılıp yazılmadığını yazarkasadan kontrol edin. Yazılmadıysa onaylayarak yeniden deneyin (çift fiş riski).', 409);
+  }
+  const claimed = await db.query("UPDATE ecr_jobs SET attempts=attempts+1,last_error=$1 WHERE id=$2 AND tenant_id=$3 AND attempts=$4 AND status<>'done'", [UNCERTAIN + 'deneme tamamlanmadı (süreç yarıda kesilmiş olabilir).', job.id, user.tenantId, job.attempts]);
+  if (!claimed.rowCount) return { id: Number(job.id), status: 'busy', error: 'İş başka bir işlem tarafından yazdırılıyor.' };
+  const s = JSON.parse(sale.snapshot_json);
+  const payload = { receipt_no: s.receipt_no, total_cents: s.net_cents, payments: s.payments, lines: (s.items || []).map(i => ({ name: i.name, quantity: i.quantity, net_cents: i.net_cents })) };
+  // Sürücüye verilen bağlam: aynı satış için her denemede aynı anahtar (cihaz destekliyorsa kendi tarafında tekilleştirir).
+  const ctx = { idempotency_key: 'veniux-sale-' + job.sale_id, job_id: Number(job.id), sale_id: Number(job.sale_id), attempt: Number(job.attempts) + 1 };
+  const finish = async r => {
+    await db.query("UPDATE ecr_jobs SET status='done',last_error=NULL,fiscal_receipt_no=$1,z_no=$2,done_at=CURRENT_TIMESTAMP WHERE id=$3", [r.fiscal_receipt_no, r.z_no, job.id]);
     // Mali fiş numarası satış kaydına da yazılır; yazılamazsa iş yine de tamamlanmış sayılır.
     try { await db.query("UPDATE pos_sale_meta SET okc_status='done',okc_receipt_no=$1,okc_z_no=$2 WHERE sale_id=$3 AND tenant_id=$4", [r.fiscal_receipt_no, r.z_no, job.sale_id, user.tenantId]); } catch { /* eski şema */ }
     return { id: Number(job.id), status: 'done', fiscal_receipt_no: r.fiscal_receipt_no, z_no: r.z_no };
+  };
+  try {
+    if (uncertainBefore && typeof driver.findSale === 'function') {
+      const already = await withTimeout(driver.findSale(device, payload, ctx), timeoutMs());
+      if (already) return await finish(already); // cihaz zaten yazmış: tekrar yazdırma
+    }
+    return await finish(await withTimeout(driver.openSale(device, payload, ctx), timeoutMs()));
   } catch (e) {
-    const message = String(e.message || 'Bilinmeyen hata').slice(0, 300);
-    await db.query("UPDATE ecr_jobs SET status='failed',attempts=attempts+1,last_error=$1 WHERE id=$2", [message, job.id]);
-    return { id: Number(job.id), status: 'failed', error: message };
+    const uncertain = e instanceof EcrError ? e.uncertain : false;
+    const message = (uncertain ? UNCERTAIN : '') + String(e.message || 'Bilinmeyen hata').slice(0, 280);
+    await db.query("UPDATE ecr_jobs SET status='failed',last_error=$1 WHERE id=$2", [message, job.id]);
+    return { id: Number(job.id), status: 'failed', error: message, uncertain, code: e.code || null };
   }
 }
 
 // Bekleyen ve başarısız işleri sırayla dener (kasa her satıştan sonra ve gün sonunda çağırır).
 async function processPending(user, limit = 20) {
-  const rows = (await db.query("SELECT id FROM ecr_jobs WHERE tenant_id=$1 AND status IN ('pending','failed') AND attempts<$2 ORDER BY id LIMIT $3", [user.tenantId, MAX_ATTEMPTS, limit])).rows;
+  // Belirsiz kalan işler kendiliğinden yeniden denenmez (çift mali fiş riski); operatör onayı ister.
+  const rows = (await db.query("SELECT id FROM ecr_jobs WHERE tenant_id=$1 AND status IN ('pending','failed') AND attempts<$2 AND COALESCE(last_error,'') NOT LIKE $4 ORDER BY id LIMIT $3", [user.tenantId, MAX_ATTEMPTS, limit, UNCERTAIN + '%'])).rows;
   const results = [];
   for (const r of rows) results.push(await processJob(user, Number(r.id)));
   return { processed: results.length, done: results.filter(x => x.status === 'done').length, failed: results.filter(x => x.status === 'failed').length, results };
@@ -86,7 +137,7 @@ async function jobs(user, query = {}) {
   if (['pending', 'failed', 'done'].includes(query.status)) { params.push(query.status); where += ` AND status=$${params.length}`; }
   const rows = (await db.query(`SELECT id,sale_id,status,attempts,last_error,fiscal_receipt_no,z_no,created_at,done_at FROM ecr_jobs WHERE ${where} ORDER BY id DESC LIMIT 100`, params)).rows;
   const counts = (await db.query("SELECT status, COUNT(*) AS n FROM ecr_jobs WHERE tenant_id=$1 GROUP BY status", [user.tenantId])).rows.reduce((m, r) => ({ ...m, [r.status]: Number(r.n) }), { pending: 0, failed: 0, done: 0 });
-  return { items: rows.map(r => ({ ...r, id: Number(r.id), sale_id: Number(r.sale_id), attempts: Number(r.attempts) })), counts, blocking: counts.pending + counts.failed };
+  return { items: rows.map(r => ({ ...r, id: Number(r.id), sale_id: Number(r.sale_id), attempts: Number(r.attempts), uncertain: isUncertain(r) })), counts, blocking: counts.pending + counts.failed };
 }
 
-module.exports = { registerDevice, devices, enqueueSale, processJob, processPending, jobs, BRANDS, CONNECTIONS, MAX_ATTEMPTS, drivers };
+module.exports = { registerDevice, devices, enqueueSale, processJob, processPending, jobs, driverStatus, registerDriver, BRANDS, CONNECTIONS, MAX_ATTEMPTS, VERIFIED_BRANDS, drivers };

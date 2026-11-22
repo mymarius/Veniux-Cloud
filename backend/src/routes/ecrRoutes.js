@@ -9,5 +9,5 @@ router.get('/devices', requireRole('admin', 'manager'), run(req => ecr.devices(r
 router.post('/devices', requireRole('admin', 'manager'), async (req, res, next) => { try { res.status(201).json(await ecr.registerDevice(req.user, req.body || {})); } catch (e) { next(e); } });
 router.get('/jobs', requireRole('admin', 'manager', 'cashier'), run(req => ecr.jobs(req.user, req.query || {})));
 router.post('/process', requireRole('admin', 'manager', 'cashier'), run(req => ecr.processPending(req.user)));
-router.post('/jobs/:id/process', requireRole('admin', 'manager', 'cashier'), run(req => ecr.processJob(req.user, Number(req.params.id))));
+router.post('/jobs/:id/process', requireRole('admin', 'manager', 'cashier'), run(req => ecr.processJob(req.user, Number(req.params.id), { confirmReprint: req.body?.confirm_reprint === true })));
 module.exports = router;
