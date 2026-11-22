@@ -95,6 +95,7 @@ app.use('/api/packages', require('./routes/packageRoutes'));
 app.use('/api/entitlements', require('./routes/entitlementRoutes'));
 app.use('/api/ecr', require('./routes/ecrRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/diagnostics', require('./routes/diagnosticsRoutes'));
 app.use('/api/platform', require('./routes/platformRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/warehouses', require('./routes/warehouseRoutes'));
