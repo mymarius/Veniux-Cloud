@@ -4,7 +4,7 @@ import { createOfflineQueue, createSender, isNetworkFailure } from './offlineQue
 import { downloadCatalog, buildIndex, findProduct } from './offlineCatalog.mjs';
 import { salesStore, catalogStore } from './offlineStore';
 
-const HEARTBEAT_MS = 12000, CATALOG_TTL_MS = 6 * 3600000, CATALOG_AT_KEY = 'veniux:offline-catalog-at';
+const HEARTBEAT_MS = 12000, CATALOG_TTL_MS = 6 * 3600000, CATALOG_AT_KEY = 'veniux:offline-catalog-at-v2';
 const queue = createOfflineQueue(salesStore);
 
 // Bağlantı: tarayıcı "çevrimdışı" diyorsa veya sunucunun /health adresine 4 sn içinde hiçbir cevap gelmiyorsa çevrimdışı.
@@ -39,7 +39,7 @@ export function useOffline({ enabled = true } = {}) {
   const updateCatalog = useCallback(async () => {
     setCatalog(c => ({ ...c, updating: true }));
     try {
-      const result = await downloadCatalog(async after => (await api.get('/scanner/pro/catalog', { params: { after, limit: 100 } })).data);
+      const result = await downloadCatalog(async after => (await api.get('/scanner/pro/catalog', { params: { after, limit: 100, pricing: 1 } })).data);
       if (result.complete && result.items.length) { await catalogStore.replaceAll(result.items); localStorage.setItem(CATALOG_AT_KEY, String(Date.now())); await loadIndex(); }
     } catch { /* indirme yarıda kalırsa eski liste durur */ }
     finally { setCatalog(c => ({ ...c, updating: false })); }

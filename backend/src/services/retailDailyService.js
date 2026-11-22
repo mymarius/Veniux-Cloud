@@ -115,7 +115,7 @@ async function price(tx,user,body,rights,settings,date){
       // line totals above use integer cents; do not multiply this display value.
       const grossUnitPrice=priceBasis==='exclusive'?Number(BigInt(enteredPriceCents)*BigInt(100+Number(scan.product.kdv_orani)))/10000:price;
       if(!Number.isSafeInteger(lineCents)||lineCents<0)fail('Satış tutarı geçersiz.');gross+=lineCents;
-      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),set_name:item._set?item._set.name:undefined,sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined||Boolean(item._set)||Boolean(scan.pack&&scan.pack.price!=null)||Boolean(sellUnit&&sellUnit.custom),weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
+      lines.push({id:lines.length+1,barcode:item.barcode,product_id:scan.product.id,name:scan.product.name,unit:scan.product.unit,variant:scan.product.uom_code||(sellUnit?sellUnit.unit:null),set_name:item._set?item._set.name:undefined,fx:scan.fx||undefined,sell_amount:sellUnit?sellUnit.amount:undefined,quantity:qty,unit_price:grossUnitPrice,entered_unit_price_cents:enteredPriceCents,price_tax_basis:priceBasis,gross_cents:lineCents,allocations:[],selected_lot_id:item.lot_id??null,manual_price:item.price_override!==undefined||Boolean(item._set)||Boolean(scan.pack&&scan.pack.price!=null)||Boolean(sellUnit&&sellUnit.custom),weighted:Boolean(scan.weighted)||Boolean(sellUnit)||['kg','litre','metre'].includes(scan.product.unit)});
       needed.set(scan.product.id,(needed.get(scan.product.id)||0)+qty);
     }
     if(!Number.isSafeInteger(gross)||gross>1000000000000)fail('Satış tutarı sınırı aşıldı.');
@@ -143,7 +143,16 @@ async function sale(user,body,key,device,offline=null){
     await warehouse(tx,user.tenantId,body.warehouse_id);
     const shift=await require('./retailShiftService').requireOpen(tx,user,body.warehouse_id,body,{allowShiftChange:Boolean(offline)});
     const {lines,needed,gross,manual,campaign,redeem,discount}=await price(tx,user,body,rights,settings,date);
-    const net=gross-discount,payments=paymentBreakdown(body,net);
+    const net=gross-discount;
+    // Çevrimdışı satışta kasada gösterilen tutar sunucunun yeniden hesapladığından farklıysa: satış sunucu fiyatıyla kaydolur, ödeme sunucu tutarına eşitlenir, fark uyuşmazlık olarak yazılır.
+    let payBody=body,priceMismatch=null;
+    if(offline&&Number.isSafeInteger(body.offline_total_cents)&&body.offline_total_cents!==net){
+      priceMismatch={offline_cents:body.offline_total_cents,server_cents:net};
+      const first=Array.isArray(body.payments)&&body.payments[0]?body.payments[0].method:body.payment_method;
+      payBody={...body,payments:[{method:first==='credit_card'?'credit_card':'cash',amount:net/100}]};
+      if(body.cash_received!==undefined)payBody.cash_received=Math.max(cents(body.cash_received,'Alınan nakit'),net)/100;
+    }
+    const payments=paymentBreakdown(payBody,net),payCurrency=await require('./currencyService').paymentCurrency(tx,user.tenantId,body.currency,net);
     // Çevrimdışı satış (karar A): stok açığı reddedilmez; fark stok düzeltmesiyle kapatılır ve uyuşmazlık olarak yazılır.
     let shortages=[];
     if(offline){await require('./offlineSaleService').assertReceiptFree(tx,user,offline);shortages=await require('./offlineSaleService').coverShortfalls(tx,user,body.warehouse_id,needed);}
@@ -170,6 +179,7 @@ async function sale(user,body,key,device,offline=null){
     if(body.card_label!==undefined){if(!CARD_LABELS.includes(body.card_label))fail('Kart türü geçersiz.');if(payments.credit_card>0&&body.card_label!=='bank')snapshot.card_label=body.card_label;}
     if(body.price_tier!==undefined&&require('./priceTierService').parseTier(body.price_tier)>1)snapshot.price_tier=require('./priceTierService').parseTier(body.price_tier);
     {const cr=await require('./customerPriceService').resolve(tx,user.tenantId,body.customer_id);if(cr){snapshot.customer_id=cr.id;if(cr.price_tier>1)snapshot.price_tier=cr.price_tier;if(cr.discount_percent>0)snapshot.customer_discount_percent=cr.discount_percent;}}
+    if(payCurrency)snapshot.payment_currency=payCurrency;
     snapshot.local_receipt_no=localNo;if(posDevice)snapshot.device_id=Number(posDevice.id);
     if(offline){snapshot.offline_receipt_no=offline.receiptNo;snapshot.offline_at=offline.offlineAt;}
     if(payments.on_account){snapshot.account_id=await require('./retailCreditService').charge(tx,user,body,payments.on_account,pos.id,shift.id);snapshot.due_date=body.due_date;snapshot.refund_payments.on_account=0;}
@@ -180,7 +190,7 @@ async function sale(user,body,key,device,offline=null){
     await require('./ecrService').enqueueSale(tx,user.tenantId,pos.id,shift.register_id);
     await audit(tx,user,'scanner.sale',pos.id,{receipt:no,gross_cents:gross,discount_cents:discount,payments,price_overrides:body.items.filter(i=>i.price_override!==undefined).map(i=>({barcode:i.barcode,price:i.price_override}))});
     await devices.record(tx,user,{saleId:pos.id,clientUuid:key,device:posDevice,receiptNo:localNo});
-    if(offline)await require('./offlineSaleService').record(tx,user,{saleId:pos.id,warehouseId:body.warehouse_id,offline,shortages,movedFromShift:shift.movedFrom,productId:lines[0]?.product_id});
+    if(offline)await require('./offlineSaleService').record(tx,user,{saleId:pos.id,warehouseId:body.warehouse_id,offline,shortages,movedFromShift:shift.movedFrom,productId:lines[0]?.product_id,priceMismatch});
     return {receipt_no:no,local_receipt_no:localNo,...(offline?{offline:{receipt_no:offline.receiptNo,stock_shortfalls:shortages,...(shift.movedFrom?{moved_from_shift:shift.movedFrom}:{})}}:{}),total:net/100,sale_id:pos.id,shift_id:shift.id,register_id:shift.register_id,change:payments.change/100,payments,discount:discount/100,campaigns:campaign.applied,campaigns_skipped:campaign.skipped,...(loyalty?{loyalty:{earned:loyalty.earned,redeemed:loyalty.redeemed}}:{})};
   });});
 }

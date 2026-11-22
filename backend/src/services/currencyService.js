@@ -84,4 +84,20 @@ async function apply(tx, tenantId, scan) {
   return scan;
 }
 
-module.exports = { rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };
+// Kasiyer için: kuru girilmiş para birimleri (yalnız oku). Kasada döviz seçimi ve çevrimdışı önbellek bunu kullanır.
+async function cashierRates(user) {
+  const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows;
+  return { currencies: CURRENCIES, rates: Object.fromEntries(rows.map(r => [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at }])) };
+}
+
+// Satışın ödeme para birimi: TL ise null; döviz ise kayda kur ve döviz karşılığı yazılır (ödeme tutarları yine TL'dir).
+async function paymentCurrency(tx, tenantId, code, netCents) {
+  if (code === undefined || code === null || code === '' || code === 'TRY') return null;
+  if (!CURRENCIES.includes(code)) fail('Para birimi geçersiz.');
+  const row = (await tx.query('SELECT rate_try FROM exchange_rates WHERE tenant_id=$1 AND currency=$2', [tenantId, code])).rows[0];
+  if (!row) fail(code + ' için kur girilmemiş.');
+  const rate = Number(row.rate_try);
+  return { currency: code, rate, amount: Math.round(netCents / rate) / 100 };
+}
+
+module.exports = { cashierRates, paymentCurrency, rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };

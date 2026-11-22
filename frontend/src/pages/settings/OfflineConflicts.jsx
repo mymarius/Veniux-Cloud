@@ -29,9 +29,9 @@ export default function OfflineConflicts() {
     {items && (items.length === 0 ? <p className="text-sm">Uyuşmazlık yok.</p> :
       <table className="w-full text-sm"><thead><tr><th className="text-left">Ürün</th><th className="text-right">Açık</th><th className="text-left">Fiş</th><th className="text-left">Geçici fiş</th><th className="text-left">Tarih</th><th className="text-left">Durum</th></tr></thead>
         <tbody>{items.map(i => <tr key={i.id}>
-          <td>{i.product_name || 'Ürün #' + i.product_id}</td><td className="text-right">{i.kind === 'shift_moved' ? '—' : <b>{number(i.shortfall_quantity)}</b>}</td><td>{i.local_receipt_no || '—'}</td><td>{i.emergency_receipt_no || '—'}</td><td>{when(i.created_at)}</td>
+          <td>{i.product_name || 'Ürün #' + i.product_id}</td><td className="text-right">{['shift_moved', 'price_mismatch'].includes(i.kind) ? '—' : <b>{number(i.shortfall_quantity)}</b>}</td><td>{i.local_receipt_no || '—'}</td><td>{i.emergency_receipt_no || '—'}</td><td>{when(i.created_at)}</td>
           <td>{i.status === 'open'
-            ? <span className="flex flex-wrap gap-2 items-center">{i.kind === 'shift_moved' && <span className="text-xs w-full">{i.note}</span>}<input aria-label={'Açıklama: ' + (i.product_name || i.product_id)} maxLength={500} placeholder="Ne yapıldı? (en az 5 karakter)" className="border rounded p-1" value={notes[i.id] || ''} onChange={e => setNotes({ ...notes, [i.id]: e.target.value })} /><button type="button" className="btn-soft" disabled={busy || (notes[i.id] || '').trim().length < 5} onClick={() => resolve(i)}>Çözüldü</button></span>
+            ? <span className="flex flex-wrap gap-2 items-center">{['shift_moved', 'price_mismatch'].includes(i.kind) && <span className="text-xs w-full">{i.note}</span>}<input aria-label={'Açıklama: ' + (i.product_name || i.product_id)} maxLength={500} placeholder="Ne yapıldı? (en az 5 karakter)" className="border rounded p-1" value={notes[i.id] || ''} onChange={e => setNotes({ ...notes, [i.id]: e.target.value })} /><button type="button" className="btn-soft" disabled={busy || (notes[i.id] || '').trim().length < 5} onClick={() => resolve(i)}>Çözüldü</button></span>
             : <span>Çözüldü{i.note ? ' · ' + i.note : ''}</span>}</td>
         </tr>)}</tbody></table>)}
     {message && <p role="status" className="text-sm">{message}</p>}

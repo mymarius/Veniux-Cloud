@@ -1,6 +1,6 @@
 // Çevrimdışı ürün listesi: tüm katalog sayfa sayfa indirilir (eski 250 ürünlük önbellek yetmez), barkod ve SKU ile aranır.
 // Yalnız birebir eşleşme aranır; tartı etiketi ve GS1 çözümleme çevrimdışı yoktur.
-const FIELDS = ['id', 'name', 'barcode', 'sku', 'category', 'unit', 'sale_price', 'kdv_orani', 'packs', 'measure_unit'];
+const FIELDS = ['id', 'name', 'barcode', 'sku', 'category', 'unit', 'sale_price', 'kdv_orani', 'packs', 'measure_unit', 'tiers', 'fx'];
 export const slim = p => Object.fromEntries(FIELDS.map(k => [k, p[k] ?? null]));
 
 // fetchPage(after) -> {items, next}; sınır: 50 sayfa. Yarıda kalırsa çağıran mevcut önbelleği değiştirmez.

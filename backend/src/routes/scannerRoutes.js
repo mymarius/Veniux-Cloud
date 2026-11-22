@@ -27,6 +27,7 @@ router.get('/pro/preferences',requireRole('admin','manager','cashier'),action(re
 router.put('/pro/preferences',requireRole('admin','manager','cashier'),action(req=>pro.save(req.user,req.body)));
 router.get('/pro/products/:id/image',requireRole('admin','manager','cashier'),async(req,res,next)=>{try{res.set('Cache-Control','private, no-store').type('png').send(await pro.image(req.user,req.params.id));}catch(e){next(e);}});
 router.put('/pro/products/:id/media',requireRole('admin','manager'),action(req=>pro.media(req.user,req.params.id,req.body)));
+router.get('/fx',requireRole('admin','manager','cashier'),action(req=>require('../services/currencyService').cashierRates(req.user)));
 router.get('/customers',requireRole('admin','manager','cashier'),action(req=>require('../services/customerPriceService').list(req.user)));
 router.get('/pro/accounts/:id/price-rule',requireRole('admin','manager'),action(req=>require('../services/customerPriceService').get(req.user,req.params.id)));
 router.put('/pro/accounts/:id/price-rule',requireRole('admin','manager'),action(req=>require('../services/customerPriceService').set(req.user,req.params.id,req.body||{})));
