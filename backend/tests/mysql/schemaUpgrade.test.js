@@ -17,6 +17,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await c?.end().catch(() => {});
   await admin?.query('DROP DATABASE IF EXISTS ' + NAME).catch(() => {});
+  // rc2Recovery.test.js bu adlı BOŞ veritabanının var olmasını bekler (hata enjeksiyonlu geri yükleme hedefi); bırakmadan çıkmayız.
+  await admin?.query('CREATE DATABASE IF NOT EXISTS ' + NAME + ' CHARACTER SET utf8mb4 COLLATE utf8mb4_bin').catch(() => {});
   await admin?.end().catch(() => {});
 });
 
