@@ -134,7 +134,7 @@ header('Cache-Control: no-store');
 require_once __DIR__.'/accounts.php';
 // Yönetim (/yonetim), müşteri paneli (/panel) ve ödeme dönüşleri (/odeme): panel-core/. Yalnız ilgili adreslerde yüklenir;
 // panel veritabanı yapılandırılmamışsa eski hesap sayfaları (/hesap, /indir) aynen çalışır.
-if(preg_match('#^/(yonetim|panel|odeme)(/|$)#',$path)||(vpPanelConfigured()&&in_array($path,['/hesap','/indir'],true))){require_once __DIR__.'/panel-core/routes.php';if(vpRoutes($path,$config))exit;}
+if(vpPanelConfigured()&&(preg_match('#^/(yonetim|panel|odeme)(/|$)#',$path)||in_array($path,['/hesap','/indir'],true))){require_once __DIR__.'/panel-core/routes.php';if(vpRoutes($path,$config))exit;}
 if(accountRoutes($path,$config))exit;
 require_once __DIR__.'/livechat.php';
 if(chatRoutes($path,$config))exit;
@@ -211,7 +211,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||$path==="/stok-programlari-karsilastirma"||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu","/bilgilendirme"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261122a"><link rel="stylesheet" href="/assets/nav.css?v=20261120a"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261122a"><link rel="stylesheet" href="/assets/nav.css?v=20261122b"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>

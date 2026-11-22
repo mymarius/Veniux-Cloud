@@ -38,7 +38,7 @@
 .vs-mega-title-2{margin-top:22px}
 .vs-mega-item{display:flex;align-items:baseline;gap:14px;padding:8px 12px;margin:0 -12px 2px;text-decoration:none;color:var(--ink);border-left:4px solid transparent;transition:background-color .2s,border-color .2s,transform .3s var(--vn-ease)}
 .vs-mega-item em{flex:none;width:30px;font-style:normal;font-size:20px;font-weight:800;font-stretch:75%;color:var(--orange-text);opacity:.75;transition:opacity .2s}
-.vs-mega-item b{display:block;font-size:24px;font-weight:800;font-stretch:75%;line-height:1.1}
+.vs-mega-item b{display:block;color:var(--ink);font-size:24px;font-weight:800;font-stretch:75%;line-height:1.1}
 .vs-mega-item small{display:block;margin-top:2px;font-size:14px;color:var(--ink-soft);font-weight:500}
 .vs-mega-item:hover,.vs-mega-item:focus-visible,.vs-mega-item[aria-current]{background:var(--paper);border-left-color:var(--orange);transform:translateX(4px)}
 .vs-mega-item:hover em,.vs-mega-item:focus-visible em{opacity:1}
