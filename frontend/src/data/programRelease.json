@@ -1,8 +1,22 @@
 {
-  "version": "2.4.103",
+  "version": "2.4.104",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.104",
+      "date": "23 Kasım 2026",
+      "title": "Büyük veride hızlanma, barkoddan ürün önerisi ve günlük dosyası",
+      "items": [
+        "- Çok ürünlü ve yıllarca süren veride kasa, stok hareketleri, denetim günlüğü, pano ve raporlar belirgin hızlandı (eksik veritabanı indeksleri eklendi; en çok satanlar ve kasa içgörüleri saniyelerden milisaniyelere indi)",
+        "- Ürün ve stok listeleri isteğe bağlı sayfalama destekler; komut paleti her aramada tüm kataloğu indirmez",
+        "- Kasa çevrimdışı kataloğu 100.000 ürüne kadar önbelleğe alınır; günlerce açık kalan kasada fiyatlar 30 dakikada bir yenilenir",
+        "- Hızlı ürün girişinde barkod okutunca ürün kendi katalogda yoksa Open Food Facts'ten ad, marka, gramaj ve görsel önerilir; onaylamadan kayıt yapılmaz",
+        "- Sayımda sayılmayan satırlar ayrı görünür, onay bekleyen sayımlar için özet ve koli barkodu okutunca çarpanla sayım eklendi",
+        "- Masaüstü programı günlük dosyası tutar (kişisel veriler maskelenir); Tanılama destek paketine dahil edilir",
+        "- Hızlı ürün girişinde dar telefon ekranında taşma düzeltildi"
+      ]
+    },
     {
       "version": "2.4.103",
       "date": "22 Kasım 2026",
