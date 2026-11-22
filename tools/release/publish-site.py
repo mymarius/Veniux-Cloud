@@ -53,18 +53,32 @@ class Folder:
 
 class Ftps:
     def __init__(self):
+        self.password = hosting_password()
+        self.dirs = set()
+        self.connect()
+    def connect(self):
         self.ftp = ftplib.FTP_TLS(context=ssl.create_default_context(), timeout=90)
         self.ftp.connect(HOST)
-        self.ftp.login(USER, hosting_password())
+        self.ftp.login(USER, self.password)
         self.ftp.prot_p()
-        self.dirs = set()
+    def retry(self, action):
+        # Barındırma uzun oturumlarda bağlantıyı kesebilir; yeniden bağlanıp işlemi tekrar dener.
+        for attempt in range(4):
+            try: return action()
+            except (EOFError, OSError, ssl.SSLError, ftplib.error_temp):
+                if attempt == 3: raise
+                try: self.ftp.close()
+                except Exception: pass
+                self.connect()
     def get(self, name):
-        out = io.BytesIO()
-        try: self.ftp.retrbinary(f'RETR {REMOTE}/{name}', out.write)
+        def read():
+            out = io.BytesIO()
+            self.ftp.retrbinary(f'RETR {REMOTE}/{name}', out.write)
+            return out.getvalue()
+        try: return self.retry(read)
         except ftplib.error_perm as error:
             if str(error).startswith('550'): return None
             raise
-        return out.getvalue()
     def put(self, name, data):
         parts = name.split('/')[:-1]
         for i in range(1, len(parts) + 1):
@@ -73,7 +87,7 @@ class Ftps:
                 try: self.ftp.mkd(f'{REMOTE}/{folder}')
                 except ftplib.error_perm: pass
                 self.dirs.add(folder)
-        self.ftp.storbinary(f'STOR {REMOTE}/{name}', io.BytesIO(data))
+        self.retry(lambda: self.ftp.storbinary(f'STOR {REMOTE}/{name}', io.BytesIO(data)))
     def move(self, old, new):
         try: self.ftp.delete(f'{REMOTE}/{new}')
         except ftplib.error_perm: pass
