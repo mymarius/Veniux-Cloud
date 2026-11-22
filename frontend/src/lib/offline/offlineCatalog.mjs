@@ -3,8 +3,8 @@
 const FIELDS = ['id', 'name', 'barcode', 'sku', 'category', 'unit', 'sale_price', 'kdv_orani', 'packs', 'measure_unit', 'tiers', 'fx'];
 export const slim = p => Object.fromEntries(FIELDS.map(k => [k, p[k] ?? null]));
 
-// fetchPage(after) -> {items, next}; sınır: 50 sayfa. Yarıda kalırsa çağıran mevcut önbelleği değiştirmez.
-export async function downloadCatalog(fetchPage, { maxPages = 50 } = {}) {
+// fetchPage(after) -> {items, next}; sınır: 1000 sayfa (sayfa başına 100 ürün → 100.000 ürün; eski 50 sayfa sınırı 5.000 üründen büyük kataloğu hiç önbelleğe alamıyordu). Yarıda kalırsa çağıran mevcut önbelleği değiştirmez.
+export async function downloadCatalog(fetchPage, { maxPages = 1000 } = {}) {
   const items = [];
   let after = 0;
   for (let page = 0; page < maxPages; page++) {

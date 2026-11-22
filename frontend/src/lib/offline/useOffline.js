@@ -4,7 +4,7 @@ import { createOfflineQueue, createSender, isNetworkFailure } from './offlineQue
 import { downloadCatalog, buildIndex, findProduct } from './offlineCatalog.mjs';
 import { salesStore, catalogStore } from './offlineStore';
 
-const HEARTBEAT_MS = 12000, CATALOG_TTL_MS = 6 * 3600000, CATALOG_AT_KEY = 'veniux:offline-catalog-at-v2';
+const HEARTBEAT_MS = 12000, CATALOG_TTL_MS = 6 * 3600000, CATALOG_CHECK_MS = 30 * 60000, CATALOG_AT_KEY = 'veniux:offline-catalog-at-v2';
 const queue = createOfflineQueue(salesStore);
 
 // Bağlantı: tarayıcı "çevrimdışı" diyorsa veya sunucunun /health adresine 4 sn içinde hiçbir cevap gelmiyorsa çevrimdışı.
@@ -19,7 +19,7 @@ const sendSale = createSender((path, body, config) => api.post(path, body, confi
 export function useOffline({ enabled = true } = {}) {
   const [online, setOnline] = useState(true), [counts, setCounts] = useState({ total: 0, pending: 0, conflict: 0 }), [flushing, setFlushing] = useState(false);
   const [catalog, setCatalog] = useState({ ready: false, size: 0, updating: false }), [lastSummary, setLastSummary] = useState(null);
-  const index = useRef(new Map()), flushLock = useRef(false), wasOnline = useRef(true), misses = useRef(0);
+  const index = useRef(new Map()), flushLock = useRef(false), catalogLock = useRef(false), wasOnline = useRef(true), misses = useRef(0);
 
   const refreshCounts = useCallback(async () => { try { setCounts(await queue.counts()); } catch { /* depo yoksa sayaç sıfır kalır */ } }, []);
 
@@ -37,12 +37,14 @@ export function useOffline({ enabled = true } = {}) {
   }, []);
 
   const updateCatalog = useCallback(async () => {
+    if (catalogLock.current) return;
+    catalogLock.current = true;
     setCatalog(c => ({ ...c, updating: true }));
     try {
       const result = await downloadCatalog(async after => (await api.get('/scanner/pro/catalog', { params: { after, limit: 100, pricing: 1 } })).data);
       if (result.complete && result.items.length) { await catalogStore.replaceAll(result.items); localStorage.setItem(CATALOG_AT_KEY, String(Date.now())); await loadIndex(); }
     } catch { /* indirme yarıda kalırsa eski liste durur */ }
-    finally { setCatalog(c => ({ ...c, updating: false })); }
+    finally { catalogLock.current = false; setCatalog(c => ({ ...c, updating: false })); }
   }, [loadIndex]);
 
   useEffect(() => { if (enabled) { refreshCounts(); loadIndex(); } }, [enabled, refreshCounts, loadIndex]);
@@ -64,9 +66,15 @@ export function useOffline({ enabled = true } = {}) {
     return () => { live = false; clearInterval(timer); window.removeEventListener('online', check); window.removeEventListener('offline', check); };
   }, [enabled, flush]);
   useEffect(() => {
-    if (!enabled || !online) return;
-    const at = Number(localStorage.getItem(CATALOG_AT_KEY) || 0);
-    if (!at || Date.now() - at > CATALOG_TTL_MS) updateCatalog();
+    if (!enabled || !online) return undefined;
+    // Kasa günlerce açık kalabilir: yalnız açılışta değil, her 30 dakikada bir önbellek yaşı kontrol edilir (fiyat değişiklikleri eski kalmasın).
+    const refreshIfStale = () => {
+      const at = Number(localStorage.getItem(CATALOG_AT_KEY) || 0);
+      if (!at || Date.now() - at > CATALOG_TTL_MS) updateCatalog();
+    };
+    refreshIfStale();
+    const timer = setInterval(refreshIfStale, CATALOG_CHECK_MS);
+    return () => clearInterval(timer);
   }, [enabled, online, updateCatalog]);
 
   const localLookup = useCallback(code => findProduct(index.current, code), []);

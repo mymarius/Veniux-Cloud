@@ -342,7 +342,13 @@ const getStockRecords = async (req, res) => {
       paramIndex++;
     }
 
-    query += ` ORDER BY sr.updated_at DESC`;
+    query += ` ORDER BY sr.updated_at DESC, sr.id DESC`;
+    // İsteğe bağlı sayfalama (?limit=1..2000&offset=n); limit yoksa tüm liste (eski davranış).
+    if (req.query.limit !== undefined) {
+      const limit = Number.parseInt(req.query.limit, 10), offset = Number.parseInt(req.query.offset ?? 0, 10) || 0;
+      if (!Number.isInteger(limit) || limit < 1 || limit > 2000 || offset < 0) return res.status(400).json({ error: 'Geçersiz sayfa sınırı.' });
+      query += ` LIMIT ${limit} OFFSET ${offset}`;
+    }
 
     const result = await pool.query(query, params);
     res.json(result.rows);

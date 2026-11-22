@@ -189,3 +189,15 @@ test('çevrimdışı koli: barkod koliyi bulur, fiş koli fiyatıyla yazılır; 
   assert.match(supportedOffline({ payment: 'cash', discount: 0, loyaltyCard: '', items: [{ product: { is_set: true } }] }), /takım/);
   assert.equal(supportedOffline({ payment: 'cash', discount: 0, loyaltyCard: '', items: [koli] }), null);
 });
+
+test('büyük katalog: 60.000 ürün (600 sayfa) eksiksiz iner ve barkod araması gecikmesiz kalır', async () => {
+  const pages = n => ({ items: Array.from({ length: 100 }, (_, i) => ({ id: n * 100 + i + 1, name: 'Ürün ' + (n * 100 + i + 1), barcode: String(869000000000 + n * 100 + i + 1), sale_price: 5 })), next: n < 599 ? (n + 1) * 100 : null });
+  const result = await downloadCatalog(async after => pages(after / 100));
+  assert.equal(result.complete, true);
+  assert.equal(result.items.length, 60000);
+  const started = performance.now(), index = buildIndex(result.items), built = performance.now() - started;
+  assert.ok(built < 1500, 'indeks kurma ' + built.toFixed(0) + ' ms');
+  const t = performance.now();
+  for (let i = 0; i < 1000; i++) assert.ok(findProduct(index, String(869000000000 + 1 + (i * 59) % 60000)));
+  assert.ok(performance.now() - t < 200, '1000 arama 200 ms altında olmalı');
+});

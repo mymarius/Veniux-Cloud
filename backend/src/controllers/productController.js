@@ -42,7 +42,14 @@ const getAllProducts = async (req, res) => {
       paramIndex++;
     }
 
-    query += ` ORDER BY p.created_at DESC`;
+    query += ` ORDER BY p.created_at DESC, p.id DESC`;
+    // Büyük katalogda (on binlerce ürün) tümünü indirmek yerine isteğe bağlı sayfalama: ?limit=1..1000&offset=n.
+    // limit verilmezse eski davranış (tüm liste) korunur.
+    if (req.query.limit !== undefined) {
+      const limit = Number.parseInt(req.query.limit, 10), offset = Number.parseInt(req.query.offset ?? 0, 10) || 0;
+      if (!Number.isInteger(limit) || limit < 1 || limit > 1000 || offset < 0) return res.status(400).json({ error: 'Geçersiz sayfa sınırı.' });
+      query += ` LIMIT ${limit} OFFSET ${offset}`;
+    }
 
     const result = await pool.query(query, params);
 
