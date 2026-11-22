@@ -119,7 +119,7 @@ if (in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD'],true) && ($path==='/index
 }
 
 if (!in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD','POST'],true)) { http_response_code(405); header('Allow: GET, HEAD, POST'); exit; }
-if ($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,['/','/kayit','/giris','/cikis','/demo'],true) && !str_starts_with($path,'/api/destek/')) { http_response_code(405); exit; }
+if ($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,['/','/kayit','/giris','/cikis','/demo'],true) && !str_starts_with($path,'/api/destek/') && !preg_match('#^/(yonetim|panel|odeme)(/|$)#',$path)) { http_response_code(405); exit; }
 
 ini_set('session.use_strict_mode','1');
 $sessionDir=dirname($config['request_dir']).'/website-sessions';
@@ -132,6 +132,9 @@ $_SESSION['contact_token']=$_SESSION['contact_token']??bin2hex(random_bytes(32))
 header('Cache-Control: no-store');
 
 require_once __DIR__.'/accounts.php';
+// Yönetim (/yonetim), müşteri paneli (/panel) ve ödeme dönüşleri (/odeme): panel-core/. Yalnız ilgili adreslerde yüklenir;
+// panel veritabanı yapılandırılmamışsa eski hesap sayfaları (/hesap, /indir) aynen çalışır.
+if(preg_match('#^/(yonetim|panel|odeme)(/|$)#',$path)||(vpPanelConfigured()&&in_array($path,['/hesap','/indir'],true))){require_once __DIR__.'/panel-core/routes.php';if(vpRoutes($path,$config))exit;}
 if(accountRoutes($path,$config))exit;
 require_once __DIR__.'/livechat.php';
 if(chatRoutes($path,$config))exit;

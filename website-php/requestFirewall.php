@@ -33,6 +33,7 @@ function veniuxRequestFirewall(string $directory,string $context): void {
  if(!in_array($method,$context==='api'?['GET','HEAD','POST','PUT']:['GET','HEAD','POST'],true))$deny(405,'REQUEST_METHOD');
  $path=explode('?',$uri,2)[0];$limit=$context==='api'?(str_starts_with($path,'/updates/chunk/')?4*1048576:(str_starts_with($path,'/updates/upload/')?8*1048576:65536)):65536;
  $length=$_SERVER['CONTENT_LENGTH']??'0';if(!ctype_digit((string)$length)||(float)$length>$limit)$deny(413,'REQUEST_SIZE');
- if(in_array($method,['POST','PUT'],true)&&($_SERVER['HTTP_SEC_FETCH_SITE']??'')==='cross-site')$deny(403,'REQUEST_ORIGIN');
+ // Tek istisna: iyzico ödeme dönüşü tarayıcıdan çapraz site POST olarak gelir; sonuç sunucudan iyzico'ya sorularak doğrulanır.
+ if(in_array($method,['POST','PUT'],true)&&($_SERVER['HTTP_SEC_FETCH_SITE']??'')==='cross-site'&&!($context==='site'&&$path==='/odeme/iyzico/donus'))$deny(403,'REQUEST_ORIGIN');
  try{if(!veniuxFirewallQuota($directory,$_SERVER['REMOTE_ADDR']??'unknown'))$deny(429,'REQUEST_RATE');}catch(Throwable $e){$deny(503,'SECURITY_UNAVAILABLE');}
 }

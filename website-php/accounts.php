@@ -4,6 +4,11 @@ require_once __DIR__.'/owner-identity.php';
 require_once __DIR__.'/pricing.php';
 
 // Download accounts are separate from the business users created inside the installed program.
+// Yeni yönetim/müşteri paneli yapılandırıldı mı? (web kökü dışındaki .local/veniux-panel/database.php ya da VENIUX_DB_NAME)
+function vpPanelConfigured(): bool {
+    $dir=(getenv('VENIUX_SITE_DATA_DIR')?:dirname(__DIR__).'/.local').'/veniux-panel';
+    return is_file($dir.'/database.php')||(string)getenv('VENIUX_DB_NAME')!=='';
+}
 function accountDirectory(array $config): string {
     $dir=(getenv('VENIUX_SITE_DATA_DIR')?:dirname(__DIR__).'/.local').'/website-accounts';
     if(!is_dir($dir)&&!mkdir($dir,0700,true))throw new RuntimeException('Account storage unavailable');
@@ -171,7 +176,7 @@ function accountRoutes(string $path,array $config):bool {
                         ];
                         $_SESSION['account_activity']=time();
                         $_SESSION['account_csrf']=bin2hex(random_bytes(32));
-                        header('Location: /indir',true,303);
+                        header('Location: '.(vpPanelConfigured()?'/panel':'/indir'),true,303);
                         return true;
                     }
                 }
