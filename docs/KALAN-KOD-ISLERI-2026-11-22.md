@@ -18,3 +18,13 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 - Eski `pages/StockCount.jsx` hiçbir yoldan açılmıyor (ölü sayfa); dokunulmadı.
 - Test: `frontend/src/lib/serialScan.test.mjs` (6 test). Gerçek tarayıcıda mal kabulde Enter/Tab okutma, adet artışı, yanlış barkod denendi.
 - Sınır: kamera okuyucu ve Bluetooth/seri okuyucu `ScannerPanel` yolunu kullanan ekranlarda (sayım) zaten çalışır; mal kabul/alış kutusu klavye-takılı (HID) okuyucu içindir.
+
+## 3. Görev yönetimi — YAPILDI
+- Şema: `063_business_tasks.js` → `business_tasks` (başlık, açıklama, atanan, vade, durum açık/yapılıyor/bitti, öncelik düşük/normal/yüksek/acil); MySQL `032-fx-auto-tasks.json` yeniden üretildi (artık fx tabloları + görev tablosu = 032). CRM görevlerinden ayrı.
+- Servis `businessTaskService`, uçlar `/api/tasks` (`GET /`, `/badge`, `/assignees`, `POST /`, `PUT /:id`, `PATCH /:id/status`, `DELETE /:id`).
+- Yetki: admin/manager atar, düzenler, siler, hepsini görür. Kasiyer ve depo sorumlusu (`warehouse_lead`) yalnız kendine atananı görür ve durumunu değiştirir; görüntüleyici (`viewer`) kendi görevini yalnız okur. Başka işletmenin kullanıcısına atanamaz, başkasının görevi 404.
+- Vadesi geçen açık görev "Vadesi geçti" ile kırmızı vurgulanır (vade günü İstanbul takvimine göre). Özet kartları: açık/yapılıyor/vadesi geçen/biten.
+- Denetim kaydı (`audit_logs`, `entity_type=business_task`): `task.created`, `task.assigned`, `task.status_changed`, `task.completed`, `task.reopened`, `task.deleted`.
+- Arayüz: `pages/BusinessTasks.jsx`, rota `/gorevler`, menüde "İş görevleri" (Genel grubu; CRM "Görevler"inden ayrı). Gerçek tarayıcıda atama, vade vurgusu ve "Bitti" denendi.
+- Test: `backend/tests/businessTasks.test.js` (6 test).
+- Sınır: bildirim/WhatsApp hatırlatması yok (yalnız ekranda vurgu); menü rozeti için `GET /tasks/badge` hazır, arayüze bağlanmadı.

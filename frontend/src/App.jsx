@@ -88,6 +88,7 @@ const Inventory = lazy(() => import('./pages/Inventory'));
 const PurchaseOrders = lazy(() => import('./pages/PurchaseOrders'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
 const Alerts = lazy(() => import('./pages/Alerts'));
+const BusinessTasks = lazy(() => import('./pages/BusinessTasks'));
 const AIAssistant = lazy(() => import('./pages/AIAssistant'));
 const ImportExport = lazy(() => import('./pages/ImportExport'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -240,6 +241,7 @@ function AppContent() {
             <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
             <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+            <Route path="/gorevler" element={<ProtectedRoute><BusinessTasks /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/setup" element={<ProtectedRoute><CustomerSetup /></ProtectedRoute>} />
             <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />

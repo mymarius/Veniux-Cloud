@@ -36,6 +36,7 @@ const NAVIGATION = [
       { name: 'Genel Bakış', path: '/dashboard', icon: LayoutDashboard },
       { name: 'Raporlar', path: '/raporlar', icon: BarChart3 },
       { name: 'Saha ve bayi', path: '/business', icon: Handshake, cloudOnly: true },
+      { name: 'İş görevleri', path: '/gorevler', icon: ListTodo },
       { name: 'Bildirimler', path: '/alerts', icon: Bell, badgeKey: 'alerts' }
     ]
   },

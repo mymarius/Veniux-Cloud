@@ -54,7 +54,8 @@
     "059_price_tiers.js",
     "060_currency_prices.js",
     "061_customer_price_rules.js",
-    "062_fx_auto.js"
+    "062_fx_auto.js",
+    "063_business_tasks.js"
   ],
   "tables": [
     {
@@ -1229,6 +1230,152 @@
       ],
       "checks": [
         "enabled IN (0,1)"
+      ]
+    },
+    {
+      "name": "business_tasks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
+        },
+        {
+          "name": "tenant_id",
+          "type": "BIGINT",
+          "definition": "`tenant_id` BIGINT NOT NULL"
+        },
+        {
+          "name": "title",
+          "type": "LONGTEXT",
+          "definition": "`title` LONGTEXT NOT NULL"
+        },
+        {
+          "name": "description",
+          "type": "LONGTEXT",
+          "definition": "`description` LONGTEXT"
+        },
+        {
+          "name": "assignee_id",
+          "type": "BIGINT",
+          "definition": "`assignee_id` BIGINT"
+        },
+        {
+          "name": "created_by",
+          "type": "BIGINT",
+          "definition": "`created_by` BIGINT"
+        },
+        {
+          "name": "due_date",
+          "type": "VARCHAR(191)",
+          "definition": "`due_date` VARCHAR(191)"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL DEFAULT 'open'"
+        },
+        {
+          "name": "priority",
+          "type": "LONGTEXT",
+          "definition": "`priority` LONGTEXT NOT NULL DEFAULT ('normal')"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(6)",
+          "definition": "`completed_at` DATETIME(6)"
+        },
+        {
+          "name": "completed_by",
+          "type": "BIGINT",
+          "definition": "`completed_by` BIGINT"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "definition": "`created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "definition": "`updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+        }
+      ],
+      "primary": [
+        "id"
+      ],
+      "unique": [],
+      "indexes": [
+        {
+          "name": "idx_business_tasks_tenant_due",
+          "columns": [
+            "tenant_id",
+            "status",
+            "due_date"
+          ]
+        },
+        {
+          "name": "idx_business_tasks_tenant_assignee",
+          "columns": [
+            "tenant_id",
+            "assignee_id",
+            "status"
+          ]
+        }
+      ],
+      "foreign": [
+        {
+          "name": "fk_business_tasks_0",
+          "table": "users",
+          "columns": [
+            "completed_by"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_1",
+          "table": "users",
+          "columns": [
+            "created_by"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_2",
+          "table": "users",
+          "columns": [
+            "assignee_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_3",
+          "table": "tenants",
+          "columns": [
+            "tenant_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": "NO ACTION"
+        }
+      ],
+      "checks": [
+        "status IN ('open','doing','done')",
+        "priority IN ('low','normal','high','urgent')"
       ]
     },
     {
