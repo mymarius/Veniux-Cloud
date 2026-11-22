@@ -70,7 +70,7 @@ function discountAllocation(lines,discount,total){
 }
 async function price(tx,user,body,rights,settings,date){
     const lines=[],needed=new Map();let gross=0;
-    const priceTier=require('./priceTierService').parseTier(body.price_tier);if(priceTier>1)assertPermission(rights,'price_override');
+    const customerRule=await require('./customerPriceService').resolve(tx,user.tenantId,body.customer_id);let priceTier=require('./priceTierService').parseTier(body.price_tier);if(priceTier>1)assertPermission(rights,'price_override');if(customerRule&&customerRule.price_tier>1)priceTier=customerRule.price_tier;
     // Takım barkodu: parçalara açılır; her parça normal satırdır, tutarı takım fiyatından payıdır.
     const items=[];
     for(const raw of body.items){
@@ -86,6 +86,7 @@ async function price(tx,user,body,rights,settings,date){
       if(!scan.product||scan.product.module_type!=='NORMAL')fail('Market ürünü bulunamadı.',404);
       if(priceTier>1)await require('./priceTierService').apply(tx,user.tenantId,scan,priceTier);
       await require('./currencyService').apply(tx,user.tenantId,scan);
+      require('./customerPriceService').applyDiscount(scan,customerRule);
       let qty=Number((scan.quantity*item.count).toFixed(6));
       // Adet stoklu ürünü kiloyla (veya metre/litre) satmak: üründe "1 kg = 250 adet" birimi tanımlıysa girilen kilo adede çevrilir.
       let sellUnit=null;
@@ -168,6 +169,7 @@ async function sale(user,body,key,device,offline=null){
     // Kart tahsilatının türü (yemek kartı, havale/EFT): ana ödeme yöntemi kart kalır; yalnız rapor kırılımı için etiket yazılır.
     if(body.card_label!==undefined){if(!CARD_LABELS.includes(body.card_label))fail('Kart türü geçersiz.');if(payments.credit_card>0&&body.card_label!=='bank')snapshot.card_label=body.card_label;}
     if(body.price_tier!==undefined&&require('./priceTierService').parseTier(body.price_tier)>1)snapshot.price_tier=require('./priceTierService').parseTier(body.price_tier);
+    {const cr=await require('./customerPriceService').resolve(tx,user.tenantId,body.customer_id);if(cr){snapshot.customer_id=cr.id;if(cr.price_tier>1)snapshot.price_tier=cr.price_tier;if(cr.discount_percent>0)snapshot.customer_discount_percent=cr.discount_percent;}}
     snapshot.local_receipt_no=localNo;if(posDevice)snapshot.device_id=Number(posDevice.id);
     if(offline){snapshot.offline_receipt_no=offline.receiptNo;snapshot.offline_at=offline.offlineAt;}
     if(payments.on_account){snapshot.account_id=await require('./retailCreditService').charge(tx,user,body,payments.on_account,pos.id,shift.id);snapshot.due_date=body.due_date;snapshot.refund_payments.on_account=0;}
