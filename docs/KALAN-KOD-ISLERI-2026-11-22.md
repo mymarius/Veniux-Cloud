@@ -10,3 +10,11 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 - Arayüz: Ürünler › Döviz kurları penceresinde onay kutusu, "Şimdi güncelle", her kurun altında "Otomatik/Elle · zaman". Gerçek tarayıcıda gerçek TCMB ile denendi.
 - Test: `backend/tests/fxAuto.test.js` (ağa çıkmaz; XML örneği).
 - Yeni tablolar: `exchange_rate_settings`, `exchange_rate_sources` (migration `062_fx_auto.js`).
+
+## 2. Sayım ve alışta seri okutma — YAPILDI
+- Ortak mantık `frontend/src/lib/serialScan.mjs` (ön/son ek ve Enter/Tab temizleme, satır ekle/adet artır, yanlış barkod, kontrol hanesi ipucu, ses/titreşim kararı, oturum sayacı) + `components/SerialScanInput.jsx` (sürekli odakta kutu, Enter **veya Tab** ile biten okutma, ayarlardaki okuyucu ön/son eki).
+- Mal kabul (`NormalInbound`) ve alış siparişi (`PurchaseOrders`, varsayılan ilk satır okutulan ürünle değişir) bu kutuyu kullanır. Çift okutma = adet artışı; tanınmayan barkodda hata sesi + kırmızı uyarı + "kontrol hanesi tutmuyor" ipucu.
+- Stok sayımı (`wms/WMSCycleCount`, zaten `shared/countScan.mjs` ile seri sayıyordu): okutma temizliği ve ses/titreşim geri bildirimi eklendi.
+- Eski `pages/StockCount.jsx` hiçbir yoldan açılmıyor (ölü sayfa); dokunulmadı.
+- Test: `frontend/src/lib/serialScan.test.mjs` (6 test). Gerçek tarayıcıda mal kabulde Enter/Tab okutma, adet artışı, yanlış barkod denendi.
+- Sınır: kamera okuyucu ve Bluetooth/seri okuyucu `ScannerPanel` yolunu kullanan ekranlarda (sayım) zaten çalışır; mal kabul/alış kutusu klavye-takılı (HID) okuyucu içindir.

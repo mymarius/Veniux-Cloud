@@ -1,7 +1,9 @@
 import { Dropdown } from '../../components/ui';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/client';
-import { addScanned, cleanWaybill, shortReceiptNo } from '../../lib/inboundEntry.mjs';
+import { cleanWaybill, shortReceiptNo } from '../../lib/inboundEntry.mjs';
+import { scanIntoLines } from '../../lib/serialScan.mjs';
+import SerialScanInput from '../../components/SerialScanInput';
 import {
   Inbox,
   Plus,
@@ -40,17 +42,13 @@ export default function NormalInbound() {
   });
 
   const { showToast } = useToast();
-  const [scanCode, setScanCode] = useState('');
-  const handleScan = (event) => {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    const code = scanCode.trim();
-    if (!code) return;
-    const result = addScanned(form.items, products, code);
-    if (result.status === 'notfound') { showToast('Bu barkod veya ürün bulunamadı: ' + code, 'error'); return; }
-    setForm(prev => ({ ...prev, items: addScanned(prev.items, products, code).items }));
-    setScanCode('');
-    showToast(result.product.name + (result.status === 'incremented' ? ' miktarı artırıldı' : ' eklendi'), 'success');
+  // Seri okutma: her okutma kalem ekler ya da miktarı artırır (hızlı peş peşe okutmada eski durum kullanılmasın diye ref).
+  const itemsRef = useRef(form.items);
+  itemsRef.current = form.items;
+  const handleScanCode = (raw, cfg) => {
+    const result = scanIntoLines(itemsRef.current, products, raw, { qtyKey: 'expected_qty', cfg, make: (p, q) => ({ product_id: p.id, expected_qty: q, lot_number: '', expiry_date: '' }) });
+    if (result.status === 'added' || result.status === 'incremented') { itemsRef.current = result.lines; setForm(prev => ({ ...prev, items: result.lines })); }
+    return result;
   };
 
   // Tarih ve miktar biçimleyicileri: API tarihleri 'YYYY-MM-DD' metni,
@@ -444,10 +442,7 @@ export default function NormalInbound() {
                   </button>
                 </div>
 
-                <div className="vx-scan-add">
-                  <label htmlFor="inbound-scan">Barkod okutun veya ürün adı/SKU yazıp Enter'a basın</label>
-                  <input id="inbound-scan" type="text" autoComplete="off" autoFocus value={scanCode} onChange={(e) => setScanCode(e.target.value)} onKeyDown={handleScan} placeholder="Barkod okut → kalem otomatik eklenir, aynı ürün tekrar okununca miktar artar" />
-                </div>
+                <SerialScanInput id="inbound-scan" label="Barkod okutun veya ürün adı/SKU yazıp Enter'a basın" hint="Barkod okut → kalem otomatik eklenir, aynı ürün tekrar okununca miktar artar" onScan={handleScanCode} />
 
                 <div className="space-y-2.5">
                   {form.items.map((item, idx) => (

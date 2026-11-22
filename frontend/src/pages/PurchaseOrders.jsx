@@ -1,5 +1,7 @@
 import PurchaseOrderSend from '../components/PurchaseOrderSend';
 import { money } from '../lib/stockAnalytics';
+import { scanIntoLines } from '../lib/serialScan.mjs';
+import SerialScanInput from '../components/SerialScanInput';
 import { Dropdown } from '../components/ui';
 import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
@@ -119,6 +121,7 @@ export default function PurchaseOrders() {
       } else if (prods.length > 0) {
         setOrderItems([
           {
+            _default: true,
             product_id: prods[0].id,
             quantity: 10,
             unit_price: prods[0].purchase_price || prods[0].cost_price || 0
@@ -150,6 +153,7 @@ export default function PurchaseOrders() {
   const handleItemChange = (index, field, val) => {
     const next = [...orderItems];
     next[index][field] = val;
+    delete next[index]._default;
     if (field === 'product_id') {
       const p = products.find((x) => x.id === parseInt(val, 10));
       if (p) {
@@ -157,6 +161,16 @@ export default function PurchaseOrders() {
       }
     }
     setOrderItems(next);
+  };
+
+  // Seri okutma: okutulan ürün satır ekler ya da miktarı artırır. Dokunulmamış varsayılan ilk satır okutulan ürünle değiştirilir.
+  const itemsRef = useRef(orderItems);
+  itemsRef.current = orderItems;
+  const handleScanCode = (raw, cfg) => {
+    const lines = itemsRef.current.length === 1 && itemsRef.current[0]._default ? [{ ...itemsRef.current[0], product_id: '' }] : itemsRef.current;
+    const result = scanIntoLines(lines, products, raw, { qtyKey: 'quantity', cfg, make: (p, q) => ({ product_id: p.id, quantity: q, unit_price: p.purchase_price || p.cost_price || 0 }) });
+    if (result.status === 'added' || result.status === 'incremented') { itemsRef.current = result.lines; setOrderItems(result.lines); }
+    return result;
   };
 
   const handleCreateOrder = async (e) => {
@@ -502,6 +516,7 @@ export default function PurchaseOrders() {
                 </button>
               </div>
 
+              <SerialScanInput id="po-scan" label="Barkod okutun" hint="Okutunca ürün satırı eklenir; aynı ürünü tekrar okutunca miktar artar" onScan={handleScanCode} />
               <div className="grid grid-cols-12 gap-2 px-2.5 text-[11px] font-bold text-gray-500" aria-hidden="true">
                 <span className="col-span-6">Ürün</span>
                 <span className="col-span-3">Miktar</span>
