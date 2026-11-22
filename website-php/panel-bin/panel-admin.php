@@ -10,7 +10,9 @@ require __DIR__.'/../panel-core/authority-sync.php';
 $email=strtolower(trim((string)$email));$role=$role?:'yonetici';
 if(!filter_var($email,FILTER_VALIDATE_EMAIL)||!in_array($role,['yonetici','muhasebe','destek'],true)){fwrite(STDERR,"Kullanım: php bin/panel-admin.php eposta \"Ad Soyad\" [yonetici|muhasebe|destek]\n");exit(1);}
 $pass=getenv('VENIUX_ADMIN_PASSWORD')?:'';
-if($pass===''){
+$passFile=vp_data_dir().'/admin-password.txt'; // Terminal yoksa: parolayı özel klasördeki bu dosyaya yazın; okunduktan sonra silinir.
+if($pass===''&&is_file($passFile)){$pass=trim((string)file_get_contents($passFile));@unlink($passFile);}
+if($pass===''&&function_exists('posix_isatty')&&posix_isatty(STDIN)){
     fwrite(STDOUT,'Şifre (en az 12 karakter): ');
     if(DIRECTORY_SEPARATOR==='/')system('stty -echo');
     $pass=trim((string)fgets(STDIN));
