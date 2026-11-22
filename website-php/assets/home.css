@@ -1268,7 +1268,7 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .hx-gal-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s ease,background .3s ease}
 .hx-gal-dots span.on{width:24px;background:var(--orange)}
 
-@media(min-width:941px){.vf-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}}
+@media(min-width:941px){.vf-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:24px}}
 .hx-qacards>div:last-child:nth-child(odd){grid-column:1/-1}
 .hx-sector-limit{margin:28px 0 0;padding:16px 20px;border-left:5px solid var(--orange);background:var(--white);border-radius:0 10px 10px 0;color:var(--ink);font-size:17px;line-height:1.55}
 .hx-sector-limit b{color:var(--orange-text)}
@@ -1332,4 +1332,11 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .terminal-guide .terminal-step-number{width:52px;height:52px;margin:0;font-size:30px;font-weight:800;align-self:start}
 .terminal-guide .terminal-steps h3{margin:0 0 14px;min-height:52px;display:flex;align-items:center;font-size:21px;line-height:1.25}
 .terminal-guide .terminal-steps p{font-size:16px;line-height:1.65}
+/* Sosyal Medya İkon & Liste Tasarımı */
+.vf-social-link{display:flex!important;align-items:center;gap:10px;width:100%}
+.vf-social-link svg{flex-shrink:0;opacity:.85;transition:opacity .15s,transform .2s}
+.vf-social-link span{flex:1}
+.vf-social-link .vf-arr{flex:0 0 auto;font-size:14px;opacity:.6;transition:transform .2s,opacity .2s}
+.vf-social-link:hover svg{opacity:1;transform:scale(1.1);color:#ffb27f}
+.vf-social-link:hover .vf-arr{opacity:1;transform:translate(2px,-2px);color:#ffb27f}
 @media(max-width:900px){.terminal-guide .terminal-steps{grid-template-columns:1fr}}

@@ -13,7 +13,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 WEB = ROOT / 'website-php'
 HOST, USER, REMOTE = 'plesk.hostimux.tr', 'veniu8e1', 'httpdocs'
 SKIP_NAMES = {'router.php', 'check-mail.php', 'README.md', 'SEO-ALTYAPISI.md', 'design-tokens.json'}
-SKIP_DIRS = {'bin', 'preview'}
+SKIP_DIRS = {'bin', 'preview', '.local_preview'}
 HASHED = re.compile(r'^assets/[a-z]+\.[0-9a-f]{12}\.(css|js)$')
 
 
