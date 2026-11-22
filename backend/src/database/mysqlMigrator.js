@@ -3,6 +3,8 @@ const catalog=fs.readdirSync(path.join(__dirname,'mysql')).filter(name=>/^\d+.*\
 const manifest=catalog.at(-1);
 const q=name=>'`'+name.replaceAll('`','``')+'`';
 const cols=names=>names.map(q).join(',');
+// İndeks sütunları: LONGTEXT sütunlar için önek uzunluğu (ix.prefix) gerekir.
+const ixCols=ix=>ix.columns.map(n=>q(n)+(ix.prefix?.[n]?'('+ix.prefix[n]+')':'')).join(',');
 const error=message=>Object.assign(Error(message),{code:'MYSQL_MIGRATION_REQUIRED'});
 function triggerDDL({name,sql}){
  const match=sql.match(/CREATE TRIGGER\s+\w+\s+(BEFORE|AFTER)\s+(INSERT|UPDATE|DELETE)\s+ON\s+(\w+)\s*([\s\S]*?)BEGIN\s*([\s\S]*?)\s*END\s*;?$/i);
@@ -24,6 +26,8 @@ function finalCoversAll(){
   return has(t.columns,n.columns,'name')&&has(t.unique,n.unique,'name')&&has(t.indexes,n.indexes,'name')&&has(t.foreign,n.foreign,'name')&&t.checks.length<=n.checks.length;
  })&&old.triggers.every(t=>last.triggers.some(v=>v.name===t.name)));
 }
+// Yeni tablo tanımından, önceki tabloda bulunmayan indeksleri çıkarır; kalan fark varsa adım yalnız indeks eklemiyor demektir.
+function withoutAddedIndexes(table,old){return table&&{...table,indexes:table.indexes.filter(i=>old.indexes.some(o=>o.name===i.name))};}
 class MySQLMigrator{
  constructor(connection){this.connection=connection;}
  async status(){
@@ -48,7 +52,7 @@ class MySQLMigrator{
    if(!state.applied)throw error('Boş veritabanı ek yükseltmeyle kurulamaz.');
    const steps=catalog.filter(v=>state.pending.includes(v.version));
    for(const step of steps){const before=catalog[catalog.indexOf(step)-1];
-    if(!before||JSON.stringify(step.triggers)!==JSON.stringify(before.triggers)||before.tables.some(t=>JSON.stringify(step.tables.find(n=>n.name===t.name))!==JSON.stringify(t)))throw error('SCHEMA_UPGRADE_UNSUPPORTED');}
+    if(!before||JSON.stringify(step.triggers)!==JSON.stringify(before.triggers)||before.tables.some(t=>JSON.stringify(withoutAddedIndexes(step.tables.find(n=>n.name===t.name),t))!==JSON.stringify(t)))throw error('SCHEMA_UPGRADE_UNSUPPORTED');}
    const [present]=await c.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
    for(const step of steps){const before=catalog[catalog.indexOf(step)-1];
     const added=step.tables.filter(t=>!before.tables.some(b=>b.name===t.name));
@@ -56,11 +60,16 @@ class MySQLMigrator{
     for(const t of added){
      const definitions=t.columns.map(v=>v.definition);if(t.primary.length)definitions.push('PRIMARY KEY('+cols(t.primary)+')');
      for(const ix of t.unique)definitions.push('UNIQUE KEY '+q(ix.name)+'('+cols(ix.columns)+')');
-     for(const ix of t.indexes)definitions.push('KEY '+q(ix.name)+'('+cols(ix.columns)+')');
+     for(const ix of t.indexes)definitions.push('KEY '+q(ix.name)+'('+ixCols(ix)+')');
      for(const [i,check] of t.checks.entries())definitions.push('CONSTRAINT '+q('ck_'+t.name+'_'+i)+' CHECK('+check+')');
      for(const fk of t.foreign)definitions.push('CONSTRAINT '+q(fk.name)+' FOREIGN KEY('+cols(fk.columns)+') REFERENCES '+q(fk.table)+'('+cols(fk.references)+') ON DELETE '+fk.onDelete+' ON UPDATE '+fk.onUpdate);
      await c.query('CREATE TABLE '+q(t.name)+'('+definitions.join(',')+') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin');
     }
+    // Mevcut tablolara yalnız yeni indeks eklenir (çevrimiçi, tabloyu kilitlemeden; yoksa). Yarıda kalırsa kayıt yazılmaz, yeniden çalıştırılabilir.
+    for(const t of step.tables){const old=before.tables.find(b=>b.name===t.name);if(!old)continue;
+     for(const ix of t.indexes.filter(i=>!old.indexes.some(o=>o.name===i.name))){
+      const [found]=await c.query('SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND INDEX_NAME=? LIMIT 1',[t.name,ix.name]);
+      if(!found.length)await c.query('ALTER TABLE '+q(t.name)+' ADD INDEX '+q(ix.name)+'('+ixCols(ix)+'), ALGORITHM=INPLACE, LOCK=NONE');}}
     await c.query("INSERT INTO veniux_mysql_migrations(version,state,applied_at,schema_spec) VALUES(?,'complete',CURRENT_TIMESTAMP,?)",[step.version,JSON.stringify(step)]);
    }
    return this.status();
@@ -94,7 +103,7 @@ class MySQLMigrator{
     for(const column of t.columns)if(!existing.some(v=>v.COLUMN_NAME===column.name))await c.query('ALTER TABLE '+q(t.name)+' ADD COLUMN '+column.definition);
     for(const column of t.columns.filter(v=>!v.definition.includes('GENERATED ALWAYS'))){if(!existedBefore||previousTable?.columns.some(v=>v.name===column.name&&v.definition===column.definition))continue;await c.query('ALTER TABLE '+q(t.name)+' MODIFY COLUMN '+column.definition);}
     for(const [i,check] of t.checks.entries()){const name='ck_'+t.name+'_'+i;const [found]=await c.query('SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND TABLE_NAME=? AND CONSTRAINT_NAME=?',[t.name,name]);if(!found.length)await c.query('ALTER TABLE '+q(t.name)+' ADD CONSTRAINT '+q(name)+' CHECK('+check+')');}
-    for(const ix of [...t.unique,...t.indexes]){const [found]=await c.query('SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND INDEX_NAME=?',[t.name,ix.name]);if(!found.length)await c.query('CREATE '+(t.unique.includes(ix)?'UNIQUE ':'')+'INDEX '+q(ix.name)+' ON '+q(t.name)+'('+cols(ix.columns)+')');}
+    for(const ix of [...t.unique,...t.indexes]){const [found]=await c.query('SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND INDEX_NAME=?',[t.name,ix.name]);if(!found.length)await c.query('CREATE '+(t.unique.includes(ix)?'UNIQUE ':'')+'INDEX '+q(ix.name)+' ON '+q(t.name)+'('+ixCols(ix)+')');}
    }
    for(const t of manifest.tables)for(const fk of t.foreign){
     const [found]=await c.query('SELECT 1 FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME=?',[fk.name]);

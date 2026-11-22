@@ -3,6 +3,14 @@
 const mysql = require('mysql2/promise');
 const { MySQLMigrator, manifest } = require('../../src/database/mysqlMigrator');
 
+const fs = require('fs');
+const path = require('path');
+const prev = JSON.parse(fs.readFileSync(path.join(__dirname, '../../src/database/mysql/032-fx-auto-tasks.json'), 'utf8'));
+// 033 ile eklenen indeksler (tablo -> indeks adları); "eski kurulum" benzetimi için geri alınır.
+const addedIndexes = manifest => manifest.tables.flatMap(t => t.indexes.filter(i => !prev.tables.find(p => p.name === t.name).indexes.some(o => o.name === i.name)).map(i => ({ table: t.name, name: i.name })));
+const indexNames = async table => (await c.query('SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?', [table]))[0].map(r => r.INDEX_NAME);
+const dropAddedIndexes = async () => { for (const ix of addedIndexes(manifest)) if ((await indexNames(ix.table)).includes(ix.name)) await c.query('ALTER TABLE `' + ix.table + '` DROP INDEX `' + ix.name + '`'); };
+
 let admin, c;
 // Test hesabı yalnız önceden yetkilendirilmiş geçici veritabanlarına yazabilir; rc2_fault her test dosyasında baştan kurulur.
 const NAME = 'veniux_test_rc2_fault';
@@ -32,9 +40,10 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   await c.query('DROP TABLE exchange_rate_sources');
   await c.query('DROP TABLE exchange_rate_settings');
   await c.query('DROP TABLE business_tasks');
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  await dropAddedIndexes();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', [prev.version, manifest.version]);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [prev.version, manifest.version] });
 
   const state = await migrator.upgradeAdditive();
   expect(state).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
@@ -82,4 +91,35 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
 
   // Yükseltme tekrarlanırsa zarar vermez
   expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
+});
+
+test('033: yalnız indeks ekleyen adım; indeksler eklenir, veri korunur, ikinci çalıştırma değişiklik yapmaz', async () => {
+  // Önceki testten kalan tam şemada 033 geri alınır: 032 kurulu, 033 yok
+  await dropAddedIndexes();
+  const [[tenant]] = await c.query("INSERT INTO tenants (company_name,tenant_code,email) VALUES ('İndeks Müşterisi','IDX-UPG-1','idx@example.com')").then(r => [[{ id: r[0].insertId }]]);
+  const [prod] = await c.query("INSERT INTO products (tenant_id,sku,name,unit,sale_price,module_type,gtin) VALUES (?,'IDX-1','İndeks ürünü','adet',10,'NORMAL','8690000000017')", [tenant.id]);
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  const added = addedIndexes(manifest);
+  expect(added.map(i => i.name).sort()).toEqual(['idx_audit_logs_tenant_created', 'idx_pos_sale_items_product', 'idx_pos_sales_tenant_created', 'idx_product_uoms_barcode', 'idx_products_tenant_created', 'idx_products_tenant_gtin', 'idx_retail_sales_tenant_date', 'idx_stock_movements_tenant_created', 'idx_stock_records_tenant_updated']);
+  for (const ix of added) expect(await indexNames(ix.table)).not.toContain(ix.name);
+  const migrator = new MySQLMigrator(c);
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+
+  expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
+  for (const ix of added) expect(await indexNames(ix.table)).toContain(ix.name);
+  const [[row]] = await c.query('SELECT gtin FROM products WHERE id=?', [prod.insertId]);
+  expect(row.gtin).toBe('8690000000017');
+  // Sorgu yeni indeksi kullanabiliyor (gtin önek indeksi)
+  const [plan] = await c.query("EXPLAIN SELECT id FROM products WHERE tenant_id=? AND gtin='8690000000017'", [tenant.id]);
+  expect(String(plan[0].possible_keys)).toContain('idx_products_tenant_gtin');
+
+  // İkinci çalıştırma: değişiklik yok; elle bir indeks eksiltilip kayıt silinirse yeniden tamamlanır (yarım kalmış yükseltme)
+  const [[before]] = await c.query('SELECT COUNT(*) n FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()');
+  expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
+  const [[after]] = await c.query('SELECT COUNT(*) n FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()');
+  expect(after.n).toBe(before.n);
+  await c.query('ALTER TABLE products DROP INDEX idx_products_tenant_created');
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
+  expect(await indexNames('products')).toContain('idx_products_tenant_created');
 });

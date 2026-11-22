@@ -70,3 +70,29 @@ Masaüstü kurulumu yerel **MySQL** (`veniux_local`) kullanıyor; SQLite gelişt
 4. Sınırsız büyüyen tablolar: `audit_logs`, `stock_movements`, `inventory_transactions`, `pos_sale_items`, `retail_sales`. **Otomatik silme yok ve önermiyorum** (denetim bütünlüğü zinciri, saklama yükümlülüğü); gerekirse yıllık arşive alma (dışa aktarıp doğrulama sonrası) ayrı ve onaylı bir işlem olmalı. Bu veride büyüme ≈2,7 KB/satış (tablolar + indeksler).
 5. Baştan eşleşmeyen katalog aramaları (`%metin%`) indekssiz tarar; 50 bin üründe 15 ms, 500 bin üründe belirgin olur.
 6. React `memo`/sanallaştırma eklemedim: ölçülmüş bir çizim darboğazı yok.
+
+## MySQL indeksleri (şema 033-performance-indexes) — sonuç
+**Yapılan:** `backend/src/database/mysql/033-performance-indexes.json` (032 ile aynı tablolar + 9 yeni indeks), `mysqlMigrator.js`: `upgradeAdditive` artık mevcut tablolarda **yalnız yeni indeks eklenmesine** izin veriyor (başka her fark hâlâ `SCHEMA_UPGRADE_UNSUPPORTED`); indeksler önce `information_schema.STATISTICS` ile kontrol edilip `ALTER TABLE … ADD INDEX …, ALGORITHM=INPLACE, LOCK=NONE` ile ekleniyor, kayıt en sonda yazılıyor (yarıda kalırsa kayıt yok, yeniden çalıştırılabilir; var olan indeks atlanır). Boş kurulumda `migrate()` indeksleri tabloyla birlikte kuruyor; `verifyStructure` indeks varlığını denetliyor. `SHIPPABLE_MYSQL_SCHEMA` → `033-performance-indexes` (yükseltme provası yeşil).
+- 064'teki 10 indeksten **9'u** eklendi: `pos_sale_items(sale_id)` MySQL'de zaten var (yabancı anahtar `fk_pos_sale_items_1` otomatik indeks açıyor), yineleme eklenmedi.
+- `gtin` ve `product_uoms.barcode` MySQL'de LONGTEXT; indeks **64 karakter önekli** (`gtin(64)`, `barcode(64)`).
+- Sınır: yeni mekanizma yalnız indeks ekler; sütun/tetikleyici/kısıt değişikliği yine kapıya takılır.
+
+**Testler:** `schemaUpgrade.test.js` — 032'den (tablolar + indeksler geri alınmış eski kurulum) 033'e yükseltme, ayrıca yalnız-033 testi: indeksler eklenir, veri korunur, ikinci çalıştırma indeks sayısını değiştirmez, eksik indeks + silinmiş kayıt yeniden tamamlanır. `npm run test:mysql` 14 paket/43 test yeşil (test DB'si `mysql_test_migrate.js --recreate-test` ile yeniden kuruldu); backend `npm test` 187 paket/1374 test yeşil.
+
+**Ölçüm** (yerel MySQL 8.4.13, SQL düzeyinde, `backend/scripts/perf-mysql.js`; 50 bin ürün, 150 bin satış, 525 bin satır/hareket; ortanca ms, 5 tekrar; HTTP katmanı dahil değil):
+| Sorgu | Önce | Sonra |
+|---|---|---|
+| pos_sales son 100 | 969,8 | 0,8 |
+| stock_movements son 100 | 369,7 | 0,8 |
+| retail_sales hafta aralığı | 244,3 | 0,8 |
+| audit_logs son 100 | 99,0 | 0,6 |
+| ürünler en yeni 50 | 93,5 | 0,7 |
+| ürün GTIN ile | 70,7 | 0,4 |
+| koli barkodu | 20,5 | 0,2 |
+| stock_records sayfa | 17,5 | 4,1 |
+| pos_sale_items ürün geçmişi | 0,3 | 0,4 |
+| ürün "barkod VEYA GTIN" | 72,0 | 69,5 (**düzelmedi**: MySQL OR için indeks birleştirmedi; uygulamadaki gerçek sorgu şekli ayrıca bakılmalı) |
+
+**Kilit/süre riski:** 9 indeksin toplam kurulumu 6,1 sn (en uzunu `pos_sale_items(tenant_id,product_id)` 1,8 sn, `stock_movements` 1,4 sn) bu büyüklükte. Kurulum sürerken başka bağlantıdan yazma: boşta ortanca 2,6 ms; kurulum sırasında ortanca 2,8 ms, p99 12,8 ms, en yavaş tek yazma 59 ms (457 yazma) — `LOCK=NONE` ile yazmalar engellenmedi. Disk maliyeti bu veride yaklaşık +150 MB toplam indeks (tablo başına: `sizesMb` çıktısı betikte). **Ölçülemeyen:** bulut app.veniux.com'un gerçek veri büyüklüğü ve yükü (bakılmadı); gerçek kullanıcı trafiğiyle yarışma.
+
+**Bulutta uygulama adımları (yapılmadı, onay + Plesk girişi gerekir):** (1) yedek al (mevcut akış); (2) sunucu kodunu 033 bildirimiyle güncelle; (3) `MySQLMigrator#upgradeAdditive` çalıştır (bulutta yükseltme komutu mevcut `mysql_migrate.js` akışıyla aynı; kilit `GET_LOCK` ile korunur); (4) `information_schema.STATISTICS` ile 9 indeksin varlığını doğrula; (5) `--record-deployment` ile dağıtım kaydını yaz. Düşük trafik saatinde çalıştırılması önerilir. Geri alma: `ALTER TABLE … DROP INDEX …` (veri etkilenmez; sürüm kaydı ayrıca geri alınmalı).
