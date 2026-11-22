@@ -763,6 +763,15 @@ function vpa_tools(array $a): void {
 // ---------------------------------------------------------------- profil
 function vpa_profile(array $a): void {
     if(vp_is_post()&&str_starts_with(vp_post('op',10),'foto')){if(!empty($_SESSION['vp_impersonator']))vp_flash('Müşteri görünümünde fotoğraf değiştirilemez.','err');else vp_avatar_post(...vpa_avatar_id($a));vp_redirect('/yonetim/profil');}
+    if(vp_is_post()&&$a['owner']&&vp_post('op',10)==='sifre'){
+        $cur=is_string($_POST['current']??null)?$_POST['current']:'';$new=is_string($_POST['password']??null)?$_POST['password']:'';$new2=is_string($_POST['password2']??null)?$_POST['password2']:'';
+        if(mb_strlen($new)<14||strlen($new)>72)vp_flash('Yeni şifre 14–72 karakter olmalı.','err');
+        elseif($new!==$new2)vp_flash('Yeni şifreler eşleşmiyor.','err');
+        elseif(!vp_rate_ok('pw-owner',5))vp_flash('Çok fazla deneme. 15 dakika sonra tekrar deneyin.','err');
+        else{try{$ok=vp_site_account_password($a['email'],$new,$cur);}catch(Throwable){$ok=false;}
+            if($ok){session_regenerate_id(true);vpa_log($a,'Sahip şifresini değiştirdi');vp_flash('Şifreniz değiştirildi.');}else vp_flash('Mevcut şifre doğrulanamadı.','err');}
+        vp_redirect('/yonetim/profil');
+    }
     if(vp_is_post()&&!$a['owner']){
         $r=vp_row('SELECT * FROM admins WHERE id=?',[$a['id']]);
         $cur=is_string($_POST['current']??null)?$_POST['current']:'';$new=is_string($_POST['password']??null)?$_POST['password']:'';
@@ -776,7 +785,14 @@ function vpa_profile(array $a): void {
     vp_head('Hesabım','Profil ve şifre',$a['email']);
     vp_avatar_card('admin',...vpa_avatar_id($a),...[$a['name']]);
     echo '<div class="vp-gap"></div>';
-    if($a['owner']){echo '<section class="vp-card">'.vp_empty('Sahip hesabıyla giriş yaptınız.','Bu hesabın şifresi merkezi Veniux yönetim sistemi üzerinden değişir.').'</section>';vp_shell_end();return;}
+    if($a['owner']){?>
+<form class="vp-card vp-form" method="post"><?=vp_csrf_field()?><input type="hidden" name="op" value="sifre"><div class="vp-card-head"><h2>Şifre değiştir</h2></div>
+  <p class="vp-muted">Sahip hesabıyla giriş yaptınız; bu şifre veniux.com hesabınızın şifresidir.</p>
+  <label class="vp-field"><span>Mevcut şifre</span><input type="password" name="current" required autocomplete="current-password"></label>
+  <div class="vp-row"><label class="vp-field"><span>Yeni şifre</span><input type="password" name="password" required minlength="14" maxlength="72" autocomplete="new-password"><small>En az 14 karakter.</small></label><label class="vp-field"><span>Yeni şifre (tekrar)</span><input type="password" name="password2" required minlength="14" maxlength="72" autocomplete="new-password"></label></div>
+  <div class="vp-form-foot"><button class="vp-btn" type="submit">Şifreyi değiştir</button></div>
+</form>
+<?php vp_shell_end();return;}
     ?>
 <form class="vp-card vp-form" method="post"><?=vp_csrf_field()?>
   <div class="vp-row"><label class="vp-field"><span>Ad soyad</span><input type="text" name="name" maxlength="120" value="<?=e($a['name'])?>"></label><label class="vp-field"><span>Rol</span><input type="text" value="<?=e(VP_ROLES[$a['role']]??$a['role'])?>" readonly></label></div>
