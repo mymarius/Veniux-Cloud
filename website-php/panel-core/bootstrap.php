@@ -74,6 +74,11 @@ function vp_migrate(PDO $pdo): void {
         if(!in_array('authority_id',$cols,true))$pdo->exec("ALTER TABLE licenses ADD authority_id INT UNSIGNED NULL, ADD authority_hash VARCHAR(40) NOT NULL DEFAULT ''");
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','4') ON DUPLICATE KEY UPDATE svalue='4'");
     }
+    if($version<5){
+        // v5: Lite paketi panelden satışa kapalı (satış Pro'dan başlar). Yönetici isterse Paketler sayfasından yeniden açabilir.
+        $pdo->exec("UPDATE products SET active=0, featured=0 WHERE code='lite'");
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','5') ON DUPLICATE KEY UPDATE svalue='5'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {
@@ -129,7 +134,7 @@ function vp_seed(PDO $pdo): void {
         if(!is_array($p)||!is_string($p['id']??null))continue;
         $features=array_map(fn($f)=>$labels[$f]??$f,is_array($p['features']??null)?$p['features']:[]);
         $l=$p['limits']??[];
-        $ins->execute([$p['id'],$p['name']??$p['id'],$p['tagline']??'',$periods[$p['period']??'year']??'year',(int)round(((float)($p['price_try']??0))*100),null,$l['desktop']??null,$l['warehouses']??null,isset($l['staff'])&&$l['staff']!==null?(int)$l['staff']+(int)($l['admins']??0):null,$l['ai_monthly']??null,implode("\n",$features),1,$p['id']==='pro'?1:0,$i,$now]);
+        $ins->execute([$p['id'],$p['name']??$p['id'],$p['tagline']??'',$periods[$p['period']??'year']??'year',(int)round(((float)($p['price_try']??0))*100),null,$l['desktop']??null,$l['warehouses']??null,isset($l['staff'])&&$l['staff']!==null?(int)$l['staff']+(int)($l['admins']??0):null,$l['ai_monthly']??null,implode("\n",$features),$p['id']==='lite'?0:1,$p['id']==='pro'?1:0,$i,$now]);
     }
     if(is_array($plans['addon']??null)){
         $a=$plans['addon'];
