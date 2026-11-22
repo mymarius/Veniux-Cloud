@@ -10,8 +10,10 @@ const forget = tenantId => cache.delete(tenantId);
 async function rates(user) {
   if (!['admin', 'manager'].includes(user.role)) fail('Bu işlem için yetkiniz yok.', 403);
   const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows;
-  const by = Object.fromEntries(rows.map(r => [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at }]));
-  return { currencies: CURRENCIES, rates: Object.fromEntries(CURRENCIES.map(c => [c, by[c] || null])) };
+  let src = {};
+  try { src = Object.fromEntries((await db.query('SELECT currency,source,buying_try,rates_date FROM exchange_rate_sources WHERE tenant_id=$1', [user.tenantId])).rows.map(r => [r.currency, r])); } catch { /* eski şema: hepsi elle */ }
+  const by = Object.fromEntries(rows.map(r => { const s = src[r.currency]; return [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at, source: s?.source === 'auto' ? 'auto' : 'manual', buying: s?.source === 'auto' && s.buying_try !== null ? Number(s.buying_try) : null, rates_date: s?.source === 'auto' ? s.rates_date : null }]; }));
+  return { currencies: CURRENCIES, rates: Object.fromEntries(CURRENCIES.map(c => [c, by[c] || null])), auto: await require('./fxAutoService').settings(user.tenantId) };
 }
 
 // body: { USD: 38.5, EUR: null }  — null/boş kuru siler.
@@ -21,11 +23,20 @@ async function setRates(user, body = {}) {
     for (const c of CURRENCIES) {
       if (!(c in body)) continue;
       const raw = body[c];
-      if (raw === null || raw === '') { await tx.query('DELETE FROM exchange_rates WHERE tenant_id=$1 AND currency=$2', [user.tenantId, c]); continue; }
+      if (raw === null || raw === '') {
+        await tx.query('DELETE FROM exchange_rates WHERE tenant_id=$1 AND currency=$2', [user.tenantId, c]);
+        await tx.query('DELETE FROM exchange_rate_sources WHERE tenant_id=$1 AND currency=$2', [user.tenantId, c]);
+        continue;
+      }
       const rate = Number(raw);
       if (!Number.isFinite(rate) || rate <= 0 || rate > 100000) fail(c + ' kuru geçersiz.');
+      const prev = (await tx.query('SELECT rate_try FROM exchange_rates WHERE tenant_id=$1 AND currency=$2', [user.tenantId, c])).rows[0];
+      // Arayüz aynı kuru geri gönderirse otomatik kur "elle" olmaz; yalnız değişen değer elle sayılır.
+      if (prev && Number(prev.rate_try) === rate) continue;
       const upd = await tx.query('UPDATE exchange_rates SET rate_try=$1,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$2 AND currency=$3', [rate, user.tenantId, c]);
       if (!upd.rowCount) await tx.query('INSERT INTO exchange_rates (tenant_id,currency,rate_try) VALUES ($1,$2,$3)', [user.tenantId, c, rate]);
+      const mark = await tx.query("UPDATE exchange_rate_sources SET source='manual',buying_try=NULL,rates_date=NULL,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$1 AND currency=$2", [user.tenantId, c]);
+      if (!mark.rowCount) await tx.query("INSERT INTO exchange_rate_sources (tenant_id,currency,source) VALUES ($1,$2,'manual')", [user.tenantId, c]);
     }
   });
   forget(user.tenantId);

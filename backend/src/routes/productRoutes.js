@@ -19,6 +19,9 @@ router.put('/:id/price-tiers', authMiddleware, requireRole('admin', 'manager'), 
 const currency = require('../services/currencyService');
 router.get('/currency-rates', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => currency.rates(req.user)));
 router.put('/currency-rates', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => currency.setRates(req.user, req.body || {})));
+const fxAuto = require('../services/fxAutoService');
+router.put('/currency-rates/auto', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => fxAuto.setAuto(req.user, req.body?.enabled === true, { fetchImpl: req.app.locals.fxFetch })));
+router.post('/currency-rates/refresh', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => fxAuto.refresh(req.user, { fetchImpl: req.app.locals.fxFetch })));
 router.get('/:id/currency-price', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => currency.getProduct(req.user, Number(req.params.id))));
 router.put('/:id/currency-price', authMiddleware, requireRole('admin', 'manager'), tierHandle(req => currency.setProduct(req.user, Number(req.params.id), req.body || {})));
 router.get('/categories', authMiddleware, getCategories);

@@ -46,6 +46,9 @@ const auditIntegrityJob=cron.createTask('* * * * *',()=>require('../services/aud
 const alertDeliveryJob=cron.createTask('*/10 * * * *',()=>require('../services/alertDeliveryService').tick(),{timezone:'Europe/Istanbul',noOverlap:true});
 // Süresi dolan ücretli lisansı Lite'a indirir; yalnız VENIUX_LITE_DOWNGRADE=1 iken çalışır.
 const liteDowngradeJob=cron.createTask('30 3 * * *',async()=>{const d=require('../services/liteDowngrade');if(d.enabled())await d.run();},{timezone:'Europe/Istanbul',noOverlap:true});
+// TCMB günlük kuru: her gün 10:05 ve hafta içi 15:45 (kur 15:30'da yayınlanır). Hafta sonu/tatilde dosya son kuru verir; ağ hatasında son kur kalır.
+const fxRateJob=cron.createTask('5 10 * * *',()=>require('../services/fxAutoService').run().catch(e=>console.warn('[Kur]',e.message)),{timezone:'Europe/Istanbul',noOverlap:true});
+const fxRateAfternoonJob=cron.createTask('45 15 * * 1-5',()=>require('../services/fxAutoService').run().catch(e=>console.warn('[Kur]',e.message)),{timezone:'Europe/Istanbul',noOverlap:true});
 const startCronJobs = () => {
   if (started) return;
   started = true;
@@ -56,6 +59,8 @@ const startCronJobs = () => {
     alertDeliveryJob.start();
     auditIntegrityJob.start();
     liteDowngradeJob.start();
+    fxRateJob.start();
+    fxRateAfternoonJob.start();
     console.log('[Cron] Scheduled tasks started: Rule Engine (6h) | AI Health Check (08:00)');
   } catch (error) {
     console.error('Failed to start cron jobs:', error.message);
@@ -64,5 +69,5 @@ const startCronJobs = () => {
 
 module.exports = {
   startCronJobs,
-  stopCronJobs: () => { for(const job of [ruleEngineJob,aiAnalysisJob,ownerAutomationJob,alertDeliveryJob,auditIntegrityJob,liteDowngradeJob]) job?.stop(); started=false; }
+  stopCronJobs: () => { for(const job of [ruleEngineJob,aiAnalysisJob,ownerAutomationJob,alertDeliveryJob,auditIntegrityJob,liteDowngradeJob,fxRateJob,fxRateAfternoonJob]) job?.stop(); started=false; }
 };

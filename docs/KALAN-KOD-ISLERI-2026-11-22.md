@@ -1,0 +1,12 @@
+# Kalan kod işleri — 22 Kasım 2026
+
+Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–, MySQL `032-fx-auto-tasks.json`) ve sürüm 2.4.102 yayını kullanıcı onayı bekliyor.
+
+## 1. Otomatik döviz kuru — YAPILDI
+- TCMB `today.xml` → `fxAutoService` (USD/EUR/GBP, satış kuru TL kuru olarak, alış ayrıca saklanır). Hafta sonu/tatilde dosya son iş gününü verdiği için son kur kalır; XML'deki tarih "TCMB kur tarihi" olarak gösterilir.
+- Zamanlayıcı: her gün 10:05 ve hafta içi 15:45 (`cronJobs.js`); yalnız "otomatik" açık işletmeler. Ağ/okuma hatasında kur değişmez, `exchange_rate_settings.last_status/last_error` yazılır, günlüğe uyarı düşer. Varsayılan KAPALI (mevcut elle kurlar kendiliğinden değişmesin).
+- Elle girilen/değiştirilen kur `exchange_rate_sources.source='manual'` olur ve otomatik tarafından ezilmez; kuru silmek o para birimini tekrar otomatiğe açar. Arayüz aynı değeri geri gönderirse kaynak bozulmaz.
+- Uçlar: `PUT /api/products/currency-rates/auto {enabled}`, `POST /api/products/currency-rates/refresh`; `GET /currency-rates` artık `source`, `rates_date`, `auto{...}` döner.
+- Arayüz: Ürünler › Döviz kurları penceresinde onay kutusu, "Şimdi güncelle", her kurun altında "Otomatik/Elle · zaman". Gerçek tarayıcıda gerçek TCMB ile denendi.
+- Test: `backend/tests/fxAuto.test.js` (ağa çıkmaz; XML örneği).
+- Yeni tablolar: `exchange_rate_settings`, `exchange_rate_sources` (migration `062_fx_auto.js`).
