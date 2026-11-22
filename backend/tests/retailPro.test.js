@@ -100,3 +100,10 @@ test('terminal verification rejects cross-company and wrong-actor approvals',asy
  expect((await verify({mode:'approve',email:owner.email})).status).toBe(200);
  expect((await verify({mode:'invalid',email:owner.email})).status).toBe(400);
 });
+
+test('catalog: ana grup seçilince alt grup ürünleri de gelir, alt grup yalnız kendini getirir',async()=>{
+ const tag=crypto.randomUUID().slice(0,8),main='Ana'+tag,sub=main+' › Alt',other_sub=main+'X › Alt';
+ for(const [n,c] of [['p1',main],['p2',sub],['p3',other_sub]])await db.query("INSERT INTO products(tenant_id,sku,barcode,name,unit,sale_price,kdv_orani,module_type,category) VALUES($1,$2,$3,$4,'adet',5,10,'NORMAL',$5)",[owner.tenantId,'CAT-'+tag+n,'869'+Math.floor(Math.random()*1e9),n+tag,c]);
+ const parent=await get('catalog?category='+encodeURIComponent(main));expect(parent.body.items.map(i=>i.name).sort()).toEqual(['p1'+tag,'p2'+tag]);
+ const child=await get('catalog?category='+encodeURIComponent(sub));expect(child.body.items.map(i=>i.name)).toEqual(['p2'+tag]);
+});

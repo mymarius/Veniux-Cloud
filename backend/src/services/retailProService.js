@@ -25,7 +25,8 @@ async function catalog(user,query){
   const favorite=(await preferences(user)).favorites;if(!favorite.length)return {items:[],next:null,source:'tenant_catalog',global_catalog_available:false};
   const placeholders=favorite.map(id=>{params.push(id);return '$'+params.length;});where+=' AND p.id IN ('+placeholders.join(',')+')';
  }
- if(category){params.push(category);where+=' AND p.category=$'+params.length;}
+ if(category){params.push(category);const exact=params.length;params.push(category.replace(/[!%_]/g,'!$&')+' › %');where+=' AND (p.category=$'+exact+" OR p.category LIKE $"+params.length+" ESCAPE '!')";}// ana grup seçilince alt grupları da gelir
+
  const rows=(await db.query('SELECT p.id,p.name,p.barcode,p.sku,p.category,p.unit,p.sale_price,p.kdv_orani,CASE WHEN m.image_path IS NOT NULL THEN 1 ELSE 0 END AS image_available,m.brand FROM products p LEFT JOIN retail_product_media m ON m.product_id=p.id AND m.tenant_id=p.tenant_id WHERE '+where+' ORDER BY p.id LIMIT '+(limit+1),params)).rows;
  // Kiloyla/metreyle satılabilen adet ürünleri: "1 kg = 250 adet" birimi olan ürün kasada tartı penceresiyle satılır.
  const page=rows.slice(0,limit),units=await require('./productUnits').unitsFor(user.tenantId,page.map(r=>Number(r.id)));

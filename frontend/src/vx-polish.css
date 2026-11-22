@@ -160,7 +160,7 @@ html[data-touch='true'] table td,html[data-touch='true'] table th{padding-top:12
 html[data-touch='true'] nav a,html[data-touch='true'] aside a{min-height:48px;display:flex;align-items:center}
 html[data-touch='true'] input[type='checkbox'],html[data-touch='true'] input[type='radio']{width:22px;height:22px}
 html[data-touch='true'] *{-webkit-tap-highlight-color:transparent}
-.pos-quick-cash{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.pos-quick-cash{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;align-items:flex-start;align-content:flex-start}
 .pos-quick-cash button{min-height:52px;min-width:84px;padding:0 16px;border:2px solid #17263a;border-radius:10px;background:#fffdf8;color:#17263a;font-weight:800;font-size:17px;cursor:pointer}
 .pos-quick-cash button:hover:not(:disabled){background:#17263a;color:#fff}
 html[data-theme='dark'] .pos-quick-cash button{background:#14243a;color:#eef2f7;border-color:#3a506e}
@@ -183,3 +183,4 @@ html[data-theme='dark'] .pos-card-kind button{background:#14243a;color:#eef2f7;b
 html[data-theme='dark'] .pos-tier button{background:#14243a;color:#eef2f7;border-color:#3a506e}
 .pos-ecr-badge{margin-left:8px;min-height:32px;padding:0 12px;border:2px solid #b92c1c;border-radius:8px;background:#fbe0dc;color:#7a1c12;font-weight:800;font-size:14px;cursor:pointer}
 .pos-ecr-badge:hover{background:#b92c1c;color:#fff}
+@media(max-width:640px){body .pos-payment-content{grid-template-columns:minmax(0,1fr)}.pos-payment-content .pos-quick-cash button{flex:1 1 72px}}

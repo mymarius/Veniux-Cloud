@@ -62,6 +62,8 @@ async function processJob(user, jobId) {
   try {
     const r = await driver.openSale(device, { receipt_no: s.receipt_no, total_cents: s.net_cents, payments: s.payments, lines: (s.items || []).map(i => ({ name: i.name, quantity: i.quantity, net_cents: i.net_cents })) });
     await db.query("UPDATE ecr_jobs SET status='done',attempts=attempts+1,last_error=NULL,fiscal_receipt_no=$1,z_no=$2,done_at=CURRENT_TIMESTAMP WHERE id=$3", [r.fiscal_receipt_no, r.z_no, job.id]);
+    // Mali fiş numarası satış kaydına da yazılır; yazılamazsa iş yine de tamamlanmış sayılır.
+    try { await db.query("UPDATE pos_sale_meta SET okc_status='done',okc_receipt_no=$1,okc_z_no=$2 WHERE sale_id=$3 AND tenant_id=$4", [r.fiscal_receipt_no, r.z_no, job.sale_id, user.tenantId]); } catch { /* eski şema */ }
     return { id: Number(job.id), status: 'done', fiscal_receipt_no: r.fiscal_receipt_no, z_no: r.z_no };
   } catch (e) {
     const message = String(e.message || 'Bilinmeyen hata').slice(0, 300);

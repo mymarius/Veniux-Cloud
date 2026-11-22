@@ -31,6 +31,8 @@ test('simülatör cihazıyla her satış bir iş üretir; işlenince mali fiş n
   const run = await auth(request(app).post('/api/ecr/process'));
   expect(run.body).toMatchObject({ processed: 1, done: 1, failed: 0 });
   expect(run.body.results[0].fiscal_receipt_no).toMatch(/^SIM-\d{6}$/);
+  const meta = (await db.query('SELECT okc_status,okc_receipt_no FROM pos_sale_meta WHERE sale_id=$1', [Number(s.sale_id)])).rows[0];
+  expect(meta).toMatchObject({ okc_status: 'done', okc_receipt_no: run.body.results[0].fiscal_receipt_no });
   jobs = (await auth(request(app).get('/api/ecr/jobs'))).body;
   expect(jobs.counts).toMatchObject({ pending: 0, failed: 0, done: 1 });
   // aynı satış ikinci kez iş üretmez, işlenmiş iş tekrar yazılmaz
