@@ -20,6 +20,7 @@ const getAllProducts = async (req, res) => {
     `;
     const params = [req.user.tenantId];
     let paramIndex = 2;
+    let exactIndex = null;
 
     if (category) {
       // Üst grup seçilince "Üst › Alt" biçimindeki alt grupların ürünleri de gelir.
@@ -39,10 +40,12 @@ const getAllProducts = async (req, res) => {
     if (search) {
       query += ` AND (${ciLike('p.name', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.sku', `'%' || $${paramIndex} || '%'`)} OR ${ciLike('p.barcode', `'%' || $${paramIndex} || '%'`)})`;
       params.push(search);
+      exactIndex = paramIndex;
       paramIndex++;
     }
 
-    query += ` ORDER BY p.created_at DESC, p.id DESC`;
+    // Aramada tam SKU/barkod eşleşmesi önce gelir: sınırlı sonuçta (limit) "SKU777" araması SKU7770… satırlarının arkasında kalmasın.
+    query += ` ORDER BY ${exactIndex ? `CASE WHEN p.sku = $${exactIndex} OR p.barcode = $${exactIndex} THEN 0 ELSE 1 END, ` : ''}p.created_at DESC, p.id DESC`;
     // Büyük katalogda (on binlerce ürün) tümünü indirmek yerine isteğe bağlı sayfalama: ?limit=1..1000&offset=n.
     // limit verilmezse eski davranış (tüm liste) korunur.
     if (req.query.limit !== undefined) {

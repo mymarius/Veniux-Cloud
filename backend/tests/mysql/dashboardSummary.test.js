@@ -111,3 +111,17 @@ describe('GET /api/stock/records?product_id=', () => {
     expect(both.body).toHaveLength(1);
   });
 });
+
+describe('GET /api/products?search=&limit= tam eşleşme önceliği', () => {
+  test('tam SKU, daha yeni ve çok sayıdaki kısmi eşleşmelerin önüne geçer', async () => {
+    await db.ready;
+    const owner = await createTenant();
+    const base = 'EX' + R;
+    await product(owner.tenantId, base);
+    for (let i = 0; i < 6; i++) await product(owner.tenantId, base + i);
+    const r = await request(app).get('/api/products?limit=3&search=' + base).set(auth(owner));
+    expect(r.status).toBe(200);
+    expect(r.body).toHaveLength(3);
+    expect(r.body[0].sku).toBe(base);
+  });
+});

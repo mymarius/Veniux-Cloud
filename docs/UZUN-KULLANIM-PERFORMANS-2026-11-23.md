@@ -144,3 +144,12 @@ Sorgu düzeyi (`EXPLAIN QUERY PLAN`): analytics'te ürün başına ilişkili alt
 2. `scanIntoLines` GTIN ile okutmayı yerel listede bulur; sunucu araması yalnız ad/SKU/barkodda arar. Yalnız GTIN'i olan (barkod alanı farklı) ürün, 20'lik başlangıç listesinde yoksa seri okutmada "bulunamadı" der. Çözüm: aramaya `gtin` ve koli barkodunu eklemek.
 3. Pano `movements?limit=5000` sınırı sürüyor: çok yoğun mağazada "dönem çıkışı" 5.000'de kesilir (önceki davranış; özet ucu yalnız stok tarafını değiştirdi).
 4. `warehouse_distribution` / `dashboard-metrics` depo etiketi adla eşleniyor; iki depo aynı adı taşırsa Genel Bakış'ta aynı sayı iki kez görünür (önceden de böyleydi).
+
+### Yayın öncesi tarayıcı doğrulaması (yerel sunucu + 50 bin ürünlük sentetik veri)
+- **PurchaseOrders (masaüstü):** seri okutma SKU ile ürün ekledi, tekrar okutunca adet arttı; aramalı seçici tam SKU'yu en üstte getirdi; ürün değişince birim fiyat güncellendi; kayıt sunucuda doğru (2 kalem, toplam 510). 375 px'te yatay taşma yok.
+- **NormalInbound:** SKU ve barkodla okutma iki satır ekledi, mal kabul sunucuda 2 kalemle oluştu.
+- **NormalPicking:** aramalı seçici doğru ürünü (id) gönderdi; sunucu "yetersiz stok" yanıtı verdi (ürün bu depoda stoksuz; beklenen iş kuralı).
+- **ImportExport CSV:** 50.001 stok kaydının tamamı, tekrarsız (sayfalama kayıp/yineleme yapmadı).
+- **NormalProducts:** sayfa 2 → sıralama sayfayı 1'e döndürdü; arama sunucuda (11 sonuç, tek sayfa).
+- **Bulunan hata:** sunucu araması `limit` ile en yeni kayıtları döndürdüğü için "SKU777" okutması SKU7770… satırlarının arkasında kalıp "bulunamadı" veriyordu. `/products?search=` artık tam SKU/barkod eşleşmesini öne alıyor (`dashboardSummary.test.js`, SQLite + MySQL).
+- **Denenmedi:** `WMSInbound`, `WMSPicking`, `WMSCycleCount` hiçbir yola bağlı değil (ulaşılamaz); `NormalInbound`/`PurchaseOrders` 375 px'te yalnız taşma kontrolü; GTIN ile okutma.
