@@ -1,0 +1,2 @@
+# Her satıra rafta okuttuğunuz GERÇEK bir barkod yazın (30-50 adet). İsteğe bağlı: barkod;kendi ürün adınız
+# Bu dosya yalnız biçim örneğidir; örnek barkod içermez. Kopyalayıp barkodlar.txt yapın.

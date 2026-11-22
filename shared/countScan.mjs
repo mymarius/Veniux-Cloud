@@ -2,18 +2,21 @@
 const same = (a, b) => String(a ?? '').trim().toLocaleLowerCase('tr-TR') === String(b ?? '').trim().toLocaleLowerCase('tr-TR');
 export const countKey = row => row.location_id + ':' + row.product_id + ':' + (row.lot_id ?? 'none');
 
-export function applyScan(rows, counts, code, location = null) {
+// options.productId: kod koli/paket barkoduysa çözülmüş ürün; options.factor: koli başına temel birim (birim dönüşümü).
+export function applyScan(rows, counts, code, location = null, options = {}) {
+  const factor = Number(options.factor ?? 1);
+  if (!Number.isFinite(factor) || factor <= 0 || factor > 1e6) return { counts, location, error: 'Birim dönüşüm çarpanı geçersiz.' };
   if (!String(code ?? '').trim()) return { counts, location, error: 'Okunan kod boş.' };
   const shelf = rows.find(row => same(row.location_code, code));
   if (shelf) return { counts, location: shelf.location_id, shelf: shelf.location_code };
-  const products = rows.filter(row => row.product_id && (same(row.barcode, code) || same(row.sku, code)));
+  const products = rows.filter(row => row.product_id && (same(row.barcode, code) || same(row.sku, code) || (options.productId != null && row.product_id === options.productId)));
   if (!products.length) return { counts, location, error: `${code} bu sayım listesinde yok. Ürün başka rafta olabilir; manuel satır ekleyin.` };
   const matches = location === null ? products : products.filter(row => row.location_id === location);
   if (!matches.length) return { counts, location, error: `${products[0].product_name} seçili rafta görünmüyor. Doğru rafı okutun veya manuel satır ekleyin.` };
   if (matches.length > 1) return { counts, location, error: `${matches[0].product_name} birden fazla raf veya lotta var. Önce raf kodunu okutun; lotluysa miktarı satıra elle girin.` };
   const row = matches[0], key = countKey(row);
-  const quantity = Number(counts[key] || 0) + 1;
-  return { counts: { ...counts, [key]: String(quantity) }, location, row, quantity };
+  const quantity = Number((Number(counts[key] || 0) + factor).toFixed(6));
+  return { counts: { ...counts, [key]: String(quantity) }, location, row, quantity, added: factor };
 }
 
 export function countProgress(rows, counts) {

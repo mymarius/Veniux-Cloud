@@ -32,3 +32,12 @@ test('boş göz satırı ilerlemeye girmez, boş kod ve boş barkod eşleşmez',
   assert.deepEqual(countProgress([a1, b1, empty], { [countKey(a1)]: '0' }), { done: 1, total: 2, percent: 50 });
   assert.match(applyScan([b1], {}, '  ').error, /boş/);
 });
+
+test('koli barkodu çözülmüş ürüne çarpanla sayar (birim dönüşümü)', () => {
+  const r = applyScan([a1, b1], {}, 'KOLI-24', null, { productId: 10, factor: 24 });
+  assert.equal(r.counts[countKey(a1)], '24');
+  const r2 = applyScan([a1, b1], r.counts, 'KOLI-24', null, { productId: 10, factor: 24 });
+  assert.equal(r2.counts[countKey(a1)], '48');
+  assert.match(applyScan([a1], {}, '869', null, { factor: 0 }).error, /çarpan/);
+  assert.equal(applyScan([a1], {}, '869', null, { factor: 0.5 }).counts[countKey(a1)], '0.5');
+});

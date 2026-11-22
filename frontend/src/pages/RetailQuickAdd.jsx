@@ -30,6 +30,7 @@ export default function RetailQuickAdd() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [history, setHistory] = useState([]);
+  const [suggest, setSuggest] = useState(null);
   const key = useRef(null), input = useRef(null), request = useRef(0), resultCard=useRef(null);
   useEffect(()=>{if(window.veniuxMobile&&looked)resultCard.current?.scrollIntoView({block:'start',behavior:'auto'});},[looked]);
 
@@ -51,7 +52,7 @@ export default function RetailQuickAdd() {
     return () => { active = false; };
   }, [product, warehouse]);
 
-  const reset = () => { setProduct(null); setPack(null); setLooked(false); setManual(false); setCode(''); setFields(initial); setError(''); key.current = null; input.current?.focus(); };
+  const reset = () => { setProduct(null); setPack(null); setSuggest(null); setLooked(false); setManual(false); setCode(''); setFields(initial); setError(''); key.current = null; input.current?.focus(); };
   const edit = (name, value) => { key.current = null; setFields(p => ({ ...p, [name]: value })); };
   const lookup = async (value = code, preview = null) => {
     const clean = value.trim();
@@ -61,7 +62,18 @@ export default function RetailQuickAdd() {
     try {
       const r = preview ? {data:{product:preview.product}} : await api.get('/retail/lookup', { params: { barcode: clean } });
       if (seq !== request.current) return;
-      setProduct(r.data.product); setPack(r.data.pack || null); setLooked(true); setFields(initial);
+      setSuggest(null); setProduct(r.data.product); setPack(r.data.pack || null); setLooked(true); setFields(initial);
+      if (!r.data.product) {
+        // Kendi katalogda yok: Open Food Facts önerisi. Yalnız forma doldurulur; kayıt kullanıcı onayıyla olur.
+        try {
+          const s = await api.get('/retail/lookup/suggest', { params: { barcode: clean } });
+          if (seq !== request.current) return;
+          if (s.data.source === 'off' && s.data.suggestion) {
+            setSuggest({ ...s.data.suggestion, attribution: s.data.attribution, checksum_ok: s.data.checksum_ok });
+            setFields({ ...initial, name: s.data.suggestion.suggested_name || s.data.suggestion.name, unit: s.data.suggestion.suggested_unit || 'adet' });
+          } else if (s.data.message) setSuggest({ message: s.data.message });
+        } catch { /* öneri alınamazsa elle giriş sürer */ }
+      }
     } catch (e) { if (seq === request.current) setError(e.response?.data?.error || 'Barkod sorgulanamadı.'); }
     finally { if (seq === request.current) setBusy(false); }
   };
@@ -159,6 +171,16 @@ export default function RetailQuickAdd() {
                 <p>{manual ? 'Ürüne otomatik bir kod verilir.' : `${code} barkodu sistemde yok. Bilgileri girip kaydedin.`}</p>
               </div>
             </div>
+            {suggest?.name && <aside className="rq-suggest" aria-label="Katalog önerisi" style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 10, margin: '8px 0', border: '1px dashed #f59e0b', borderRadius: 10, background: '#fffbeb' }}>
+              {suggest.image_url && <img src={suggest.image_url} alt="" width={56} height={56} loading="lazy" referrerPolicy="no-referrer" style={{ objectFit: 'contain' }} />}
+              <div className="min-w-0 flex-1">
+                <b>Open Food Facts önerisi — kontrol edip onaylayın</b>
+                <p style={{ margin: 0 }}>{[suggest.brand && `Marka: ${suggest.brand}`, suggest.quantity_text && `Gramaj: ${suggest.quantity_text}`].filter(Boolean).join(' · ') || 'Ad önerildi.'} Fiyatları siz girin; kayıt "Oluştur" düğmesiyle yapılır.</p>
+                {suggest.checksum_ok === false && <p style={{ margin: 0, color: '#b45309' }}>Barkodun sağlama basamağı tutmuyor; yanlış okunmuş olabilir.</p>}
+                <small><a href={suggest.attribution?.product_url} target="_blank" rel="noreferrer noopener">Veri: Open Food Facts (ODbL), görsel CC BY-SA</a></small>
+              </div>
+            </aside>}
+            {!suggest?.name && suggest?.message && <p className="rq-hint" role="status">{suggest.message}</p>}
             <div className="rq-fields">
               <label className="vx-field rq-span">Ürün adı<input required maxLength={200} disabled={busy} className="vx-input" placeholder="Örn: Kurşun kalem HB" value={fields.name} onChange={e => edit('name', e.target.value)} /></label>
               {[['purchase_price', 'Alış fiyatı (₺)'], ['sale_price', 'Satış fiyatı (₺)']].map(([name, label]) => <label key={name} className="vx-field">{label}<input required type="number" min="0" max="10000000" step="0.01" inputMode="decimal" disabled={busy} className="vx-input" placeholder="0,00" value={fields[name]} onChange={e => edit(name, e.target.value)} /></label>)}
