@@ -19,18 +19,16 @@ Bu liste, tester programını başlatmadan ve yürütürken uygulanacak adımlar
 ## C. Yürütürken
 - [ ] Hata bildirimlerini tabloya (T-001…) yaz, 1 iş günü içinde yanıtla.
 - [ ] Güvenlik bildirimlerini **herkese açık yerde tartışma**; yalnız özel kanaldan yürüt.
-- [ ] Kritik hata düzeltilince tester'a haber ver ve ödülü tabloya işle (kredi **1 Ocak 2027'den sonra** tanımlanır).
+- [ ] Hata düzeltilince tester'a haber ver (ödül/kredi yok).
 - [ ] Haftalık: kaç hata, kaçı yeniden üretildi, kaçı düzeltildi.
 - [ ] 90. günde lisansı kapat (panel: Lisans → İptal) veya paket geçişi teklif et.
-- [ ] Bir tester sözleşmeyi ihlal ederse lisansı kapat (Lisans → İptal) ve ödüllerini iptal et (madde 10.2).
+- [ ] Bir tester sözleşmeyi ihlal ederse lisansı kapat (Lisans → İptal) (madde 10.2).
 
 ## D. Riskleri azaltan ayarlar (zaten var ya da bu liste ile sağlanır)
 | Risk | Önlem |
 |---|---|
 | Gerçek müşteri verisi girilmesi | Rehber 1. bölüm + sözleşme 3.2; destek paketi verileri maskeler |
 | Lisans paylaşımı | Cihaz sınırı 1, anahtar kişiye özel, iptal edilebilir |
-| Ödül suistimali | "İlk bildiren" + "yeniden üretilebilir" kuralı, karar sende |
-| Para ödülü / vergi sorunu | Yalnız ürün kredisi, şirketleşme sonrası |
 | Güvenlik açığının açığa çıkması | Özel bildirim şartı + iyi niyet koruması (madde 7) |
 | Veri kaybı | Sözleşme 9.1 + rehber (yedek, paralel kullanım) |
 | Ölçüm kirliliği (gelir/müşteri sayısı) | Müşteri adı "TESTER –", not "TESTER", 0 ₺ siparişler |

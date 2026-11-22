@@ -8,7 +8,7 @@ Veniux'un erken sürümünü denemeniz için sizi tester programına davet ediyo
 
 **Ne alıyorsunuz**
 - 90 gün geçerli ücretsiz Pro lisansı (tek bilgisayar)
-- Hata bulursanız ürün kredisi ödülü (ayrıntı rehberde)
+- Karşılık yok: program gönüllü bir denemedir, yalnız bulduğunuz hataları bana iletmeniz yeterli
 
 **Lisans anahtarınız:** [VNX-…]
 

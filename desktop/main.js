@@ -6,7 +6,8 @@ const { pathToFileURL } = require('url');
 const os = require('os');
 const runtime = require('./runtime').desktopRuntime(process.env, app.isPackaged);
 if (runtime.profile) app.setPath('userData', runtime.profile);
-process.env.VENIUX_LICENSE_STORAGE = path.join(app.getPath('userData'), 'license');
+try { require('./logger.cjs').install(path.join(app.getPath('userData'), 'logs')); } catch { /* günlük açılmazsa program yine açılır */ }
+process.env.VENIUX_LICENSE_STORAGE =path.join(app.getPath('userData'), 'license');
 const { getHardwareFingerprint } = require('./license/hardwareFingerprint');
 const secureStorage = require('./license/secureStorage');
 

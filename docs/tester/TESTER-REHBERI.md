@@ -16,6 +16,7 @@ Veniux'un erken sürümünü denemeye geldiğiniz için teşekkürler. Bu rehber
 1. Size gönderilen bağlantıdan Windows kurulum dosyasını indirin (SmartScreen uyarısı çıkabilir: "Ek bilgi" → "Yine de çalıştır"; kurulum dosyası henüz yayıncı imzalı değil).
 2. Programı açın, size iletilen **lisans anahtarını** (`VNX-…`) girin.
 3. Ayarlar'dan örnek (demo) veriyi yükleyin ya da birkaç ürün elle ekleyin.
+4. **Telefon (Android):** Veniux Android uygulamasını aynı lisans anahtarıyla deneyin; kasa, barkod okutma ve sayım ekranlarında düğmelerin, yazıların ve kameranın düzgün çalışıp çalışmadığına bakın. Telefonda bulduğunuz hatayı bildirirken telefon modelini ve Android sürümünü yazın.
 
 ## 3. Deneyeceğiniz 12 görev
 
@@ -42,22 +43,11 @@ Daha fazlasını denemekten çekinmeyin: bilerek yanlış şeyler yapmak (boş a
 
 Her hata için ayrı bildirim açın. `HATA-BILDIRIM-SABLONU.md` içindeki şablonu kullanın (6 başlık). Panelden "Destek talebi" → departman **Hata bildirimi** seçip yapıştırabilir, ya da WhatsApp'tan gönderebilirsiniz. Ekran görüntüsü ve (varsa) programdaki **Tanılama → Destek paketi** dosyasını ekleyin; paket kişisel veri içermez.
 
-## 5. Ödül sistemi
+## 5. Karşılık
 
-Sağlam hata bulanlar için ürün kredisi verilir. Para ödülü yoktur.
+Tester programı gönüllü bir denemedir: **ödül, ücret veya kredi yoktur.** Sizden beklenen, programı (masaüstü ve telefon) denemeniz ve bulduğunuz hataları bize söylemenizdir. Her bildiriminize 1 iş günü içinde yanıt veririz; düzeltme çıkınca haber veririz. 90 günlük Pro lisansı ücretsizdir.
 
-| Hata türü | Örnek | Kredi |
-|---|---|---|
-| **Kritik** | Veri kaybı, yanlış para/kasa hesabı, başkasının verisini görme, güvenlik açığı | Pro'ya +6 ay **veya** Ömür Boyu pakette %30 indirim |
-| **Orta** | Satış akışını bozan, tekrar üretilebilen hata | Pro'ya +2 ay |
-| **Küçük** | Görsel, yazı hatası, kullanım önerisi | Teşekkür ve sıralama puanı |
-
-Kurallar:
-- Ödül, hatayı **ilk bildirene** verilir. Aynı hatanın tekrarı ödül kazanmaz.
-- Hata, **güncel sürümde yeniden üretilebilmeli**. Biz tekrar edemezsek ek bilgi isteriz.
-- Sınıflandırma (kritik/orta/küçük) ve ödül kararı Veniux'a aittir; gerekçesini yazarız.
-- Krediler, şirketin kuruluşundan (1 Ocak 2027) sonra hesabınıza tanımlanır. O zamana kadar bildirimleriniz kayıt altında tutulur.
-- Hata için kasıtlı veri bozmak, başkasının sistemine saldırmak veya hizmeti aksatmak ödül kazandırmaz ve programdan çıkarılma sebebidir.
+Bilerek veri bozmak, başkasının sistemine saldırmak veya hizmeti aksatmak programdan çıkarılma sebebidir.
 
 ## 6. Güvenlik açıklarını nasıl bildirirsiniz
 

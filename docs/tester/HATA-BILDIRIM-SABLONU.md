@@ -9,6 +9,7 @@ Her hata için ayrı bildirim açın. Aşağıyı kopyalayıp doldurun.
 2. SÜRÜM ve ORTAM:
    Program sürümü: (Ayarlar → Hakkında)
    Windows sürümü: 
+   Telefon modeli / Android sürümü (telefonda ise): 
    Masaüstü / Android / Web:
 
 3. NE YAPTIM (adım adım):
@@ -40,11 +41,10 @@ EK: Tanılama → Destek paketi dosyası (varsa):
 
 1. Kayıt numarası ve ilk yanıt: 1 iş günü içinde.
 2. Yeniden üretemezsek ek bilgi isteriz.
-3. Sınıflandırırız (kritik/orta/küçük), düzeltme sürümünde size haber veririz.
-4. Ödül (varsa) rehberdeki kurala göre kayda geçer.
+3. Önem derecesine göre sıraya alırız, düzeltme sürümünde size haber veririz.
 
 ## Yönetici takip tablosu (dahili)
 
-| No | Bildiren | Tarih | Başlık | Ciddiyet | Durum | Düzeltilen sürüm | Ödül |
-|---|---|---|---|---|---|---|---|
-| T-001 | | | | | yeni / inceleniyor / düzeltildi / tekrar edilemedi / yinelenen | | |
+| No | Bildiren | Tarih | Başlık | Ciddiyet | Durum | Düzeltilen sürüm |
+|---|---|---|---|---|---|---|
+| T-001 | | | | | yeni / inceleniyor / düzeltildi / tekrar edilemedi / yinelenen | |
