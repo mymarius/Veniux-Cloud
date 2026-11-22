@@ -3,6 +3,7 @@ declare(strict_types=1);
 // Panel giriş noktası: index.php oturumu başlattıktan sonra çağırır.
 require_once __DIR__.'/bootstrap.php';
 require_once __DIR__.'/ui.php';
+require_once __DIR__.'/avatar.php';
 require_once __DIR__.'/accounts-bridge.php';
 require_once __DIR__.'/authority-sync.php';
 require_once __DIR__.'/payments.php';

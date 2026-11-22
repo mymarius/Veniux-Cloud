@@ -430,3 +430,37 @@ a.vp-kpi:hover{border-color:#c5b597}
 .vp-form-foot .vp-btn{white-space:normal}
 .vp-form>.vp-btn{justify-self:start}
 .vp-form>.vp-btn--block{justify-self:stretch}
+
+/* ---------- profil fotoğrafı ---------- */
+.vp-who .vp-avatar{overflow:hidden}
+.vp-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.vp-avatar-edit{display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-bottom:12px}
+.vp-avatar--xl{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:none;overflow:hidden;background:var(--ink);color:#fff;border:3px solid var(--orange);font:800 34px var(--font);font-stretch:80%;letter-spacing:.04em}
+.vp-avatar-form{flex:1;min-width:220px}
+.vp-gap{height:20px}
+
+/* ---------- ana sayfa dili: kâğıt zemin, sade gövde, büyük dar başlıklar, ofset gölgeli etiket kartlar ---------- */
+.vp-side{background:var(--kraft-2);color:var(--ink);border-right:1px solid var(--ink)}
+.vp-side-brand{color:var(--ink)!important;border-bottom:1px solid var(--line);padding:20px 22px 16px}
+.vp-side-brand b{font-size:26px;font-stretch:78%;color:var(--ink);letter-spacing:0}
+.vp-side-brand b::after{content:".";color:var(--orange)}
+.vp-side-brand span{border-color:var(--ink);color:var(--ink)}
+.vp-side-group{color:var(--orange-text)}
+.vp-side a.vp-nav{color:var(--ink-soft);font-weight:600}
+.vp-side a.vp-nav:hover{background:var(--white);color:var(--ink)}
+.vp-side a.vp-nav[aria-current]{background:var(--white);color:var(--ink);box-shadow:3px 3px 0 var(--kraft);border:1px solid var(--line)}
+.vp-side a.vp-nav svg{stroke:currentColor}
+.vp-side-foot{border-top:1px solid var(--line);color:var(--ink-soft)}
+.vp-side-foot .vp-barcode{fill:var(--ink)}
+.vp-top{background:var(--paper);border-bottom:1px solid var(--ink)}
+.vp-head h1{font-size:clamp(40px,4.8vw,64px);line-height:.96;letter-spacing:-.012em}
+.vp-eyebrow{color:var(--orange-text)}
+.vp-card{border-color:var(--ink);box-shadow:6px 6px 0 var(--kraft)}
+.vp-card--ink{box-shadow:6px 6px 0 var(--kraft)}
+.vp-card-head h2{font-size:24px}
+.vp-btn{box-shadow:3px 3px 0 var(--ink);transition:transform .15s,box-shadow .15s}
+.vp-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.vp-btn--ghost,.vp-btn--sm{box-shadow:none}
+.vp-btn--ghost:hover,.vp-btn--sm:hover{transform:none;box-shadow:none}
+@media(prefers-reduced-motion:reduce){.vp-btn{transition:none}}
+@media(max-width:900px){.vp-side{border-right:0}}

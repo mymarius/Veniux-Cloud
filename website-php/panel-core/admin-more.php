@@ -762,6 +762,7 @@ function vpa_tools(array $a): void {
 
 // ---------------------------------------------------------------- profil
 function vpa_profile(array $a): void {
+    if(vp_is_post()&&str_starts_with(vp_post('op',10),'foto')){if(!empty($_SESSION['vp_impersonator']))vp_flash('Müşteri görünümünde fotoğraf değiştirilemez.','err');else vp_avatar_post(...vpa_avatar_id($a));vp_redirect('/yonetim/profil');}
     if(vp_is_post()&&!$a['owner']){
         $r=vp_row('SELECT * FROM admins WHERE id=?',[$a['id']]);
         $cur=is_string($_POST['current']??null)?$_POST['current']:'';$new=is_string($_POST['password']??null)?$_POST['password']:'';
@@ -773,6 +774,8 @@ function vpa_profile(array $a): void {
     }
     vpa_start($a,'Profil','/yonetim/profil');
     vp_head('Hesabım','Profil ve şifre',$a['email']);
+    vp_avatar_card('admin',...vpa_avatar_id($a),...[$a['name']]);
+    echo '<div class="vp-gap"></div>';
     if($a['owner']){echo '<section class="vp-card">'.vp_empty('Sahip hesabıyla giriş yaptınız.','Bu hesabın şifresi merkezi Veniux yönetim sistemi üzerinden değişir.').'</section>';vp_shell_end();return;}
     ?>
 <form class="vp-card vp-form" method="post"><?=vp_csrf_field()?>

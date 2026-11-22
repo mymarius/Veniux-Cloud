@@ -36,7 +36,7 @@ function vpc_start(array $c,string $title,string $current): void {
     ];
     $banner='';
     if(!empty($_SESSION['vp_impersonator']))$banner='<div class="vp-impersonate">Yönetici olarak '.e($c['company']).' hesabını görüntülüyorsunuz.<form method="post" action="/panel/yonetici-donus">'.vp_csrf_field().'<button type="submit">Yönetim paneline dön</button></form></div>';
-    vp_shell_start('client',$title,$nav,$current,['name'=>$c['company'],'sub'=>$c['email']],'/panel/bilgi-bankasi',$banner);
+    vp_shell_start('client',$title,$nav,$current,['name'=>$c['company'],'sub'=>$c['email'],'photo'=>vp_avatar_url('client','c',(string)$c['id'])],'/panel/bilgi-bankasi',$banner);
 }
 
 function vpClientRoute(string $path,array $config): bool {
@@ -53,6 +53,7 @@ function vpClientRoute(string $path,array $config): bool {
         vp_redirect('/yonetim/musteriler');
     }
     $c=vpc_client($acc);
+    if($sub==='/foto'&&!vp_is_post()){vp_avatar_serve('c',(string)$c['id']);return true;}
     vp_automation();
     $routes=[
         '#^/$#'=>'vpc_dashboard',
@@ -545,6 +546,7 @@ function vpc_kb_article(array $c,string $id): void {
 function vpc_profile(array $c): void {
     if(vp_is_post()){
         $op=vp_post('op',10);
+        if(str_starts_with($op,'foto')){if(!empty($_SESSION['vp_impersonator']))vp_flash('Yönetici görünümünde fotoğraf değiştirilemez.','err');else vp_avatar_post('c',(string)$c['id']);vp_redirect('/panel/profil');}
         if($op==='bilgi'){
             $d=['company'=>vp_post('company',160),'contact_name'=>vp_post('contact_name',120),'phone'=>vp_post('phone',40),'tax_office'=>vp_post('tax_office',80),'tax_no'=>preg_replace('/\D/','',vp_post('tax_no',20)),'address'=>vp_post('address',300),'city'=>vp_post('city',60),'notify_email'=>isset($_POST['notify_email'])?1:0,'notify_whatsapp'=>isset($_POST['notify_whatsapp'])?1:0];
             if($d['company']===''){vp_flash('İşletme adı boş olamaz.','err');}
@@ -576,6 +578,7 @@ function vpc_profile(array $c): void {
     <div class="vp-form-foot"><button class="vp-btn" type="submit">Kaydet</button></div>
   </form>
   <div class="vp-stack">
+    <?php vp_avatar_card('client','c',(string)$c['id'],$c['company']);?>
     <form class="vp-card vp-form" method="post"><?=vp_csrf_field()?><input type="hidden" name="op" value="sifre"><div class="vp-card-head"><h2>Şifre değiştir</h2></div>
       <label class="vp-field"><span>Mevcut şifre</span><input type="password" name="current" required autocomplete="current-password"></label>
       <label class="vp-field"><span>Yeni şifre</span><input type="password" name="password" required minlength="14" maxlength="72" autocomplete="new-password"><small>En az 14 karakter.</small></label>

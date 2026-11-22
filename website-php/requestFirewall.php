@@ -31,7 +31,7 @@ function veniuxRequestFirewall(string $directory,string $context): void {
  $uri=$_SERVER['REQUEST_URI']??'/';$method=$_SERVER['REQUEST_METHOD']??'GET';
  if(!veniuxFirewallPath($uri))$deny(403,'REQUEST_PATH');
  if(!in_array($method,$context==='api'?['GET','HEAD','POST','PUT']:['GET','HEAD','POST'],true))$deny(405,'REQUEST_METHOD');
- $path=explode('?',$uri,2)[0];$limit=$context==='api'?(str_starts_with($path,'/updates/chunk/')?4*1048576:(str_starts_with($path,'/updates/upload/')?8*1048576:65536)):65536;
+ $path=explode('?',$uri,2)[0];$limit=$context==='api'?(str_starts_with($path,'/updates/chunk/')?4*1048576:(str_starts_with($path,'/updates/upload/')?8*1048576:65536)):(in_array($path,['/panel/profil','/yonetim/profil'],true)?2621440:65536);
  $length=$_SERVER['CONTENT_LENGTH']??'0';if(!ctype_digit((string)$length)||(float)$length>$limit)$deny(413,'REQUEST_SIZE');
  // Tek istisna: iyzico ödeme dönüşü tarayıcıdan çapraz site POST olarak gelir; sonuç sunucudan iyzico'ya sorularak doğrulanır.
  if(in_array($method,['POST','PUT'],true)&&($_SERVER['HTTP_SEC_FETCH_SITE']??'')==='cross-site'&&!($context==='site'&&$path==='/odeme/iyzico/donus'))$deny(403,'REQUEST_ORIGIN');

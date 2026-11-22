@@ -44,6 +44,8 @@ function vpa_counts(): array {
     ];
 }
 
+/** Yönetici fotoğrafının türü ve kimliği: site sahibi hesabı 'o', panel yöneticisi 'a'. */
+function vpa_avatar_id(array $a): array { return $a['owner']?['o','owner']:['a',(string)$a['id']]; }
 function vpa_start(array $a,string $title,string $current): void {
     $c=vpa_counts();
     $nav=[['/yonetim','Gösterge paneli','home']];
@@ -60,7 +62,7 @@ function vpa_start(array $a,string $title,string $current): void {
         foreach($vis as $i)$nav[]=[$i[1],$i[2],$i[3],$i[4]??0];
     }
     $nav[]=['group'=>'Hesabım'];$nav[]=['/yonetim/profil','Profil ve şifre','user'];
-    vp_shell_start('admin',$title,$nav,$current,['name'=>$a['name'],'sub'=>($a['owner']?'Sahip · ':'').(VP_ROLES[$a['role']]??$a['role'])],'/yonetim/ara');
+    vp_shell_start('admin',$title,$nav,$current,['name'=>$a['name'],'sub'=>($a['owner']?'Sahip · ':'').(VP_ROLES[$a['role']]??$a['role']),'photo'=>vp_avatar_url('admin',...vpa_avatar_id($a))],'/yonetim/ara');
 }
 
 function vpa_client_link(?int $id,?string $company): string { return $id?'<a class="vp-strong" href="/yonetim/musteriler/'.$id.'">'.e((string)$company).'</a>':'—'; }
@@ -74,6 +76,7 @@ function vpAdminRoute(string $path,array $config): bool {
     if(!$a){if(vp_is_post()){http_response_code(403);echo 'Oturum süresi doldu.';return true;}vp_redirect('/yonetim/giris?d='.rawurlencode($path));}
     if(vp_is_post()&&!vp_check_csrf()){vp_flash('Güvenlik anahtarı geçersiz. Sayfayı yenileyip tekrar deneyin.','err');vp_redirect($_SERVER['HTTP_REFERER']??'/yonetim');}
     if($sub==='/cikis'&&vp_is_post()){unset($_SESSION['vp_admin'],$_SESSION['vp_admin_seen']);if($a['owner'])unset($_SESSION['download_account']);session_regenerate_id(true);vp_redirect('/yonetim/giris');}
+    if($sub==='/foto'&&!vp_is_post()){vp_avatar_serve(...vpa_avatar_id($a));return true;}
     vp_automation();
     $routes=[
         '#^/$#'=>'vpa_dashboard',
