@@ -464,3 +464,7 @@ a.vp-kpi:hover{border-color:#c5b597}
 .vp-btn--ghost:hover,.vp-btn--sm:hover{transform:none;box-shadow:none}
 @media(prefers-reduced-motion:reduce){.vp-btn{transition:none}}
 @media(max-width:900px){.vp-side{border-right:0}}
+
+/* kart üst satırı: etiket kırılabilir, kod (A-01) asla alta düşmez */
+.vp-kpi-top em{flex:none;white-space:nowrap}
+.vp-kpi-top span,.vp-kpi-top{min-width:0}

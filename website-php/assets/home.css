@@ -1340,3 +1340,9 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .vf-social-link:hover svg{opacity:1;transform:scale(1.1);color:#ffb27f}
 .vf-social-link:hover .vf-arr{opacity:1;transform:translate(2px,-2px);color:#ffb27f}
 @media(max-width:900px){.terminal-guide .terminal-steps{grid-template-columns:1fr}}
+
+/* Telefon düzeltmeleri: dokunma hedefleri en az 44 px; yüzen WhatsApp/destek düğmeleri liste yazısını örtmesin */
+@media(max-width:700px){
+  .hx-textlink,.pr-page .pr-cta-row .hx-textlink,.pr-page .pr-tag .hx-textlink{display:inline-flex;align-items:center;min-height:44px}
+  .pr-page .pr-tag li{padding-right:52px}
+}

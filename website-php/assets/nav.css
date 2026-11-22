@@ -156,3 +156,5 @@
 }
 
 .vs-mega-box{max-width:920px}
+
+@media(max-width:940px){.vs-brand{min-height:44px}}
