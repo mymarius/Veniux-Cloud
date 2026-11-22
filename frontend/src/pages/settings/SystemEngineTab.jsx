@@ -3,6 +3,7 @@ import HostingSponsor from '../../components/HostingSponsor';
 import React, { useState, useEffect } from 'react';
 import BackupPanel from './BackupPanel';
 import DeviceCheckPanel from './DeviceCheckPanel';
+import DiagnosticsPanel from './DiagnosticsPanel';
 import DatabaseMigrationModal from '../../components/migration/DatabaseMigrationModal';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -215,6 +216,7 @@ export default function SystemEngineTab() {
 
       <HostingSponsor/>
       <DeviceCheckPanel />
+      <DiagnosticsPanel />
       {(readSessionUser().is_platform_admin || readSessionUser().role === 'admin') && <BackupPanel />}
 
       <DatabaseMigrationModal

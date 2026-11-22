@@ -61,3 +61,24 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 4. Business sunucusu (business.veniux.com) ayrıca güncellenir (her sürümde ayrı).
 5. Yayın sonrası elle deneme: otomatik kur aç/kapat, görev ata/bitir (kasiyer hesabıyla), mal kabulde okuyucuyla seri okutma, Raporlar › Kâr sekmesi.
 6. Açık iş: ÖKC için marka bilgisi/belge/test cihazı (rehber §3); görev bildirimi/rozeti; çevrimdışı kasa/telefon (Android) tarafında seri okutma yalnız web arayüzünde denendi.
+
+## 6. Veniux Tanılama — YAPILDI (yayın bekliyor)
+Yeni tablo/şema YOK (şema 033 gerekmedi). Yeni bağımlılık YOK.
+
+**Mimari:** Renderer (`DiagnosticsPanel.jsx`, Ayarlar › Sistem sekmesi) → `preload.js` (yalnız 7 sabit `diag*` fonksiyonu) → `main.js` `handle()` (güvenilir pencere denetimi, mevcut) → `desktop/diagnostics.cjs`. `contextIsolation:true`, `nodeIntegration:false`, `sandbox:true` aynen duruyor. Kabuk komutu, dosya sistemi gezintisi, kod çalıştırma kanalı yok; kanal listesi testle sabitlendi. Girdi doğrulama: tarama türü `quick|full`, test kimliği `^[a-z]+\.[a-z0-9-]+$`, fazladan alan reddedilir. Dışa aktarma yolu arayüzden alınmaz; kaydetme penceresini sistem açar. Deneme fişinde yazıcı adı yalnız Windows listesinden seçilebilir, içerik sabit.
+
+| Parça | Durum | Not |
+|---|---|---|
+| (a) Sistem özeti | Çalışıyor | Windows/mimari, RAM, disk (veri klasörü sürücüsü; <5 GB uyarı, <1 GB hata), program/Electron/Node/Chromium sürümü. Bu makinede gerçek değerlerle koşuldu. |
+| (b) Veri ve yedek | Çalışıyor | Yerel veritabanı klasörü erişim+boyut, son yedek zamanı/boyutu (>7 gün uyarı), yedek klasörüne gerçek yaz-sil denemesi. Klasör yoksa "Ölçülemedi". |
+| (c) Ağ ve bulut | Çalışıyor | İnternet, app.veniux.com, api.veniux.com (gerçek HTTPS isteği + gecikme; gerçek erişimle denendi: 204/200). Sunucu: lisans durumu/bitişi, son eşitleme ve hatası, sunucudaki çevrimdışı satışlar/çakışmalar; ekran: bu cihazın çevrimdışı kuyruğu. |
+| (d) Cihazlar | Kısmen | Yazıcı listesi ve COM/USB/HID sayıları (`devices.cjs` + Electron yazıcı listesi), "deneme fişi yazdır", barkod okuyucu testi (okutunca algılandı/algılanmadı), ÖKC simülatörü gerçek sürücü akışıyla. **Terazi ve müşteri ekranı için ölçüm yazılmadı**: gerçek bir doğrulama yolu yok, uydurma sonuç verilmedi. Marka ÖKC'sine bağlantı denenmez ("doğrulanmamış/kurulu değil"). |
+| (e) Test motoru | Çalışıyor | Benzersiz id, ad, açıklama, çalıştırma, ilerleme (`diag-progress`), süre, hata ayrıntısı, öneri; hızlı/tam/tek test; iptal ve zaman aşımı **ayrı durum**; "ölçülemedi" başarısızlık sayılmaz; son 20 tarama `userData/diagnostics-history.json`. |
+| (f) Destek paketi | Çalışıyor | Sonuç + program/sürüm + lisans özeti + (varsa) `*.log` dosyalarının son 64 KB'ı tek `.json`; kullanıcı kaydeder, **otomatik yükleme yok**. Ayıklama: parola, token/JWT, lisans anahtarı, eşleştirme kodu, e-posta, telefon, IBAN, müşteri/firma adı, uzun onaltılık sırlar, Windows kullanıcı adı; birim testleriyle kanıtlandı. Not: masaüstü programı şu an günlük dosyası yazmıyor (alt süreç `stdio: ignore`), bu yüzden `logs` çoğunlukla boş gelir. |
+| (g) Güvenlik | Çalışıyor | Onarım yok; yalnız öneri ve kullanıcı onaylı "Şimdi yedek al" (mevcut `POST /api/backup`). GPU/SMART/uygulama inceleme/bellek analizi yok. |
+
+**Test:** `desktop/diagnostics.test.cjs` (14: motor, zaman aşımı/iptal/hata ayrımı, gerçek ölçümler, gerçek yerel HTTP, geçmiş, veri ayıklama, destek paketi, IPC doğrulama/kanal listesi), `backend/tests/diagnostics.test.js` (4), `frontend/src/lib/diagnosticsView.test.mjs` (4).
+
+**Gerçek deneme:** Electron penceresi açılmadı. Motor Node'da gerçek ölçümlerle (bellek, disk, 3 ağ ucu, COM/USB/HID taraması) koşuldu; sunucu ucu ve arayüz yerel sunucu + Browser aracıyla (masaüstü 1024 px ve 375 px mobil, yatay taşma yok) denendi. Tarayıcıda masaüstü kanalları yoktur: bilgisayar ölçümleri "Ölçülemedi" görünür. **Gerçek Electron'da denenmesi gerekenler:** IPC köprüsü, kaydetme penceresi, yazıcı listesi, deneme fişi, geçmiş dosyası.
+
+**Yayın adımları:** yeni sürüm (2.4.103) dosyaları ve sürüm notu; `desktop/electron-builder.config.js` `files` listesine `diagnostics.cjs` eklendi; şema yok, bulut yalnız `/api/diagnostics/app` kodunu alır; paketlenmiş masaüstünde Ayarlar › Sistem › Veniux Tanılama elle denenmeli (yukarıdaki liste).
