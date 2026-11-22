@@ -47,3 +47,17 @@ Hiçbir iş canlıya gönderilmedi; hepsi yerel commit. Şema 032 (SQLite 062–
 
 **ENGEL (kullanıcıdan gerekenler):** marka + model, protokol belgesi/SDK ve örnek bayt alışverişleri, test cihazı, üretici sözleşmesi, pilot işletme (rehber §3). Bunlar olmadan marka sürücüsü yazılmadı; hiçbir sürücü "hazır" işaretlenmedi.
 **Eksik ve ilk sürücüyle gelecek:** `ecr_devices` için bağlantı ayarı sütunu (şema adımı), cihaz kayıt ekranı, masaüstü alt süreci, kasada "mali fiş bekliyor" rozeti.
+
+## Test sonucu (yerel, canlıya hiçbir şey gönderilmedi)
+- Backend `npm test`: **183 paket / 1355 test yeşil** (öncesi 179 / 1323; yeni: `fxAuto`, `businessTasks`, `profitAnalysis`, `ecrDrivers`).
+- Frontend: **205 test yeşil** (öncesi 199; `serialScan.test.mjs` eklendi). `vite build` temiz.
+- MySQL 8.4 (yerel): `schemaUpgrade.test.js` (eski kurulum → 032 `upgradeAdditive`, veri ve tetikleyiciler korundu, yeni tablolar çalışıyor) ve `parity.test.js` 5/5 geçti. MySQL sunucusu işlem bitince kapatıldı.
+- Not: ilk 032 manifesti `001-parity` yeniden üretim tuzağına düşüp eski tabloları değiştirmişti (yükseltme `SCHEMA_UPGRADE_UNSUPPORTED` verdi); düzeltildi — 032 = 031'in birebir kopyası + 3 yeni tablo (`.local/mkmanifest.cjs` bunu yapar).
+
+## Yayın için gerekenler (YAPILMADI, onay bekliyor)
+1. Sürüm 2.4.102: `backend/src/config/release.json`, `desktop/package.json` + `package-lock.json`, `mobile/android` (AndroidManifest + MainActivity), `frontend/src/data/programRelease.json` sürüm notları (otomatik kur, seri okutma, görevler, kâr analizi, ÖKC sağlamlaştırma) — 2.4.101 commit'indeki dosya kümesi.
+2. Şema 032: `tools/release/yayinla.py` kapısı zaten `032-fx-auto-tasks` (bu turda çekildi); yükseltme provası yerel MySQL'de geçti. Bulutta: Plesk veritabanı dökümü → kaynak yükleme → `run stage` → `upgradeAdditive` → `mysql_migrate.js --record-deployment --confirm-target` → yeniden başlatma (bkz. `docs/MIMARI-SENKRON-OKC.md` §7 ve `cloud-deploy` adımları). Yeni tablolar: `exchange_rate_settings`, `exchange_rate_sources`, `business_tasks`.
+3. Bulut sunucusunda TCMB'ye (`www.tcmb.gov.tr`) dışarı HTTPS erişimi olmalı; kapalıysa kur otomatik güncellenmez, son kur korunur (hata "Kur penceresi"nde görünür). Masaüstü programı kendi makinesinden çeker. Otomatik kur varsayılan KAPALI; işletme Ürünler › Döviz kurları'ndan açar.
+4. Business sunucusu (business.veniux.com) ayrıca güncellenir (her sürümde ayrı).
+5. Yayın sonrası elle deneme: otomatik kur aç/kapat, görev ata/bitir (kasiyer hesabıyla), mal kabulde okuyucuyla seri okutma, Raporlar › Kâr sekmesi.
+6. Açık iş: ÖKC için marka bilgisi/belge/test cihazı (rehber §3); görev bildirimi/rozeti; çevrimdışı kasa/telefon (Android) tarafında seri okutma yalnız web arayüzünde denendi.
