@@ -1,8 +1,20 @@
 {
-  "version": "2.4.101",
+  "version": "2.4.102",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.102",
+      "date": "22 Kasım 2026",
+      "title": "Otomatik döviz kuru, seri okutma, görev yönetimi ve kâr analizi",
+      "items": [
+        "- Döviz kurları artık TCMB'den günlük otomatik gelir; elle girilen kur korunur, Ürünler ekranında \"Şimdi güncelle\" ve kaynak/zaman bilgisi görünür",
+        "- Mal kabul, alış siparişi ve sayımda barkodu arka arkaya okutabilirsiniz: aynı ürün adedi artırır, tanınmayan barkodda sesli ve ekranda uyarı verir",
+        "- Yeni \"İş görevleri\" sayfası: görev atayın, vade ve öncelik verin, kasiyer ve depocu kendi görevlerini görüp bitirir",
+        "- Raporlar › Kâr bölümüne ürün, kategori ve dönem bazında brüt kâr ve kâr marjı analizi, en kârlı ve zarar eden ürünler, CSV dışa aktarma eklendi",
+        "- Yazarkasa bağlantısı daha sağlam: zaman aşımı ve yeniden denemede aynı fişin iki kez kesilmesi engellenir"
+      ]
+    },
     {
       "version": "2.4.101",
       "date": "22 Kasım 2026",
