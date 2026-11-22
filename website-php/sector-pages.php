@@ -33,7 +33,7 @@ return [
   'status'=>'published',
   'faq'=>[
    ['Binlerce küçük ürünü nasıl tanımlarım?','Excel veya CSV listenizi bir seferde aktarabilirsiniz; barkodu olmayan ürünler görselli hızlı satış ekranından satılır.'],
-   ['Okullara veresiye satabilir miyim?','Evet, İşletme ve Kurumsal paketlerde cari hesap, limit, vade ve tahsilat kaydı var.'],
+   ['Okullara veresiye satabilir miyim?','Evet, Pro ve üstü paketlerde cari hesap, limit, vade ve tahsilat kaydı var.'],
    ['Sezon kampanyasını nasıl kurarım?','Kampanya başlangıç ve bitiş tarihiyle kurulur; bitiş günü geçince kasada kendiliğinden uygulanmaz.'],
   ],
   'related'=>['/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/fiyatlandirma'=>'Fiyatlar'],
@@ -57,8 +57,8 @@ return [
   'status'=>'published',
   'faq'=>[
    ['Koli ile adet karışmaz mı?','Koli veya paket barkodu tanımlıysa okutulunca içindeki adet kadar işlenir; stok adet olarak tutulur.'],
-   ['Birden çok şubem var, stok nasıl görünür?','Her şubenin stoğu ayrı tutulur; şubeler arası transfer kayıtla yapılır. Şube karşılaştırması İşletme ve Kurumsal paketlerde.'],
-   ['Ustalara veresiye satabilir miyim?','Evet, İşletme ve Kurumsal paketlerde cari hesap, limit, vade ve ekstre var.'],
+   ['Birden çok şubem var, stok nasıl görünür?','Her şubenin stoğu ayrı tutulur; şubeler arası transfer kayıtla yapılır. Şubeler arası transfer ve karşılaştırma İşletme WMS paketinde.'],
+   ['Ustalara veresiye satabilir miyim?','Evet, Pro ve üstü paketlerde cari hesap, limit, vade ve ekstre var.'],
   ],
   'related'=>['/depo-yonetimi'=>'Depo yönetimi','/market-pos'=>'Kasa ve satış','/stok-yonetimi'=>'Stok yönetimi','/fiyatlandirma'=>'Fiyatlar'],
   'solution'=>'stok',
@@ -82,7 +82,7 @@ return [
   'faq'=>[
    ['Masa ve adisyon takibi var mı?','Kafe sayfasındaki hızlı satış tezgâh içindir. Masaya servis için Pide ve restoran paketi vardır: masa, adisyon ve reçeteli stok içerir.'],
    ['Reçeteye göre malzeme stoktan düşer mi?','Pide ve restoran paketinde düşer. Hızlı satış ekranında paketli ürünlerin (içecek, atıştırmalık) stoğu barkodla izlenir.'],
-   ['Sadakat kartı nasıl çalışır?','Her 10 TL alışverişe 1 puan; 1 puan 10 kuruş indirim olarak kullanılır. İşletme ve Kurumsal paketlerde.'],
+   ['Sadakat kartı nasıl çalışır?','Her 10 TL alışverişe 1 puan; 1 puan 10 kuruş indirim olarak kullanılır. Pro ve üstü paketlerde.'],
   ],
   'related'=>['/market-pos'=>'Kasa ve satış','/yapay-zeka'=>'Asistan','/fiyatlandirma'=>'Fiyatlar'],
   'solution'=>'kasa',

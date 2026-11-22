@@ -1346,3 +1346,7 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
   .hx-textlink,.pr-page .pr-cta-row .hx-textlink,.pr-page .pr-tag .hx-textlink{display:inline-flex;align-items:center;min-height:44px}
   .pr-page .pr-tag li{padding-right:52px}
 }
+
+/* Ana sayfa CTA: üç düğme aynı yükseklikte ve ortalı hizalı ("Hemen arayın" kayması) */
+.hx-cta-main .hx-btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:54px;line-height:1.2}
+@media(min-width:641px){.hx-cta-main{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;max-width:588px}.hx-cta-main .hx-btn-call{grid-column:1/-1}}

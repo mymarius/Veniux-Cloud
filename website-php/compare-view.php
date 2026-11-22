@@ -18,7 +18,7 @@ $questions=[
  ['Lot ve son kullanma tarihi takibi var mı?','Evet, her pakette.'],
  ['Raf etiketi basabiliyor mu?','Evet, 100 × 40 mm raf etiketi.'],
  ['Restoran için masa, adisyon, mutfak ve reçeteli stok var mı?','Evet, Pide ve restoran paketinde (ek paket). Stok sipariş anında düşer.'],
- ['Birden çok depo ya da şube yönetilebilir mi?','Evet: İşletme paketinde 3, Kurumsal’da 50 depo.'],
+ ['Birden çok depo ya da şube yönetilebilir mi?','Evet: İşletme WMS paketinde 3 depo; daha fazlası için teklif alın.'],
  ['Telefon kamerasıyla barkod okunur mu?','Evet, Android uygulamasında.'],
  ['Fiyata neler dahil, neler ayrı?','Fiyatlar KDV dahil ve yıllık sabit. Ek kullanıcı, depo, cihaz ve kasa ayrı; sektör paketleri genel pakete ek.'],
  ['Önce denenebilir mi?','Evet, kendi ürünlerinizle 30 günlük deneme hesabı.'],
