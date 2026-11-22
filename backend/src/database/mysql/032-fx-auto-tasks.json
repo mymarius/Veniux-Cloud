@@ -78,8 +78,8 @@
         },
         {
           "name": "account_code",
-          "type": "LONGTEXT",
-          "definition": "`account_code` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`account_code` VARCHAR(191) NOT NULL"
         }
       ],
       "primary": [
@@ -136,8 +136,8 @@
         },
         {
           "name": "source_key",
-          "type": "LONGTEXT",
-          "definition": "`source_key` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`source_key` VARCHAR(191) NOT NULL"
         },
         {
           "name": "active_key",
@@ -202,23 +202,23 @@
         },
         {
           "name": "export_type",
-          "type": "LONGTEXT",
-          "definition": "`export_type` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`export_type` VARCHAR(191) NOT NULL"
         },
         {
           "name": "date_from",
-          "type": "LONGTEXT",
-          "definition": "`date_from` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`date_from` VARCHAR(191) NOT NULL"
         },
         {
           "name": "date_to",
-          "type": "LONGTEXT",
-          "definition": "`date_to` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`date_to` VARCHAR(191) NOT NULL"
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "row_count",
@@ -227,8 +227,8 @@
         },
         {
           "name": "sha256",
-          "type": "LONGTEXT",
-          "definition": "`sha256` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`sha256` VARCHAR(191) NOT NULL"
         },
         {
           "name": "content",
@@ -352,13 +352,13 @@
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "batch_id",
-          "type": "LONGTEXT",
-          "definition": "`batch_id` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`batch_id` VARCHAR(191) NOT NULL"
         },
         {
           "name": "created_at",
@@ -588,8 +588,8 @@
         },
         {
           "name": "last_hash",
-          "type": "LONGTEXT",
-          "definition": "`last_hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`last_hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "purged_count",
@@ -598,8 +598,8 @@
         },
         {
           "name": "reason",
-          "type": "LONGTEXT",
-          "definition": "`reason` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`reason` VARCHAR(191) NOT NULL"
         },
         {
           "name": "created_at",
@@ -687,13 +687,13 @@
         },
         {
           "name": "prev_hash",
-          "type": "LONGTEXT",
-          "definition": "`prev_hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`prev_hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "hash",
-          "type": "LONGTEXT",
-          "definition": "`hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "sealed_at",
@@ -1233,152 +1233,6 @@
       ]
     },
     {
-      "name": "business_tasks",
-      "columns": [
-        {
-          "name": "id",
-          "type": "BIGINT",
-          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
-        },
-        {
-          "name": "tenant_id",
-          "type": "BIGINT",
-          "definition": "`tenant_id` BIGINT NOT NULL"
-        },
-        {
-          "name": "title",
-          "type": "LONGTEXT",
-          "definition": "`title` LONGTEXT NOT NULL"
-        },
-        {
-          "name": "description",
-          "type": "LONGTEXT",
-          "definition": "`description` LONGTEXT"
-        },
-        {
-          "name": "assignee_id",
-          "type": "BIGINT",
-          "definition": "`assignee_id` BIGINT"
-        },
-        {
-          "name": "created_by",
-          "type": "BIGINT",
-          "definition": "`created_by` BIGINT"
-        },
-        {
-          "name": "due_date",
-          "type": "VARCHAR(191)",
-          "definition": "`due_date` VARCHAR(191)"
-        },
-        {
-          "name": "status",
-          "type": "VARCHAR(191)",
-          "definition": "`status` VARCHAR(191) NOT NULL DEFAULT 'open'"
-        },
-        {
-          "name": "priority",
-          "type": "LONGTEXT",
-          "definition": "`priority` LONGTEXT NOT NULL DEFAULT ('normal')"
-        },
-        {
-          "name": "completed_at",
-          "type": "DATETIME(6)",
-          "definition": "`completed_at` DATETIME(6)"
-        },
-        {
-          "name": "completed_by",
-          "type": "BIGINT",
-          "definition": "`completed_by` BIGINT"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME(6)",
-          "definition": "`created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(6)",
-          "definition": "`updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
-        }
-      ],
-      "primary": [
-        "id"
-      ],
-      "unique": [],
-      "indexes": [
-        {
-          "name": "idx_business_tasks_tenant_due",
-          "columns": [
-            "tenant_id",
-            "status",
-            "due_date"
-          ]
-        },
-        {
-          "name": "idx_business_tasks_tenant_assignee",
-          "columns": [
-            "tenant_id",
-            "assignee_id",
-            "status"
-          ]
-        }
-      ],
-      "foreign": [
-        {
-          "name": "fk_business_tasks_0",
-          "table": "users",
-          "columns": [
-            "completed_by"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "SET NULL",
-          "onUpdate": "NO ACTION"
-        },
-        {
-          "name": "fk_business_tasks_1",
-          "table": "users",
-          "columns": [
-            "created_by"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "SET NULL",
-          "onUpdate": "NO ACTION"
-        },
-        {
-          "name": "fk_business_tasks_2",
-          "table": "users",
-          "columns": [
-            "assignee_id"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "SET NULL",
-          "onUpdate": "NO ACTION"
-        },
-        {
-          "name": "fk_business_tasks_3",
-          "table": "tenants",
-          "columns": [
-            "tenant_id"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": "NO ACTION"
-        }
-      ],
-      "checks": [
-        "status IN ('open','doing','done')",
-        "priority IN ('low','normal','high','urgent')"
-      ]
-    },
-    {
       "name": "business_visits",
       "columns": [
         {
@@ -1864,9 +1718,9 @@
       "foreign": [
         {
           "name": "fk_customer_price_rules_0",
-          "table": "retail_credit_accounts",
+          "table": "tenants",
           "columns": [
-            "account_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -1876,9 +1730,9 @@
         },
         {
           "name": "fk_customer_price_rules_1",
-          "table": "tenants",
+          "table": "retail_credit_accounts",
           "columns": [
-            "tenant_id"
+            "account_id"
           ],
           "references": [
             "id"
@@ -2279,18 +2133,18 @@
         },
         {
           "name": "brand",
-          "type": "LONGTEXT",
-          "definition": "`brand` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`brand` VARCHAR(191) NOT NULL"
         },
         {
           "name": "connection",
-          "type": "LONGTEXT",
-          "definition": "`connection` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`connection` VARCHAR(191) NOT NULL"
         },
         {
           "name": "name",
-          "type": "LONGTEXT",
-          "definition": "`name` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`name` VARCHAR(191) NOT NULL"
         },
         {
           "name": "active",
@@ -2354,8 +2208,8 @@
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL DEFAULT ('pending')"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL DEFAULT 'pending'"
         },
         {
           "name": "attempts",
@@ -2364,18 +2218,18 @@
         },
         {
           "name": "last_error",
-          "type": "LONGTEXT",
-          "definition": "`last_error` LONGTEXT"
+          "type": "TEXT",
+          "definition": "`last_error` TEXT"
         },
         {
           "name": "fiscal_receipt_no",
-          "type": "LONGTEXT",
-          "definition": "`fiscal_receipt_no` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`fiscal_receipt_no` VARCHAR(191)"
         },
         {
           "name": "z_no",
-          "type": "LONGTEXT",
-          "definition": "`z_no` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`z_no` VARCHAR(191)"
         },
         {
           "name": "created_at",
@@ -2433,8 +2287,8 @@
         },
         {
           "name": "provider",
-          "type": "LONGTEXT",
-          "definition": "`provider` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`provider` VARCHAR(191) NOT NULL"
         },
         {
           "name": "credentials_enc",
@@ -2505,8 +2359,8 @@
         },
         {
           "name": "event",
-          "type": "LONGTEXT",
-          "definition": "`event` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`event` VARCHAR(191) NOT NULL"
         },
         {
           "name": "detail",
@@ -2587,8 +2441,8 @@
         },
         {
           "name": "number",
-          "type": "LONGTEXT",
-          "definition": "`number` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`number` VARCHAR(191) NOT NULL"
         },
         {
           "name": "created_at",
@@ -2614,9 +2468,9 @@
       "foreign": [
         {
           "name": "fk_edocument_numbers_0",
-          "table": "tenants",
+          "table": "edocuments",
           "columns": [
-            "tenant_id"
+            "document_id"
           ],
           "references": [
             "id"
@@ -2626,9 +2480,9 @@
         },
         {
           "name": "fk_edocument_numbers_1",
-          "table": "edocuments",
+          "table": "tenants",
           "columns": [
-            "document_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -2654,8 +2508,8 @@
         },
         {
           "name": "sale_id",
-          "type": "LONGTEXT",
-          "definition": "`sale_id` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`sale_id` VARCHAR(191) NOT NULL"
         },
         {
           "name": "active_key",
@@ -2664,13 +2518,13 @@
         },
         {
           "name": "document_type",
-          "type": "LONGTEXT",
-          "definition": "`document_type` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`document_type` VARCHAR(191) NOT NULL"
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "payload",
@@ -2714,141 +2568,6 @@
       "foreign": [
         {
           "name": "fk_edocuments_0",
-          "table": "tenants",
-          "columns": [
-            "tenant_id"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": "NO ACTION"
-        }
-      ],
-      "checks": []
-    },
-    {
-      "name": "exchange_rate_settings",
-      "columns": [
-        {
-          "name": "id",
-          "type": "BIGINT",
-          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
-        },
-        {
-          "name": "tenant_id",
-          "type": "BIGINT",
-          "definition": "`tenant_id` BIGINT NOT NULL"
-        },
-        {
-          "name": "auto_enabled",
-          "type": "BIGINT",
-          "definition": "`auto_enabled` BIGINT NOT NULL DEFAULT 0"
-        },
-        {
-          "name": "last_fetch_at",
-          "type": "DATETIME(6)",
-          "definition": "`last_fetch_at` DATETIME(6)"
-        },
-        {
-          "name": "last_status",
-          "type": "LONGTEXT",
-          "definition": "`last_status` LONGTEXT"
-        },
-        {
-          "name": "last_error",
-          "type": "LONGTEXT",
-          "definition": "`last_error` LONGTEXT"
-        },
-        {
-          "name": "rates_date",
-          "type": "LONGTEXT",
-          "definition": "`rates_date` LONGTEXT"
-        }
-      ],
-      "primary": [
-        "id"
-      ],
-      "unique": [
-        {
-          "name": "uq_exchange_rate_settings_0",
-          "columns": [
-            "tenant_id"
-          ]
-        }
-      ],
-      "indexes": [],
-      "foreign": [
-        {
-          "name": "fk_exchange_rate_settings_0",
-          "table": "tenants",
-          "columns": [
-            "tenant_id"
-          ],
-          "references": [
-            "id"
-          ],
-          "onDelete": "CASCADE",
-          "onUpdate": "NO ACTION"
-        }
-      ],
-      "checks": []
-    },
-    {
-      "name": "exchange_rate_sources",
-      "columns": [
-        {
-          "name": "id",
-          "type": "BIGINT",
-          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
-        },
-        {
-          "name": "tenant_id",
-          "type": "BIGINT",
-          "definition": "`tenant_id` BIGINT NOT NULL"
-        },
-        {
-          "name": "currency",
-          "type": "VARCHAR(191)",
-          "definition": "`currency` VARCHAR(191) NOT NULL"
-        },
-        {
-          "name": "source",
-          "type": "LONGTEXT",
-          "definition": "`source` LONGTEXT NOT NULL DEFAULT ('manual')"
-        },
-        {
-          "name": "buying_try",
-          "type": "DECIMAL(24,6)",
-          "definition": "`buying_try` DECIMAL(24,6)"
-        },
-        {
-          "name": "rates_date",
-          "type": "LONGTEXT",
-          "definition": "`rates_date` LONGTEXT"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME(6)",
-          "definition": "`updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
-        }
-      ],
-      "primary": [
-        "id"
-      ],
-      "unique": [
-        {
-          "name": "uq_exchange_rate_sources_0",
-          "columns": [
-            "tenant_id",
-            "currency"
-          ]
-        }
-      ],
-      "indexes": [],
-      "foreign": [
-        {
-          "name": "fk_exchange_rate_sources_0",
           "table": "tenants",
           "columns": [
             "tenant_id"
@@ -4263,8 +3982,8 @@
         },
         {
           "name": "label",
-          "type": "LONGTEXT",
-          "definition": "`label` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`label` VARCHAR(191)"
         },
         {
           "name": "first_seen",
@@ -4380,23 +4099,23 @@
         },
         {
           "name": "order_number",
-          "type": "LONGTEXT",
-          "definition": "`order_number` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`order_number` VARCHAR(191)"
         },
         {
           "name": "barcode",
-          "type": "LONGTEXT",
-          "definition": "`barcode` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`barcode` VARCHAR(191)"
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "stock_state",
-          "type": "LONGTEXT",
-          "definition": "`stock_state` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`stock_state` VARCHAR(191) NOT NULL"
         },
         {
           "name": "created_at",
@@ -4454,8 +4173,8 @@
         },
         {
           "name": "seller_id",
-          "type": "LONGTEXT",
-          "definition": "`seller_id` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`seller_id` VARCHAR(191) NOT NULL"
         },
         {
           "name": "credentials_enc",
@@ -4464,8 +4183,8 @@
         },
         {
           "name": "environment",
-          "type": "LONGTEXT",
-          "definition": "`environment` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`environment` VARCHAR(191) NOT NULL"
         },
         {
           "name": "warehouse_id",
@@ -4484,8 +4203,8 @@
         },
         {
           "name": "last_batch_id",
-          "type": "LONGTEXT",
-          "definition": "`last_batch_id` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`last_batch_id` VARCHAR(191)"
         },
         {
           "name": "last_sync_at",
@@ -4569,18 +4288,18 @@
         },
         {
           "name": "order_number",
-          "type": "LONGTEXT",
-          "definition": "`order_number` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`order_number` VARCHAR(191)"
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "stock_state",
-          "type": "LONGTEXT",
-          "definition": "`stock_state` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`stock_state` VARCHAR(191) NOT NULL"
         },
         {
           "name": "detail",
@@ -4674,9 +4393,9 @@
       "foreign": [
         {
           "name": "fk_marketplace_price_sent_0",
-          "table": "products",
+          "table": "tenants",
           "columns": [
-            "product_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -4686,9 +4405,9 @@
         },
         {
           "name": "fk_marketplace_price_sent_1",
-          "table": "tenants",
+          "table": "products",
           "columns": [
-            "tenant_id"
+            "product_id"
           ],
           "references": [
             "id"
@@ -4782,18 +4501,18 @@
         },
         {
           "name": "transaction_type",
-          "type": "LONGTEXT",
-          "definition": "`transaction_type` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`transaction_type` VARCHAR(191) NOT NULL"
         },
         {
           "name": "order_number",
-          "type": "LONGTEXT",
-          "definition": "`order_number` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`order_number` VARCHAR(191)"
         },
         {
           "name": "barcode",
-          "type": "LONGTEXT",
-          "definition": "`barcode` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`barcode` VARCHAR(191)"
         },
         {
           "name": "transaction_at",
@@ -4876,8 +4595,8 @@
         },
         {
           "name": "quantity",
-          "type": "DECIMAL(24,6)",
-          "definition": "`quantity` DECIMAL(24,6) NOT NULL"
+          "type": "BIGINT",
+          "definition": "`quantity` BIGINT NOT NULL"
         },
         {
           "name": "sent_at",
@@ -7917,23 +7636,23 @@
         },
         {
           "name": "platform",
-          "type": "LONGTEXT",
-          "definition": "`platform` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`platform` VARCHAR(191) NOT NULL"
         },
         {
           "name": "label",
-          "type": "LONGTEXT",
-          "definition": "`label` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`label` VARCHAR(191)"
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL DEFAULT ('active')"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL DEFAULT 'active'"
         },
         {
           "name": "emergency_prefix",
-          "type": "LONGTEXT",
-          "definition": "`emergency_prefix` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`emergency_prefix` VARCHAR(191)"
         },
         {
           "name": "created_at",
@@ -8305,8 +8024,8 @@
         },
         {
           "name": "client_uuid",
-          "type": "LONGTEXT",
-          "definition": "`client_uuid` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`client_uuid` VARCHAR(191)"
         },
         {
           "name": "device_id",
@@ -8320,23 +8039,23 @@
         },
         {
           "name": "mode",
-          "type": "LONGTEXT",
-          "definition": "`mode` LONGTEXT NOT NULL DEFAULT ('online')"
+          "type": "VARCHAR(191)",
+          "definition": "`mode` VARCHAR(191) NOT NULL DEFAULT 'online'"
         },
         {
           "name": "okc_status",
-          "type": "LONGTEXT",
-          "definition": "`okc_status` LONGTEXT NOT NULL DEFAULT ('not_required')"
+          "type": "VARCHAR(191)",
+          "definition": "`okc_status` VARCHAR(191) NOT NULL DEFAULT 'not_required'"
         },
         {
           "name": "okc_receipt_no",
-          "type": "LONGTEXT",
-          "definition": "`okc_receipt_no` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`okc_receipt_no` VARCHAR(191)"
         },
         {
           "name": "okc_z_no",
-          "type": "LONGTEXT",
-          "definition": "`okc_z_no` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`okc_z_no` VARCHAR(191)"
         },
         {
           "name": "created_at",
@@ -8352,14 +8071,14 @@
           "name": "uq_pos_sale_meta_0",
           "columns": [
             "tenant_id",
-            "local_receipt_no"
+            "sale_id"
           ]
         },
         {
           "name": "uq_pos_sale_meta_1",
           "columns": [
             "tenant_id",
-            "sale_id"
+            "local_receipt_no"
           ]
         }
       ],
@@ -8649,8 +8368,8 @@
         },
         {
           "name": "currency",
-          "type": "LONGTEXT",
-          "definition": "`currency` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`currency` VARCHAR(191) NOT NULL"
         },
         {
           "name": "price",
@@ -8679,9 +8398,9 @@
       "foreign": [
         {
           "name": "fk_product_currency_prices_0",
-          "table": "products",
+          "table": "tenants",
           "columns": [
-            "product_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -8691,9 +8410,9 @@
         },
         {
           "name": "fk_product_currency_prices_1",
-          "table": "tenants",
+          "table": "products",
           "columns": [
-            "tenant_id"
+            "product_id"
           ],
           "references": [
             "id"
@@ -8815,9 +8534,9 @@
       "foreign": [
         {
           "name": "fk_product_price_tiers_0",
-          "table": "products",
+          "table": "tenants",
           "columns": [
-            "product_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -8827,9 +8546,9 @@
         },
         {
           "name": "fk_product_price_tiers_1",
-          "table": "tenants",
+          "table": "products",
           "columns": [
-            "tenant_id"
+            "product_id"
           ],
           "references": [
             "id"
@@ -8924,14 +8643,14 @@
           "name": "uq_product_scale_codes_0",
           "columns": [
             "tenant_id",
-            "product_id"
+            "plu"
           ]
         },
         {
           "name": "uq_product_scale_codes_1",
           "columns": [
             "tenant_id",
-            "plu"
+            "product_id"
           ]
         }
       ],
@@ -8939,9 +8658,9 @@
       "foreign": [
         {
           "name": "fk_product_scale_codes_0",
-          "table": "products",
+          "table": "tenants",
           "columns": [
-            "product_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -8951,9 +8670,9 @@
         },
         {
           "name": "fk_product_scale_codes_1",
-          "table": "tenants",
+          "table": "products",
           "columns": [
-            "tenant_id"
+            "product_id"
           ],
           "references": [
             "id"
@@ -10344,17 +10063,17 @@
       "unique": [],
       "indexes": [
         {
-          "name": "idx_restaurant_items_status",
-          "columns": [
-            "tenant_id",
-            "status"
-          ]
-        },
-        {
           "name": "idx_restaurant_items_order",
           "columns": [
             "tenant_id",
             "order_id"
+          ]
+        },
+        {
+          "name": "idx_restaurant_items_status",
+          "columns": [
+            "tenant_id",
+            "status"
           ]
         }
       ],
@@ -10394,8 +10113,8 @@
         },
         {
           "name": "order_type",
-          "type": "LONGTEXT",
-          "definition": "`order_type` LONGTEXT NOT NULL DEFAULT ('masa')"
+          "type": "VARCHAR(191)",
+          "definition": "`order_type` VARCHAR(191) NOT NULL DEFAULT 'masa'"
         },
         {
           "name": "status",
@@ -10649,13 +10368,13 @@
         },
         {
           "name": "name",
-          "type": "LONGTEXT",
-          "definition": "`name` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`name` VARCHAR(191) NOT NULL"
         },
         {
           "name": "kind",
-          "type": "LONGTEXT",
-          "definition": "`kind` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`kind` VARCHAR(191) NOT NULL"
         },
         {
           "name": "product_id",
@@ -10664,13 +10383,13 @@
         },
         {
           "name": "buy_qty",
-          "type": "DECIMAL(24,6)",
-          "definition": "`buy_qty` DECIMAL(24,6)"
+          "type": "BIGINT",
+          "definition": "`buy_qty` BIGINT"
         },
         {
           "name": "pay_qty",
-          "type": "DECIMAL(24,6)",
-          "definition": "`pay_qty` DECIMAL(24,6)"
+          "type": "BIGINT",
+          "definition": "`pay_qty` BIGINT"
         },
         {
           "name": "percent",
@@ -10679,13 +10398,13 @@
         },
         {
           "name": "starts_on",
-          "type": "LONGTEXT",
-          "definition": "`starts_on` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`starts_on` VARCHAR(191) NOT NULL"
         },
         {
           "name": "ends_on",
-          "type": "LONGTEXT",
-          "definition": "`ends_on` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`ends_on` VARCHAR(191) NOT NULL"
         },
         {
           "name": "requires_approval",
@@ -10716,9 +10435,9 @@
       "foreign": [
         {
           "name": "fk_retail_campaigns_0",
-          "table": "products",
+          "table": "tenants",
           "columns": [
-            "product_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -10728,9 +10447,9 @@
         },
         {
           "name": "fk_retail_campaigns_1",
-          "table": "tenants",
+          "table": "products",
           "columns": [
-            "tenant_id"
+            "product_id"
           ],
           "references": [
             "id"
@@ -11169,13 +10888,13 @@
         },
         {
           "name": "name",
-          "type": "LONGTEXT",
-          "definition": "`name` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`name` VARCHAR(191) NOT NULL"
         },
         {
           "name": "phone",
-          "type": "LONGTEXT",
-          "definition": "`phone` LONGTEXT"
+          "type": "VARCHAR(191)",
+          "definition": "`phone` VARCHAR(191)"
         },
         {
           "name": "created_at",
@@ -11237,8 +10956,8 @@
         },
         {
           "name": "kind",
-          "type": "LONGTEXT",
-          "definition": "`kind` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`kind` VARCHAR(191) NOT NULL"
         },
         {
           "name": "points",
@@ -11259,9 +10978,9 @@
       "foreign": [
         {
           "name": "fk_retail_loyalty_entries_0",
-          "table": "retail_loyalty_cards",
+          "table": "tenants",
           "columns": [
-            "card_id"
+            "tenant_id"
           ],
           "references": [
             "id"
@@ -11271,9 +10990,9 @@
         },
         {
           "name": "fk_retail_loyalty_entries_1",
-          "table": "tenants",
+          "table": "retail_loyalty_cards",
           "columns": [
-            "tenant_id"
+            "card_id"
           ],
           "references": [
             "id"
@@ -12435,8 +12154,8 @@
         },
         {
           "name": "receipt_no",
-          "type": "LONGTEXT",
-          "definition": "`receipt_no` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`receipt_no` VARCHAR(191) NOT NULL"
         },
         {
           "name": "business_date",
@@ -12450,8 +12169,8 @@
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "payment_method",
@@ -12480,8 +12199,8 @@
         },
         {
           "name": "snapshot_hash",
-          "type": "LONGTEXT",
-          "definition": "`snapshot_hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`snapshot_hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "received_at",
@@ -12552,8 +12271,8 @@
         },
         {
           "name": "snapshot_hash",
-          "type": "LONGTEXT",
-          "definition": "`snapshot_hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`snapshot_hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "sent_at",
@@ -12614,8 +12333,8 @@
         },
         {
           "name": "status",
-          "type": "LONGTEXT",
-          "definition": "`status` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL"
         },
         {
           "name": "opened_at",
@@ -12649,8 +12368,8 @@
         },
         {
           "name": "row_hash",
-          "type": "LONGTEXT",
-          "definition": "`row_hash` LONGTEXT NOT NULL"
+          "type": "VARCHAR(191)",
+          "definition": "`row_hash` VARCHAR(191) NOT NULL"
         },
         {
           "name": "received_at",
@@ -14874,6 +14593,287 @@
             "id"
           ],
           "onDelete": "NO ACTION",
+          "onUpdate": "NO ACTION"
+        }
+      ],
+      "checks": []
+    },
+    {
+      "name": "business_tasks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
+        },
+        {
+          "name": "tenant_id",
+          "type": "BIGINT",
+          "definition": "`tenant_id` BIGINT NOT NULL"
+        },
+        {
+          "name": "title",
+          "type": "LONGTEXT",
+          "definition": "`title` LONGTEXT NOT NULL"
+        },
+        {
+          "name": "description",
+          "type": "LONGTEXT",
+          "definition": "`description` LONGTEXT"
+        },
+        {
+          "name": "assignee_id",
+          "type": "BIGINT",
+          "definition": "`assignee_id` BIGINT"
+        },
+        {
+          "name": "created_by",
+          "type": "BIGINT",
+          "definition": "`created_by` BIGINT"
+        },
+        {
+          "name": "due_date",
+          "type": "VARCHAR(191)",
+          "definition": "`due_date` VARCHAR(191)"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(191)",
+          "definition": "`status` VARCHAR(191) NOT NULL DEFAULT 'open'"
+        },
+        {
+          "name": "priority",
+          "type": "LONGTEXT",
+          "definition": "`priority` LONGTEXT NOT NULL DEFAULT ('normal')"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(6)",
+          "definition": "`completed_at` DATETIME(6)"
+        },
+        {
+          "name": "completed_by",
+          "type": "BIGINT",
+          "definition": "`completed_by` BIGINT"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "definition": "`created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "definition": "`updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+        }
+      ],
+      "primary": [
+        "id"
+      ],
+      "unique": [],
+      "indexes": [
+        {
+          "name": "idx_business_tasks_tenant_due",
+          "columns": [
+            "tenant_id",
+            "status",
+            "due_date"
+          ]
+        },
+        {
+          "name": "idx_business_tasks_tenant_assignee",
+          "columns": [
+            "tenant_id",
+            "assignee_id",
+            "status"
+          ]
+        }
+      ],
+      "foreign": [
+        {
+          "name": "fk_business_tasks_0",
+          "table": "users",
+          "columns": [
+            "completed_by"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_1",
+          "table": "users",
+          "columns": [
+            "created_by"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_2",
+          "table": "users",
+          "columns": [
+            "assignee_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "SET NULL",
+          "onUpdate": "NO ACTION"
+        },
+        {
+          "name": "fk_business_tasks_3",
+          "table": "tenants",
+          "columns": [
+            "tenant_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": "NO ACTION"
+        }
+      ],
+      "checks": [
+        "status IN ('open','doing','done')",
+        "priority IN ('low','normal','high','urgent')"
+      ]
+    },
+    {
+      "name": "exchange_rate_settings",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
+        },
+        {
+          "name": "tenant_id",
+          "type": "BIGINT",
+          "definition": "`tenant_id` BIGINT NOT NULL"
+        },
+        {
+          "name": "auto_enabled",
+          "type": "BIGINT",
+          "definition": "`auto_enabled` BIGINT NOT NULL DEFAULT 0"
+        },
+        {
+          "name": "last_fetch_at",
+          "type": "DATETIME(6)",
+          "definition": "`last_fetch_at` DATETIME(6)"
+        },
+        {
+          "name": "last_status",
+          "type": "LONGTEXT",
+          "definition": "`last_status` LONGTEXT"
+        },
+        {
+          "name": "last_error",
+          "type": "LONGTEXT",
+          "definition": "`last_error` LONGTEXT"
+        },
+        {
+          "name": "rates_date",
+          "type": "LONGTEXT",
+          "definition": "`rates_date` LONGTEXT"
+        }
+      ],
+      "primary": [
+        "id"
+      ],
+      "unique": [
+        {
+          "name": "uq_exchange_rate_settings_0",
+          "columns": [
+            "tenant_id"
+          ]
+        }
+      ],
+      "indexes": [],
+      "foreign": [
+        {
+          "name": "fk_exchange_rate_settings_0",
+          "table": "tenants",
+          "columns": [
+            "tenant_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": "NO ACTION"
+        }
+      ],
+      "checks": []
+    },
+    {
+      "name": "exchange_rate_sources",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "definition": "`id` BIGINT NOT NULL AUTO_INCREMENT"
+        },
+        {
+          "name": "tenant_id",
+          "type": "BIGINT",
+          "definition": "`tenant_id` BIGINT NOT NULL"
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR(191)",
+          "definition": "`currency` VARCHAR(191) NOT NULL"
+        },
+        {
+          "name": "source",
+          "type": "LONGTEXT",
+          "definition": "`source` LONGTEXT NOT NULL DEFAULT ('manual')"
+        },
+        {
+          "name": "buying_try",
+          "type": "DECIMAL(24,6)",
+          "definition": "`buying_try` DECIMAL(24,6)"
+        },
+        {
+          "name": "rates_date",
+          "type": "LONGTEXT",
+          "definition": "`rates_date` LONGTEXT"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "definition": "`updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)"
+        }
+      ],
+      "primary": [
+        "id"
+      ],
+      "unique": [
+        {
+          "name": "uq_exchange_rate_sources_0",
+          "columns": [
+            "tenant_id",
+            "currency"
+          ]
+        }
+      ],
+      "indexes": [],
+      "foreign": [
+        {
+          "name": "fk_exchange_rate_sources_0",
+          "table": "tenants",
+          "columns": [
+            "tenant_id"
+          ],
+          "references": [
+            "id"
+          ],
+          "onDelete": "CASCADE",
           "onUpdate": "NO ACTION"
         }
       ],
