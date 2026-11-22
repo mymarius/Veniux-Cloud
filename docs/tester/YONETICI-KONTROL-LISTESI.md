@@ -3,9 +3,9 @@
 Bu liste, tester programını başlatmadan ve yürütürken uygulanacak adımları verir. Amaç riski mümkün olan en düşük düzeye indirmektir; sıfıra indirmek mümkün değildir, kalan riskler en altta yazılıdır.
 
 ## A. Başlamadan önce (bir kez)
-- [ ] `TESTER-SOZLESMESI-TASLAK.md` içindeki [köşeli] alanları doldur; **bir avukata göster** (özellikle madde 5, 8, 9). Şirket kurulana kadar sözleşmede taraf olarak kendini yaz, kuruluştan sonra devir maddesi (11) geçerli.
-- [ ] İletişim kanalı belirle (güvenlik bildirimi için ayrı e-posta; panel e-postası `destek@veniux.com` olabilir).
-- [ ] Panel → Ayarlar → Destek → departmanlara şunu ekle: `hata|Hata bildirimi` (anahtar|ad biçimi).
+- [x] `TESTER-SOZLESMESI-TASLAK.md` alanları dolduruldu (22 Kasım 2026). Avukat incelemesi yapılmamıştır; sahibi bilerek bu riski kabul etti. Şirket kurulunca taraf bilgilerini güncelle.
+- [x] İletişim kanalı: destek@veniux.com ve WhatsApp 0552 464 35 18 (güvenlik bildirimi de buraya).
+- [x] Panel departmanı `Hata bildirimi` eklendi (22 Kasım 2026).
 - [ ] Tester listesi için tablo aç: ad, e-posta, onay tarihi, lisans bitişi, kritik hata sayısı.
 
 ## B. Her tester için (5 dakika)

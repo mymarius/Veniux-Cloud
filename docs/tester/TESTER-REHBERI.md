@@ -61,7 +61,7 @@ Kurallar:
 
 ## 6. Güvenlik açıklarını nasıl bildirirsiniz
 
-Gizli bildirin: yalnız [İLETİŞİM E-POSTASI / WhatsApp numarası] adresine yazın, konuya "GÜVENLİK" yazın. Yaptığınız şeyleri ve nasıl tekrarlanacağını anlatın. Bildirdikten sonra düzeltme yayınlanana kadar kimseyle paylaşmayın. Yalnız kendi test hesabınızda deneme yaparsanız ve veri çıkarmadan durursanız, iyi niyetli bildirim olarak değerlendirilir (sözleşmenin 7. maddesi).
+Gizli bildirin: yalnız destek@veniux.com veya WhatsApp 0552 464 35 18 adresine yazın, konuya "GÜVENLİK" yazın. Yaptığınız şeyleri ve nasıl tekrarlanacağını anlatın. Bildirdikten sonra düzeltme yayınlanana kadar kimseyle paylaşmayın. Yalnız kendi test hesabınızda deneme yaparsanız ve veri çıkarmadan durursanız, iyi niyetli bildirim olarak değerlendirilir (sözleşmenin 7. maddesi).
 
 ## 7. Sık sorulanlar
 
