@@ -43,7 +43,7 @@ export const withinLimit = (value, limit) => limit == null || value <= limit;
 export const FEATURE_LABELS = {
   offline_sales: 'İnternetsiz barkodlu satış', products_stock: 'Ürün ve stok takibi', customer_credit: 'Müşteri veresiye takibi', report_7d: 'Günlük rapor (son 7 gün)',
   auto_backup: 'Otomatik günlük yedek', ecr_bridge: 'Yazarkasa köprüsü', cost_reports: 'Kâr, maliyet ve tüm geçmiş raporlar', excel_import: 'Excel ile ürün aktarma ve dışa aktarma',
-  multi_staff: 'Sınırsız personel ve yetkilendirme', purchase_invoices: 'Alış faturası ve firma yönetimi', shared_catalog: 'Hazır barkodlu ürün kataloğu', lot_expiry: 'Lot ve son kullanma tarihi (miat)',
+  multi_staff: 'Sınırsız personel ve yetkilendirme', purchase_invoices: 'Alış faturası ve firma yönetimi', shared_catalog: 'Barkoddan ürün bilgisi önerisi (açık veri kaynağı)', lot_expiry: 'Lot ve son kullanma tarihi (miat)',
   credit_reminders: 'Veresiye vade hatırlatması', loyalty: 'Sadakat puanı ve damga kartı', edocument: 'e-Fatura ve e-Arşiv', customer_display: 'Müşteri ekranı (ikinci monitör)',
   retail_depth: 'Hırdavat, züccaciye ve butik özellikleri (ölçü/raf, takım, beden/renk)', mobile_app: 'Mobil uygulama (Android)', web_app: 'Web uygulaması', ai_assistant: 'İşletme asistanı (aylık 100 sorgu)',
   ai_unlimited: 'Sınırsız asistan ve fatura okuma', wms_map: 'Koridor, raf ve göz haritası', inbound_waybill: 'İrsaliyeli mal kabul', picking_shipping: 'Toplama ve sevkiyat',
