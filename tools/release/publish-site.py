@@ -84,16 +84,19 @@ class Ftps:
         for i in range(1, len(parts) + 1):
             folder = '/'.join(parts[:i])
             if folder not in self.dirs:
-                try: self.ftp.mkd(f'{REMOTE}/{folder}')
+                try: self.retry(lambda: self.ftp.mkd(f'{REMOTE}/{folder}'))
                 except ftplib.error_perm: pass
                 self.dirs.add(folder)
         self.retry(lambda: self.ftp.storbinary(f'STOR {REMOTE}/{name}', io.BytesIO(data)))
     def move(self, old, new):
-        try: self.ftp.delete(f'{REMOTE}/{new}')
+        try: self.retry(lambda: self.ftp.delete(f'{REMOTE}/{new}'))
         except ftplib.error_perm: pass
-        self.ftp.rename(f'{REMOTE}/{old}', f'{REMOTE}/{new}')
+        try: self.retry(lambda: self.ftp.rename(f'{REMOTE}/{old}', f'{REMOTE}/{new}'))
+        except ftplib.error_perm:
+            # Yanıt kaybolup yeniden denenirse ilk rename zaten tamamlanmış olabilir: geçici dosya yok, asıl dosya var.
+            if self.get(old) is not None or self.get(new) is None: raise
     def delete(self, name):
-        try: self.ftp.delete(f'{REMOTE}/{name}')
+        try: self.retry(lambda: self.ftp.delete(f'{REMOTE}/{name}'))
         except ftplib.error_perm: pass
     def close(self): self.ftp.quit()
 
