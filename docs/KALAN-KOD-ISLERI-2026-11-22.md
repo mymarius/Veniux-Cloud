@@ -82,3 +82,9 @@ Yeni tablo/şema YOK (şema 033 gerekmedi). Yeni bağımlılık YOK.
 **Gerçek deneme:** Electron penceresi açılmadı. Motor Node'da gerçek ölçümlerle (bellek, disk, 3 ağ ucu, COM/USB/HID taraması) koşuldu; sunucu ucu ve arayüz yerel sunucu + Browser aracıyla (masaüstü 1024 px ve 375 px mobil, yatay taşma yok) denendi. Tarayıcıda masaüstü kanalları yoktur: bilgisayar ölçümleri "Ölçülemedi" görünür. **Gerçek Electron'da denenmesi gerekenler:** IPC köprüsü, kaydetme penceresi, yazıcı listesi, deneme fişi, geçmiş dosyası.
 
 **Yayın adımları:** yeni sürüm (2.4.103) dosyaları ve sürüm notu; `desktop/electron-builder.config.js` `files` listesine `diagnostics.cjs` eklendi; şema yok, bulut yalnız `/api/diagnostics/app` kodunu alır; paketlenmiş masaüstünde Ayarlar › Sistem › Veniux Tanılama elle denenmeli (yukarıdaki liste).
+
+## 7. MySQL'de düşen testler — İNCELENDİ, ÇÖZÜLMEDİ (kod değişmedi)
+- Yerel MySQL 8.4'te `cutoverAndIntegrity`, `rc2Recovery`, `recovery` paketlerinden 5 test düşüyor (`recoveryBillingLedger` geçiyor); `schemaUpgrade` ve `parity` yeşil.
+- Ortak neden: boş hedefe geri yükleme (`dataTransfer.restoreEmptyTarget`) `business_invitations` tablosuna satır yazarken `ER_DUP_ENTRY` veriyor (geçici tanılama ile tablo adı bulundu, tanılama kodu geri alındı). Kaynak tabloda 5 satır, 5 ayrı `token_hash`; benzersiz indeks tanımı kaynakta doğru, kopya yok. Yani sorun kaynak verisinde değil, yükleme sırasında (hedefte aynı satırın ikinci kez yazılması ya da ön yükleme) görünüyor.
+- 19 Kasım'daki "bu makinede düşüyor" notuyla aynı; 2.4.101–2.4.103 değişikliklerinden önce de vardı (`business_invitations` bu turlarda değişmedi). Gerçek yedek/geri yükleme yolunu etkileyebileceği için canlıda geri yükleme gerekirse önce bu test hatası çözülmeli.
+- Sonraki adım: `restoreEmptyTarget` içinde satır başına hangi kimliğin çakıştığını (anahtarı maskelemeden, yalnız yerelde) yazdırıp hedefteki mevcut satırı bulmak.
