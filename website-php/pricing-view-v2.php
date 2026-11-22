@@ -1,11 +1,11 @@
 <?php
-// Birleşik paket sayfası: Lite, Pro, Ömür Boyu Masaüstü, İşletme WMS + Pide ve Restoran eklentisi.
+// Birleşik paket sayfası: Pro, Ömür Boyu Masaüstü, İşletme WMS + Pide ve Restoran eklentisi.
 // Veri: plans.json (shared/planMatrix.mjs → tools/site/export-plans.mjs). Fiyat yalnız o dosyada değişir.
 $data=sitePlansV2(); $plans=$data['plans']; $labels=$data['labels']; $trial=(int)$data['trial_days']; $cloud=$data['cloud_features']??[];
 $money=static fn($v)=>number_format((float)$v,0,',','.').' ₺';
 $money2=static fn($v)=>number_format((float)$v,2,',','.').' ₺';
 $limit=static fn($v)=>$v===null?'Sınırsız':(string)$v;
-$base=['pro'=>'lite','lifetime_desktop'=>'pro','business_wms'=>'pro']; $byId=[]; foreach($plans as $p)$byId[$p['id']]=$p;
+$base=['lifetime_desktop'=>'pro','business_wms'=>'pro']; $byId=[]; foreach($plans as $p)$byId[$p['id']]=$p;
 $pro=$byId['pro']??null; $yearSaving=$pro&&$pro['monthly_try']?($pro['monthly_try']*12-$pro['price_try']):0;
 $sectors=['Market','Bakkal','Kırtasiye','Hırdavat ve nalbur','Züccaciye','Giyim ve butik','Yedek parça','Toptancı','Pide ve restoran','Depo'];
 $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturaları','Bakkal'=>'Hızlı satış, müşteri veresiyesi','Kırtasiye'=>'Okul sezonunda hızlı kasa','Hırdavat ve nalbur'=>'Ölçü ve raf araması, usta carisi','Züccaciye'=>'Takım ve set takibi, kırılgan raf uyarısı','Giyim ve butik'=>'Beden ve renk tablosu, değişim','Yedek parça'=>'Bir parçaya birden fazla barkod','Toptancı'=>'Cari, vade ve toplu fiyat','Pide ve restoran'=>'Masa planı, garson, mutfak ekranı','Depo'=>'Raf haritası, mal kabul, sayım'];
@@ -16,7 +16,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
     <div>
       <p class="pr-eyebrow" data-pr>Fiyatlandırma</p>
       <h1 data-pr>Kasanız, stoğunuz ve deponuz için sade fiyat.</h1>
-      <p class="hx-lead" data-pr>Küçük işletme için ücretsiz başlangıç, büyüyen işletme için tek lisans. Hırdavat ve züccaciye özellikleri ayrı paket değil; Pro ve üstünde dahil. Cihaz veya personel başına ek ücret yok.</p>
+      <p class="hx-lead" data-pr>Tek bilgisayarlı mağazadan çok depolu işletmeye, ihtiyacınıza göre tek lisans. Hırdavat ve züccaciye özellikleri ayrı paket değil; Pro ve üstünde dahil. Cihaz veya personel başına ek ücret yok.</p>
       <p class="pr-cta-row" data-pr><a class="hx-btn" href="<?=VENIUX_TRIAL_URL?>"><?=$trial?> gün ücretsiz deneyin</a> <a class="hx-textlink" href="#karsilastirma">Paketleri karşılaştırın</a></p>
     </div>
     <ul class="pr-trust" data-pr aria-label="Fiyatlandırma ilkeleri">
@@ -115,15 +115,14 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 </section>
 
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa hx-qaacc">
-  <details><summary>Kaç farklı paket var?</summary><p>Dört: ücretsiz Lite, yıllık Pro, tek ödemeli Ömür Boyu Masaüstü ve çok depolu işletmeler için İşletme WMS. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
+  <details><summary>Kaç farklı paket var?</summary><p>Üç: yıllık Pro, tek ödemeli Ömür Boyu Masaüstü ve çok depolu işletmeler için İşletme WMS. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
   <details><summary>Ne kadar süre ücretsiz deneyebilirim?</summary><p><?=$trial?> gün boyunca tüm özellikler açıktır; kredi kartı gerekmez. Deneme hesabını <a href="<?=VENIUX_TRIAL_URL?>">/deneme</a> sayfasından e-posta adresinizle açarsınız.</p></details>
-  <details><summary>Lite paketin kısıtlamaları nelerdir?</summary><p>Lite, tek bilgisayarda ve web’de, tek yöneticiyle çalışır: satış, ürün ve stok, müşteri veresiyesi, son 7 günlük rapor ve günlük yedek vardır. Kâr ve maliyet raporu, geçmiş raporlar, Excel aktarma, personel ve yetkilendirme, alış faturası, mobil uygulama, e-Fatura ve yapay zekâ ücretli paketlerde açılır. Lite şu an talep üzerine açılıyor; görüşme formundan yazın.</p></details>
   <details><summary>Hırdavat ve züccaciye için ayrı paket almam gerekir mi?</summary><p>Hayır. Ölçü ve raf araması, takım ve set takibi, beden ve renk gibi özellikler Pro ve üstündeki paketlere dahildir.</p></details>
   <details><summary>Yıllık ile aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır. Pro’yu yıllık ödemek <?=$yearSaving>0?$money($yearSaving).' ':''?>daha avantajlıdır. Aylık seçenek talep üzerine sunulur.</p></details>
   <details><summary>Ömür boyu paket neyi kapsar?</summary><p>Tek bilgisayarda masaüstü uygulamanın süresiz kullanımı. İlk yıl web ve mobil erişim hediyedir; sonrasında bulut ve yapay zekâ özellikleri için yıllık abonelik gerekir, masaüstü özellikleri çalışmaya devam eder.</p></details>
   <details><summary>İnternet kesilince ne olur?</summary><p>Masaüstü uygulama satışı önce bilgisayara kaydeder. Bağlantı geldiğinde bulutla kendiliğinden eşitlenir.</p></details>
   <details><summary>Destek, kurulum ve güncelleme için ek ücret öder miyim?</summary><p>Hayır. WhatsApp ve e-posta desteği, uzak kurulum yardımı ve yeni sürüm güncellemeleri paket fiyatına dahildir. Özel veri aktarımı ve yerinde eğitim ayrıca teklif edilir.</p></details>
-  <details><summary>Lisans satın aldığımda verilerim silinir mi?</summary><p>Hayır. Deneme veya Lite hesabınızdaki ürünler, müşteriler ve satışlar lisans yükseltmesinde aynen kalır.</p></details>
+  <details><summary>Lisans satın aldığımda verilerim silinir mi?</summary><p>Hayır. Deneme hesabınızdaki ürünler, müşteriler ve satışlar lisans yükseltmesinde aynen kalır.</p></details>
   <details><summary>Paketler arasında geçiş yapabilir miyim?</summary><p>Evet. İhtiyacınız değiştiğinde yeni paket belirlenir; geçiş tarihi, süre ve ücret farkı yeni teklifte yazılır.</p></details>
   <details><summary>Yazarkasa ve e-Fatura ile çalışır mı?</summary><p>Veniux kasası yasal fişin yerine geçmez; yasal fiş yazarkasanızdan ayrıca kesilir. Yazarkasa köprüsü ve e-Fatura entegrasyonu hazırlık aşamasındadır; canlıya açıldığında duyuracağız.</p></details>
   <details><summary>Fiyatlara KDV dahil mi, fatura kesiyor musunuz?</summary><p>Evet, yazan tutar KDV dahildir ve her ödeme için fatura düzenlenir.</p></details>

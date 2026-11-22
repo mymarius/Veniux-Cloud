@@ -13,6 +13,8 @@ function sitePlans(): array {
 function sitePlansV2(): array {
     static $data=null;
     if($data===null){$raw=@file_get_contents(__DIR__.'/plans.json');$data=$raw===false?null:json_decode($raw,true);if(!is_array($data)||!is_array($data['plans']??null))$data=['trial_days'=>30,'plans'=>[],'labels'=>[],'groups'=>[]];}
+        // Lite paketi satışa kapalı: satış Pro'dan başlar (plans.json'da kalır; VENIUX_SHOW_LITE=1 ile yeniden gösterilir).
+        if(getenv('VENIUX_SHOW_LITE')!=='1')$data['plans']=array_values(array_filter($data['plans'],fn($p)=>($p['id']??'')!=='lite'));
     return $data;
 }
 // Deneme hesabı uygulamada açılır (app.veniux.com/deneme); sitedeki tüm deneme bağlantıları bunu kullanır.
@@ -20,7 +22,7 @@ const VENIUX_TRIAL_URL='https://app.veniux.com/deneme';
 // Yeni birleşik fiyat sayfası varsayılan AÇIK; VENIUX_PRICING_V2=0 ile eski sayfaya dönülür.
 function sitePricingV2(): bool { return getenv('VENIUX_PRICING_V2')!=='0'; }
 function sitePlanSelection($value): ?array {
-    if (sitePricingV2() && is_string($value) && preg_match('/^(lite|pro|lifetime_desktop|business_wms|restaurant_addon)(:yillik)?$/D',$value,$m)) {
+    if (sitePricingV2() && is_string($value) && preg_match('/^(pro|lifetime_desktop|business_wms|restaurant_addon)(:yillik)?$/D',$value,$m)) {
         $data=sitePlansV2();
         if ($m[1]==='restaurant_addon') return ['code'=>'restaurant_addon','name'=>(string)($data['addon']['name']??'Pide ve Restoran').' (eklenti)','period'=>'Yıllık','amount_try'=>null,'tax'=>'Fiyat teklifle netleşir'];
         foreach ($data['plans'] as $plan) if ($plan['id']===$m[1]) {

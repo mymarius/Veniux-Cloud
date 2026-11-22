@@ -4,7 +4,7 @@
 $asOf='Kasım 2026';
 $plans=sitePlans();
 $vPrice=fn(string $k)=>siteMoney($plans[$k]['annual']);
-$veniuxRange=sitePricingV2()?(function(){$d=sitePlansV2();$by=[];foreach($d['plans'] as $p)$by[$p['id']]=$p;return 'Lite ücretsiz · Pro '.siteMoney((int)$by['pro']['price_try']).' · Ömür boyu '.siteMoney((int)$by['lifetime_desktop']['price_try']).' tek ödeme · İşletme WMS '.siteMoney((int)$by['business_wms']['price_try']).', yıllık, KDV dahil';})():null;
+$veniuxRange=sitePricingV2()?(function(){$d=sitePlansV2();$by=[];foreach($d['plans'] as $p)$by[$p['id']]=$p;return 'Pro '.siteMoney((int)$by['pro']['price_try']).' · Ömür boyu '.siteMoney((int)$by['lifetime_desktop']['price_try']).' tek ödeme · İşletme WMS '.siteMoney((int)$by['business_wms']['price_try']).', yıllık, KDV dahil';})():null;
 $ranges=[
  ['Tek ödemeli masaüstü kasa programları','Yaklaşık 16.000 – 58.000 ₺, bir kez','Süresiz lisans; destek ve ek şube çoğunlukla ayrı ücretli. İnternet olmadan da çalışır.'],
  ['Bulut kasa programları (abonelik)','Yaklaşık 6.000 – 7.500 ₺, yıllık, KDV dahil','Tarayıcıdan ya da uygulamadan; bazılarının ücretsiz sınırlı bir sürümü var.'],
