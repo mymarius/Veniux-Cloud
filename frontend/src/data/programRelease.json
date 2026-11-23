@@ -1,8 +1,20 @@
 {
-  "version": "2.4.104",
+  "version": "2.4.105",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.105",
+      "date": "23 Kasım 2026",
+      "title": "Büyük veride ekranlar hafifledi, stok analizi hızlandı",
+      "items": [
+        "- Ana sayfa panoları artık tüm ürünleri indirmek yerine özet alır (çok ürünlü işletmelerde yaklaşık 52 MB yerine 1-2 MB)",
+        "- Ürün seçiciler yazdıkça arar; Ürünler ve Stok listeleri 100'lük sayfalarla açılır",
+        "- Stok analizi yaklaşık 3 kat hızlandı",
+        "- Seri okutmada tam barkod ve stok kodu eşleşmesi öne alındı; benzer kodlu ürünler yanlış ürünü getirmez",
+        "- Ayarlar'daki WhatsApp deneme mesajı, resmî WhatsApp ayarlıysa onunla gönderilir"
+      ]
+    },
     {
       "version": "2.4.104",
       "date": "23 Kasım 2026",
