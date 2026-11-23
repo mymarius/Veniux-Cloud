@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import React, { useState } from 'react';
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis
@@ -27,9 +28,9 @@ const rampAt = (i, n) => RAMP[Math.min(RAMP.length - 1, Math.round((i / Math.max
 
 const short = (n) => {
   const v = Number(n || 0);
-  if (v >= 1_000_000) return `₺${(v / 1_000_000).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}M`;
-  if (v >= 1_000) return `₺${Math.round(v / 1_000)}B`;
-  return `₺${v}`;
+  if (v >= 1_000_000) return `${currencySymbol()}${(v / 1_000_000).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}M`;
+  if (v >= 1_000) return `${currencySymbol()}${Math.round(v / 1_000)}B`;
+  return `${currencySymbol()}${v}`;
 };
 
 function ChartTooltip({ active, payload, label }) {

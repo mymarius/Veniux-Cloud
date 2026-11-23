@@ -1,3 +1,4 @@
+import { formatMoney } from '../../../../shared/money.mjs';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, LogOut, Mail, UserRound, HelpCircle, Sparkles } from 'lucide-react';
@@ -107,4 +108,4 @@ export function EmptyState({ icon, title, text }) {
   return <div className="vm-empty" role="status"><i>{icon}</i><b>{title}</b><span>{text}</span></div>;
 }
 
-export const money = value => Number(value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+export const money = value => formatMoney(Number(value || 0));

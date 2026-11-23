@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import React, { useState, useEffect } from 'react';
 import apiClient, { useDataSync } from '../api/client';
 import {
@@ -258,7 +259,7 @@ export default function Inventory() {
         <MetricCard title="Ürün sayısı" value={totalSKUCount} trendLabel="Katalogdaki etkin ürünler" />
         <MetricCard title="Toplam stok" value={totalUnitCount.toLocaleString('tr-TR')} trendLabel="Depolardaki toplam birim" />
         <MetricCard title="Kritik ürünler" value={criticalCount} trendLabel="Minimum seviyede veya altında" />
-        <MetricCard title="Stok değeri" value={`${totalValuation.toLocaleString('tr-TR')} ₺`} trendLabel="Alış fiyatıyla" />
+        <MetricCard title="Stok değeri" value={`${totalValuation.toLocaleString('tr-TR')} ${currencySymbol()}`} trendLabel="Alış fiyatıyla" />
       </div>
 
       {/* 3. Table Toolbar & Dense Data Matrix */}

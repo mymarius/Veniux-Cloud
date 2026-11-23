@@ -1,3 +1,4 @@
+import { setActiveCurrency, normalizeCurrency } from '../../../../shared/money.mjs';
 import { readSessionUser } from '../../lib/sessionUser';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
@@ -48,6 +49,7 @@ export default function CompanyTab({embedded=false}) {
     try {
       const payload={...company};const user=readSessionUser();if(!payload.ownerPhone||user.role!=='admin')delete payload.ownerPhone;
       await apiClient.put('/settings/company', payload);
+      setActiveCurrency(payload.currency);try{const u=JSON.parse(localStorage.getItem('user')||'{}');u.currency=normalizeCurrency(payload.currency);localStorage.setItem('user',JSON.stringify(u));}catch{/* depolama yok */}
       showToast('Şirket profili başarıyla güncellendi.', 'success');
     } catch (err) {
       showToast(err.response?.data?.error || 'Kayıt sırasında hata oluştu.', 'error');
@@ -164,9 +166,11 @@ export default function CompanyTab({embedded=false}) {
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
               >
                 <option value="TRY">Türk Lirası (₺ - TRY)</option>
+                <option value="AZN">Azerbaycan Manatı (₼ - AZN)</option>
                 <option value="USD">Amerikan Doları ($ - USD)</option>
                 <option value="EUR">Euro (€ - EUR)</option>
               </select>
+              <p className="text-xs text-gray-500 mt-1">İlk satıştan önce seçin. Satış kaydı oluştuktan sonra para birimi değiştirilemez; geçmiş tutarlar kendi para biriminde kalır.</p>
             </div>
             <div>
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
@@ -178,6 +182,7 @@ export default function CompanyTab({embedded=false}) {
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
               >
                 <option value="Europe/Istanbul">İstanbul (UTC+03:00)</option>
+                <option value="Asia/Baku">Bakü (UTC+04:00)</option>
                 <option value="UTC">UTC (Standart Zaman)</option>
                 <option value="Europe/London">Londra (UTC+00:00 / +01:00)</option>
                 <option value="Europe/Berlin">Berlin (UTC+01:00 / +02:00)</option>

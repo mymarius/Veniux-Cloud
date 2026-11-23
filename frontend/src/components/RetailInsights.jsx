@@ -1,8 +1,9 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useState } from 'react';
 import api from '../api/client';
 import RetailForecast from './RetailForecast';
 
-const tl = c => (c / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = c => formatMoney((c / 100));
 const today = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
 
 // En çok satanlar, kasiyer bazlı satış, saat bazlı yoğunluk ve ölü stok. Kâr/zarar için brüt kâr raporu kullanılır.

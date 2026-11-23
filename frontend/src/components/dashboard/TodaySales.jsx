@@ -1,9 +1,10 @@
+import { formatMoney } from '../../../../shared/money.mjs';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import api from '../../api/client';
 
-const money = value => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(value);
+const money = value => formatMoney(value);
 const SUM_KEYS = ['sale_count', 'net_cents', 'cash_net_cents', 'card_net_cents', 'return_cents'];
 
 // "Bugün ne sattım?" şeridi: depoların günlük raporlarını toplar. Yetki yoksa ya da satış modülü kapalıysa görünmez.

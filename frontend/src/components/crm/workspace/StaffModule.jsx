@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import React, { useMemo, useState } from 'react';
 import { useWorkspaceState } from '../../../hooks/useWorkspaceState';
 import {
@@ -593,8 +594,8 @@ function Performance({ employees, goals, reviews, onOpen }) {
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-[12px] font-bold text-gray-800">{g.label}</span>
                       <span className="shrink-0 text-[11.5px] font-bold tabular-nums text-gray-600">
-                        {g.unit === '₺' ? `₺${Number(g.actual).toLocaleString('tr-TR')}` : `${g.actual} ${g.unit}`}
-                        <span className="font-semibold text-gray-400"> / {g.unit === '₺' ? `₺${Number(g.target).toLocaleString('tr-TR')}` : `${g.target} ${g.unit}`}</span>
+                        {g.unit === '₺' ? `${currencySymbol()}${Number(g.actual).toLocaleString('tr-TR')}` : `${g.actual} ${g.unit}`}
+                        <span className="font-semibold text-gray-400"> / {g.unit === '₺' ? `${currencySymbol()}${Number(g.target).toLocaleString('tr-TR')}` : `${g.target} ${g.unit}`}</span>
                       </span>
                     </div>
                     <div className="mt-1.5 flex items-center gap-2">
@@ -680,7 +681,7 @@ function StaffDetail({ employee, employees, balances, goals, reviews, onClose })
     : null;
 
   const fmtGoal = (v, unit) =>
-    unit === '₺' ? `₺${Number(v).toLocaleString('tr-TR')}` : `${Number(v).toLocaleString('tr-TR')} ${unit}`;
+    unit === '₺' ? `${currencySymbol()}${Number(v).toLocaleString('tr-TR')}` : `${Number(v).toLocaleString('tr-TR')} ${unit}`;
 
   return (
     <Drawer isOpen={!!employee} onClose={onClose} title="Personel özlük dosyası" size="xl">
@@ -878,7 +879,7 @@ function NewStaffModal({ isOpen, onClose, onSave, employees }) {
             {SHIFT_TYPES.filter((s) => s.id !== 'izinli').map((s) => <option key={s.id} value={s.id}>{s.name} ({s.start}–{s.end})</option>)}
           </Select>
           <Input label="Sicil no" value={form.sicilNo} onChange={set('sicilNo')} placeholder="otomatik" />
-          <Input label="Çeyreklik satış hedefi (₺, isteğe bağlı)" type="number" min="0" value={form.salesQuota} onChange={set('salesQuota')} placeholder="CRM performansında kullanılır" />
+          <Input label={`Çeyreklik satış hedefi (${currencySymbol()}, isteğe bağlı)`} type="number" min="0" value={form.salesQuota} onChange={set('salesQuota')} placeholder="CRM performansında kullanılır" />
         </div>
         <Textarea label="Not" value={form.notes} onChange={set('notes')} placeholder="Görev tanımı, sorumluluk alanı…" />
 

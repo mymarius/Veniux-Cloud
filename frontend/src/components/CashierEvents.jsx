@@ -1,3 +1,4 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import api from '../api/client';
 
@@ -33,6 +34,6 @@ export default function CashierEvents() {
     {data && items.length === 0 && <p className="text-slate-500">Bu aralıkta kayıt yok.</p>}
     {items.length > 0 && <div className="overflow-auto"><table className="w-full text-sm" aria-label="Hareket listesi">
       <thead><tr><th className="p-2 text-left">Zaman</th><th className="p-2 text-left">Kasiyer</th><th className="p-2 text-left">İşlem</th><th className="p-2 text-left">Ürün</th><th className="p-2 text-right">Adet</th><th className="p-2 text-right">Tutar</th></tr></thead>
-      <tbody>{items.map(i => <tr key={i.id} className="border-t"><td className="p-2">{String(i.at).slice(0, 16).replace('T', ' ')}</td><td className="p-2">{i.user}</td><td className="p-2">{i.label}</td><td className="p-2">{i.product || '—'}</td><td className="p-2 text-right">{i.quantity ?? '—'}</td><td className="p-2 text-right">{i.amount != null ? i.amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) : '—'}</td></tr>)}</tbody></table></div>}
+      <tbody>{items.map(i => <tr key={i.id} className="border-t"><td className="p-2">{String(i.at).slice(0, 16).replace('T', ' ')}</td><td className="p-2">{i.user}</td><td className="p-2">{i.label}</td><td className="p-2">{i.product || '—'}</td><td className="p-2 text-right">{i.quantity ?? '—'}</td><td className="p-2 text-right">{i.amount != null ? formatMoney(i.amount) : '—'}</td></tr>)}</tbody></table></div>}
   </section>;
 }

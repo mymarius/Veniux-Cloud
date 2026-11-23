@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -85,7 +86,7 @@ export default function GlobalCommandPalette({ isOpen, onClose }) {
               id: `prod-${p.id}`,
               category: 'Ürün Kataloğu',
               title: p.name,
-              subtitle: `SKU: ${p.sku} ${p.gtin ? `• Barkod: ${p.gtin}` : ''} • Fiyat: ₺${Number(p.sale_price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
+              subtitle: `SKU: ${p.sku} ${p.gtin ? `• Barkod: ${p.gtin}` : ''} • Fiyat: ${currencySymbol()}${Number(p.sale_price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
               path: '/inventory',
               icon: Package
             });

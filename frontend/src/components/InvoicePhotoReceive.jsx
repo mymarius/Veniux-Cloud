@@ -1,8 +1,9 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import {useRef,useState} from 'react';
 import {Camera} from 'lucide-react';
 import api from '../api/client';
 import {fileToDataUrl} from '../lib/imageFit.mjs';
-const price=v=>Number(v||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'});
+const price=v=>formatMoney(Number(v||0));
 // Fatura fotoğrafından mal kabul: yapay zekâ satırları TASLAK olarak okur. Hiçbir şey siz onaylamadan stoğa işlenmez;
 // eşleşmeyen satır varsayılan olarak atlanır, miktar ve ürün seçimi elle düzeltilebilir. Her satır mevcut mal kabul ile ayrı işlenir.
 export default function InvoicePhotoReceive({warehouse}){

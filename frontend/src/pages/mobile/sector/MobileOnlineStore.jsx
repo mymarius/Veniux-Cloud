@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { ArrowDown, ArrowUp, Check, Copy, ExternalLink, ImagePlus, Search, Trash2 } from 'lucide-react';
@@ -332,7 +333,7 @@ function ThemeCard() {
     {sel('Ürün düzeni', 'layout', [['grid', 'Kartlar'], ['list', 'Liste'], ['compact', 'Sıkı kartlar']])}
     {sel('Yazı tipi', 'font', [['modern', 'Modern'], ['classic', 'Klasik'], ['rounded', 'Yumuşak']])}
     {sel('Üst alan', 'hero', [['plain', 'Sade'], ['soft', 'Açık renkli'], ['bold', 'Renkli']])}
-    <label className="vm-field"><input aria-label="Duyuru şeridi" placeholder="Duyuru şeridi (örn. 500 ₺ üzeri kargo bedava)" maxLength={160} value={t.banner || ''} onChange={e => setT(x => ({ ...x, banner: e.target.value }))} /></label>
+    <label className="vm-field"><input aria-label="Duyuru şeridi" placeholder={`Duyuru şeridi (örn. 500 ${currencySymbol()} üzeri kargo bedava)`} maxLength={160} value={t.banner || ''} onChange={e => setT(x => ({ ...x, banner: e.target.value }))} /></label>
     {message && <p role="status" className={/kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
     <button type="button" className="vm-btn" disabled={busy} onClick={save}>Temayı kaydet</button>
   </div>;

@@ -88,7 +88,7 @@ async function checkTaxpayer(user, vkn) {
 async function event(tx, tenant, id, name, detail, userId) {
   await tx.query('INSERT INTO edocument_events (tenant_id,document_id,event,detail,user_id) VALUES ($1,$2,$3,$4,$5)', [tenant, id, name, detail ? JSON.stringify(detail) : null, userId || null]);
 }
-const view = row => ({ id: row.id, sale_id: row.sale_id, document_type: row.document_type, status: row.status, created_at: row.created_at, updated_at: row.updated_at, payload: JSON.parse(row.payload) });
+const view = row => ({ id: row.id, sale_id: row.sale_id, document_type: row.document_type, status: row.status, currency: row.currency || 'TRY', created_at: row.created_at, updated_at: row.updated_at, payload: JSON.parse(row.payload) });
 // Resmî belge numarası: 3 harfli seri + yıl + 9 haneli sıra (ör. VNX2027000000001). İşletme+seri+yıl içinde ardışıktır,
 // aynı belgeye her zaman aynı numara verilir (yeniden gönderimde değişmez) ve UNIQUE kısıtı çift numarayı engeller.
 const SERIES = /^[A-Z]{3}$/;
@@ -129,7 +129,8 @@ async function createDraft(user, { sale_id, document_type, draft, receiver }) {
   const id = crypto.randomUUID(), saleId = String(sale_id);
   return db.transaction(async tx => {
     if ((await tx.query('SELECT id FROM edocuments WHERE tenant_id=$1 AND active_key=$2', [user.tenantId, saleId])).rows.length) fail('Bu satış için geçerli bir belge zaten var.', 409);
-    await tx.query("INSERT INTO edocuments (id,tenant_id,sale_id,active_key,document_type,status,payload,created_by) VALUES ($1,$2,$3,$4,$5,'draft',$6,$7)", [id, user.tenantId, saleId, saleId, document_type, JSON.stringify({ draft, receiver: receiver || null }), user.userId]);
+    const currency = await require('./currencyService').saleCurrency(tx, user.tenantId, saleId);
+    await tx.query("INSERT INTO edocuments (id,tenant_id,sale_id,active_key,document_type,status,payload,created_by,currency) VALUES ($1,$2,$3,$4,$5,'draft',$6,$7,$8)", [id, user.tenantId, saleId, saleId, document_type, JSON.stringify({ draft, receiver: receiver || null }), user.userId, currency]);
     await event(tx, user.tenantId, id, 'created', { document_type }, user.userId);
     return view((await tx.query('SELECT * FROM edocuments WHERE id=$1', [id])).rows[0]);
   });

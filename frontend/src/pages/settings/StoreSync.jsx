@@ -1,8 +1,9 @@
+import { formatMoney } from '../../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 
 const when = v => v ? new Date(String(v).replace(' ', 'T') + (String(v).includes('Z') ? '' : 'Z')).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-const money = v => Number(v).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const money = v => formatMoney(Number(v));
 
 // Mağaza–bulut eşitleme (tek yön: mağaza -> bulut). Satışlar buluta yalnız raporlama için gider; bulut stoğu değişmez.
 // İki yüz: (1) Bulut hesabında mağaza için cihaz anahtarı üretilir ve gelen cirolar görülür. (2) Mağaza bilgisayarında bu anahtar girilir.

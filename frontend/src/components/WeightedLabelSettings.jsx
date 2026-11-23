@@ -1,3 +1,4 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import api from '../api/client';
 
@@ -59,12 +60,12 @@ export default function WeightedLabelSettings() {
         {preview.detect.candidates.filter(c => c.product).length === 0 ? <p className="text-sm text-amber-700">Bu etiket hiçbir ürünle eşleşmedi. Etiketteki ürün kodu büyük olasılıkla {[...new Set(preview.detect.candidates.map(c => c.product_code).filter(Boolean))].join(' veya ')}; bu kodu ürün kartında “Terazi kodu” alanına yazıp tekrar deneyin.</p>
           : <p className="text-sm">Etiketin üzerinde yazan ağırlık ve tutarla aynı olanı seçin:</p>}
         {preview.detect.candidates.filter(c => c.product).map(c => <div key={c.label} className="flex flex-wrap items-center gap-2 rounded-lg border p-2 text-sm">
-          <span className="flex-1">{c.label} → <b>{c.product.name}</b> · {Number(c.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 3 })} {c.product.unit} · {Number(c.line_total).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</span>
+          <span className="flex-1">{c.label} → <b>{c.product.name}</b> · {Number(c.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 3 })} {c.product.unit} · {formatMoney(Number(c.line_total))}</span>
           <button type="button" className="btn-soft" onClick={() => use(c.rule)}>Bunu kullan</button>
         </div>)}
       </div>}
       {preview && !preview.detect && <p role="status" className={preview.ok ? 'text-sm text-emerald-700' : 'text-sm text-red-700'}>
-        {preview.ok ? (preview.product ? `${preview.product.name} · ${Number(preview.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 3 })} ${preview.product.unit} · ${Number(preview.line_total).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}` : `Etiket çözüldü ama ürün kodu ${preview.product_code || ''} hiçbir ürünle eşleşmedi. Ürün kartında terazi kodunu girin.`) : preview.text}
+        {preview.ok ? (preview.product ? `${preview.product.name} · ${Number(preview.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 3 })} ${preview.product.unit} · ${formatMoney(Number(preview.line_total))}` : `Etiket çözüldü ama ürün kodu ${preview.product_code || ''} hiçbir ürünle eşleşmedi. Ürün kartında terazi kodunu girin.`) : preview.text}
       </p>}
       <p className="text-xs text-slate-500">Deneme kaydedilmemiş şemayla yapılır; satış ve stok değişmez.</p>
     </form>

@@ -1,8 +1,9 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import {useRef,useState} from 'react';
 import {Camera} from 'lucide-react';
 import api from '../api/client';
 import {fileToDataUrl} from '../lib/imageFit.mjs';
-const price=v=>Number(v||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'});
+const price=v=>formatMoney(Number(v||0));
 // Ürünü fotoğrafla: yapay zekâ yalnız adı/markayı/barkodu okur; aday ürünler ve fiyatlar işletmenin kendi listesinden gelir.
 export default function ProductPhotoSearch({disabled,onPick}){
   const input=useRef(null),[busy,setBusy]=useState(false),[result,setResult]=useState(null),[error,setError]=useState('');

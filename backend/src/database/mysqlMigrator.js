@@ -27,7 +27,10 @@ function finalCoversAll(){
  })&&old.triggers.every(t=>last.triggers.some(v=>v.name===t.name)));
 }
 // Yeni tablo tanımından, önceki tabloda bulunmayan indeksleri çıkarır; kalan fark varsa adım yalnız indeks eklemiyor demektir.
-function withoutAddedIndexes(table,old){return table&&{...table,indexes:table.indexes.filter(i=>old.indexes.some(o=>o.name===i.name))};}
+// Yeni sütun yalnız "güvenli" ise (hesaplanan değil, NOT NULL ise varsayılanı var, anahtar/indeks/yabancı anahtarda yer almıyor) mevcut tabloya eklenebilir;
+// aksi hâlde tablo farklı sayılır ve yükseltme SCHEMA_UPGRADE_UNSUPPORTED ile durur.
+const safeAddedColumn=(c,table)=>!/GENERATED ALWAYS/i.test(c.definition)&&(!/NOT NULL/i.test(c.definition)||/ DEFAULT /i.test(c.definition))&&![...table.primary,...table.unique.flatMap(i=>i.columns),...table.indexes.flatMap(i=>i.columns),...table.foreign.flatMap(f=>f.columns)].includes(c.name);
+function withoutAddedIndexes(table,old){return table&&{...table,indexes:table.indexes.filter(i=>old.indexes.some(o=>o.name===i.name)),columns:table.columns.filter(c=>old.columns.some(o=>o.name===c.name)||!safeAddedColumn(c,table))};}
 class MySQLMigrator{
  constructor(connection){this.connection=connection;}
  async status(){
@@ -65,6 +68,11 @@ class MySQLMigrator{
      for(const fk of t.foreign)definitions.push('CONSTRAINT '+q(fk.name)+' FOREIGN KEY('+cols(fk.columns)+') REFERENCES '+q(fk.table)+'('+cols(fk.references)+') ON DELETE '+fk.onDelete+' ON UPDATE '+fk.onUpdate);
      await c.query('CREATE TABLE '+q(t.name)+'('+definitions.join(',')+') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin');
     }
+    // Mevcut tablolara güvenli yeni sütunlar eklenir (varsayılanlı, mevcut satırları değiştirmeden; yoksa). Yarıda kalırsa kayıt yazılmaz, yeniden çalıştırılabilir.
+    for(const t of step.tables){const old=before.tables.find(b=>b.name===t.name);if(!old)continue;
+     for(const col of t.columns.filter(v=>!old.columns.some(o=>o.name===v.name))){
+      const [found]=await c.query('SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=? LIMIT 1',[t.name,col.name]);
+      if(!found.length)await c.query('ALTER TABLE '+q(t.name)+' ADD COLUMN '+col.definition);}}
     // Mevcut tablolara yalnız yeni indeks eklenir (çevrimiçi, tabloyu kilitlemeden; yoksa). Yarıda kalırsa kayıt yazılmaz, yeniden çalıştırılabilir.
     for(const t of step.tables){const old=before.tables.find(b=>b.name===t.name);if(!old)continue;
      for(const ix of t.indexes.filter(i=>!old.indexes.some(o=>o.name===i.name))){

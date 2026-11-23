@@ -198,8 +198,9 @@ const getMe = async (req, res) => {
     }
 
     const user = result.rows[0];
-    const tenant = await pool.query('SELECT COALESCE(company_name, name) AS company_name FROM tenants WHERE id = $1', [req.user.tenantId]);
+    const tenant = await pool.query('SELECT COALESCE(company_name, name) AS company_name, currency FROM tenants WHERE id = $1', [req.user.tenantId]);
     user.company_name = tenant.rows[0]?.company_name || null;
+    user.currency = tenant.rows[0]?.currency || 'TRY';
 
     const module_type = await require('../services/moduleAccess').getModuleType(user.tenant_id,req.centralLicense);
 

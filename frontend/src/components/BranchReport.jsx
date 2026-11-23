@@ -1,7 +1,8 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import api from '../api/client';
 
-const tl = c => (c / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = c => formatMoney((c / 100));
 
 // Şubeler (depolar) arası stok ve bu ayın net kasa satışı. Transfer toplam stoğu değiştirmez.
 export default function BranchReport() {

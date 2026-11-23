@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import { useMemo, useState } from 'react';
 import apiClient from '../api/client';
 import { Modal, Input } from './ui';
@@ -31,8 +32,8 @@ export default function VariantWizard({ isOpen, onClose, onDone }) {
         <Input label="Stok kodu öneki" required placeholder="TS" value={f.sku_prefix} onChange={set('sku_prefix')} />
         <Input label="Bedenler (virgülle)" placeholder="S, M, L, XL" value={f.sizes} onChange={set('sizes')} />
         <Input label="Renkler (virgülle)" placeholder="Siyah, Beyaz, Mavi" value={f.colors} onChange={set('colors')} />
-        <Input label="Satış fiyatı (₺)" type="number" min="0" step="0.01" value={f.sale_price} onChange={set('sale_price')} />
-        <Input label="Alış fiyatı (₺)" type="number" min="0" step="0.01" value={f.purchase_price} onChange={set('purchase_price')} />
+        <Input label={`Satış fiyatı (${currencySymbol()})`} type="number" min="0" step="0.01" value={f.sale_price} onChange={set('sale_price')} />
+        <Input label={`Alış fiyatı (${currencySymbol()})`} type="number" min="0" step="0.01" value={f.purchase_price} onChange={set('purchase_price')} />
         <Input label="Kategori" placeholder="Giyim" value={f.category} onChange={set('category')} />
       </div>
       <p className="text-sm text-slate-500">{none ? 'En az bir beden veya renk girin.' : `${count} çeşit oluşturulacak. Örnek: ${[f.name || 'Ürün', split(f.sizes)[0], split(f.colors)[0]].filter(Boolean).join(' · ')}`}</p>

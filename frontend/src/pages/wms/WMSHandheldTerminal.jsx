@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../shared/money.mjs';
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/client';
 import {
@@ -347,7 +348,7 @@ export default function WMSHandheldTerminal() {
                 <div>SKU: <strong className="text-gray-900">{scanResult.data?.sku}</strong></div>
                 <div>Stok: <strong className="text-emerald-700">{scanResult.data?.quantity || 0} Adet</strong></div>
                 <div>Kategori: <strong className="text-gray-900">{scanResult.data?.category || 'Genel'}</strong></div>
-                <div>Fiyat: <strong className="text-gray-900">₺{scanResult.data?.price || '0.00'}</strong></div>
+                <div>Fiyat: <strong className="text-gray-900">{currencySymbol()}{scanResult.data?.price || '0.00'}</strong></div>
               </div>
             )}
 

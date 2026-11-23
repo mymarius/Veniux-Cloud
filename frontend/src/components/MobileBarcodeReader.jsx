@@ -1,3 +1,4 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {Link} from 'react-router-dom';
 import {ScanLine,Keyboard,ArrowRight,RotateCcw,Search,Check,X,Trash2,Printer} from 'lucide-react';
@@ -6,7 +7,7 @@ import BarcodeCamera from './BarcodeCamera';
 import {parseSession,recordCheck,addToList,removeFromList,checkTotals} from '../lib/scanSession.mjs';
 
 const MODES=[['product','Ürünü bul'],['price','Fiyat gör'],['label','Etiket kontrol']];
-const money=value=>Number(value||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'});
+const money=value=>formatMoney(Number(value||0));
 function storageKey(){try{return 'veniux-scan-session-'+(JSON.parse(localStorage.getItem('user')||'{}').id||'user');}catch{return 'veniux-scan-session-user';}}
 function loadSession(){try{return parseSession(localStorage.getItem(storageKey()));}catch{return parseSession(null);}}
 

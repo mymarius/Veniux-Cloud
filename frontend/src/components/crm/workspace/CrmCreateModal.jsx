@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Building2, Handshake, Plus, UserPlus, Users } from 'lucide-react';
 import { Modal } from '../../ui';
@@ -195,7 +196,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
               <option value="">Bağımsız fırsat</option>
               {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </FormSelect>
-            <FormInput label="Değer (₺)" required type="number" min="0" value={form.value} onChange={set('value')} placeholder="950000" />
+            <FormInput label={`Değer (${currencySymbol()})`} required type="number" min="0" value={form.value} onChange={set('value')} placeholder="950000" />
             <FormSelect label="Aşama" value={form.stage} onChange={set('stage')}>
               {STAGES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
             </FormSelect>
@@ -222,7 +223,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
             </FormSelect>
             <FormInput label="E-posta" type="email" value={form.email} onChange={set('email')} />
             <FormInput label="Telefon" value={form.phone} onChange={set('phone')} placeholder="+90 (5xx) xxx xx xx" />
-            <FormInput label="Tahmini değer (₺)" type="number" min="0" value={form.estimatedValue} onChange={set('estimatedValue')} />
+            <FormInput label={`Tahmini değer (${currencySymbol()})`} type="number" min="0" value={form.estimatedValue} onChange={set('estimatedValue')} />
             <FormSelect label="Sorumlu" value={form.owner} onChange={set('owner')}>
               <option value="">Otomatik ata</option>
               {owners.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -264,7 +265,7 @@ export default function CrmCreateModal({ isOpen, type, onClose, onCreated }) {
               {owners.map((o) => <option key={o} value={o}>{o}</option>)}
             </FormSelect>
             <FormInput label="Çalışan sayısı" value={form.employees} onChange={set('employees')} placeholder="1.200+" />
-            <FormInput label="Yıllık ciro" value={form.annualRevenue} onChange={set('annualRevenue')} placeholder="₺8.4 Milyar" />
+            <FormInput label="Yıllık ciro" value={form.annualRevenue} onChange={set('annualRevenue')} placeholder={`${currencySymbol()}8.4 Milyar`} />
             <div className="sm:col-span-2">
               <FormTextarea label="Açıklama" value={form.description} onChange={set('description')} />
             </div>

@@ -1,9 +1,10 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useCallback, useEffect, useState } from 'react';
 import api from '../api/client';
 
 const today = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Istanbul' }).format(new Date());
 const daysAgo = n => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Istanbul' }).format(new Date(Date.now() - n * 86400000));
-const tl = cents => (cents / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = cents => formatMoney((cents / 100));
 const margin = v => (v === null || v === undefined ? '—' : (v < 0 ? '-%' : '%') + Math.abs(v).toLocaleString('tr-TR', { maximumFractionDigits: 2 }));
 const GROUPS = [['product', 'Ürün'], ['category', 'Kategori'], ['day', 'Gün'], ['week', 'Hafta'], ['month', 'Ay']];
 

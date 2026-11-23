@@ -1,7 +1,8 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import api from '../api/client';
 
-const money = cents => (Number(cents || 0) / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const money = cents => formatMoney((Number(cents || 0) / 100));
 
 // Birlikte satılan ürünler: bir ürün seçin, aynı fişte en çok hangi ürünlerin satıldığını görün (raf ve kampanya kararı için).
 export default function TogetherReport() {

@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import React from 'react';
 import { Dropdown } from '../../ui/Dropdown';
 
@@ -184,7 +185,7 @@ export function FormSelect({ label, required, children, ...props }) {
 }
 
 export const tl = (n) =>
-  `₺${Number(n || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`;
+  `${currencySymbol()}${Number(n || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`;
 
 export const trDate = (iso) => {
   if (!iso) return '—';

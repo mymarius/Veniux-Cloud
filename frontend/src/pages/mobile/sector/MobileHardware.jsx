@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../../shared/money.mjs';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Camera, ClipboardList, MapPin, MessageCircle, Percent, Search, X } from 'lucide-react';
@@ -168,9 +169,9 @@ export function MobileBulkPrice() {
       <p className="vm-note">Toptancı zammını tek seferde yansıtın. Önce önizlemeyi görün, sonra onaylayın. Koliye özel fiyatlar da aynı oranla değişir.</p>
       <select className="vm-input" aria-label="Kategori" value={form.category} onChange={set('category')}><option value="">Kategori seçin (veya aramayla daraltın)</option>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
       <input className="vm-input" aria-label="Ürün araması" placeholder="Arama (örn. vida, galvaniz)" value={form.q} onChange={set('q')} />
-      <div className="vm-price-in"><select aria-label="Değişiklik türü" value={form.mode} onChange={set('mode')}><option value="percent">Yüzde (%)</option><option value="amount">Tutar (₺)</option></select>
+      <div className="vm-price-in"><select aria-label="Değişiklik türü" value={form.mode} onChange={set('mode')}><option value="percent">Yüzde (%)</option><option value="amount">Tutar ({currencySymbol()})</option></select>
         <input aria-label="Değer" inputMode="decimal" placeholder={form.mode === 'percent' ? 'örn. 12 veya -5' : 'örn. 2,50'} value={form.value} onChange={set('value')} /></div>
-      <div className="vm-price-in"><select aria-label="Yuvarlama" value={form.rounding} onChange={set('rounding')}><option value="0.01">Kuruşa yuvarla</option><option value="0.05">0,05 ₺</option><option value="0.1">0,10 ₺</option><option value="0.5">0,50 ₺</option><option value="1">1 ₺</option></select>
+      <div className="vm-price-in"><select aria-label="Yuvarlama" value={form.rounding} onChange={set('rounding')}><option value="0.01">Kuruşa yuvarla</option><option value="0.05">0,05 {currencySymbol()}</option><option value="0.1">0,10 {currencySymbol()}</option><option value="0.5">0,50 {currencySymbol()}</option><option value="1">1 {currencySymbol()}</option></select>
         <select aria-label="Hangi fiyat" value={form.target} onChange={set('target')}><option value="sale">Satış fiyatı</option><option value="purchase">Alış fiyatı</option></select></div>
       <button type="button" className="vm-btn soft" disabled={busy || !form.value || (!form.category && !form.q.trim())} onClick={() => run(false)}>Önizle</button>
       {message && <p role="status" className="vm-note">{message}</p>}

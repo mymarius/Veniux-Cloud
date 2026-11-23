@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../../shared/money.mjs';
 import DialogShell from '../ui/DialogShell';
 import { summarizeProductStock } from '../../lib/productStock.mjs';
 import {readSessionUser} from '../../lib/sessionUser';
@@ -280,14 +281,14 @@ export default function WMSDetailDrawer({
                         <div>
                           <span className="text-[10px] text-gray-500 block">Alış Maliyeti</span>
                           <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
-                            {product?.purchase_price != null ? `₺${Number(product.purchase_price).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '-'}
+                            {product?.purchase_price != null ? `${currencySymbol()}${Number(product.purchase_price).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '-'}
                           </span>
                         </div>
                       )}
                       <div>
                         <span className="text-[10px] text-gray-500 block">Satış Fiyatı</span>
                         <span className="font-mono font-bold text-emerald-600">
-                          ₺{Number(product?.sale_price || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                          {currencySymbol()}{Number(product?.sale_price || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                         </span>
                       </div>
                       <div>
@@ -301,7 +302,7 @@ export default function WMSDetailDrawer({
                           <span className="text-[10px] text-gray-500 block">Birim Kâr</span>
                           <span className="font-mono font-bold text-brand-600">
                             {product?.purchase_price != null
-                              ? `₺${(Number(product?.sale_price || 0) - Number(product.purchase_price)).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+                              ? `${currencySymbol()}${(Number(product?.sale_price || 0) - Number(product.purchase_price)).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
                               : '-'}
                           </span>
                         </div>

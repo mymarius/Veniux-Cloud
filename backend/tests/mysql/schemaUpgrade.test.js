@@ -9,6 +9,10 @@ const prev = JSON.parse(fs.readFileSync(path.join(__dirname, '../../src/database
 // 033 ile eklenen indeksler (tablo -> indeks adları); "eski kurulum" benzetimi için geri alınır.
 const addedIndexes = manifest => manifest.tables.flatMap(t => t.indexes.filter(i => !prev.tables.find(p => p.name === t.name).indexes.some(o => o.name === i.name)).map(i => ({ table: t.name, name: i.name })));
 const indexNames = async table => (await c.query('SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?', [table]))[0].map(r => r.INDEX_NAME);
+// 034 ile eklenen sütunlar (tablo -> sütun adları); 032'ye göre eklenenler.
+const addedColumns = manifest => manifest.tables.flatMap(t => { const p = prev.tables.find(x => x.name === t.name); return p ? t.columns.filter(c => !p.columns.some(o => o.name === c.name)).map(c => ({ table: t.name, name: c.name })) : []; });
+const columnNames = async table => (await c.query('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?', [table]))[0].map(r => r.COLUMN_NAME);
+const dropAddedColumns = async () => { for (const col of addedColumns(manifest)) if ((await columnNames(col.table)).includes(col.name)) await c.query('ALTER TABLE `' + col.table + '` DROP COLUMN `' + col.name + '`'); };
 const dropAddedIndexes = async () => { for (const ix of addedIndexes(manifest)) if ((await indexNames(ix.table)).includes(ix.name)) await c.query('ALTER TABLE `' + ix.table + '` DROP INDEX `' + ix.name + '`'); };
 
 let admin, c;
@@ -41,9 +45,10 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   await c.query('DROP TABLE exchange_rate_settings');
   await c.query('DROP TABLE business_tasks');
   await dropAddedIndexes();
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', [prev.version, manifest.version]);
+  await dropAddedColumns();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?,?)', [prev.version, '033-performance-indexes', manifest.version]);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [prev.version, manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [prev.version, '033-performance-indexes', manifest.version] });
 
   const state = await migrator.upgradeAdditive();
   expect(state).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
@@ -98,12 +103,13 @@ test('033: yalnız indeks ekleyen adım; indeksler eklenir, veri korunur, ikinci
   await dropAddedIndexes();
   const [[tenant]] = await c.query("INSERT INTO tenants (company_name,tenant_code,email) VALUES ('İndeks Müşterisi','IDX-UPG-1','idx@example.com')").then(r => [[{ id: r[0].insertId }]]);
   const [prod] = await c.query("INSERT INTO products (tenant_id,sku,name,unit,sale_price,module_type,gtin) VALUES (?,'IDX-1','İndeks ürünü','adet',10,'NORMAL','8690000000017')", [tenant.id]);
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  // Sonraki adım (034, yalnız sütun) da yeniden uygulanır; sütunlar zaten var olduğu için atlanır.
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['033-performance-indexes', manifest.version]);
   const added = addedIndexes(manifest);
   expect(added.map(i => i.name).sort()).toEqual(['idx_audit_logs_tenant_created', 'idx_pos_sale_items_product', 'idx_pos_sales_tenant_created', 'idx_product_uoms_barcode', 'idx_products_tenant_created', 'idx_products_tenant_gtin', 'idx_retail_sales_tenant_date', 'idx_stock_movements_tenant_created', 'idx_stock_records_tenant_updated']);
   for (const ix of added) expect(await indexNames(ix.table)).not.toContain(ix.name);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: ['033-performance-indexes', manifest.version] });
 
   expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
   for (const ix of added) expect(await indexNames(ix.table)).toContain(ix.name);
@@ -119,7 +125,39 @@ test('033: yalnız indeks ekleyen adım; indeksler eklenir, veri korunur, ikinci
   const [[after]] = await c.query('SELECT COUNT(*) n FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()');
   expect(after.n).toBe(before.n);
   await c.query('ALTER TABLE products DROP INDEX idx_products_tenant_created');
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['033-performance-indexes', manifest.version]);
   expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
   expect(await indexNames('products')).toContain('idx_products_tenant_created');
+});
+
+test('034: yalnız sütun ekleyen adım; mevcut satırlar TRY olur, veri korunur, yeni satırlar para birimi taşır, tekrar çalıştırma zarar vermez', async () => {
+  const [[tenant]] = await c.query("INSERT INTO tenants (company_name,tenant_code,email) VALUES ('Sütun Müşterisi','COL-UPG-1','col@example.com')").then(r => [[{ id: r[0].insertId }]]);
+  // "Eski kurulum": para birimi sütunları yok, 034 kaydı yok; eski satış ve belge var
+  await dropAddedColumns();
+  expect(await columnNames('pos_sales')).not.toContain('currency');
+  expect(await columnNames('edocuments')).not.toContain('currency');
+  await c.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,payment_method,status) VALUES (?,'POS-ESKI-1',12.5,12.5,'cash','completed')", [tenant.id]);
+  await c.query("INSERT INTO edocuments (id,tenant_id,sale_id,document_type,status,payload) VALUES ('col-1',?,'1','E_ARSIV','draft','{}')", [tenant.id]);
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  const migrator = new MySQLMigrator(c);
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+
+  expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
+  expect(await columnNames('pos_sales')).toContain('currency');
+  expect(await columnNames('edocuments')).toContain('currency');
+  const [[sale]] = await c.query("SELECT currency,net_amount FROM pos_sales WHERE receipt_no='POS-ESKI-1'");
+  expect({ currency: sale.currency, net: Number(sale.net_amount) }).toEqual({ currency: 'TRY', net: 12.5 });
+  const [[doc]] = await c.query("SELECT currency,status FROM edocuments WHERE id='col-1'");
+  expect(doc).toEqual({ currency: 'TRY', status: 'draft' });
+  // Yeni satır para birimi taşıyabilir
+  await c.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,payment_method,status,currency) VALUES (?,'POS-YENI-1',5,5,'cash','completed','AZN')", [tenant.id]);
+  const [[fresh]] = await c.query("SELECT currency FROM pos_sales WHERE receipt_no='POS-YENI-1'");
+  expect(fresh.currency).toBe('AZN');
+
+  // Tekrar çalıştırma: değişiklik yok; sütun elle düşürülüp kayıt silinirse yeniden tamamlanır
+  expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
+  await c.query('ALTER TABLE edocuments DROP COLUMN currency');
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
+  expect(await columnNames('edocuments')).toContain('currency');
 });

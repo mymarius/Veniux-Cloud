@@ -1,9 +1,10 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import PosMoneyInput from './PosMoneyInput';
 import CashCounter from './CashCounter';
 import QuickExpense,{expenseTotals} from './QuickExpense';
 import {useEffect,useRef,useState} from 'react';
 import api from '../api/client';
-const money=c=>(Number(c||0)/100).toLocaleString('tr-TR',{style:'currency',currency:'TRY'});
+const money=c=>formatMoney((Number(c||0)/100));
 export default function RetailShiftPanel({warehouse,register,context,onRegister,onChanged,onPrint,blocked}) {
   const [opening,setOpening]=useState('0'),[counted,setCounted]=useState(''),[reason,setReason]=useState(''),[direction,setDirection]=useState('in'),[amount,setAmount]=useState(''),[cashReason,setCashReason]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[review,setReview]=useState(null),[counter,setCounter]=useState(false);
   const lock=useRef(false),operation=useRef(null);

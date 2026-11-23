@@ -1,3 +1,4 @@
+import { getActiveCurrency } from '../../../../../shared/money.mjs';
 import React, { useState } from 'react';
 import {
   Bell, CheckCircle2, Coins, PlayCircle, Settings2, Sparkles, UserCheck, Zap
@@ -43,7 +44,7 @@ export default function CrmAutomations() {
 
   // Ayarlar örnek veride tutulmaz; oturum boyunca yerel durumda yaşar.
   const [settings, setSettings] = useState({
-    currency: 'TRY',
+    currency: getActiveCurrency(),
     autoAssign: 'round_robin',
     defaultOwner: '',
     notifyDealWon: true,
@@ -123,6 +124,7 @@ export default function CrmAutomations() {
                 className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-[12px] font-bold text-gray-700 hover:border-gray-300"
               >
                 <option value="TRY">₺ Türk Lirası</option>
+                <option value="AZN">₼ Azerbaycan Manatı</option>
                 <option value="USD">$ ABD Doları</option>
                 <option value="EUR">€ Euro</option>
               </Dropdown>

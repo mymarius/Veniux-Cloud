@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import { readSessionUser } from '../lib/sessionUser';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -181,7 +182,7 @@ export default function Dashboard() {
         <div className="dx-hero-stats">
           <div><span>Dönem girişi</span><b><CountUp value={current.inbound} format={num} /></b><Delta value={change(current.inbound, previous.inbound)} /></div>
           <div><span>Dönem çıkışı</span><b><CountUp value={current.outbound} format={num} /></b><Delta value={change(current.outbound, previous.outbound)} /></div>
-          {canViewCosts && <div><span>Satış değeri</span><b><CountUp value={a.saleValue} format={v => compact(v) + ' ₺'} /></b><small>Potansiyel kâr {compact(a.saleValue - a.value)} ₺</small></div>}
+          {canViewCosts && <div><span>Satış değeri</span><b><CountUp value={a.saleValue} format={v => compact(v) + ' ' + currencySymbol()} /></b><small>Potansiyel kâr {compact(a.saleValue - a.value)} {currencySymbol()}</small></div>}
         </div>
         <div className="dx-hero-score" aria-label={`İşletme sağlık skoru ${a.score}`}>
           <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" /><circle cx="60" cy="60" r="50" pathLength="100" strokeDasharray={`${a.score} 100`} data-tone={a.score >= 80 ? 'good' : a.score >= 55 ? 'mid' : 'bad'} /></svg>
@@ -202,12 +203,12 @@ export default function Dashboard() {
             options={{ scales: {
               x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8290a4', maxTicksLimit: 8, maxRotation: 0 } },
               y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(128,128,128,.18)' }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) } },
-              ...(canViewCosts ? { y1: { position: 'right', beginAtZero: true, border: { display: false }, grid: { display: false }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) + ' ₺' } } } : {})
+              ...(canViewCosts ? { y1: { position: 'right', beginAtZero: true, border: { display: false }, grid: { display: false }, ticks: { color: '#8290a4', maxTicksLimit: 5, callback: v => compact(v) + ' ' + currencySymbol() } } } : {})
             } }}
             datasets={[
               { label: 'Giriş', data: a.timeline.map(d => d.inbound), borderColor: IN },
               { label: 'Çıkış', data: a.timeline.map(d => d.outbound), borderColor: OUT },
-              ...(canViewCosts ? [{ label: 'Stok değeri (₺)', data: a.valueSeries, borderColor: VIOLET, fill: false, borderDash: [5, 4], yAxisID: 'y1' }] : [])
+              ...(canViewCosts ? [{ label: `Stok değeri (${currencySymbol()})`, data: a.valueSeries, borderColor: VIOLET, fill: false, borderDash: [5, 4], yAxisID: 'y1' }] : [])
             ]} />
         </Panel>
         <Panel icon={Package} title="Stok sağlığı" subtitle={`${raw.summary.product_count} ürünün durumu`} action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
@@ -262,9 +263,9 @@ export default function Dashboard() {
       {showDetails && <>
         {['NORMAL','BOTH'].includes(user.module_type)&&<StockHealthPanel compact/>}
         <section className="ax-grid ax-kpis ax-reveal">
-          <Kpi label="Satış değeri" value={a.saleValue} format={v => compact(v) + ' ₺'} icon={BadgeDollarSign} tone="teal" detail={canViewCosts ? (a.saleValue ? `potansiyel kâr ${compact(a.saleValue - a.value)} ₺` : 'satış fiyatı girilmemiş') : `${num(a.units)} birim satışta`} />
+          <Kpi label="Satış değeri" value={a.saleValue} format={v => compact(v) + ' ' + currencySymbol()} icon={BadgeDollarSign} tone="teal" detail={canViewCosts ? (a.saleValue ? `potansiyel kâr ${compact(a.saleValue - a.value)} ${currencySymbol()}` : 'satış fiyatı girilmemiş') : `${num(a.units)} birim satışta`} />
           <Kpi label="Ürün çeşidi" value={raw.summary.product_count} icon={Package} tone="violet" detail={`${num(a.units)} birim · ${raw.warehouses.length} depo`} to="/normal-depo/products" />
-          <Kpi label="Açık pipeline" value={a.openDeals.reduce((s, d) => s + Number(d.value || 0), 0)} format={v => compact(v) + ' ₺'} icon={Handshake} tone="blue" detail={`${a.openDeals.length} açık fırsat`} to="/crm/deals" />
+          <Kpi label="Açık pipeline" value={a.openDeals.reduce((s, d) => s + Number(d.value || 0), 0)} format={v => compact(v) + ' ' + currencySymbol()} icon={Handshake} tone="blue" detail={`${a.openDeals.length} açık fırsat`} to="/crm/deals" />
         </section>
 
         <section className="ax-grid ax-3 ax-reveal">
@@ -295,7 +296,7 @@ export default function Dashboard() {
               ? [...a.productRows].sort((x, y) => y.value - x.value).filter(r => r.value > 0).slice(0, 8)
               : [...a.productRows].sort((x, y) => y.qty - x.qty).filter(r => r.qty > 0).slice(0, 8);
             return <BusinessChart type="bar" horizontal title={canViewCosts ? "En değerli stoklar" : "En yüksek stoklu ürünler"} height={280} legend={false} valueFormat={canViewCosts ? compact : num}
-              labels={rows.map(r => (r.name.length > 24 ? r.name.slice(0, 23) + '…' : r.name))} datasets={[{ label: canViewCosts ? 'Değer (₺)' : 'Miktar (adet)', data: rows.map(r => canViewCosts ? r.value : r.qty), backgroundColor: BLUE }]} />;
+              labels={rows.map(r => (r.name.length > 24 ? r.name.slice(0, 23) + '…' : r.name))} datasets={[{ label: canViewCosts ? `Değer (${currencySymbol()})` : 'Miktar (adet)', data: rows.map(r => canViewCosts ? r.value : r.qty), backgroundColor: BLUE }]} />;
           })()}
         </Panel>
         <Panel icon={Bell} title="Bildirim dağılımı" subtitle="Önem derecesine göre" action={<Link to="/alerts">Bildirimler <ArrowUpRight size={13} /></Link>}>
@@ -307,7 +308,7 @@ export default function Dashboard() {
         <section className="ax-grid ax-3 ax-reveal">
         <Panel icon={Handshake} title="Satış hunisi" subtitle={`${a.deals.length} fırsat · kazanma oranı ${a.closed.length ? `%${Math.round(a.won.length / a.closed.length * 100)}` : '—'}`} action={<Link to="/crm/dashboard">CRM <ArrowUpRight size={13} /></Link>}>
           <BusinessChart type="bar" title="Aşamalara göre fırsat değeri" height={230} legend={false} valueFormat={compact} labels={STAGES.map(s => s[1])}
-            datasets={[{ label: 'Değer (₺)', data: STAGES.map(([id]) => a.deals.filter(d => d.stage === id).reduce((s, d) => s + Number(d.value || 0), 0)), backgroundColor: ['#94a3b8', AMBER, BLUE, IN, OUT] }]} />
+            datasets={[{ label: `Değer (${currencySymbol()})`, data: STAGES.map(([id]) => a.deals.filter(d => d.stage === id).reduce((s, d) => s + Number(d.value || 0), 0)), backgroundColor: ['#94a3b8', AMBER, BLUE, IN, OUT] }]} />
           <div className="ax-stats mt-4" style={{ marginBottom: 0 }}><div><span>Aday müşteri</span><b>{num(a.leads.length)}</b></div><div><span>Geciken görev</span><b className={a.overdueTasks.length ? 'text-red-500' : ''}>{num(a.overdueTasks.length)}</b></div></div>
         </Panel>
         <Panel icon={Truck} title="Satın alma siparişleri" subtitle={`${raw.orders.length} sipariş · ${raw.suppliers.length} tedarikçi`}>

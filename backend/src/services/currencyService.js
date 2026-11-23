@@ -111,4 +111,19 @@ async function paymentCurrency(tx, tenantId, code, netCents) {
   return { currency: code, rate, amount: Math.round(netCents / rate) / 100 };
 }
 
-module.exports = { cashierRates, paymentCurrency, rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };
+// Defter para birimi: işletmenin ana para birimi (satış/fatura kaydına yazılır). Geçersiz ya da eksikse TRY.
+const LEDGER_CURRENCIES = ['TRY', 'AZN', 'USD', 'EUR', 'GBP'];
+const normalizeLedger = code => { const c = String(code || '').trim().toUpperCase(); return LEDGER_CURRENCIES.includes(c) ? c : 'TRY'; };
+async function ledgerCurrency(tx, tenantId) {
+  try { return normalizeLedger((await tx.query('SELECT currency FROM tenants WHERE id=$1', [tenantId])).rows[0]?.currency); } catch { return 'TRY'; }
+}
+// Belgenin (ör. e-fatura taslağı) para birimi satışınkiyle aynı olmalı; satış bulunamazsa işletmenin güncel ana para birimi.
+async function saleCurrency(tx, tenantId, saleId) {
+  try {
+    const row = (await tx.query('SELECT currency FROM pos_sales WHERE id=$1 AND tenant_id=$2', [saleId, tenantId])).rows[0];
+    if (row?.currency) return normalizeLedger(row.currency);
+  } catch { /* eski şema veya geçersiz kimlik */ }
+  return ledgerCurrency(tx, tenantId);
+}
+
+module.exports = { LEDGER_CURRENCIES, normalizeLedger, ledgerCurrency, saleCurrency, cashierRates, paymentCurrency, rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };

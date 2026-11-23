@@ -1,5 +1,8 @@
 // Stok kayıtları ve hareketlerinden pano metrikleri üretir.
 // Tüm tarih hesapları İstanbul saatine göre yapılır.
+import { formatMoney, setActiveCurrency } from '../../../shared/money.mjs';
+// Açılışta son bilinen para birimi (oturum yenilenene kadar); okunamazsa TRY.
+try { setActiveCurrency(JSON.parse(localStorage.getItem('user') || '{}').currency); } catch { /* depolama yok */ }
 
 export const asList = data => (Array.isArray(data) ? data : data?.data || []);
 export const dayKey = date => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
@@ -112,7 +115,8 @@ export function sumBy(rows, keyFn, valueFn) {
   return [...map].sort((a, b) => b[1] - a[1]);
 }
 
-export const tl = value => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(value || 0);
-export const money = value => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value) || 0);
+// Para birimi işletmenin ayarından gelir (shared/money.mjs); varsayılan TRY.
+export const tl = value => formatMoney(value || 0, { decimals: 0 });
+export const money = value => formatMoney(Number(value) || 0);
 export const num = value => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(value || 0);
 export const compact = value => new Intl.NumberFormat('tr-TR', { notation: 'compact', maximumFractionDigits: 1 }).format(value || 0);

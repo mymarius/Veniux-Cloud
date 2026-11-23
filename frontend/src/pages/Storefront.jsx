@@ -1,3 +1,4 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
@@ -5,7 +6,7 @@ import api from '../api/client';
 import { cartAdd, cartCount, cartKey, cartPayload, cartSet, cartTotals, lineStep, loadCart, newIdempotencyKey, qtyLabel, statusLabel } from '../lib/onlineStore.mjs';
 import './storefront.css';
 
-const tl = value => Number(value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = value => formatMoney(Number(value || 0));
 const apiError = (e, fallback) => e?.response?.data?.error || fallback;
 const shopApi = slug => `/public/shop/${slug}`;
 

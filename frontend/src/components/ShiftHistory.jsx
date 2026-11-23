@@ -1,7 +1,8 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useState } from 'react';
 import api from '../api/client';
 
-const tl = c => c === null || c === undefined ? '—' : (c / 100).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = c => c === null || c === undefined ? '—' : formatMoney((c / 100));
 const when = v => v ? new Date(v).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 // Geçmiş vardiyalar: kasa, açan/kapatan, beklenen ve sayılan nakit, fark ve sınır aşımı onayı.

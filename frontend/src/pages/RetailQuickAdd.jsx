@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney } from '../../../shared/money.mjs';
 import ScannerPanel from '../components/ScannerPanel';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -13,7 +14,7 @@ import './RetailQuickAdd.css';
 const initial = { name: '', unit: 'adet', purchase_price: '', sale_price: '', quantity: '1' };
 const UNITS = ['adet', 'paket', 'kutu', 'kg', 'litre', 'metre'];
 const QUICK = [1, 5, 10, 12, 24, 50];
-const money = v => Number(v || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const money = v => formatMoney(Number(v || 0));
 const num = v => Number(v || 0).toLocaleString('tr-TR');
 
 export default function RetailQuickAdd() {
@@ -183,7 +184,7 @@ export default function RetailQuickAdd() {
             {!suggest?.name && suggest?.message && <p className="rq-hint" role="status">{suggest.message}</p>}
             <div className="rq-fields">
               <label className="vx-field rq-span">Ürün adı<input required maxLength={200} disabled={busy} className="vx-input" placeholder="Örn: Kurşun kalem HB" value={fields.name} onChange={e => edit('name', e.target.value)} /></label>
-              {[['purchase_price', 'Alış fiyatı (₺)'], ['sale_price', 'Satış fiyatı (₺)']].map(([name, label]) => <label key={name} className="vx-field">{label}<input required type="number" min="0" max="10000000" step="0.01" inputMode="decimal" disabled={busy} className="vx-input" placeholder="0,00" value={fields[name]} onChange={e => edit(name, e.target.value)} /></label>)}
+              {[['purchase_price', `Alış fiyatı (${currencySymbol()})`], ['sale_price', `Satış fiyatı (${currencySymbol()})`]].map(([name, label]) => <label key={name} className="vx-field">{label}<input required type="number" min="0" max="10000000" step="0.01" inputMode="decimal" disabled={busy} className="vx-input" placeholder="0,00" value={fields[name]} onChange={e => edit(name, e.target.value)} /></label>)}
               <div className="vx-field rq-span">Birim
                 <div className="rq-units" role="group" aria-label="Birim">{UNITS.map(u => <button key={u} type="button" aria-pressed={fields.unit === u} onClick={() => edit('unit', u)}>{u}</button>)}</div>
               </div>

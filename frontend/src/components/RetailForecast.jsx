@@ -1,7 +1,8 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useState } from 'react';
 import api from '../api/client';
 
-const tl = value => Number(value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const tl = value => formatMoney(Number(value || 0));
 const number = value => Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 2 });
 
 // Sipariş önerisi (satış hızına göre) ve son kullanma tarihi indirim önerisi. İkisi de öneridir; kendiliğinden sipariş verilmez, indirim uygulanmaz.

@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney, getActiveCurrency } from '../../../shared/money.mjs';
 import {useState} from 'react';
 // Para sayma yardımcısı: kaç adet banknot/bozuk para sayıldığı girilir, toplam kendiliğinden hesaplanır.
 // Değerler kuruş cinsindendir; toplam TL olarak üst bileşene verilir.
@@ -12,7 +13,7 @@ export default function CashCounter({disabled,onTotal}){
   }
   function clear(){setCounts({});onTotal('');}
   return <fieldset className="border rounded p-3 space-y-2"><legend className="text-sm font-semibold px-1">Para sayma yardımcısı</legend>
-    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">{DENOMS.map(([value,label])=><label key={value} className="text-xs">{label}<input aria-label={label+' adedi'} type="number" inputMode="numeric" min="0" max="100000" step="1" className="border rounded p-2 block w-full" disabled={disabled} value={counts[value]||''} onChange={e=>change(value,e.target.value)}/></label>)}</div>
-    <p className="text-sm">Sayılan toplam: <b>{(total(counts)/100).toLocaleString('tr-TR',{style:'currency',currency:'TRY'})}</b> <button type="button" className="btn-soft ml-2" disabled={disabled} onClick={clear}>Sıfırla</button></p>
+    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">{DENOMS.map(([value,raw])=>{const label=raw.replace('₺',currencySymbol()).replace(' kr',getActiveCurrency()==='AZN'?' q':' kr');return <label key={value} className="text-xs">{label}<input aria-label={label+' adedi'} type="number" inputMode="numeric" min="0" max="100000" step="1" className="border rounded p-2 block w-full" disabled={disabled} value={counts[value]||''} onChange={e=>change(value,e.target.value)}/></label>;})}</div>
+    <p className="text-sm">Sayılan toplam: <b>{formatMoney((total(counts)/100))}</b> <button type="button" className="btn-soft ml-2" disabled={disabled} onClick={clear}>Sıfırla</button></p>
   </fieldset>;
 }

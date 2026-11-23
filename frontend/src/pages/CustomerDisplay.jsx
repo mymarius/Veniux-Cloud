@@ -1,8 +1,9 @@
+import { formatMoney } from '../../../shared/money.mjs';
 import { useEffect, useState } from 'react';
 import { DISPLAY_CHANNEL, readLastDisplay } from '../lib/customerDisplay.mjs';
 import './CustomerDisplay.css';
 
-const money = v => Number(v || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+const money = v => formatMoney(Number(v || 0));
 
 // Müşteri ekranı: ikinci monitörde tam ekran açılır; okutulan ürünler, adetler ve toplam müşteriye görünür.
 export default function CustomerDisplay() {

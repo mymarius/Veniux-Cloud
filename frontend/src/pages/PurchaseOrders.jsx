@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import PurchaseOrderSend from '../components/PurchaseOrderSend';
 import { money } from '../lib/stockAnalytics';
 import { scanIntoLines, normalizeScan } from '../lib/serialScan.mjs';
@@ -297,7 +298,7 @@ export default function PurchaseOrders() {
     { 
       header: 'Sipariş Tutarı', 
       accessorKey: 'total_amount', 
-      cell: (info) => <span className="font-mono font-bold text-gray-900 tabular-nums">₺{Number(info.getValue() || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+      cell: (info) => <span className="font-mono font-bold text-gray-900 tabular-nums">{currencySymbol()}{Number(info.getValue() || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
     },
     { 
       header: 'Durum', 
@@ -440,7 +441,7 @@ export default function PurchaseOrders() {
               <div>
                 <span className="text-[10px] font-mono text-gray-500 block">TOPLAM TUTAR</span>
                 <span className="text-lg font-bold font-mono text-green-600">
-                  ₺{Number(selectedOrder.total_amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                  {currencySymbol()}{Number(selectedOrder.total_amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
@@ -532,7 +533,7 @@ export default function PurchaseOrders() {
               <div className="grid grid-cols-12 gap-2 px-2.5 text-[11px] font-bold text-gray-500" aria-hidden="true">
                 <span className="col-span-6">Ürün</span>
                 <span className="col-span-3">Miktar</span>
-                <span className="col-span-2">Birim fiyat (₺)</span>
+                <span className="col-span-2">Birim fiyat ({currencySymbol()})</span>
               </div>
               {orderItems.map((item, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-xl border border-gray-200">

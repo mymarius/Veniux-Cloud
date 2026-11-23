@@ -2,8 +2,8 @@
 // TSPL/ZPL gibi etiket dili konuşan yazıcılar desteklenmez. Türkçe karakterler varsayılan olarak ASCII'ye çevrilir
 // (yazıcı kod sayfası bilinmeden bozuk yazı basmamak için); kod sayfası biliniyorsa options.codepage verilir.
 
-const TR = { ç: 'c', Ç: 'C', ğ: 'g', Ğ: 'G', ı: 'i', İ: 'I', ö: 'o', Ö: 'O', ş: 's', Ş: 'S', ü: 'u', Ü: 'U', '₺': 'TL', '’': "'", '“': '"', '”': '"', '–': '-', '—': '-', '×': 'x' };
-export const toAscii = text => String(text ?? '').replace(/[çÇğĞıİöÖşŞüÜ₺’“”–—×]/g, ch => TR[ch]).replace(/[^\x20-\x7e]/g, '?');
+const TR = { ç: 'c', Ç: 'C', ğ: 'g', Ğ: 'G', ı: 'i', İ: 'I', ö: 'o', Ö: 'O', ş: 's', Ş: 'S', ü: 'u', Ü: 'U', '₺': 'TL', '₼': 'AZN', 'ə': 'e', 'Ə': 'E', '’': "'", '“': '"', '”': '"', '–': '-', '—': '-', '×': 'x' };
+export const toAscii = text => String(text ?? '').replace(/[çÇğĞıİöÖşŞüÜ₺₼əƏ’“”–—×]/g, ch => TR[ch]).replace(/[^\x20-\x7e]/g, '?');
 
 const ESC = 0x1b, GS = 0x1d, LF = 0x0a;
 export const money = value => Number(value).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';

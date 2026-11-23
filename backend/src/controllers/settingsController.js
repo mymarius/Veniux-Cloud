@@ -177,6 +177,7 @@ const updateCompany = async (req, res) => {
     const tenantId = req.user.tenantId;
     if(!tenantId)return res.status(403).json({error:'İşletme kapsamı doğrulanamadı. Yeniden giriş yapın.'});
     const { companyName, email, phone, taxNumber, taxOffice, address, currency, timezone, industry } = req.body;
+    if(currency!==undefined&&currency!==null&&!['TRY','AZN','USD','EUR','GBP'].includes(String(currency)))return res.status(400).json({error:'Desteklenmeyen para birimi.'});
     let ownerPhone;
     if(req.body.ownerPhone!==undefined){
       if(req.user.role!=='admin')return res.status(403).json({error:'Firma sahibinin telefonunu yalnızca yönetici değiştirebilir.'});
@@ -184,8 +185,14 @@ const updateCompany = async (req, res) => {
       if(!ownerPhone)return res.status(400).json({error:'Geçerli bir firma sahibi cep telefonu girin.'});
     }
 
-    const existing = await pool.query('SELECT id FROM tenants WHERE id = $1', [tenantId]);
+    const existing = await pool.query('SELECT id, currency FROM tenants WHERE id = $1', [tenantId]);
     if (existing.rows.length > 0) {
+      // Satış kaydı varsa defter para birimi değişmez: eski kayıtlar kendi para biriminde kalır, ama aynı raporda karışık para birimi toplanmasın.
+      const nextCurrency = currency === undefined || currency === null || currency === '' ? null : String(currency);
+      if (nextCurrency && nextCurrency !== (existing.rows[0].currency || 'TRY')) {
+        const used = await pool.query('SELECT COUNT(*) AS n FROM pos_sales WHERE tenant_id = $1', [tenantId]);
+        if (Number(used.rows[0].n) > 0) return res.status(409).json({ error: 'Bu işletmenin satış kayıtları olduğu için para birimi değiştirilemez. Farklı para birimi için yeni bir işletme hesabı açın veya destekle iletişime geçin.' });
+      }
       await pool.query(
         `UPDATE tenants SET 
           company_name = COALESCE($1, company_name),

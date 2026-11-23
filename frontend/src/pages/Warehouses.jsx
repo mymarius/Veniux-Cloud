@@ -1,3 +1,4 @@
+import { currencySymbol } from '../../../shared/money.mjs';
 import { Dropdown } from '../components/ui';
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -342,10 +343,10 @@ export default function Warehouses() {
                         {item.quantity} {item.unit || 'Adet'}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-700 dark:text-slate-300">
-                        ₺{Number(item.cost_price || 0).toFixed(2)}
+                        {currencySymbol()}{Number(item.cost_price || 0).toFixed(2)}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                        ₺{Number((item.quantity || 0) * (item.cost_price || 0)).toFixed(2)}
+                        {currencySymbol()}{Number((item.quantity || 0) * (item.cost_price || 0)).toFixed(2)}
                       </td>
                     </tr>
                   ))}

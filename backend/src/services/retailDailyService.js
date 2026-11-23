@@ -161,7 +161,8 @@ async function sale(user,body,key,device,offline=null){
     if(payments.on_account&&!['admin','manager'].includes(user.role))fail('Veresiye satış için yönetici yetkisi gerekli.',403);
     if(!payments.on_account&&(body.account_id!==undefined||body.due_date!==undefined))fail('Cari hesap yalnız veresiye ödemede seçilebilir.');
     const devices=require('./posDeviceService'),posDevice=await devices.resolve(tx,user,device,shift.register_id),localNo=await devices.nextReceiptNo(tx,user.tenantId,body.warehouse_id,shift.register_id,date);
-    const pos=(await tx.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,discount_amount,net_amount,payment_method,status) VALUES ($1,$2,$3,$4,$5,$6,'completed') RETURNING *",[user.tenantId,no,gross/100,discount/100,net/100,method])).rows[0];
+    const ledger=await require('./currencyService').ledgerCurrency(tx,user.tenantId);
+    const pos=(await tx.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,discount_amount,net_amount,payment_method,status,currency) VALUES ($1,$2,$3,$4,$5,$6,'completed',$7) RETURNING *",[user.tenantId,no,gross/100,discount/100,net/100,method,ledger])).rows[0];
     for(const line of lines){delete line.manual_price;delete line.weighted;}
     const items=discountAllocation(lines,discount,gross);
     for(const line of items){
