@@ -4,18 +4,18 @@ const db = require('../config/database');
 const procurement = require('./procurementService');
 const fail = (message, status = 400) => { throw Object.assign(Error(message), { status }); };
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const tl = n => Number(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
+const tlc = (cur, n) => Number(n || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + require('./moneyText').unit(cur);
 const qty = n => Number(n || 0).toLocaleString('tr-TR', { maximumFractionDigits: 3 });
 const EMAIL = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
 
 async function load(user, id) {
   const order = await procurement.detail(user, id);
-  const company = (await db.query('SELECT company_name,email,phone,address,tax_number,tax_office FROM tenants WHERE id=$1', [user.tenantId])).rows[0] || {};
+  const company = (await db.query('SELECT company_name,email,phone,address,tax_number,tax_office,currency FROM tenants WHERE id=$1', [user.tenantId])).rows[0] || {};
   return { order, company };
 }
 
 function html({ order, company }) {
-  const rows = order.items.map((i, n) => `<tr><td>${n + 1}</td><td>${esc(i.product_name)}<br><small>${esc(i.barcode || i.sku || '')}</small></td><td class="r">${qty(i.quantity)} ${esc(i.unit || '')}</td><td class="r">${tl(i.unit_price)}</td><td class="r">${tl(Number(i.quantity) * Number(i.unit_price))}</td></tr>`).join('');
+  const rows = order.items.map((i, n) => `<tr><td>${n + 1}</td><td>${esc(i.product_name)}<br><small>${esc(i.barcode || i.sku || '')}</small></td><td class="r">${qty(i.quantity)} ${esc(i.unit || '')}</td><td class="r">${tlc(order.currency || company.currency, i.unit_price)}</td><td class="r">${tlc(order.currency || company.currency, Number(i.quantity) * Number(i.unit_price))}</td></tr>`).join('');
   const total = order.items.reduce((t, i) => t + Number(i.quantity) * Number(i.unit_price), 0);
   const tax = company.tax_number ? 'VKN: ' + esc(company.tax_number) + (company.tax_office ? ' / ' + esc(company.tax_office) : '') : '';
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Sipariş ${esc(order.order_no)}</title><style>
@@ -25,7 +25,7 @@ body{font:12px/1.45 Arial,Helvetica,sans-serif;color:#111;margin:24px}h1{font-si
 <div><b>Tedarikçi</b><br>${esc(order.supplier_name)}<br>${esc(order.supplier_phone || '')} ${esc(order.supplier_email || '')}</div>
 <div><b>Teslim yeri</b><br>${esc(order.target_warehouse_name)}</div></div>
 <table><thead><tr><th>#</th><th>Ürün</th><th class="r">Miktar</th><th class="r">Birim fiyat</th><th class="r">Tutar</th></tr></thead><tbody>${rows}</tbody>
-<tfoot><tr><td colspan="4" class="r total">Toplam (KDV durumu tedarikçi faturasına göre)</td><td class="r total">${tl(total)}</td></tr></tfoot></table>
+<tfoot><tr><td colspan="4" class="r total">Toplam (KDV durumu tedarikçi faturasına göre)</td><td class="r total">${tlc(order.currency || company.currency, total)}</td></tr></tfoot></table>
 ${order.notes ? `<p><b>Not:</b> ${esc(order.notes)}</p>` : ''}<p><small>Bu belge Veniux ile hazırlanan sipariş talebidir; fatura veya irsaliye yerine geçmez.</small></p></body></html>`;
 }
 

@@ -1,6 +1,8 @@
+import { getActiveCurrency, currencySymbol } from '../../../shared/money.mjs';
 const decimal=new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 export function moneyNumber(value){return Number.isFinite(Number(value))?decimal.format(Number(value)):'';}
-export function moneyLabel(value){return Number.isFinite(Number(value))?moneyNumber(value)+' TL':'—';}
+// Birim işletmenin para birimidir (TRY için eskisi gibi "TL", diğerleri para birimi simgesi).
+export function moneyLabel(value){return Number.isFinite(Number(value))?moneyNumber(value)+' '+(getActiveCurrency()==='TRY'?'TL':currencySymbol()):'—';}
 // Presentation boundary only; the API continues receiving canonical decimal strings.
 // Reject excess decimals rather than silently rounding an entered amount.
 export function canonicalMoney(value){

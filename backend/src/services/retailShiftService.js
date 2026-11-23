@@ -151,7 +151,8 @@ async function close(user,id,body,key) {
       const note=difference ? reason(body.reason) : body.reason ? reason(body.reason) : '';
       const {shiftDifferenceLimitCents:limit}=await policy(user.tenantId,tx);
       const overLimit=Math.abs(difference)>limit;
-      if(overLimit&&!['admin','manager'].includes(user.role))fail(`Kasa farkı (${(Math.abs(difference)/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} TL) izin verilen ${(limit/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} TL sınırını aşıyor. Vardiyayı müdür veya yönetici kapatmalı.`,409);
+      const unit=require('./moneyText').unit(await require('./currencyService').ledgerCurrency(tx,user.tenantId));
+      if(overLimit&&!['admin','manager'].includes(user.role))fail(`Kasa farkı (${(Math.abs(difference)/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} ${unit}) izin verilen ${(limit/100).toLocaleString('tr-TR',{minimumFractionDigits:2})} ${unit} sınırını aşıyor. Vardiyayı müdür veya yönetici kapatmalı.`,409);
       const result={...r,status:'closed',counted_cash_cents:counted,difference_cents:difference,difference_reason:note,difference_limit_cents:limit,...(overLimit?{approved_by:user.email,approved_by_id:user.userId}:{}),closed_by:user.email,closed_by_id:user.userId,closed_at:new Date().toISOString()};
       const changed=await tx.query("UPDATE retail_shifts SET status='closed',closed_at=$1,closed_by=$2,closing_json=$3 WHERE tenant_id=$4 AND id=$5 AND status='open'",[result.closed_at,user.userId,JSON.stringify(result),user.tenantId,s.id]);
       if(changed.rowCount!==1)fail('Vardiya durumu değişti. Kasayı yenileyin.',409);

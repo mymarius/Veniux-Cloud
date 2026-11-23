@@ -1,12 +1,14 @@
 // Bluetooth termal yazıcı için ESC/POS etiket üretimi (58/80 mm fiş yazıcıları ve çoğu mini raf etiketi yazıcısı).
 // TSPL/ZPL gibi etiket dili konuşan yazıcılar desteklenmez. Türkçe karakterler varsayılan olarak ASCII'ye çevrilir
 // (yazıcı kod sayfası bilinmeden bozuk yazı basmamak için); kod sayfası biliniyorsa options.codepage verilir.
+import { getActiveCurrency } from '../../../shared/money.mjs';
 
 const TR = { ç: 'c', Ç: 'C', ğ: 'g', Ğ: 'G', ı: 'i', İ: 'I', ö: 'o', Ö: 'O', ş: 's', Ş: 'S', ü: 'u', Ü: 'U', '₺': 'TL', '₼': 'AZN', 'ə': 'e', 'Ə': 'E', '’': "'", '“': '"', '”': '"', '–': '-', '—': '-', '×': 'x' };
 export const toAscii = text => String(text ?? '').replace(/[çÇğĞıİöÖşŞüÜ₺₼əƏ’“”–—×]/g, ch => TR[ch]).replace(/[^\x20-\x7e]/g, '?');
 
 const ESC = 0x1b, GS = 0x1d, LF = 0x0a;
-export const money = value => Number(value).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
+// Yazıcı kod sayfasında ₺/₼ olmayabilir: birim metin olarak yazılır (TRY → TL, diğerleri para birimi kodu).
+export const money = value => Number(value).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (getActiveCurrency() === 'TRY' ? 'TL' : getActiveCurrency());
 
 // "123 456" gibi ayırıcı içermeyen barkod: yalnız yazdırılabilir ASCII; EAN-13 ise 13 rakam ve doğru sağlama basamağı.
 export function ean13Valid(code) {

@@ -110,7 +110,8 @@ router.get('/gross-profit',requireRole('admin','manager'),async(req,res,next)=>{
       res.attachment(filename).type('text/csv; charset=utf-8').send('\uFEFF'+rows.map(r=>r.map(cell).join(';')).join('\r\n'));
     }else{
       const x=require('xlsx'),book=x.utils.book_new(),sheet=x.utils.aoa_to_sheet(rows);
-      for(const cell of Object.values(sheet))if(cell && cell.t==='n')cell.z='#,##0.00" TL"';
+      const unit=require('../services/moneyText').unit(await require('../services/currencyService').ledgerCurrency(require('../config/database'),req.user.tenantId));
+      for(const cell of Object.values(sheet))if(cell && cell.t==='n')cell.z='#,##0.00" '+unit+'"';
       sheet['!cols']=rows[0].map((_,i)=>({wch:i===1?30:22}));
       x.utils.book_append_sheet(book,sheet,'Brüt kâr');
       res.attachment(filename).type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(x.write(book,{type:'buffer',bookType:'xlsx'}));

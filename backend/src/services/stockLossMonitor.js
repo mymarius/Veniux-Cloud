@@ -38,7 +38,8 @@ async function run(tenantId = null, now = new Date()) {
       const sameDay = (await client.query(`SELECT COUNT(*) AS n FROM stock_movements WHERE tenant_id=$1 AND product_id=$2 AND change_amount<0 AND created_at>=$3 AND (source IS NULL OR source='manual')`, [row.tenant_id, row.product_id, stamp(new Date(date.getTime() - 86400000))])).rows[0];
       const reasons = reasonsFor(row, { velocity, countShortages: Number(prior.shortages), sameDayDrops: Number(sameDay.n), date });
       const value = units * Number(row.purchase_price || 0);
-      const message = `${prefix} ${row.product_name}: belgesiz ${units} adet düşüş${value ? ` (yaklaşık ${value.toLocaleString('tr-TR')} TL)` : ''}. İncelenecek ipuçları: ${reasons.join('; ')}.`;
+      const unit = require('./moneyText').unit(await require('./currencyService').ledgerCurrency(client,row.tenant_id));
+      const message = `${prefix} ${row.product_name}: belgesiz ${units} adet düşüş${value ? ` (yaklaşık ${value.toLocaleString('tr-TR')} ${unit})` : ''}. İncelenecek ipuçları: ${reasons.join('; ')}.`;
       await client.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'loss_suspicion','warning',$4,'unread')", [row.tenant_id, row.product_id, row.warehouse_id, message]);
       created++;
     }

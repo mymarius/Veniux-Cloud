@@ -73,4 +73,4 @@ const OFF = providers.REGISTRY.find(p => p.id === 'off');
 const ATTRIBUTION = OFF.attribution('');
 const GLOBAL_PER_MIN = OFF.limits.global;
 
-module.exports = { suggest, offLookup, ownCatalog, checksumOk, variants, reset, status: providers.status, ATTRIBUTION, GLOBAL_PER_MIN };
+module.exports = { suggest, offLookup, ownCatalog, checksumOk, variants, reset, status: providers.status, statusAsync: providers.statusAsync, providers, ATTRIBUTION, GLOBAL_PER_MIN };

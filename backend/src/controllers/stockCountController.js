@@ -5,7 +5,8 @@ const ledger = require('../services/inventoryTransactionService');
 async function notifyVariance(client, tenantId, count, productId, applied) {
   const product = (await client.query('SELECT name,purchase_price FROM products WHERE id=$1 AND tenant_id=$2', [productId, tenantId])).rows[0];
   const units = Math.abs(applied), value = units * Number(product?.purchase_price || 0);
-  const message = `Sayım #${count.count_no}: ${product?.name || 'Ürün'} ${units} adet ${applied < 0 ? 'eksik' : 'fazla'} çıktı${value ? ` (yaklaşık ${value.toLocaleString('tr-TR')} TL)` : ''}.`;
+  const unit = require('../services/moneyText').unit(await require('../services/currencyService').ledgerCurrency(client, tenantId));
+  const message = `Sayım #${count.count_no}: ${product?.name || 'Ürün'} ${units} adet ${applied < 0 ? 'eksik' : 'fazla'} çıktı${value ? ` (yaklaşık ${value.toLocaleString('tr-TR')} ${unit})` : ''}.`;
   await client.query("INSERT INTO alerts (tenant_id,product_id,warehouse_id,alert_type,severity,message,status) VALUES ($1,$2,$3,'count_variance',$4,$5,'unread')", [tenantId, productId, count.warehouse_id, applied < 0 ? 'warning' : 'info', message]);
 }
 

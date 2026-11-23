@@ -80,8 +80,13 @@ public class MainActivity extends Activity {
  @Override protected void onDestroy(){if(tts!=null){tts.stop();tts.shutdown();tts=null;}releaseScanner();releaseBarcode();if(updater!=null)updater.close();workers.shutdownNow();if(web!=null)web.destroy();super.onDestroy();}
  @Override public void onConfigurationChanged(android.content.res.Configuration config){super.onConfigurationChanged(config);if(scanView!=null)scannerScreen();}
  @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);captureRoute(intent);openPendingRoute();}
- @Override protected void onPause(){releaseScanner();releaseBarcode();if(web!=null)web.onPause();super.onPause();}
- @Override protected void onResume(){super.onResume();if(updater!=null)updater.resume();if(web!=null)web.onResume();if(scanView!=null)startScanner(scanView.getHolder());}
+ // Zebra DataWedge / el terminali donanım tarayıcısı: DataWedge profilinde "Intent output" etkin, Intent action=com.veniux.companion.SCAN, kategori=DEFAULT, teslim=Broadcast olmalıdır.
+ // Okunan değer web arayüzüne 'veniux-hw-scan' olayı olarak gider (klavye modu zaten ek ayar gerektirmez). Gerçek cihazda DENENMEDİ.
+ private BroadcastReceiver hwScan;
+ private void registerHardwareScanner(){if(hwScan!=null)return;hwScan=new BroadcastReceiver(){@Override public void onReceive(Context context,Intent intent){String code=intent==null?null:intent.getStringExtra("com.symbol.datawedge.data_string");if(code==null||code.length()==0||code.length()>128||web==null)return;final String script="window.dispatchEvent(new CustomEvent('veniux-hw-scan',{detail:{code:"+JSONObject.quote(code)+"}}))";web.post(()->web.evaluateJavascript(script,null));}};IntentFilter filter=new IntentFilter("com.veniux.companion.SCAN");filter.addCategory(Intent.CATEGORY_DEFAULT);try{if(Build.VERSION.SDK_INT>=33)registerReceiver(hwScan,filter,Context.RECEIVER_EXPORTED);else registerReceiver(hwScan,filter);}catch(Exception ignored){hwScan=null;}}
+ private void unregisterHardwareScanner(){if(hwScan==null)return;try{unregisterReceiver(hwScan);}catch(Exception ignored){}hwScan=null;}
+ @Override protected void onPause(){unregisterHardwareScanner();releaseScanner();releaseBarcode();if(web!=null)web.onPause();super.onPause();}
+ @Override protected void onResume(){super.onResume();registerHardwareScanner();if(updater!=null)updater.resume();if(web!=null)web.onResume();if(scanView!=null)startScanner(scanView.getHolder());}
 }
 
 

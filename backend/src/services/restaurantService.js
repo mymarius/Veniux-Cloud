@@ -571,7 +571,7 @@ async function refundOrder(user, orderId, body = {}) {
       if (!Number.isSafeInteger(cents) || cents <= 0) fail('İade tutarı geçersiz.');
     }
     if (cents <= 0) fail('Seçilen kalemlerin iade edilecek tutarı yok (ikram olabilir).', 409);
-    if (refunded + cents > totalCents) fail(`İade, adisyon tutarını aşamaz. İade edilebilecek en fazla ${((totalCents - refunded) / 100).toFixed(2)} ₺.`, 409);
+    if (refunded + cents > totalCents) fail(`İade, adisyon tutarını aşamaz. İade edilebilecek en fazla ${((totalCents - refunded) / 100).toFixed(2)} ${require('./moneyText').symbol(await require('./currencyService').ledgerCurrency(tx, user.tenantId))}.`, 409);
     let shift = null, warning = null;
     if (method === 'cash') {
       shift = (await tx.query("SELECT id FROM retail_shifts WHERE tenant_id=$1 AND warehouse_id=$2 AND status='open' AND user_id=$3 ORDER BY id DESC LIMIT 1", [user.tenantId, Number(o.warehouse_id), user.userId])).rows[0]

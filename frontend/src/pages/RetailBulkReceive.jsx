@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Camera, CheckCircle2, Minus, PackagePlus, Plus, ScanLine, Trash2, Undo2 } from 'lucide-react';
 import api from '../api/client';
+import { useT } from '../i18n';
 import BarcodeCamera from '../components/BarcodeCamera';
 import { addEntry, chunk, parseDraft, patchRow, readiness, removeRow, serializeDraft, setQuantity, toLines, UNITS } from '../lib/bulkReceive.mjs';
 import { currencySymbol } from '../../../shared/money.mjs';
@@ -13,6 +14,7 @@ const STEPS = [1, 6, 10, 12, 24];
 const num = v => Number(v || 0).toLocaleString('tr-TR');
 
 export default function RetailBulkReceive() {
+  const t = useT();
   const [rows, setRowsState] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [warehouse, setWarehouse] = useState('');
@@ -46,7 +48,7 @@ export default function RetailBulkReceive() {
         setWarehouse(saved?.warehouse && ids.includes(saved.warehouse) ? saved.warehouse : String(r.data[0]?.id || ''));
         if (saved?.rows.length) { setRows(saved.rows); setRestored(saved.rows.length); }
       })
-      .catch(() => setError('Mağaza bilgisi yüklenemedi. Sayfayı yenileyin.'));
+      .catch(() => setError(t('Mağaza bilgisi yüklenemedi. Sayfayı yenileyin.')));
   }, [setRows]);
 
   // Taslak: sayfa yenilense ya da bağlantı kopsa yüzlerce satır kaybolmaz.
@@ -68,27 +70,34 @@ export default function RetailBulkReceive() {
     try {
       const r = await api.get('/retail/lookup', { params: { barcode } });
       if (r.data.product) {
-        entry = { kind: 'existing', barcode, product_id: r.data.product.id, name: r.data.product.name, unit: r.data.product.unit, pack: r.data.pack || null, source: 'Kayıtlı ürün' };
+        entry = { kind: 'existing', barcode, product_id: r.data.product.id, name: r.data.product.name, unit: r.data.product.unit, pack: r.data.pack || null, source: t('Kayıtlı ürün') };
       } else {
         let s = null;
         try { s = (await api.get('/retail/lookup/suggest', { params: { barcode } })).data; } catch { /* öneri yoksa elle */ }
         const sg = s && s.suggestion && s.source !== 'catalog' && s.source !== 'none' ? s : null;
-        entry = { kind: 'new', barcode, name: sg ? (sg.suggestion.suggested_name || sg.suggestion.name) : '', unit: sg?.suggestion.suggested_unit || 'adet', purchase_price: '', sale_price: '', source: sg ? (sg.attribution?.source || 'Katalog') + ' önerisi' : 'Katalogda yok', checksum_ok: s ? s.checksum_ok : undefined };
+        entry = { kind: 'new', barcode, name: sg ? (sg.suggestion.suggested_name || sg.suggestion.name) : '', unit: sg?.suggestion.suggested_unit || 'adet', purchase_price: '', sale_price: '', source: sg ? (sg.attribution?.source || 'Katalog') + ' ' + t('önerisi') : t('Katalogda yok'), checksum_ok: s ? s.checksum_ok : undefined };
       }
     } catch (e) {
-      entry = { kind: 'new', barcode, name: '', unit: 'adet', purchase_price: '', sale_price: '', source: 'Sorgulanamadı: elle doldurun' };
+      entry = { kind: 'new', barcode, name: '', unit: 'adet', purchase_price: '', sale_price: '', source: t('Sorgulanamadı: elle doldurun') };
     }
     const out = addEntry(rowsRef.current, entry, stepRef.current);
     setRows(out.rows);
-    setLast({ name: entry.name || barcode, text: entry.kind === 'new' ? (entry.name ? 'yeni ürün: fiyat girin' : 'tanınmadı: ad ve fiyat girin') : 'eklendi (' + out.row.quantity + ')', tone: entry.kind === 'new' ? 'warn' : 'ok' });
+    setLast({ name: entry.name || barcode, text: entry.kind === 'new' ? (entry.name ? t('yeni ürün: fiyat girin') : t('tanınmadı: ad ve fiyat girin')) : t('eklendi ({0})', out.row.quantity), tone: entry.kind === 'new' ? 'warn' : 'ok' });
   }, [setRows]);
 
   // Okutmalar sırayla işlenir: art arda okutulan barkodlar birbirini ezmez.
   const scan = useCallback(raw => {
     setError(''); setDone(null);
     setPending(n => n + 1);
-    queue.current = queue.current.then(() => handle(String(raw))).catch(() => setError('Barkod işlenemedi; yeniden okutun.')).finally(() => { setPending(n => n - 1); setResumeKey(k => k + 1); });
+    queue.current = queue.current.then(() => handle(String(raw))).catch(() => setError(t('Barkod işlenemedi; yeniden okutun.'))).finally(() => { setPending(n => n - 1); setResumeKey(k => k + 1); });
   }, [handle]);
+
+  // Android el terminali donanım tarayıcısı (ör. Zebra DataWedge intent çıkışı)
+  useEffect(() => {
+    const handler = event => { const code = event && event.detail && event.detail.code; if (typeof code === 'string' && code) scan(code); };
+    window.addEventListener('veniux-hw-scan', handler);
+    return () => window.removeEventListener('veniux-hw-scan', handler);
+  }, [scan]);
 
   const submitCode = e => { e.preventDefault(); const v = code; setCode(''); scan(v); input.current?.focus(); };
 
@@ -123,57 +132,57 @@ export default function RetailBulkReceive() {
   }
 
   const clearAll = () => { if (rows.length && !window.confirm(rows.length + ' satırlık listeyi temizlemek istiyor musunuz? Kaydedilmemiş okutmalar silinir.')) return; setRows([]); setRowErrors({}); setRestored(0); setLast(null); input.current?.focus(); };
-  const addBlank = () => { const out = addEntry(rowsRef.current, { kind: 'new', barcode: '', name: '', unit: 'adet', purchase_price: '', sale_price: '', source: 'Elle eklendi' }, 1); setRows(out.rows); };
+  const addBlank = () => { const out = addEntry(rowsRef.current, { kind: 'new', barcode: '', name: '', unit: 'adet', purchase_price: '', sale_price: '', source: t('Elle eklendi') }, 1); setRows(out.rows); };
 
   return (
     <div className="rq rbr">
       <header className="rq-head">
         <div>
-          <span className="rq-eyebrow">Mal kabul</span>
-          <h1>Toplu mal kabul</h1>
-          <p>Barkodları art arda okutun; ürün tanınır, listeye eklenir. Bitince tek onayla hepsi stoğa girer.</p>
+          <span className="rq-eyebrow">{t('Mal kabul')}</span>
+          <h1>{t('Toplu mal kabul')}</h1>
+          <p>{t('Barkodları art arda okutun; ürün tanınır, listeye eklenir. Bitince tek onayla hepsi stoğa girer.')}</p>
         </div>
-        <label className="rq-store"><PackagePlus size={18} /><span><small>Mağaza</small>
-          <select value={warehouse} onChange={e => setWarehouse(e.target.value)} disabled={saving} aria-label="Mağaza">
+        <label className="rq-store"><PackagePlus size={18} /><span><small>{t('Mağaza')}</small>
+          <select value={warehouse} onChange={e => setWarehouse(e.target.value)} disabled={saving} aria-label={t('Mağaza')}>
             {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select></span></label>
       </header>
 
       <section className="rq-card rbr-scan">
         <form onSubmit={submitCode} className="rbr-form">
-          <label className="rq-label" htmlFor="rbr-code">Barkod</label>
+          <label className="rq-label" htmlFor="rbr-code">{t('Barkod')}</label>
           <div className="rbr-row">
-            <input id="rbr-code" ref={input} autoFocus inputMode="numeric" autoComplete="off" placeholder="Okutun ya da yazıp Enter'a basın" value={code} onChange={e => setCode(e.target.value)} disabled={saving} />
-            <button type="submit" className="btn-soft" disabled={saving || !code.trim()}><ScanLine size={16} /> Ekle</button>
-            <button type="button" className="btn-soft" onClick={() => setCamera(c => !c)}><Camera size={16} /> {camera ? 'Kamerayı kapat' : 'Kamera'}</button>
+            <input id="rbr-code" ref={input} autoFocus inputMode="numeric" autoComplete="off" placeholder={t("Okutun ya da yazıp Enter'a basın")} value={code} onChange={e => setCode(e.target.value)} disabled={saving} />
+            <button type="submit" className="btn-soft" disabled={saving || !code.trim()}><ScanLine size={16} /> {t('Ekle')}</button>
+            <button type="button" className="btn-soft" onClick={() => setCamera(c => !c)}><Camera size={16} /> {camera ? t('Kamerayı kapat') : t('Kamera')}</button>
           </div>
         </form>
-        <div className="rbr-steps" role="group" aria-label="Her okutmada eklenecek adet">
-          <span>Her okutma:</span>
+        <div className="rbr-steps" role="group" aria-label={t('Her okutmada eklenecek adet')}>
+          <span>{t('Her okutma:')}</span>
           {STEPS.map(s => <button key={s} type="button" className={'rq-chip' + (step === s ? ' on' : '')} aria-pressed={step === s} onClick={() => { setStep(s); input.current?.focus(); }}>×{s}</button>)}
         </div>
         {camera && <div className="rbr-camera"><BarcodeCamera continuous resumeKey={resumeKey} onCode={scan} onClose={() => setCamera(false)} /></div>}
         <div className="rbr-last" role="status" aria-live="polite">
-          {pending > 0 ? 'Aranıyor…' : last ? <span className={'rbr-tone-' + last.tone}><b>{last.name}</b> — {last.text}</span> : 'Henüz okutma yok.'}
+          {pending > 0 ? t('Aranıyor…') : last ? <span className={'rbr-tone-' + last.tone}><b>{last.name}</b> — {last.text}</span> : t('Henüz okutma yok.')}
         </div>
       </section>
 
-      {restored > 0 && <p className="rq-hint" role="status">Kaydedilmemiş liste geri yüklendi ({restored} satır). Kontrol edip kaydedin ya da temizleyin.</p>}
+      {restored > 0 && <p className="rq-hint" role="status">{t('Kaydedilmemiş liste geri yüklendi ({0} satır). Kontrol edip kaydedin ya da temizleyin.', restored)}</p>}
       {error && <p className="rq-alert" role="alert">{error}</p>}
-      {done && <section className="rq-card rq-pop" role="status"><CheckCircle2 size={20} /> <b>{num(done.lines)} satır kaydedildi</b> — {num(done.units)} adet stoğa girdi{done.news ? `, ${num(done.news)} yeni ürün oluşturuldu` : ''}.</section>}
+      {done && <section className="rq-card rq-pop" role="status"><CheckCircle2 size={20} /> <b>{t('{0} satır kaydedildi', num(done.lines))}</b> — {num(done.units)} adet stoğa girdi{done.news ? `, ${num(done.news)} yeni ürün oluşturuldu` : ''}.</section>}
 
       <section className="rq-card rbr-list">
         <div className="rbr-bar">
-          <strong>{num(state.lines)} satır · {num(state.units)} adet{state.news ? ` · ${num(state.news)} yeni ürün` : ''}</strong>
+          <strong>{t('{0} satır · {1} adet', num(state.lines), num(state.units))}{state.news ? ' · ' + t('{0} yeni ürün', num(state.news)) : ''}</strong>
           <span className="rbr-actions">
-            <button type="button" className="btn-soft" onClick={addBlank} disabled={saving}><Plus size={14} /> Satır ekle</button>
-            <button type="button" className="btn-soft" onClick={clearAll} disabled={saving || !rows.length}><Undo2 size={14} /> Temizle</button>
+            <button type="button" className="btn-soft" onClick={addBlank} disabled={saving}><Plus size={14} /> {t('Satır ekle')}</button>
+            <button type="button" className="btn-soft" onClick={clearAll} disabled={saving || !rows.length}><Undo2 size={14} /> {t('Temizle')}</button>
           </span>
         </div>
-        {!rows.length ? <p className="rq-hint">Liste boş. İlk barkodu okutun.</p> : (
+        {!rows.length ? <p className="rq-hint">{t('Liste boş. İlk barkodu okutun.')}</p> : (
           <div className="rbr-scroll">
             <table className="rbr-table">
-              <thead><tr><th>#</th><th>Ürün</th><th>Adet</th><th>Alış ({currencySymbol()})</th><th>Satış ({currencySymbol()})</th><th><span className="sr-only">Sil</span></th></tr></thead>
+              <thead><tr><th>#</th><th>{t('Ürün')}</th><th>{t('Adet')}</th><th>{t('Alış ({0})', currencySymbol())}</th><th>{t('Satış ({0})', currencySymbol())}</th><th><span className="sr-only">{t('Sil')}</span></th></tr></thead>
               <tbody>
                 {[...rows].reverse().map((r, i) => {
                   const issues = issueOf[r.id] || [], err = rowErrors[r.id];
@@ -182,22 +191,22 @@ export default function RetailBulkReceive() {
                       <td>{rows.length - i}</td>
                       <td>
                         {r.kind === 'new'
-                          ? <input aria-label="Ürün adı" className="rbr-name" placeholder="Ürün adı" value={r.name} onChange={e => setRows(patchRow(rowsRef.current, r.id, { name: e.target.value }))} />
+                          ? <input aria-label={t('Ürün adı')} className="rbr-name" placeholder={t('Ürün adı')} value={r.name} onChange={e => setRows(patchRow(rowsRef.current, r.id, { name: e.target.value }))} />
                           : <b>{r.name}</b>}
-                        <small>{r.barcode || 'barkodsuz'} · {r.source}{r.pack ? ` · ${r.pack.unit} ×${r.pack.factor}` : ''}{r.checksum_ok === false ? ' · sağlama basamağı tutmuyor' : ''}</small>
-                        {r.kind === 'new' && <select aria-label="Birim" value={r.unit} onChange={e => setRows(patchRow(rowsRef.current, r.id, { unit: e.target.value }))}>{UNITS.map(u => <option key={u}>{u}</option>)}</select>}
-                        {err ? <em className="rbr-msg">{err}</em> : issues.length > 0 && <em className="rbr-msg">{issues[0]}</em>}
+                        <small>{r.barcode || t('barkodsuz')} · {r.source}{r.pack ? ` · ${r.pack.unit} ×${r.pack.factor}` : ''}{r.checksum_ok === false ? ' · ' + t('sağlama basamağı tutmuyor') : ''}</small>
+                        {r.kind === 'new' && <select aria-label={t('Birim')} value={r.unit} onChange={e => setRows(patchRow(rowsRef.current, r.id, { unit: e.target.value }))}>{UNITS.map(u => <option key={u}>{u}</option>)}</select>}
+                        {err ? <em className="rbr-msg">{err}</em> : issues.length > 0 && <em className="rbr-msg">{t(issues[0])}</em>}
                       </td>
                       <td>
                         <span className="rbr-qty">
-                          <button type="button" aria-label="Azalt" onClick={() => setRows(setQuantity(rowsRef.current, r.id, r.quantity - 1))} disabled={r.quantity <= 1}><Minus size={14} /></button>
-                          <input aria-label="Adet" inputMode="numeric" value={r.quantity} onChange={e => setRows(setQuantity(rowsRef.current, r.id, e.target.value))} />
-                          <button type="button" aria-label="Artır" onClick={() => setRows(setQuantity(rowsRef.current, r.id, r.quantity + 1))}><Plus size={14} /></button>
+                          <button type="button" aria-label={t('Azalt')} onClick={() => setRows(setQuantity(rowsRef.current, r.id, r.quantity - 1))} disabled={r.quantity <= 1}><Minus size={14} /></button>
+                          <input aria-label={t('Adet')} inputMode="numeric" value={r.quantity} onChange={e => setRows(setQuantity(rowsRef.current, r.id, e.target.value))} />
+                          <button type="button" aria-label={t('Artır')} onClick={() => setRows(setQuantity(rowsRef.current, r.id, r.quantity + 1))}><Plus size={14} /></button>
                         </span>
                       </td>
-                      <td>{r.kind === 'new' ? <input aria-label="Alış fiyatı" inputMode="decimal" value={r.purchase_price} onChange={e => setRows(patchRow(rowsRef.current, r.id, { purchase_price: e.target.value }))} /> : '—'}</td>
-                      <td>{r.kind === 'new' ? <input aria-label="Satış fiyatı" inputMode="decimal" value={r.sale_price} onChange={e => setRows(patchRow(rowsRef.current, r.id, { sale_price: e.target.value }))} /> : '—'}</td>
-                      <td><button type="button" aria-label="Satırı sil" className="rbr-del" onClick={() => setRows(removeRow(rowsRef.current, r.id))}><Trash2 size={15} /></button></td>
+                      <td>{r.kind === 'new' ? <input aria-label={t('Alış fiyatı')} inputMode="decimal" value={r.purchase_price} onChange={e => setRows(patchRow(rowsRef.current, r.id, { purchase_price: e.target.value }))} /> : '—'}</td>
+                      <td>{r.kind === 'new' ? <input aria-label={t('Satış fiyatı')} inputMode="decimal" value={r.sale_price} onChange={e => setRows(patchRow(rowsRef.current, r.id, { sale_price: e.target.value }))} /> : '—'}</td>
+                      <td><button type="button" aria-label={t('Satırı sil')} className="rbr-del" onClick={() => setRows(removeRow(rowsRef.current, r.id))}><Trash2 size={15} /></button></td>
                     </tr>
                   );
                 })}
@@ -206,15 +215,15 @@ export default function RetailBulkReceive() {
           </div>
         )}
         <div className="rbr-confirm">
-          {state.problems.length > 0 && <span className="rq-hint">{state.problems.length} satırda eksik var; tamamlanınca kaydedilebilir.</span>}
+          {state.problems.length > 0 && <span className="rq-hint">{t('{0} satırda eksik var; tamamlanınca kaydedilebilir.', state.problems.length)}</span>}
           {!confirming
-            ? <button type="button" className="rbr-primary" disabled={!state.ready || saving || !warehouse || pending > 0} onClick={() => setConfirming(true)}>Hepsini kaydet ({num(state.lines)} satır)</button>
+            ? <button type="button" className="rbr-primary" disabled={!state.ready || saving || !warehouse || pending > 0} onClick={() => setConfirming(true)}>{t('Hepsini kaydet ({0} satır)', num(state.lines))}</button>
             : <span className="rbr-ask"><b>{num(state.lines)} satır, {num(state.units)} adet stoğa eklenecek{state.news ? `; ${num(state.news)} yeni ürün oluşacak` : ''}.</b>
-              <button type="button" className="rbr-primary" disabled={saving} onClick={commit}>{saving ? 'Kaydediliyor…' : 'Onayla ve kaydet'}</button>
-              <button type="button" className="btn-soft" disabled={saving} onClick={() => setConfirming(false)}>Vazgeç</button></span>}
+              <button type="button" className="rbr-primary" disabled={saving} onClick={commit}>{saving ? t('Kaydediliyor…') : t('Onayla ve kaydet')}</button>
+              <button type="button" className="btn-soft" disabled={saving} onClick={() => setConfirming(false)}>{t('Vazgeç')}</button></span>}
         </div>
       </section>
-      <p className="rq-hint"><Link to="/magaza/hizli-ekle">Tek ürün ekle</Link> · Liste bu cihazda saklanır; yenileseniz de kaybolmaz.</p>
+      <p className="rq-hint"><Link to="/magaza/hizli-ekle">{t('Tek ürün ekle')}</Link> · {t('Liste bu cihazda saklanır; yenileseniz de kaybolmaz.')}</p>
     </div>
   );
 }

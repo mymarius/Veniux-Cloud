@@ -14,12 +14,13 @@ const ENV = extra => ({ ...process.env, ...extra });
 beforeAll(async () => { owner = await createTenant(); });
 beforeEach(() => svc.reset());
 
-test('varsayılan: yalnız Open Food Facts etkin; ücretli sağlayıcı anahtarsız etkin sayılmaz', () => {
-  expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: undefined, VENIUX_BARCODELOOKUP_KEY: undefined })).map(p => p.id)).toEqual(['off']);
+test('varsayılan: ortak katalog ve Open Food Facts etkin; ücretli sağlayıcı anahtarsız etkin sayılmaz', () => {
+  expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: undefined, VENIUX_BARCODELOOKUP_KEY: undefined })).map(p => p.id)).toEqual(['shared', 'off']);
   expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: 'barcodelookup,off', VENIUX_BARCODELOOKUP_KEY: undefined })).map(p => p.id)).toEqual(['off']);
   expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: 'barcodelookup,off', VENIUX_BARCODELOOKUP_KEY: 'abcdefgh1234' })).map(p => p.id)).toEqual(['barcodelookup', 'off']);
   expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: 'yok,off,off' })).map(p => p.id)).toEqual(['off']);
-  expect(providers.enabledProviders(ENV({ VENIUX_OFF_DISABLED: '1' }))).toEqual([]);
+  expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: undefined, VENIUX_OFF_DISABLED: '1' })).map(p => p.id)).toEqual(['shared']);
+  expect(providers.enabledProviders(ENV({ VENIUX_BARCODE_PROVIDERS: 'off', VENIUX_OFF_DISABLED: '1' }))).toEqual([]);
 });
 
 test('sıra ve yedek: birincisi bulamazsa ikincisi denenir; bulan sağlayıcı yanıtta görünür', async () => {
@@ -59,7 +60,7 @@ test('hata, hız sınırı ve yetki: yedeğe geçilir; hata önbelleğe yazılma
 
 test('hiçbir sağlayıcı etkin değilse elle girişe düşer, istek yapılmaz', async () => {
   const calls = [];
-  const r = await svc.suggest(user(owner), CODE, { env: ENV({ VENIUX_OFF_DISABLED: '1' }), fetchImpl: router({ off: resp(offOk) }, calls) });
+  const r = await svc.suggest(user(owner), CODE, { env: ENV({ VENIUX_BARCODE_PROVIDERS: 'off', VENIUX_OFF_DISABLED: '1' }), fetchImpl: router({ off: resp(offOk) }, calls) });
   expect(r).toMatchObject({ source: 'none', lookup_state: 'skipped', manual: true });
   expect(calls).toHaveLength(0);
 });

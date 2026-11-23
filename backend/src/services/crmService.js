@@ -78,7 +78,7 @@ const crmService = {
     await this.logActivity({
       activity_type: 'stage_change',
       title: `Yeni fırsat oluşturuldu: ${data.title}`,
-      description: `${data.sales_rep || 'Atanmadı'} · ${Number(data.value || 0).toLocaleString('tr-TR')} ₺`,
+      description: `${data.sales_rep || 'Atanmadı'} · değer ${Number(data.value || 0).toLocaleString('tr-TR')}`,
       user_name: data.sales_rep || 'Sistem',
       related_object: data.company_name || null
     });

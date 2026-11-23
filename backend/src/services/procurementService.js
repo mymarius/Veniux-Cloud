@@ -74,7 +74,7 @@ async function create(u, body, key) {
       cents += Math.round(q * price * 100);
     }
     if (!Number.isSafeInteger(cents)) fail('Sipariş tutarı sınırı aşıldı.');
-    const order = (await tx.query("INSERT INTO purchase_orders (tenant_id,order_no,supplier_id,target_warehouse_id,status,total_amount,notes,created_by,updated_at) VALUES ($1,$2,$3,$4,'draft',$5,$6,$7,CURRENT_TIMESTAMP) RETURNING *", [u.tenantId, 'PO-' + crypto.randomUUID(), body.supplier_id, wh.id, cents / 100, String(body.notes || '').slice(0, 2000), u.userId])).rows[0];
+    const order = (await tx.query("INSERT INTO purchase_orders (tenant_id,order_no,supplier_id,target_warehouse_id,status,total_amount,notes,created_by,updated_at,currency) VALUES ($1,$2,$3,$4,'draft',$5,$6,$7,CURRENT_TIMESTAMP,$8) RETURNING *", [u.tenantId, 'PO-' + crypto.randomUUID(), body.supplier_id, wh.id, cents / 100, String(body.notes || '').slice(0, 2000), u.userId, await require('./currencyService').ledgerCurrency(tx, u.tenantId)])).rows[0];
     for (const i of items) await tx.query('INSERT INTO purchase_order_items (tenant_id,order_id,product_id,quantity,unit_price) VALUES ($1,$2,$3,$4,$5)', [u.tenantId, order.id, i.product_id, i.quantity, i.unit_price]);
     await audit(tx, u, 'purchase.create', order.id, {
       items,

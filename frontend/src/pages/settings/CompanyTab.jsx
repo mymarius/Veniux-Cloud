@@ -1,4 +1,6 @@
 import { setActiveCurrency, normalizeCurrency } from '../../../../shared/money.mjs';
+import { t as __t } from '../../i18n';
+import { useT, useLanguage, setLanguage, LANGUAGES } from '../../i18n';
 import { readSessionUser } from '../../lib/sessionUser';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
@@ -9,6 +11,8 @@ import { sectorOptions } from '../../lib/businessLabels.mjs';
 import { Building2, Save, Loader2, Globe, MapPin, Phone, Mail, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function CompanyTab({embedded=false}) {
+  const tr = useT();
+  const language = useLanguage();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,8 +74,8 @@ export default function CompanyTab({embedded=false}) {
     <div className="max-w-4xl space-y-8 animate-fade-in">
       <div className="flex justify-between items-start">
         <div>
-          {embedded?<h3 className="text-xl font-bold text-gray-900">Şirket bilgileri</h3>:<h1 className="text-xl font-bold text-gray-900">Şirket bilgileri</h1>}
-          <p className="text-sm text-gray-500 mt-1">İşletmenizin kurumsal fatura, adres, para birimi ve operasyonel ayarlarını yönetin.</p>
+          {embedded?<h3 className="text-xl font-bold text-gray-900">{__t('Şirket bilgileri')}</h3>:<h1 className="text-xl font-bold text-gray-900">{__t('Şirket bilgileri')}</h1>}
+          <p className="text-sm text-gray-500 mt-1">{__t('İşletmenizin kurumsal fatura, adres, para birimi ve operasyonel ayarlarını yönetin.')}</p>
         </div>
         {!embedded&&<StatusBadge status="active" text={`İşletme kodu: ${company.tenantCode || 'Henüz tanımlanmadı'}`} />}
       </div>
@@ -83,18 +87,18 @@ export default function CompanyTab({embedded=false}) {
         <div className="veniux-card p-6 space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
             <Building2 className="w-5 h-5 text-brand-500" />
-            <h2 className="font-bold text-sm text-gray-900">Kurumsal Bilgiler</h2>
+            <h2 className="font-bold text-sm text-gray-900">{__t('Kurumsal Bilgiler')}</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="Firma / Şirket Ünvanı"
+              label={__t('Firma / Şirket Ünvanı')}
               value={company.companyName || ''}
               onChange={(e) => setCompany({ ...company, companyName: e.target.value })}
               required
             />
             <Select
-              label="Faaliyet Alanı / Sektör"
+              label={__t('Faaliyet Alanı / Sektör')}
               value={company.industry || ''}
               onChange={(e) => setCompany({ ...company, industry: e.target.value })}
               options={sectorOptions(company.industry)}
@@ -105,7 +109,7 @@ export default function CompanyTab({embedded=false}) {
               onChange={(e) => setCompany({ ...company, taxNumber: e.target.value })}
             />
             <Input
-              label="Vergi Dairesi"
+              label={__t('Vergi Dairesi')}
               value={company.taxOffice || ''}
               onChange={(e) => setCompany({ ...company, taxOffice: e.target.value })}
             />
@@ -116,19 +120,19 @@ export default function CompanyTab({embedded=false}) {
         <div className="veniux-card p-6 space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
             <MapPin className="w-5 h-5 text-brand-500" />
-            <h2 className="font-bold text-sm text-gray-900">İletişim ve Adres Bilgileri</h2>
+            <h2 className="font-bold text-sm text-gray-900">{__t('İletişim ve Adres Bilgileri')}</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="Kurumsal E-Posta"
+              label={__t('Kurumsal E-Posta')}
               type="email"
               value={company.email || ''}
               onChange={(e) => setCompany({ ...company, email: e.target.value })}
               required
             />
             <Input
-              label="Müşteri Hizmetleri / Telefon"
+              label={__t('Müşteri Hizmetleri / Telefon')}
               value={company.phone || ''}
               onChange={(e) => setCompany({ ...company, phone: e.target.value })}
             />
@@ -142,7 +146,7 @@ export default function CompanyTab({embedded=false}) {
                 value={company.address || ''}
                 onChange={(e) => setCompany({ ...company, address: e.target.value })}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg p-3 text-sm text-gray-900 focus:border-brand-500 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                placeholder="Mahalle, Cadde, Sokak, İlçe / İl"
+                placeholder={__t('Mahalle, Cadde, Sokak, İlçe / İl')}
               />
             </div>
           </div>
@@ -152,7 +156,7 @@ export default function CompanyTab({embedded=false}) {
         <div className="veniux-card p-6 space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
             <Globe className="w-5 h-5 text-brand-500" />
-            <h2 className="font-bold text-sm text-gray-900">Bölgesel ve Para Birimi Standartları</h2>
+            <h2 className="font-bold text-sm text-gray-900">{__t('Bölgesel ve Para Birimi Standartları')}</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -170,7 +174,7 @@ export default function CompanyTab({embedded=false}) {
                 <option value="USD">Amerikan Doları ($ - USD)</option>
                 <option value="EUR">Euro (€ - EUR)</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">İlk satıştan önce seçin. Satış kaydı oluştuktan sonra para birimi değiştirilemez; geçmiş tutarlar kendi para biriminde kalır.</p>
+              <p className="text-xs text-gray-500 mt-1">{__t('İlk satıştan önce seçin. Satış kaydı oluştuktan sonra para birimi değiştirilemez; geçmiş tutarlar kendi para biriminde kalır.')}</p>
             </div>
             <div>
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
@@ -187,6 +191,18 @@ export default function CompanyTab({embedded=false}) {
                 <option value="Europe/London">Londra (UTC+00:00 / +01:00)</option>
                 <option value="Europe/Berlin">Berlin (UTC+01:00 / +02:00)</option>
               </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">{tr('Arayüz dili')}</label>
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500">
+                {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={company.catalogSharing !== false} onChange={(e) => setCompany({ ...company, catalogSharing: e.target.checked })} className="mt-1" />
+                <span><b>Ürün adlarını ortak kataloğa katkı olarak paylaş.</b> Yeni eklediğiniz ürünlerin barkodu ve adı, en az iki farklı işletme aynı barkodu girdiğinde diğer işletmelere öneri olarak sunulur. Fiyat, stok, işletme adı ve tedarikçi hiçbir zaman paylaşılmaz. Kapatırsanız katkı vermezsiniz; öneri almaya devam edersiniz.</span>
+              </label>
             </div>
             <div>
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
@@ -212,7 +228,7 @@ export default function CompanyTab({embedded=false}) {
             className="btn-primary"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>Şirket Profilini Kaydet</span>
+            <span>{__t('Şirket Profilini Kaydet')}</span>
           </button>
         </div>
       </form>

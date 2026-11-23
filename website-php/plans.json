@@ -187,7 +187,7 @@
   "excel_import": "Excel ile ürün aktarma ve dışa aktarma",
   "multi_staff": "Sınırsız personel ve yetkilendirme",
   "purchase_invoices": "Alış faturası ve firma yönetimi",
-  "shared_catalog": "Barkoddan ürün bilgisi önerisi (açık veri kaynağı)",
+  "shared_catalog": "Barkoddan ürün bilgisi önerisi (açık veri kaynağı ve ortak katalog)",
   "lot_expiry": "Lot ve son kullanma tarihi (miat)",
   "credit_reminders": "Veresiye vade hatırlatması",
   "loyalty": "Sadakat puanı ve damga kartı",

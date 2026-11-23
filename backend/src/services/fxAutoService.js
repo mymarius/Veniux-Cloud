@@ -51,6 +51,8 @@ async function saveStatus(tx, tenantId, patch) {
 // Tek işletmeye uygular. Elle girilmiş (kaynağı 'manual' ya da kaydı olmayan) kur atlanır.
 async function applyToTenant(tenantId, parsed) {
   const applied = [], skipped = [];
+  // TCMB kurları TL karşılığıdır: yalnız ana para birimi TRY olan işletmeye uygulanır.
+  if ((await currency.ledgerCurrency(db, tenantId)) !== 'TRY') throw Object.assign(new Error('Otomatik kur yalnız ana para birimi TRY olan işletmelerde kullanılabilir. Kurları elle girin.'), { status: 400 });
   await db.transaction(async tx => {
     for (const code of currency.CURRENCIES) {
       const r = parsed.rates[code];
@@ -99,6 +101,7 @@ async function refresh(user, { fetchImpl } = {}) {
 
 async function setAuto(user, enabled, opts = {}) {
   if (!['admin', 'manager'].includes(user.role)) throw forbid();
+  if (enabled && (await currency.ledgerCurrency(db, user.tenantId)) !== 'TRY') throw Object.assign(new Error('Otomatik kur yalnız ana para birimi TRY olan işletmelerde kullanılabilir. Kurları elle girin.'), { status: 400 });
   await db.transaction(async tx => {
     const cur = (await tx.query('SELECT id FROM exchange_rate_settings WHERE tenant_id=$1', [user.tenantId])).rows[0];
     if (cur) await tx.query('UPDATE exchange_rate_settings SET auto_enabled=$1 WHERE tenant_id=$2', [enabled ? 1 : 0, user.tenantId]);

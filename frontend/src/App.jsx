@@ -3,6 +3,7 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import apiClient from './api/client';
 import { setActiveCurrency } from '../../shared/money.mjs';
+import { initLanguage } from './i18n';
 const Router = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 import { ToastProvider } from './components/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -113,7 +114,7 @@ const ProtectedRoute = ({ children }) => {
     if (accessCache?.token !== token) setAccess(null);
     // Cihaz lisans başlığı lisans yüklenince eklenir; önce gidilirse sunucu 423 döner ve oturum silinir.
     if (token && !licenseLoading) apiClient.get('/auth/me').then(({data}) => {
-      if (current) { setActiveCurrency(data.currency); localStorage.setItem('user', JSON.stringify(data)); const value = {type:data.module_type,platform:data.is_platform_admin,package:data.product_package}; accessCache = {token, value}; setAccess(value); }
+      if (current) { setActiveCurrency(data.currency); initLanguage(data.currency); localStorage.setItem('user', JSON.stringify(data)); const value = {type:data.module_type,platform:data.is_platform_admin,package:data.product_package}; accessCache = {token, value}; setAccess(value); }
     }).catch(() => { if (current) { accessCache = null; setAccess({error:true}); } });
     return () => { current = false; };
   }, [token, pathname, retry, licenseLoading]);

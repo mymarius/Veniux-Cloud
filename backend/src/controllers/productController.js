@@ -199,6 +199,9 @@ const createProduct = async (req, res) => {
       , req.user.tenantId, moduleType, moduleType === 'PHARMACY' ? 1 : 0,taxBasis,Number(vat)]
     );
 
+    // Ortak katalog katkısı (en iyi çaba; yalnız barkodlu perakende ürünü; fiyat paylaşılmaz).
+    if (moduleType === 'NORMAL' && barcode) await require('../services/sharedCatalogService').contribute(pool, { tenantId: req.user.tenantId, barcode: barcode.trim(), name: name.trim(), unit: unit || 'adet', category: cleanCategory });
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create product error:', error);

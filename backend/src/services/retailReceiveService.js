@@ -59,6 +59,7 @@ async function receiveLine(client, ctx, warehouse, body, opts = {}) {
   const movement = (await client.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,'inbound',$5,$6) RETURNING id", [tenant, product.id, warehouse.id, baseQty, source, note])).rows[0];
   await require('./inventoryTransactionService').recordProjectedEntry(client, { tenant_id: tenant, warehouse_id: warehouse.id, product_id: product.id, transaction_type: 'RECEIVE', quantity: baseQty, reference_type: 'stock_movement', reference_id: movement.id, user_id: user.userId, reason_code: reason });
   await client.query("INSERT INTO audit_logs (tenant_id,user_email,action,entity_type,entity_id,details) VALUES ($1,$2,'retail.receive','stock',$3,$4)", [tenant, user.email, movement.id, JSON.stringify({ requestId, productId: product.id, warehouseId: warehouse.id, quantity: baseQty, pack: pack ? { unit: pack.uom_code, count: units, factor } : null, ...(opts.batch ? { batch: opts.batch } : {}) })]);
+  if (created && code) await require('./sharedCatalogService').contribute(client, { tenantId: tenant, barcode: code, name: product.name, unit: product.unit });
   return { product: { id: product.id, name: product.name, unit: product.unit }, quantity: baseQty, pack: pack ? { unit: pack.uom_code, count: units, factor } : null, total_quantity: total, movement_id: movement.id, created };
 }
 

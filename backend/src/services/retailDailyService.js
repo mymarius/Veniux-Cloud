@@ -175,7 +175,7 @@ async function sale(user,body,key,device,offline=null){
       await tx.query("INSERT INTO stock_movements (tenant_id,product_id,warehouse_id,change_amount,movement_type,source,note) VALUES ($1,$2,$3,$4,'outbound','scanner_pos',$5)",[user.tenantId,line.product_id,body.warehouse_id,-line.quantity,no]);
       await syncCashStock(tx,user.tenantId,line.product_id,body.warehouse_id);
     }
-    const snapshot={receipt_no:no,status:'completed',shift_id:shift.id,register_id:shift.register_id,items,gross_cents:gross,discount_cents:discount,net_cents:net,payments,refunded_cents:0,refund_payments:{cash:0,credit_card:0},cashier:user.email,created_at:new Date().toISOString()};
+    const snapshot={receipt_no:no,currency:ledger,status:'completed',shift_id:shift.id,register_id:shift.register_id,items,gross_cents:gross,discount_cents:discount,net_cents:net,payments,refunded_cents:0,refund_payments:{cash:0,credit_card:0},cashier:user.email,created_at:new Date().toISOString()};
     // Kart tahsilatının türü (yemek kartı, havale/EFT): ana ödeme yöntemi kart kalır; yalnız rapor kırılımı için etiket yazılır.
     if(body.card_label!==undefined){if(!CARD_LABELS.includes(body.card_label))fail('Kart türü geçersiz.');if(payments.credit_card>0&&body.card_label!=='bank')snapshot.card_label=body.card_label;}
     if(body.price_tier!==undefined&&require('./priceTierService').parseTier(body.price_tier)>1)snapshot.price_tier=require('./priceTierService').parseTier(body.price_tier);

@@ -1,11 +1,16 @@
 const vat=require('./retailVatService');
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=cents=>{if(!Number.isSafeInteger(cents))throw Error('Invalid receipt amount');const v=BigInt(cents),absolute=v<0n?-v:v;return (v<0n?'-':'')+(absolute/100n).toLocaleString('tr-TR')+','+String(absolute%100n).padStart(2,'0')+' TL';};
+const moneyText=require('./moneyText');
+let unit='TL'; // render sırasında satışın para birimine ayarlanır (render eşzamanlıdır; sonunda sıfırlanır)
+const money=cents=>{if(!Number.isSafeInteger(cents))throw Error('Invalid receipt amount');const v=BigInt(cents),absolute=v<0n?-v:v;return (v<0n?'-':'')+(absolute/100n).toLocaleString('tr-TR')+','+String(absolute%100n).padStart(2,'0')+' '+unit;};
 const row=(label,value,bold=false)=>`<div class="row"><${bold?'b':'span'}>${escape(label)}</${bold?'b':'span'}><${bold?'b':'span'} class="money">${escape(value)}</${bold?'b':'span'}></div>`;
 function taxSection(title,summary){
  return `<section class="vat"><h2>${escape(title)}</h2>${summary.groups.map(g=>`<div class="vat-group" data-vat-rate="${g.rate}" data-base-cents="${g.base_cents}" data-vat-cents="${g.vat_cents}" data-total-cents="${g.total_cents}"><b>KDV %${g.rate}</b>${row('Matrah',money(g.base_cents))}${row('KDV tutarı',money(g.vat_cents))}${row('KDV dahil toplam',money(g.total_cents))}</div>`).join('')}${summary.unknown_total_cents?`<p>KDV bilgisi kaydedilmemiş tutar: ${money(summary.unknown_total_cents)}. Oran ve matrah geriye dönük tahmin edilmedi.</p>`:''}</section>`;
 }
 function render(data,width){
+ try{unit=moneyText.unit(data.snapshot?.currency);return renderReceipt(data,width);}finally{unit='TL';}
+}
+function renderReceipt(data,width){
  const w=Number(width);if(![58,80].includes(w))throw Object.assign(Error('Fiş genişliği 58 veya 80 mm olmalıdır.'),{status:400});
  const s=data.snapshot,sale=vat.breakdown(s.items),refund=vat.breakdown(s.items,'refund'),remaining=vat.breakdown(s.items,'remaining');
  const hasRefund=s.refunded_cents>0,groups=sale.groups.length+(hasRefund?refund.groups.length+remaining.groups.length:0);

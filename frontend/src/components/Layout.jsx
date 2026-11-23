@@ -1,4 +1,5 @@
 import UpdateButton from './UpdateButton';
+import { useT } from '../i18n';
 import SidebarTip from './SidebarTip';
 import IntroReveal from './IntroReveal';
 import SetupBand from './SetupBand';
@@ -117,6 +118,7 @@ const ALL_ITEMS = [...NAVIGATION.flatMap(g => [...g.items, ...(g.more || [])]), 
 const ROLE_LABELS = { admin: 'İşletme yöneticisi', manager: 'Ekip yöneticisi', viewer: 'Görüntüleme' };
 
 export function Layout({ children }) {
+  const t = useT();
   const branding = useBranding();
   const { prefs: themePrefs, update: themeUpdate } = useTheme() || {};
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -286,8 +288,8 @@ export function Layout({ children }) {
             return (
               <div key={group.id} className="sb-section" data-expanded={open}>
                 {group.group && (
-                  <button className="sb-section-title" aria-expanded={open} aria-controls={sectionId} title={sidebarCollapsed ? group.group : undefined} onClick={() => { if (sidebarCollapsed) { toggleSidebar(); setOpenSections(prev => ({ ...prev, [group.id]: true })); } else toggleSection(group.id); }}>
-                    <span className="sb-group-mark"><GroupIcon size={17} strokeWidth={1.7}/></span><span>{group.group}</span>
+                  <button className="sb-section-title" aria-expanded={open} aria-controls={sectionId} title={sidebarCollapsed ? t(group.group) : undefined} onClick={() => { if (sidebarCollapsed) { toggleSidebar(); setOpenSections(prev => ({ ...prev, [group.id]: true })); } else toggleSection(group.id); }}>
+                    <span className="sb-group-mark"><GroupIcon size={17} strokeWidth={1.7}/></span><span>{t(group.group)}</span>
                     <ChevronDown size={14} data-open={open} />
                   </button>
                 )}
@@ -298,9 +300,9 @@ export function Layout({ children }) {
                       const active = isItemActive(item);
                       const badge = badges[item.badgeKey] || 0;
                       return (
-                        <NavLink key={item.path} to={item.path} data-active={active} data-tip={sidebarCollapsed ? item.name : undefined} aria-current={active ? 'page' : undefined} aria-label={item.name} onClick={e => { setSidebarOpen(false); softNavigate(e, item.path); }} className="sb-item">
+                        <NavLink key={item.path} to={item.path} data-active={active} data-tip={sidebarCollapsed ? t(item.name) : undefined} aria-current={active ? 'page' : undefined} aria-label={t(item.name)} onClick={e => { setSidebarOpen(false); softNavigate(e, item.path); }} className="sb-item">
                           <Icon size={16} strokeWidth={1.9} />
-                          <span>{item.name}</span>
+                          <span>{t(item.name)}</span>
                           {badge > 0 && <em data-tone={item.badgeKey === 'expiring' ? 'warn' : undefined}>{badge > 99 ? '99+' : badge}</em>}
                         </NavLink>
                       );
@@ -308,7 +310,7 @@ export function Layout({ children }) {
                     {group.more?.length > 0 && !extraActive && (
                       <button className="sb-more" aria-expanded={moreOpen} onClick={() => setShowMore(prev => ({ ...prev, [group.id]: !prev[group.id] }))}>
                         <ChevronDown size={13} data-open={moreOpen} />
-                        {moreOpen ? 'Daha az göster' : `Daha fazla (${group.more.length})`}
+                        {moreOpen ? t('Daha az göster') : t('Daha fazla ({0})', group.more.length)}
                       </button>
                     )}
                   </div>

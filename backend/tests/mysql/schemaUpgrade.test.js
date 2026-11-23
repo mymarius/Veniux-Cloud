@@ -7,11 +7,16 @@ const fs = require('fs');
 const path = require('path');
 const prev = JSON.parse(fs.readFileSync(path.join(__dirname, '../../src/database/mysql/032-fx-auto-tasks.json'), 'utf8'));
 // 033 ile eklenen indeksler (tablo -> indeks adları); "eski kurulum" benzetimi için geri alınır.
-const addedIndexes = manifest => manifest.tables.flatMap(t => t.indexes.filter(i => !prev.tables.find(p => p.name === t.name).indexes.some(o => o.name === i.name)).map(i => ({ table: t.name, name: i.name })));
+// Yeni tabloların indeksleri tabloyla birlikte oluşur; "eklenen indeks" yalnız önceki manifestte var olan tablolar içindir.
+const addedIndexes = manifest => manifest.tables.flatMap(t => { const p = prev.tables.find(x => x.name === t.name); return p ? t.indexes.filter(i => !p.indexes.some(o => o.name === i.name)).map(i => ({ table: t.name, name: i.name })) : []; });
 const indexNames = async table => (await c.query('SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?', [table]))[0].map(r => r.INDEX_NAME);
 // 034 ile eklenen sütunlar (tablo -> sütun adları); 032'ye göre eklenenler.
 const addedColumns = manifest => manifest.tables.flatMap(t => { const p = prev.tables.find(x => x.name === t.name); return p ? t.columns.filter(c => !p.columns.some(o => o.name === c.name)).map(c => ({ table: t.name, name: c.name })) : []; });
 const columnNames = async table => (await c.query('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?', [table]))[0].map(r => r.COLUMN_NAME);
+// 035 ile eklenen tablolar (bağımlılık sırasıyla); "eski kurulum" benzetimi için düşürülür.
+const NEW_035 = ['shared_catalog_votes', 'shared_catalog_products', 'barcode_provider_usage', 'barcode_provider_settings'];
+const dropNew035 = async () => { for (const n of NEW_035) await c.query('DROP TABLE IF EXISTS `' + n + '`'); };
+const tableNames = async () => (await c.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()'))[0].map(r => r.TABLE_NAME);
 const dropAddedColumns = async () => { for (const col of addedColumns(manifest)) if ((await columnNames(col.table)).includes(col.name)) await c.query('ALTER TABLE `' + col.table + '` DROP COLUMN `' + col.name + '`'); };
 const dropAddedIndexes = async () => { for (const ix of addedIndexes(manifest)) if ((await indexNames(ix.table)).includes(ix.name)) await c.query('ALTER TABLE `' + ix.table + '` DROP INDEX `' + ix.name + '`'); };
 
@@ -46,9 +51,10 @@ test('son adım yalnız yeni tablo ekler; geri alınmış (eski) kurulum veri ka
   await c.query('DROP TABLE business_tasks');
   await dropAddedIndexes();
   await dropAddedColumns();
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?,?)', [prev.version, '033-performance-indexes', manifest.version]);
+  await dropNew035();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?,?,?)', [prev.version, '033-performance-indexes', '034-money-currency', manifest.version]);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [prev.version, '033-performance-indexes', manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [prev.version, '033-performance-indexes', '034-money-currency', manifest.version] });
 
   const state = await migrator.upgradeAdditive();
   expect(state).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
@@ -104,12 +110,13 @@ test('033: yalnız indeks ekleyen adım; indeksler eklenir, veri korunur, ikinci
   const [[tenant]] = await c.query("INSERT INTO tenants (company_name,tenant_code,email) VALUES ('İndeks Müşterisi','IDX-UPG-1','idx@example.com')").then(r => [[{ id: r[0].insertId }]]);
   const [prod] = await c.query("INSERT INTO products (tenant_id,sku,name,unit,sale_price,module_type,gtin) VALUES (?,'IDX-1','İndeks ürünü','adet',10,'NORMAL','8690000000017')", [tenant.id]);
   // Sonraki adım (034, yalnız sütun) da yeniden uygulanır; sütunlar zaten var olduğu için atlanır.
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['033-performance-indexes', manifest.version]);
+  await dropNew035();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?,?)', ['033-performance-indexes', '034-money-currency', manifest.version]);
   const added = addedIndexes(manifest);
   expect(added.map(i => i.name).sort()).toEqual(['idx_audit_logs_tenant_created', 'idx_pos_sale_items_product', 'idx_pos_sales_tenant_created', 'idx_product_uoms_barcode', 'idx_products_tenant_created', 'idx_products_tenant_gtin', 'idx_retail_sales_tenant_date', 'idx_stock_movements_tenant_created', 'idx_stock_records_tenant_updated']);
   for (const ix of added) expect(await indexNames(ix.table)).not.toContain(ix.name);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: ['033-performance-indexes', manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: ['033-performance-indexes', '034-money-currency', manifest.version] });
 
   expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
   for (const ix of added) expect(await indexNames(ix.table)).toContain(ix.name);
@@ -125,7 +132,8 @@ test('033: yalnız indeks ekleyen adım; indeksler eklenir, veri korunur, ikinci
   const [[after]] = await c.query('SELECT COUNT(*) n FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE()');
   expect(after.n).toBe(before.n);
   await c.query('ALTER TABLE products DROP INDEX idx_products_tenant_created');
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['033-performance-indexes', manifest.version]);
+  await dropNew035();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?,?)', ['033-performance-indexes', '034-money-currency', manifest.version]);
   expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
   expect(await indexNames('products')).toContain('idx_products_tenant_created');
 });
@@ -138,9 +146,10 @@ test('034: yalnız sütun ekleyen adım; mevcut satırlar TRY olur, veri korunur
   expect(await columnNames('edocuments')).not.toContain('currency');
   await c.query("INSERT INTO pos_sales (tenant_id,receipt_no,total_amount,net_amount,payment_method,status) VALUES (?,'POS-ESKI-1',12.5,12.5,'cash','completed')", [tenant.id]);
   await c.query("INSERT INTO edocuments (id,tenant_id,sale_id,document_type,status,payload) VALUES ('col-1',?,'1','E_ARSIV','draft','{}')", [tenant.id]);
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  await dropNew035();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['034-money-currency', manifest.version]);
   const migrator = new MySQLMigrator(c);
-  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: ['034-money-currency', manifest.version] });
 
   expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
   expect(await columnNames('pos_sales')).toContain('currency');
@@ -157,7 +166,33 @@ test('034: yalnız sütun ekleyen adım; mevcut satırlar TRY olur, veri korunur
   // Tekrar çalıştırma: değişiklik yok; sütun elle düşürülüp kayıt silinirse yeniden tamamlanır
   expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
   await c.query('ALTER TABLE edocuments DROP COLUMN currency');
-  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  await dropNew035();
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version IN (?,?)', ['034-money-currency', manifest.version]);
   expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
   expect(await columnNames('edocuments')).toContain('currency');
+});
+
+test('035: tablo + güvenli sütun ekleyen adım; sütunlar varsayılanla gelir, yeni tablolar çalışır, ikinci çalıştırma zarar vermez', async () => {
+  const [[tenant]] = await c.query("INSERT INTO tenants (company_name,tenant_code,email) VALUES ('Katalog Müşterisi','CAT-UPG-1','cat@example.com')").then(r => [[{ id: r[0].insertId }]]);
+  // "Eski kurulum": 035 tabloları ve sütunları yok
+  await dropNew035();
+  for (const [tb, col] of [['purchase_orders', 'currency'], ['tenants', 'catalog_sharing']]) if ((await columnNames(tb)).includes(col)) await c.query('ALTER TABLE `' + tb + '` DROP COLUMN `' + col + '`');
+  await c.query('DELETE FROM veniux_mysql_migrations WHERE version=?', [manifest.version]);
+  const migrator = new MySQLMigrator(c);
+  expect(await migrator.status()).toMatchObject({ status: 'pending', pending: [manifest.version] });
+  expect(await migrator.upgradeAdditive()).toMatchObject({ status: 'current', version: manifest.version, pending: [] });
+  const names = await tableNames();
+  for (const n of NEW_035) expect(names).toContain(n);
+  expect(await columnNames('purchase_orders')).toContain('currency');
+  expect(await columnNames('tenants')).toContain('catalog_sharing');
+  const [[row]] = await c.query('SELECT catalog_sharing FROM tenants WHERE id=?', [tenant.id]);
+  expect(Number(row.catalog_sharing)).toBe(1);
+  // yeni tablolar çalışır: ortak katalog oyu işletme başına tek, sağlayıcı ayarı sağlayıcı başına tek, kullanım satırı gün/sağlayıcı/işletme başına tek
+  await c.query("INSERT INTO shared_catalog_votes (barcode,tenant_id,name) VALUES ('8690000000017',?,'Çay')", [tenant.id]);
+  await expect(c.query("INSERT INTO shared_catalog_votes (barcode,tenant_id,name) VALUES ('8690000000017',?,'Başka')", [tenant.id])).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
+  await c.query("INSERT INTO barcode_provider_settings (provider_id,enabled,position) VALUES ('off',1,10)");
+  await expect(c.query("INSERT INTO barcode_provider_settings (provider_id,enabled,position) VALUES ('off',0,20)")).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
+  await c.query("INSERT INTO barcode_provider_usage (day,provider_id,tenant_id,requests) VALUES ('2026-11-24','off',?,3)", [tenant.id]);
+  await expect(c.query("INSERT INTO barcode_provider_usage (day,provider_id,tenant_id,requests) VALUES ('2026-11-24','off',?,1)", [tenant.id])).rejects.toMatchObject({ code: 'ER_DUP_ENTRY' });
+  expect(await new MySQLMigrator(c).upgradeAdditive()).toMatchObject({ status: 'current' });
 });

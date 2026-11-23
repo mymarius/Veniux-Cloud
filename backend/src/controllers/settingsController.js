@@ -163,7 +163,8 @@ const getCompany = async (req, res) => {
       address: t.address || '',
       currency: t.currency || 'TRY',
       timezone: t.timezone || 'Europe/Istanbul',
-      industry: t.industry || ''
+      industry: t.industry || '',
+      catalogSharing: t.catalog_sharing === undefined || t.catalog_sharing === null ? true : Number(t.catalog_sharing) === 1
     });
   } catch (error) {
     console.error('getCompany error:', error);
@@ -216,6 +217,7 @@ const updateCompany = async (req, res) => {
     }
 
     if(ownerPhone)await pool.query('UPDATE tenants SET owner_phone=$1 WHERE id=$2',[ownerPhone,tenantId]);
+    if(typeof req.body.catalogSharing==='boolean'){try{await pool.query('UPDATE tenants SET catalog_sharing=$1 WHERE id=$2',[req.body.catalogSharing?1:0,tenantId]);}catch{/* eski şema: tercih yok sayılır */}}
     res.json({ message: 'Şirket profili başarıyla güncellendi.' });
   } catch (error) {
     console.error('updateCompany error:', error);

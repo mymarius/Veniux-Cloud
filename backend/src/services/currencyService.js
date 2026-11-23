@@ -3,24 +3,28 @@ const fail = (message, status = 400) => { throw Object.assign(new Error(message)
 
 // Dövizli fiyat: ürün fiyatı döviz olarak girilir, satış anında işletmenin girdiği güncel kurla TL'ye çevrilir (kuruşa yuvarlanır).
 // Kur elle girilir; otomatik kur kaynağı yoktur. Kur girilmemiş dövizli ürün normal TL satış fiyatından satılır.
-const CURRENCIES = ['USD', 'EUR', 'GBP'];
+const CURRENCIES = ['USD', 'EUR', 'GBP'];   // TCMB otomatik kurunun desteklediği (TRY ana para birimli işletmeler için) yabancı paralar
+// Kur = 1 birim yabancı paranın ana para birimi karşılığı (sütun adı rate_try eski addır; ana para birimi TRY olmak zorunda değil).
+// Yabancı para = ana para birimi dışındaki desteklenen para birimleri. TRY ana birimli işletmede liste eskisi gibi USD/EUR/GBP kalır.
 const cache = new Map();
 const forget = tenantId => cache.delete(tenantId);
 
 async function rates(user) {
   if (!['admin', 'manager'].includes(user.role)) fail('Bu işlem için yetkiniz yok.', 403);
-  const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows;
+  const base = await ledgerCurrency(db, user.tenantId), list = foreignFor(base);
+  const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows.filter(r => list.includes(r.currency));
   let src = {};
   try { src = Object.fromEntries((await db.query('SELECT currency,source,buying_try,rates_date FROM exchange_rate_sources WHERE tenant_id=$1', [user.tenantId])).rows.map(r => [r.currency, r])); } catch { /* eski şema: hepsi elle */ }
   const by = Object.fromEntries(rows.map(r => { const s = src[r.currency]; return [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at, source: s?.source === 'auto' ? 'auto' : 'manual', buying: s?.source === 'auto' && s.buying_try !== null ? Number(s.buying_try) : null, rates_date: s?.source === 'auto' ? s.rates_date : null }]; }));
-  return { currencies: CURRENCIES, rates: Object.fromEntries(CURRENCIES.map(c => [c, by[c] || null])), auto: await require('./fxAutoService').settings(user.tenantId) };
+  return { base, currencies: list, auto_supported: base === 'TRY', rates: Object.fromEntries(list.map(c => [c, by[c] || null])), auto: await require('./fxAutoService').settings(user.tenantId) };
 }
 
 // body: { USD: 38.5, EUR: null }  — null/boş kuru siler.
 async function setRates(user, body = {}) {
   if (!['admin', 'manager'].includes(user.role)) fail('Bu işlem için yetkiniz yok.', 403);
+  const list = foreignFor(await ledgerCurrency(db, user.tenantId));
   await db.transaction(async tx => {
-    for (const c of CURRENCIES) {
+    for (const c of list) {
       if (!(c in body)) continue;
       const raw = body[c];
       if (raw === null || raw === '') {
@@ -52,7 +56,7 @@ async function productRow(user, productId) {
 async function getProduct(user, productId) {
   const p = await productRow(user, productId);
   const row = (await db.query('SELECT currency,price FROM product_currency_prices WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, p.id])).rows[0];
-  return { product_id: Number(p.id), currency: row ? row.currency : null, price: row ? Number(row.price) : null, currencies: CURRENCIES };
+  return { product_id: Number(p.id), currency: row ? row.currency : null, price: row ? Number(row.price) : null, currencies: foreignFor(await ledgerCurrency(db, user.tenantId)) };
 }
 
 // body: { currency: 'USD', price: 12.5 }  veya { currency: null } ile silinir.
@@ -62,7 +66,7 @@ async function setProduct(user, productId, body = {}) {
   if (body.currency === null || body.currency === '' || body.currency === undefined) {
     await db.query('DELETE FROM product_currency_prices WHERE tenant_id=$1 AND product_id=$2', [user.tenantId, p.id]);
   } else {
-    if (!CURRENCIES.includes(body.currency)) fail('Para birimi geçersiz.');
+    if (!foreignFor(await ledgerCurrency(db, user.tenantId)).includes(body.currency)) fail('Para birimi geçersiz.');
     const price = Number(body.price);
     if (!Number.isFinite(price) || price < 0 || price > 100000000) fail('Döviz fiyatı geçersiz.');
     const upd = await db.query('UPDATE product_currency_prices SET currency=$1,price=$2,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$3 AND product_id=$4', [body.currency, price, user.tenantId, p.id]);
@@ -97,14 +101,16 @@ async function apply(tx, tenantId, scan) {
 
 // Kasiyer için: kuru girilmiş para birimleri (yalnız oku). Kasada döviz seçimi ve çevrimdışı önbellek bunu kullanır.
 async function cashierRates(user) {
-  const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows;
-  return { currencies: CURRENCIES, rates: Object.fromEntries(rows.map(r => [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at }])) };
+  const base = await ledgerCurrency(db, user.tenantId), list = foreignFor(base);
+  const rows = (await db.query('SELECT currency,rate_try,updated_at FROM exchange_rates WHERE tenant_id=$1', [user.tenantId])).rows.filter(r => list.includes(r.currency));
+  return { base, currencies: list, rates: Object.fromEntries(rows.map(r => [r.currency, { rate: Number(r.rate_try), updated_at: r.updated_at }])) };
 }
 
 // Satışın ödeme para birimi: TL ise null; döviz ise kayda kur ve döviz karşılığı yazılır (ödeme tutarları yine TL'dir).
 async function paymentCurrency(tx, tenantId, code, netCents) {
-  if (code === undefined || code === null || code === '' || code === 'TRY') return null;
-  if (!CURRENCIES.includes(code)) fail('Para birimi geçersiz.');
+  const base = await ledgerCurrency(tx, tenantId);
+  if (code === undefined || code === null || code === '' || code === base) return null;
+  if (!foreignFor(base).includes(code)) fail('Para birimi geçersiz.');
   const row = (await tx.query('SELECT rate_try FROM exchange_rates WHERE tenant_id=$1 AND currency=$2', [tenantId, code])).rows[0];
   if (!row) fail(code + ' için kur girilmemiş.');
   const rate = Number(row.rate_try);
@@ -113,6 +119,7 @@ async function paymentCurrency(tx, tenantId, code, netCents) {
 
 // Defter para birimi: işletmenin ana para birimi (satış/fatura kaydına yazılır). Geçersiz ya da eksikse TRY.
 const LEDGER_CURRENCIES = ['TRY', 'AZN', 'USD', 'EUR', 'GBP'];
+const foreignFor = base => (base === 'TRY' ? CURRENCIES : LEDGER_CURRENCIES.filter(c => c !== base));
 const normalizeLedger = code => { const c = String(code || '').trim().toUpperCase(); return LEDGER_CURRENCIES.includes(c) ? c : 'TRY'; };
 async function ledgerCurrency(tx, tenantId) {
   try { return normalizeLedger((await tx.query('SELECT currency FROM tenants WHERE id=$1', [tenantId])).rows[0]?.currency); } catch { return 'TRY'; }
@@ -126,4 +133,4 @@ async function saleCurrency(tx, tenantId, saleId) {
   return ledgerCurrency(tx, tenantId);
 }
 
-module.exports = { LEDGER_CURRENCIES, normalizeLedger, ledgerCurrency, saleCurrency, cashierRates, paymentCurrency, rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };
+module.exports = { foreignFor, LEDGER_CURRENCIES, normalizeLedger, ledgerCurrency, saleCurrency, cashierRates, paymentCurrency, rates, setRates, getProduct, setProduct, apply, CURRENCIES, _forget: forget };
