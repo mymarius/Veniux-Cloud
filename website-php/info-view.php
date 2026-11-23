@@ -3,17 +3,17 @@
 // Hazır olmayan hiçbir özellik hazırmış gibi gösterilmez; durum etiketleri yol haritasıyla aynı sözlüğü kullanır.
 $infoUpdated = '24 Kasım 2026';
 $have = [
-    ['yes', 'Stok takibi', 'Ürün, barkod, birim ve fiyat kaydı; giriş-çıkış geçmişi; kritik seviye uyarısı; satış hızına göre sipariş önerisi (düz hesap, tahmin değil; sınırlı denendi, ürün bilgisi ve minimum stok girilmesi gerekir).'],
+    ['yes', 'Stok takibi', 'Ürün, barkod, birim ve fiyat kaydı; giriş-çıkış geçmişi; kritik seviye uyarısı; satış hızına göre sipariş önerisi (düz hesap, tahmin değil; ürün bilgisi ve minimum stok girilmesi gerekir).'],
     ['yes', 'Depo', 'Mal kabul, raf ve lokasyon yerleşimi, depolar arası transfer, barkodlu hızlı sayım ve sayım farkı.'],
     ['yes', 'Lot ve son kullanma tarihi', 'Ürünü parti ve miatla takip etme, yaklaşan tarihleri görme.'],
     ['yes', 'Market kasası', 'Barkodlu satış, nakit, kart ve parçalı ödeme, vardiya, gün sonu, iade, bekleyen satış, fiş numarası. Gün sonu ve kâr raporu CSV ve Excel olarak indirilir.'],
     ['yes', 'Excel ve CSV ile ürün aktarımı', 'Dosyanızı yükler, sütunları eşleştirir, önizlemeyi görüp aktarırsınız.'],
-    ['limited', 'Müşteri ve fırsat takibi (hafif CRM)', 'Aday, fırsat, görev, şirket ve kişi kayıtları tutulur; işletmeye özel ve basit bir çalışma alanıdır. Gelişmiş CRM (otomasyon, e-posta entegrasyonu, raporlama) değildir.'],
     ['yes', 'Sektör paketleri', 'Restoran (masa, garson, mutfak), hırdavat, züccaciye ve benzeri işletmeler için ek ekranlar. Hangisinin açık olacağı paketinize bağlıdır.'],
     ['yes', 'Android uygulaması', 'Telefon kamerasıyla barkod okuma, fiyat ve stok görme, sayım.'],
     ['yes', 'Yapay zekâ asistanı', 'Stok ve satış verileriniz hakkında Türkçe soru sorarsınız. Değişiklik gerektiren her işlem önce size gösterilir, siz onaylamadan uygulanmaz.'],
     ['yes', 'Otomatik yedekleme', 'Her gün şifreli yedek alınır; yedeğin ikinci bir kopyası harici diske yazılabilir. Ayrıntısı aşağıda.'],
     ['yes', 'Otomatik güncelleme', 'Yeni sürüm kendiliğinden indirilir. Ayrıntısı aşağıda.'],
+    ['limited', 'Müşteri ve fırsat takibi (hafif CRM)', 'Aday, fırsat, görev, şirket ve kişi kayıtları tutulur; işletmeye özel ve basit bir çalışma alanıdır. Gelişmiş CRM (otomasyon, e-posta entegrasyonu, raporlama) değildir.'],
     ['limited', 'Bulut kasası, internet kesilince', 'Nakit ve kart satış devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.'],
     ['limited', 'Online mağaza', 'Ürünleri seçip tek adreste yayınlarsınız, siparişler stokla birlikte düşer. Kapıda ve mağazada ödeme vardır. Kartla ödeme için kendi iyzico hesabınız gerekir; bu bağlantı gerçek hesapla henüz denenmedi.'],
     ['untested', 'Terazi', 'Terazi etiketindeki barkod bugün okunur. Kasada seri port üzerinden kablolu terazi bağlantısı Windows’ta 2.4.82 ile eklendi (CAS, Mettler Toledo, Dibal/Bizerba ve genel düz satır çıktı). Gerçek bir terazide denenmedi.'],
