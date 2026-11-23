@@ -8,10 +8,10 @@
         <?php foreach($legalSections as $i=>[$heading]):?><a href="#madde-<?=$i+1?>"><span><?=$i+1?></span><?=e($heading)?></a><?php endforeach;?>
       </nav>
       <article class="lg-sheet">
-        <div class="lg-stamp">Son güncelleme<b>13 Kasım 2026</b></div>
+        <div class="lg-stamp">Son güncelleme<b><?=e($legalPages[$path]['updated']??'13 Kasım 2026')?></b></div>
         <p class="lg-intro">Bu metin Veniux sitesi ve açıklanan hizmetler için hazırlanmıştır. İletişim: <a href="mailto:destek@veniux.com">destek@veniux.com</a> · <a href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer">WhatsApp destek hattı</a>.</p>
         <?php foreach($legalSections as $i=>[$heading,$text]):?>
-        <section id="madde-<?=$i+1?>"><span class="lg-no"><?=$i+1?></span><div><h2><?=e($heading)?></h2><p><?=e($text)?></p></div></section>
+        <section id="madde-<?=$i+1?>"><span class="lg-no"><?=$i+1?></span><div><h2><?=e($heading)?></h2><?php foreach(preg_split("/\n\n/",$text) as $para):?><p><?=nl2br(e($para))?></p><?php endforeach;?></div></section>
         <?php endforeach;?>
         <p class="lg-end">Hizmet kapsamı veya kullanım koşullarında yapılacak güncellemeler bu sayfada yayınlandığı tarihte yürürlüğe girer.</p>
       </article>

@@ -77,7 +77,8 @@ foreach($legalPages as $legalPath=>$legalPage){
         'description'=>'Veniux '.$legalPage['title'].': site hesabı, hizmet kullanımı ve veri işleme hakkında bilgi.',
         'label'=>$legalPage['title'],
         'headline'=>'',
-        'intro'=>''
+        'intro'=>'',
+        'indexable'=>$legalPage['indexable']??true
     ];
 }
 

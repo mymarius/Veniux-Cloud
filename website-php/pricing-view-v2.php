@@ -56,7 +56,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
     </article>
   <?php endforeach;?>
   </div>
-  <p class="hx-wrap pr-terms" data-pr>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Fiyatlar KDV dahildir. Yıllık ve 3 aylık seçeneklerin özellikleri aynıdır; fiyat sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p>
+  <p class="hx-wrap pr-terms" data-pr>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Fiyatlar KDV dahildir. Yıllık ve 3 aylık seçeneklerin özellikleri aynıdır; fiyat sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir. Ücretli lisanslarda ücret iadesi yapılmaz; sınırlı istisnalar <a href="/hizmet-sozlesmesi">Hizmet Sözleşmesi</a>’nde yazılıdır.</p>
 </section>
 
 <section class="pr-sector" id="restoran" aria-label="Pide ve restoran eklentisi"><div class="hx-wrap">
