@@ -1,8 +1,18 @@
 {
-  "version": "2.4.106",
+  "version": "2.4.107",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.107",
+      "date": "23 Kasım 2026",
+      "title": "Cihaz hakkı mesajı netleşti, Pro 2 cihaz oldu",
+      "items": [
+        "- Aynı lisans anahtarı cihaz hakkı dolu olduğu için reddedilirse hata artık nedenini ve panelden cihaz sıfırlamayı anlatır",
+        "- Pro paketi 2 cihaza (Windows ve telefon ya da tarayıcı) çıktı",
+        "- Paket matrisi güncel: Pro ve İşletme WMS yıllık ve 3 aylık, Ömür Boyu yeni satışa kapalı"
+      ]
+    },
     {
       "version": "2.4.106",
       "date": "23 Kasım 2026",
