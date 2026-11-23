@@ -85,6 +85,13 @@ function vp_migrate(PDO $pdo): void {
         foreach([['pro',799000,649000],['lifetime_desktop',1599000,1299000],['business_wms',2190000,1690000]] as [$code,$new,$old])$upd->execute([$new,$code,$old]);
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','6') ON DUPLICATE KEY UPDATE svalue='6'");
     }
+    if($version<7){
+        // v7 (23 Kas 2026): Pro paketi 2 cihaz (Windows + telefon/tarayıcı). Yalnız eski varsayılan 1'de duran paket ve lisanslar güncellenir;
+        // merkezdeki terminal sayısı saatlik eşitlemeyle (vp_authority_sync_all) yansır.
+        $pdo->exec("UPDATE licenses SET device_limit=2 WHERE device_limit=1 AND product_id IN (SELECT id FROM (SELECT id FROM products WHERE code='pro') p)");
+        $pdo->exec("UPDATE products SET device_limit=2 WHERE code='pro' AND device_limit=1");
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','7') ON DUPLICATE KEY UPDATE svalue='7'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {

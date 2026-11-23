@@ -16,7 +16,7 @@ const PRO = { ...LITE, ...set('cost_reports', 'excel_import', 'multi_staff', 'pu
 
 export const PLANS = {
   lite: { id: 'lite', name: 'Veniux Lite', price_try: 0, period: 'forever', limits: { desktop: 1, warehouses: 1, admins: 1, staff: 0, ai_monthly: 0 }, features: LITE },
-  pro: { id: 'pro', name: 'Veniux Pro', price_try: 7990, monthly_try: 849, period: 'year', limits: { desktop: 1, warehouses: 1, admins: null, staff: null, ai_monthly: 100 }, features: PRO },
+  pro: { id: 'pro', name: 'Veniux Pro', price_try: 7990, monthly_try: 849, period: 'year', limits: { desktop: 2, warehouses: 1, admins: null, staff: null, ai_monthly: 100 }, features: PRO },
   lifetime_desktop: { id: 'lifetime_desktop', name: 'Veniux Ömür Boyu Masaüstü', price_try: 15990, period: 'once', limits: { desktop: 1, warehouses: 1, admins: null, staff: null, ai_monthly: 100 },
     features: { ...PRO }, bundled_cloud_years: 1 },
   business_wms: { id: 'business_wms', name: 'Veniux İşletme WMS', price_try: 21900, period: 'year', limits: { desktop: null, warehouses: 3, admins: null, staff: null, ai_monthly: null },

@@ -50,7 +50,7 @@
    "monthly_try": 849,
    "period": "year",
    "limits": {
-    "desktop": 1,
+    "desktop": 2,
     "warehouses": 1,
     "admins": null,
     "staff": null,
