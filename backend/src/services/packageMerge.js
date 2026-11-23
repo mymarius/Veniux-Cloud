@@ -6,7 +6,7 @@ const INCLUDE_MERGED = ['RETAIL_PRO', 'RETAIL_BUSINESS', 'WAREHOUSE_PRO', 'WAREH
 // Yeni satışta gösterilmez; mevcut sözleşmeler çalışmaya devam eder.
 const RETIRED = ['RETAIL_HIRDAVAT', 'RETAIL_ZUCCACIYE', 'RETAIL_ONLINE'];
 // Yalnız platform sahibi fiyat girmemişse görünen önerilen fiyatlar (KDV dahil, kuruş). Sahibin girdiği fiyat her zaman önceliklidir.
-const DEFAULT_PRICES = { RETAIL_PRO: { annual_cents: 799000, monthly_cents: 84900 }, UNIFIED_BUSINESS: { annual_cents: 2190000, monthly_cents: null } };
+const DEFAULT_PRICES = { RETAIL_PRO: { annual_cents: 2499000, monthly_cents: 299000 }, UNIFIED_BUSINESS: { annual_cents: 5990000, monthly_cents: null } };
 
 function normalise(catalogue) {
   const plans = catalogue.plans.map(plan => {
