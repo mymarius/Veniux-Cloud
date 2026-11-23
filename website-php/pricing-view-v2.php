@@ -1,12 +1,12 @@
 <?php
-// Birleşik paket sayfası: Pro, Ömür Boyu Masaüstü, İşletme WMS + Pide ve Restoran eklentisi.
+// Birleşik paket sayfası: Pro, İşletme WMS (yıllık ve 3 aylık) + Pide ve Restoran eklentisi.
 // Veri: plans.json (shared/planMatrix.mjs → tools/site/export-plans.mjs). Fiyat yalnız o dosyada değişir.
 $data=sitePlansV2(); $plans=$data['plans']; $labels=$data['labels']; $trial=(int)$data['trial_days']; $cloud=$data['cloud_features']??[];
 $money=static fn($v)=>number_format((float)$v,0,',','.').' ₺';
 $money2=static fn($v)=>number_format((float)$v,2,',','.').' ₺';
 $limit=static fn($v)=>$v===null?'Sınırsız':(string)$v;
 $base=['lifetime_desktop'=>'pro','business_wms'=>'pro']; $byId=[]; foreach($plans as $p)$byId[$p['id']]=$p;
-$pro=$byId['pro']??null; $yearSaving=$pro&&$pro['monthly_try']?($pro['monthly_try']*12-$pro['price_try']):0;
+$pro=$byId['pro']??null; $yearSaving=$pro&&!empty($pro['quarter_try'])?($pro['quarter_try']*4-$pro['price_try']):0;
 $sectors=['Market','Bakkal','Kırtasiye','Hırdavat ve nalbur','Züccaciye','Giyim ve butik','Yedek parça','Toptancı','Pide ve restoran','Depo'];
 $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturaları','Bakkal'=>'Hızlı satış, müşteri veresiyesi','Kırtasiye'=>'Okul sezonunda hızlı kasa','Hırdavat ve nalbur'=>'Ölçü ve raf araması, usta carisi','Züccaciye'=>'Takım ve set takibi, kırılgan raf uyarısı','Giyim ve butik'=>'Beden ve renk tablosu, değişim','Yedek parça'=>'Bir parçaya birden fazla barkod','Toptancı'=>'Cari, vade ve toplu fiyat','Pide ve restoran'=>'Masa planı, garson, mutfak ekranı','Depo'=>'Raf haritası, mal kabul, sayım'];
 ?>
@@ -37,7 +37,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <p class="pr-for"><?=e($plan['tagline'])?></p>
       <div class="pr-price"><span><?=number_format((float)$plan['price_try'],0,',','.')?></span><small> ₺</small></div>
       <p class="pr-period"><?php if($free):?>Süresiz · ücret yok<?php elseif($once):?>tek ödeme · KDV dahil · ilk <?=(int)$plan['bundled_cloud_years']?> yıl web ve mobil hediye<?php else:?>/ yıl · KDV dahil · aylık eşdeğeri <?=$money2($plan['price_try']/12)?><?php endif;?></p>
-      <?php if($id==='pro'&&$yearSaving>0):?><p class="pr-save">Aylık <?=$money($pro['monthly_try'])?> ödemeye göre yılda <?=$money($yearSaving)?> daha az</p><p class="pr-period">Aylık abonelik: <?=$money($pro['monthly_try'])?> / ay</p><?php endif;?>
+      <?php if(!empty($plan['quarter_try'])):?><p class="pr-save">Yıllık ödeyince 3 aylık ödemeye göre <?=$money($plan['quarter_try']*4-$plan['price_try'])?> daha az</p><p class="pr-period">3 aylık ödeme: <?=$money($plan['quarter_try'])?> / 3 ay · KDV dahil</p><?php endif;?>
       <dl class="pr-limits">
         <div><dd><?=e($limit($plan['limits']['warehouses']))?></dd><dt>depo</dt></div>
         <div><dd><?=$plan['limits']['staff']===0?'1':'Sınırsız'?></dd><dt><?=$plan['limits']['staff']===0?'yönetici':'personel'?></dt></div>
@@ -59,13 +59,13 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
   <div class="pr-sector-head" data-pr>
     <p class="pr-eyebrow">Eklenti</p>
     <h2>Pide ve restoran modülü</h2>
-    <p class="pr-sector-lead">Pro, Ömür Boyu veya İşletme paketine eklenir. Garson siparişi telefondan girer, mutfak anında öter, stok o an düşer.</p>
+    <p class="pr-sector-lead">Pro veya İşletme paketine eklenir. Garson siparişi telefondan girer, mutfak anında öter, stok o an düşer.</p>
   </div>
   <article class="pr-pack" data-pr>
     <div class="pr-tag-top"><span>RESTORAN</span><span>EKLENTİ</span></div>
     <ul><?php foreach($data['addon_features'] as $key):?><li><?=e($labels[$key]??$key)?></li><?php endforeach;?></ul>
     <div class="pr-pack-foot">
-      <span class="pr-sector-badge">Pro, Ömür Boyu veya İşletme ile</span>
+      <span class="pr-sector-badge">Pro veya İşletme ile</span>
       <div class="pr-pack-price"><span>Teklifle</span></div>
       <em>İşletmenizin masa ve cihaz sayısına göre netleşir</em>
       <a class="hx-btn" href="/?request_type=quote&amp;plan=restaurant_addon#iletisim">Restoran modülü için görüşelim</a>
@@ -105,7 +105,6 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <tr><th scope="row">WhatsApp ve e-posta desteği</th><?php foreach($plans as $plan):?><td>Dahil</td><?php endforeach;?></tr>
       <tr><th scope="row">Kurulum, uzak bağlantı ve yeni sürüm ücreti</th><?php foreach($plans as $plan):?><td>Yok</td><?php endforeach;?></tr>
       </tbody></table></div>
-    <p class="pr-terms">“İlk 1 yıl”, Ömür Boyu Masaüstü paketiyle hediye edilen web ve mobil erişim süresini ifade eder; sonrasında bu özellikler yıllık abonelikle devam eder.</p>
     <aside class="pr-excluded">
       <b>Fiyata dahil değil</b>
       <ul><li>Donanım (barkod okuyucu, yazıcı, terazi, el terminali, yazarkasa cihazı)</li><li>Özel veri aktarımı ve yerinde eğitim</li></ul>
@@ -115,11 +114,10 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 </section>
 
 <section class="hx-faq hx-faq-top"><div class="hx-wrap"><h2>Sık sorulanlar</h2><div class="hx-qa hx-qaacc">
-  <details><summary>Kaç farklı paket var?</summary><p>Üç: yıllık Pro, tek ödemeli Ömür Boyu Masaüstü ve çok depolu işletmeler için İşletme WMS. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
+  <details><summary>Kaç farklı paket var?</summary><p>İki ücretli paket: Pro ve çok depolu işletmeler için İşletme WMS. İkisi de yıllık ya da 3 aylık alınır. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
   <details><summary>Ne kadar süre ücretsiz deneyebilirim?</summary><p><?=$trial?> gün boyunca tüm özellikler açıktır; kredi kartı gerekmez. Deneme hesabını <a href="<?=VENIUX_TRIAL_URL?>">/deneme</a> sayfasından e-posta adresinizle açarsınız.</p></details>
   <details><summary>Hırdavat ve züccaciye için ayrı paket almam gerekir mi?</summary><p>Hayır. Ölçü ve raf araması, takım ve set takibi, beden ve renk gibi özellikler Pro ve üstündeki paketlere dahildir.</p></details>
-  <details><summary>Yıllık ile aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır. Pro’yu yıllık ödemek <?=$yearSaving>0?$money($yearSaving).' ':''?>daha avantajlıdır. Aylık seçenek talep üzerine sunulur.</p></details>
-  <details><summary>Ömür boyu paket neyi kapsar?</summary><p>Tek bilgisayarda masaüstü uygulamanın süresiz kullanımı. İlk yıl web ve mobil erişim hediyedir; sonrasında bulut ve yapay zekâ özellikleri için yıllık abonelik gerekir, masaüstü özellikleri çalışmaya devam eder.</p></details>
+  <details><summary>Yıllık ile 3 aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır. Pro’yu yıllık ödemek <?=$yearSaving>0?$money($yearSaving).' ':''?>daha avantajlıdır. 3 aylık seçenek, önce kısa süreli denemek isteyenler içindir.</p></details>
   <details><summary>İnternet kesilince ne olur?</summary><p>Masaüstü uygulama satışı önce bilgisayara kaydeder. Bağlantı geldiğinde bulutla kendiliğinden eşitlenir.</p></details>
   <details><summary>Destek, kurulum ve güncelleme için ek ücret öder miyim?</summary><p>Hayır. WhatsApp ve e-posta desteği, uzak kurulum yardımı ve yeni sürüm güncellemeleri paket fiyatına dahildir. Özel veri aktarımı ve yerinde eğitim ayrıca teklif edilir.</p></details>
   <details><summary>Lisans satın aldığımda verilerim silinir mi?</summary><p>Hayır. Deneme hesabınızdaki ürünler, müşteriler ve satışlar lisans yükseltmesinde aynen kalır.</p></details>

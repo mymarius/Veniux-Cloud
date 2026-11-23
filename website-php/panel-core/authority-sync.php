@@ -6,7 +6,7 @@ declare(strict_types=1);
 // bu yüzden anahtar panelde saklanır. Bağlantı ayarı: <veri klasörü>/authority.json  {"dsn":"mysql:host=...;dbname=...;charset=utf8mb4","user":"...","password":"..."}
 // Ayar yoksa köprü kapalıdır ve panel eskisi gibi çalışır (anahtarlar programda etkinleşmez).
 
-const VP_AUTH_PLAN = ['lite' => 'STARTER_ANNUAL', 'pro' => 'BUSINESS_ANNUAL', 'lifetime_desktop' => 'BUSINESS_ANNUAL', 'business_wms' => 'ENTERPRISE_ANNUAL'];
+const VP_AUTH_PLAN = ['lite' => 'STARTER_ANNUAL', 'pro' => 'BUSINESS_ANNUAL', 'lifetime_desktop' => 'BUSINESS_ANNUAL', 'business_wms' => 'ENTERPRISE_ANNUAL', 'pro_3m' => 'BUSINESS_ANNUAL', 'business_wms_3m' => 'ENTERPRISE_ANNUAL'];
 
 function vp_authority_config(): ?array {
     static $c = false;

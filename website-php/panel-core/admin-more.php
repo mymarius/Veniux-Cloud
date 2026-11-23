@@ -750,10 +750,10 @@ function vpa_tools(array $a): void {
     ?>
 <div class="vp-grid vp-grid-2">
   <form class="vp-card vp-form" data-calc="kdv"><div class="vp-card-head"><h2>KDV hesaplayıcı</h2></div>
-    <div class="vp-row-3 vp-row"><label class="vp-field"><span>Tutar (₺)</span><input type="text" name="amount" inputmode="decimal" value="7990"></label><label class="vp-field"><span>KDV %</span><input type="text" name="rate" inputmode="decimal" value="<?=$rate?>"></label><label class="vp-field"><span>Tutar</span><select name="mode"><option value="dahil">KDV dahil</option><option value="haric">KDV hariç</option></select></label></div>
+    <div class="vp-row-3 vp-row"><label class="vp-field"><span>Tutar (₺)</span><input type="text" name="amount" inputmode="decimal" value="9990"></label><label class="vp-field"><span>KDV %</span><input type="text" name="rate" inputmode="decimal" value="<?=$rate?>"></label><label class="vp-field"><span>Tutar</span><select name="mode"><option value="dahil">KDV dahil</option><option value="haric">KDV hariç</option></select></label></div>
     <div class="vp-calc-out" data-out aria-live="polite"></div></form>
   <form class="vp-card vp-form" data-calc="indirim"><div class="vp-card-head"><h2>İndirim hesaplayıcı</h2></div>
-    <div class="vp-row"><label class="vp-field"><span>Liste fiyatı (₺)</span><input type="text" name="amount" inputmode="decimal" value="21900"></label><label class="vp-field"><span>İndirim %</span><input type="text" name="rate" inputmode="decimal" value="15"></label></div>
+    <div class="vp-row"><label class="vp-field"><span>Liste fiyatı (₺)</span><input type="text" name="amount" inputmode="decimal" value="27900"></label><label class="vp-field"><span>İndirim %</span><input type="text" name="rate" inputmode="decimal" value="15"></label></div>
     <div class="vp-calc-out" data-out aria-live="polite"></div></form>
 </div>
 <?php

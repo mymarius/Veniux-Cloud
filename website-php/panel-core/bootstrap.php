@@ -92,6 +92,16 @@ function vp_migrate(PDO $pdo): void {
         $pdo->exec("UPDATE products SET device_limit=2 WHERE code='pro' AND device_limit=1");
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','7') ON DUPLICATE KEY UPDATE svalue='7'");
     }
+    if($version<8){
+        // v8 (23 Kas 2026): yeni fiyatlar (KDV dahil, kuruş) + 3 aylık paketler; Ömür Boyu yeni satışa kapalı.
+        // Yalnız eski varsayılan fiyatta duran paketler güncellenir (yönetici elle değiştirdiyse dokunulmaz). Mevcut lisanslar kendi fiyatıyla yenilenir.
+        $upd=$pdo->prepare('UPDATE products SET price=? WHERE code=? AND price=?');
+        foreach([['pro',999000,799000],['business_wms',2790000,2190000]] as [$code,$new,$old])$upd->execute([$new,$code,$old]);
+        $pdo->exec("UPDATE products SET active=0,featured=0 WHERE code='lifetime_desktop'");
+        $ins=$pdo->prepare("INSERT IGNORE INTO products(code,name,tagline,period,price,renew_price,device_limit,warehouse_limit,user_limit,ai_limit,features,active,featured,sort,created_at) SELECT ?,CONCAT(name,' · 3 aylık'),tagline,'quarter',?,NULL,device_limit,warehouse_limit,user_limit,ai_limit,features,1,0,sort+10,created_at FROM products WHERE code=?");
+        foreach([['pro_3m',339000,'pro'],['business_wms_3m',949000,'business_wms']] as [$code,$price,$base])$ins->execute([$code,$price,$base]);
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','8') ON DUPLICATE KEY UPDATE svalue='8'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {

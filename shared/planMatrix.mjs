@@ -16,10 +16,10 @@ const PRO = { ...LITE, ...set('cost_reports', 'excel_import', 'multi_staff', 'pu
 
 export const PLANS = {
   lite: { id: 'lite', name: 'Veniux Lite', price_try: 0, period: 'forever', limits: { desktop: 1, warehouses: 1, admins: 1, staff: 0, ai_monthly: 0 }, features: LITE },
-  pro: { id: 'pro', name: 'Veniux Pro', price_try: 7990, monthly_try: 849, period: 'year', limits: { desktop: 2, warehouses: 1, admins: null, staff: null, ai_monthly: 100 }, features: PRO },
+  pro: { id: 'pro', name: 'Veniux Pro', price_try: 9990, quarter_try: 3390, period: 'year', limits: { desktop: 2, warehouses: 1, admins: null, staff: null, ai_monthly: 100 }, features: PRO },
   lifetime_desktop: { id: 'lifetime_desktop', name: 'Veniux Ömür Boyu Masaüstü', price_try: 15990, period: 'once', limits: { desktop: 1, warehouses: 1, admins: null, staff: null, ai_monthly: 100 },
     features: { ...PRO }, bundled_cloud_years: 1 },
-  business_wms: { id: 'business_wms', name: 'Veniux İşletme WMS', price_try: 21900, period: 'year', limits: { desktop: null, warehouses: 3, admins: null, staff: null, ai_monthly: null },
+  business_wms: { id: 'business_wms', name: 'Veniux İşletme WMS', price_try: 27900, quarter_try: 9490, period: 'year', limits: { desktop: null, warehouses: 3, admins: null, staff: null, ai_monthly: null },
     features: { ...PRO, ...set('ai_unlimited', 'wms_map', 'inbound_waybill', 'picking_shipping', 'transfers', 'count_approval', 'marketplace', 'online_store', 'accounting_export', 'open_api') } }
 };
 export const RESTAURANT_ADDON = { id: 'restaurant_addon', name: 'Pide ve Restoran', requires: ['pro', 'lifetime_desktop', 'business_wms'], features: set('tables', 'waiter', 'kds', 'courier', 'recipe_stock') };

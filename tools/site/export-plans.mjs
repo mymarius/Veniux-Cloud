@@ -8,7 +8,7 @@ export function build() {
     trial_days: TRIAL.days,
     cloud_features: CLOUD_COST_FEATURES,
     addon_features: Object.keys(RESTAURANT_ADDON.features),
-    plans: PLAN_IDS.map(id => { const p = PLANS[id]; return { id, name: p.name, tagline: TAGLINES[id], price_try: p.price_try, monthly_try: p.monthly_try ?? null, period: p.period, limits: p.limits, bundled_cloud_years: p.bundled_cloud_years ?? 0, features: Object.keys(p.features) }; }),
+    plans: PLAN_IDS.map(id => { const p = PLANS[id]; return { id, name: p.name, tagline: TAGLINES[id], price_try: p.price_try, quarter_try: p.quarter_try ?? null, period: p.period, limits: p.limits, bundled_cloud_years: p.bundled_cloud_years ?? 0, features: Object.keys(p.features) }; }),
     addon: { id: RESTAURANT_ADDON.id, name: RESTAURANT_ADDON.name, requires: RESTAURANT_ADDON.requires },
     labels: { ...FEATURE_LABELS, ...ADDON_LABELS },
     groups: FEATURE_GROUPS.map(([name, keys]) => ({ name, keys }))
