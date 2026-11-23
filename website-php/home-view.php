@@ -207,7 +207,7 @@ $steps=[
     <p class="hx-road-lead">Aşağıdakilerin bir kısmı henüz hazır değil; üzerinde çalışıyoruz veya planlıyoruz. Tarih vermiyoruz, hazır olduğunda burada yazacak. Her özelliğin durumu için <a href="/bilgilendirme">bilgilendirme sayfasına</a> bakın.</p>
     <ol class="hx-road">
       <li data-s="build"><span class="hx-chip">Yapım aşamasında</span><div>Mağaza ile bulutun kendiliğinden eşitlenmesi.</div></li>
-      <li data-s="limited"><span class="hx-chip">Bugün var, sınırlı</span><div>Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</div></li>
+      <li data-s="limited"><span class="hx-chip">Sınırlı</span><div>Bulut kasası internet kesilince nakit ve kart satışa devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Yazarkasa (yeni nesil ÖKC) entegrasyonu.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>e-Fatura, e-Arşiv ve e-İrsaliye.</div></li>
       <li data-s="plan"><span class="hx-chip">Planlanıyor</span><div>Logo, Mikro ve Paraşüt’e doğrudan aktarım (CSV aktarımı bugün var).</div></li>

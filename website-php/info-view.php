@@ -26,7 +26,7 @@ $plan = [
     ['plan', 'Logo, Mikro ve Paraşüt’e doğrudan aktarım', 'Planlanıyor. CSV ve Excel aktarımı bugün vardır.'],
     ['no', 'iPhone uygulaması', 'Yok. Telefon desteği Android içindir.'],
 ];
-$chips = ['yes' => ['Bugün var', 'yes'], 'limited' => ['Bugün var, sınırlı', 'limited'], 'untested' => ['Denenmedi', 'untested'], 'build' => ['Yapım aşamasında', 'build'], 'plan' => ['Planlanıyor', 'plan'], 'no' => ['Yok', 'no']];
+$chips = ['yes' => ['Hazır', 'yes'], 'limited' => ['Sınırlı', 'limited'], 'untested' => ['Denenmedi', 'untested'], 'build' => ['Yapım aşamasında', 'build'], 'plan' => ['Planlanıyor', 'plan'], 'no' => ['Yok', 'no']];
 $faq = [
     ['Veniux’u denemek için ne yapmalıyım?', '30 günlük deneme hesabı açabilir, kendi ürünlerinizi ekleyip kasayı ve stoku deneyebilirsiniz. Önce bir iki gün gerçek ürünlerinizle deneyin, sonra karar verin.'],
     ['Verilerim nerede duruyor?', 'Windows kurulumunda kendi bilgisayarınızda ya da ayrı bir sunucuda. Bulut kullanıyorsanız bulut sunucusunda. Seçenekler için <a href="/sunucu-kurulumu">kurulum seçenekleri</a> sayfasına bakın.'],
@@ -50,7 +50,7 @@ $faq = [
 <section class="hx-plain hx-roadmap" id="bugun">
   <div class="hx-wrap">
     <h2>Bugün neler var?</h2>
-    <p class="hx-road-lead">Her kalemin yanındaki etiket gerçek durumu söyler. “Denenmedi”, kodu yazıldı ama gerçek cihaz veya hesapla sınanmadı demektir.</p>
+    <p class="hx-road-lead">Her kalemin yanındaki etiket gerçek durumu söyler. “Hazır”, programda var ve çalışır demektir. “Sınırlı”, çalışır ama kapsamı veya koşulları dardır; açıklamasında yazar. “Denenmedi”, kodu yazıldı ama gerçek cihaz veya hesapla sınanmadı demektir.</p>
     <ol class="hx-road">
 <?php foreach($have as [$state,$name,$text]):?>
       <li data-s="<?=e($chips[$state][1])?>"><span class="hx-chip"><?=e($chips[$state][0])?></span><div><strong><?=e($name)?>.</strong> <?=e($text)?></div></li>
