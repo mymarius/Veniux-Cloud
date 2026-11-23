@@ -1,8 +1,23 @@
 {
-  "version": "2.4.108",
+  "version": "2.4.109",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.109",
+      "date": "24 Kasım 2026",
+      "title": "﻿Ã‡oklu para birimi, toplu mal kabul, ortak katalog ve Azerbaycanca arayÃ¼z baÅŸlangÄ±cÄ±",
+      "items": [
+        "- Toplu mal kabul: barkodlarÄ± art arda okutup yÃ¼zlerce Ã¼rÃ¼nÃ¼ tek onayla stoÄŸa ekleyin (MaÄŸaza > Toplu Mal Kabul)",
+        "- Ä°ÅŸletme para birimi artÄ±k seÃ§ilebilir (TL, â‚¼ Manat, USD, EUR, GBP): fiyatlar, raporlar, fiÅŸler ve belgeler seÃ§ilen para birimini gÃ¶sterir; satÄ±ÅŸ kaydÄ± oluÅŸtuktan sonra para birimi deÄŸiÅŸmez",
+        "- Kasada yabancÄ± para ile Ã¶deme, iÅŸletmenin ana para birimine gÃ¶re Ã§alÄ±ÅŸÄ±r",
+        "- Barkoddan Ã¼rÃ¼n bilgisi: birden Ã§ok kaynak sÄ±rayla aranÄ±r (ortak katalog, Open Food Facts); kaynak yanÄ±t vermezse Ã¼rÃ¼nÃ¼ elle eklemeye devam edebilirsiniz",
+        "- Ortak katalog: iÅŸletmelerin aynÄ± barkod iÃ§in girdiÄŸi Ã¼rÃ¼n adlarÄ±, en az iki iÅŸletme doÄŸruladÄ±ÄŸÄ±nda Ã¶neri olarak sunulur (fiyat ve stok paylaÅŸÄ±lmaz); Ayarlar'dan katkÄ±yÄ± kapatabilirsiniz",
+        "- Azerbaycanca arayÃ¼z baÅŸlangÄ±cÄ±: Ayarlar > Åirket'ten dil seÃ§ilir; menÃ¼, giriÅŸ, kasa, hÄ±zlÄ± Ã¼rÃ¼n ekleme, ana sayfa ve toplu kabul Ã§evrildi, kalan ekranlar TÃ¼rkÃ§e gÃ¶rÃ¼nÃ¼r",
+        "- Depo sayÄ±mÄ±nda koli/paket barkodu artÄ±k depo Ã¼rÃ¼nlerinde de okunur",
+        "- Android el terminali (Zebra DataWedge) donanÄ±m tarayÄ±cÄ±sÄ± desteÄŸi eklendi"
+      ]
+    },
     {
       "version": "2.4.108",
       "date": "23 Kasım 2026",
