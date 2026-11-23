@@ -15,9 +15,9 @@ function siteSeoGraph(array $config,array $page,string $path,bool $notFound=fals
     if($path==='/program-indir')$graph[]=['@type'=>'SoftwareApplication','@id'=>$url.'#application','name'=>'Veniux','alternateName'=>'Veniux Cloud','applicationCategory'=>'BusinessApplication','operatingSystem'=>'Windows 10, Windows 11, Android 8 ve üzeri','url'=>$url,'description'=>$page['description'],'publisher'=>['@id'=>$base.'/#organization']];
     return ['@context'=>'https://schema.org','@graph'=>$graph];
 }
-function siteSeoHead(array $config,array $page,string $path,bool $indexable):string {
+function siteSeoHead(array $config,array $page,string $path,bool $indexable,string $urlPrefix=''):string {
     $escape=static fn(string $s):string=>htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
-    $url=rtrim($config['url'],'/').$path;
+    $url=rtrim($config['url'],'/').($urlPrefix===''?$path:($path==='/'?$urlPrefix.'/':$urlPrefix.$path));
     $screenshot=isset($page['image'])&&preg_match('/^product-[a-z]+-v[0-9]+\.jpg$/D',$page['image']);
     $image=rtrim($config['url'],'/').'/assets/'.($screenshot?$page['image']:'logo-hero-420-v2.webp');
     $imageAlt=$screenshot?($page['alt']??'Veniux ürün ekranı, sentetik örnek kayıtlar'):'Veniux Cloud logosu';
@@ -28,7 +28,7 @@ function siteSeoHead(array $config,array $page,string $path,bool $indexable):str
     $html='<title>'.$escape($page['title']).'</title><link rel="canonical" href="'.$escape($url).'">';
     $meta=['description'=>$page['description'],'robots'=>$indexable?'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1':'noindex, nofollow','twitter:card'=>$screenshot?'summary_large_image':'summary','twitter:title'=>$page['title'],'twitter:description'=>$page['description'],'twitter:image'=>$image,'twitter:image:alt'=>$imageAlt];
     foreach($meta as $name=>$value)$html.='<meta name="'.$name.'" content="'.$escape($value).'">';
-    $og=['type'=>'website','locale'=>'tr_TR','site_name'=>'Veniux Cloud','title'=>$page['title'],'description'=>$page['description'],'url'=>$url,'image'=>$image,'image:secure_url'=>$image,'image:type'=>$screenshot?'image/jpeg':'image/webp','image:width'=>$screenshot?(string)($page['image_width']??1280):'420','image:height'=>$screenshot?(string)($page['image_height']??800):'420','image:alt'=>$imageAlt];
+    $og=['type'=>'website','locale'=>$urlPrefix==='/az'?'az_AZ':'tr_TR','site_name'=>'Veniux Cloud','title'=>$page['title'],'description'=>$page['description'],'url'=>$url,'image'=>$image,'image:secure_url'=>$image,'image:type'=>$screenshot?'image/jpeg':'image/webp','image:width'=>$screenshot?(string)($page['image_width']??1280):'420','image:height'=>$screenshot?(string)($page['image_height']??800):'420','image:alt'=>$imageAlt];
     foreach($og as $name=>$value)$html.='<meta property="og:'.$name.'" content="'.$escape($value).'">';
     if($path==='/')$html.='<meta name="google-site-verification" content="1VEoKi2e_dQVEQ5sQtNMvYgeEXWGkENrJW_KT--Rjl4">';
     return $html;
@@ -38,10 +38,11 @@ function siteRobots(array $config):string {
     return "User-agent: *\nAllow: /\nDisallow: /dosya/\nDisallow: /assets/private/\nSitemap: ".$config['url']."/sitemap.xml\n";
 }
 function siteSitemap(array $config,array $pages):string {
-    $xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    $xml='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
     foreach($pages as $path=>$page){
         if(!is_string($path)||!preg_match('~^/(?:[a-z0-9-]+(?:/[a-z0-9-]+)*)?$~D',$path)||preg_match('~^/(?:giris|kayit|indir|dosya|cikis|contact-token|hesap|account|admin|dashboard)(?:/|$)~D',$path)||($page['indexable']??true)===false||($page['sitemap']??true)===false)continue;
         $xml.='<url><loc>'.htmlspecialchars($config['url'].$path,ENT_XML1|ENT_QUOTES,'UTF-8').'</loc>';
+        if(function_exists('vxAlternates')&&isset(vxAlternates($path)['az'])){$xml.='<xhtml:link rel="alternate" hreflang="tr" href="'.htmlspecialchars($config['url'].$path,ENT_XML1|ENT_QUOTES,'UTF-8').'"/><xhtml:link rel="alternate" hreflang="az" href="'.htmlspecialchars($config['url'].vxAlternates($path)['az'],ENT_XML1|ENT_QUOTES,'UTF-8').'"/>';}
         // Deployment mtimes do not prove an editorial change. Omit unknown dates.
         $modified=$page['modified']??null;
         if(is_string($modified)&&preg_match('/^\d{4}-\d{2}-\d{2}$/D',$modified)){
@@ -50,5 +51,6 @@ function siteSitemap(array $config,array $pages):string {
         }
         $xml.='</url>';
     }
+    if(function_exists('vxAlternates')){foreach(['/','/fiyatlandirma'] as $azBase){$alt=vxAlternates($azBase);if(!isset($alt['az'])||!isset($pages[$azBase]))continue;$xml.='<url><loc>'.htmlspecialchars($config['url'].$alt['az'],ENT_XML1|ENT_QUOTES,'UTF-8').'</loc><xhtml:link rel="alternate" hreflang="tr" href="'.htmlspecialchars($config['url'].$azBase,ENT_XML1|ENT_QUOTES,'UTF-8').'"/><xhtml:link rel="alternate" hreflang="az" href="'.htmlspecialchars($config['url'].$alt['az'],ENT_XML1|ENT_QUOTES,'UTF-8').'"/></url>';}}
     return $xml.'</urlset>';
 }

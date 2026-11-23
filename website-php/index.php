@@ -58,6 +58,14 @@ $pages['/lot-miat-takibi']['image_height']=860;
 $pages['/lot-miat-takibi']['alt']='Veniux ürün ekranında stok ve lot takibi paneli, sentetik örnek kayıtlar';
 
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+require_once __DIR__.'/lib/i18n.php';
+[$vxLang,$path]=vxSplitPath($path);
+$GLOBALS['vx_lang']=$vxLang;
+if($vxLang==='az'){
+    // Yalnız çevrilmiş sayfalar /az/ altında yayımlanır; diğerleri aynı adresin Türkçe sürümüne gider.
+    if(!in_array($path,VX_AZ_PAGES,true)){header('Location: '.$path,true,302);exit;}
+    header('Content-Language: az');
+}
 // Dışarıda dolaşan tahmini adresler doğru sayfalara gider.
 $legacyRedirects=['/kurulum-secenekleri'=>'/sunucu-kurulumu','/el-terminali'=>'/el-terminali-depo-yonetimi','/el-terminali-stok-takibi'=>'/el-terminali-depo-yonetimi','/operasyon-asistani'=>'/yapay-zeka','/bize-yazin'=>'/#iletisim'];
 if(isset($legacyRedirects[$path])){header('Location: '.$legacyRedirects[$path],true,301);exit;}
@@ -152,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     $contactResult=contactSubmit($config);
     if($contactResult[0]){
         $_SESSION['contact_feedback']=$contactResult;
-        header('Location: /?request=received#iletisim',true,303);
+        header('Location: '.vxLink('/?request=received#iletisim'),true,303);
         exit;
     }
 }elseif($path==='/'&&isset($_SESSION['contact_feedback'])){
@@ -179,6 +187,7 @@ if ($notFound) {
     ];
 } else {
     $page=$pages[$path];
+    if(vxAz()){$page['title']=vxT($page['title']);$page['description']=vxT($page['description']);}
 }
 
 $indexable = $config['indexable'] && !$notFound && (($page['indexable'] ?? true) !== false);
@@ -201,22 +210,22 @@ $topics = [
 
 $schema=siteSeoGraph($config,$page,$path,$notFound);
 ?><!doctype html>
-<html lang="tr">
+<html lang="<?=e(vxLang())?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?=siteSeoHead($config,$page,$path,$indexable)?>
+    <?=siteSeoHead($config,$page,$path,$indexable,vxAz()?'/az':'')?><?=vxHreflang($config,$path)?>
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
     <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||$path==="/stok-programlari-karsilastirma"||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu","/bilgilendirme"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
-    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261123c"><link rel="stylesheet" href="/assets/nav.css?v=20261123a"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261115b" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
+    <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261124a"><link rel="stylesheet" href="/assets/nav.css?v=20261123a"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261124a" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
     <script src="/assets/<?=e($assetManifest['script'])?>" defer></script>
 </head>
 <body>
-<a class="vs-skip" href="#main">İçeriğe geç</a>
+<a class="vs-skip" href="#main"><?=e(vxAz()?'Məzmuna keç':'İçeriğe geç')?></a>
 
 <?php require __DIR__.'/components/navbar.php'; ?>
 
@@ -249,7 +258,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
 <?php elseif($path==="/program-indir"): ?>
     <?php require __DIR__."/program-view.php"; ?>
 <?php elseif($path==="/fiyatlandirma"): ?>
-    <?php require __DIR__.(sitePricingV2()?"/pricing-view-v2.php":"/pricing-view.php"); ?>
+    <?php require __DIR__.(vxAz()?"/pricing-view-az.php":(sitePricingV2()?"/pricing-view-v2.php":"/pricing-view.php")); ?>
 <?php else: ?>
 
     <?php if($path==="/"){require __DIR__."/home-view.php";}else{require __DIR__."/solution-view.php";} ?>
@@ -262,6 +271,21 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     $initialFormType = in_array($_GET['request_type']??'', ['demo','quote','contact','partnership'], true) ? $_GET['request_type'] : ($selectedPlan ? 'quote' : 'contact'); 
     $initialSolution = in_array($_GET['solution']??'', ['stok','depo','lot'], true) ? $_GET['solution'] : ''; 
     ?>
+<?php if(vxAz()): ?>
+    <section id="iletisim" class="dp-contact">
+        <div class="dp-container">
+            <div class="dp-contact-card">
+                <div>
+                    <p class="dp-eyebrow"><span class="dp-eyebrow-dot"></span> Demo və ya təklif</p>
+                    <h2 class="dp-h2">Bizə yazın</h2>
+                    <p>Biznesinizi, anbar sayınızı və nə axtardığınızı yazın. Sizə qayıdıb proqramı öz işinizə uyğun göstərək.</p>
+                    <?php require_once __DIR__.'/whatsapp.php'; ?><p class="wa-line"><a class="wa-btn" href="<?=e(whatsappUrl())?>" target="_blank" rel="noopener noreferrer"><?=whatsappIcon(22)?><span>WhatsApp-dan yazın</span></a></p>
+                    <p class="hx-aside">Hazırda yazışma Türk dilində aparılır. Azərbaycan üçün yerli dəstək və qiymətlər hazırlanır; dəqiq şərtləri danışıqda müəyyən edirik.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+<?php else: ?>
     <section id="iletisim" class="dp-contact">
         <div class="dp-container">
             <div class="dp-contact-card">
@@ -378,6 +402,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
             </div>
         </div>
     </section>
+<?php endif; ?>
 
 <?php endif; ?>
 <?php if($vsLegacy):?></div><?php endif;?>

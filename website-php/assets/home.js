@@ -12,7 +12,8 @@
   const pos = document.getElementById('hx-pos'), play = document.getElementById('hx-play');
   if (!pos || !play) return;
   const lines = [...pos.querySelectorAll('.hx-pos-line')], total = document.getElementById('hx-total'), pay = document.getElementById('hx-paybtn'), foot = document.getElementById('hx-foot');
-  const amounts = ['0,00 ₺', '46,00 ₺', '114,00 ₺', '204,00 ₺'];
+  const cur = document.documentElement.lang === 'az' ? '₼' : '₺';
+  const amounts = ['0,00 ' + cur, '46,00 ' + cur, '114,00 ' + cur, '204,00 ' + cur];
   let timers = [];
   const reset = () => {
     timers.forEach(clearTimeout); timers = [];
@@ -277,7 +278,7 @@
 (() => {
   const form = document.querySelector('[data-calc]');
   if (!form) return;
-  const fmt = n => n.toLocaleString('tr-TR') + ' ₺';
+  const fmt = n => n.toLocaleString('tr-TR') + ' ' + (document.documentElement.lang === 'az' ? '₼' : '₺');
   const total = form.querySelector('[data-calc-total]'), month = form.querySelector('[data-calc-month]');
   const note = form.querySelector('[data-calc-note]'), link = form.querySelector('[data-calc-link]');
   const update = () => {

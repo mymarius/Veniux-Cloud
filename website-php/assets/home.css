@@ -1376,3 +1376,8 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 #pp-q:checked~.pr-tags .pp-q{display:block}
 #pp-q:checked~.pr-tags .pp-y{display:none}
 #pp-q:checked~.pr-tags .pr-tag-top .pp-q{display:inline}
+
+.vs-lang{display:inline-flex;gap:4px;margin-right:10px;font-size:12px;font-weight:800;letter-spacing:.04em;vertical-align:middle}
+.vs-lang a{padding:3px 7px;border:1.5px solid currentColor;border-radius:4px;text-decoration:none;color:inherit;opacity:.7}
+.vs-lang a[aria-current]{background:#17263a;color:#fffdf8;border-color:#17263a;opacity:1}
+.hx-az-price .hx-wrap{max-width:760px}
