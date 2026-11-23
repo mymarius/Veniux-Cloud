@@ -28,16 +28,19 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
 </section>
 
 <section class="pr-rack" id="planlar" aria-label="Paketler">
+  <input class="pr-radio" type="radio" name="pr-donem" id="pp-year" checked><input class="pr-radio" type="radio" name="pr-donem" id="pp-q">
+  <div class="hx-wrap pr-toggle" role="group" aria-label="Ödeme dönemi"><label for="pp-year">Yıllık</label><label for="pp-q">3 aylık</label></div>
   <div class="hx-wrap pr-tags">
   <?php foreach($plans as $n=>$plan): $free=$plan['price_try']===0; $once=$plan['period']==='once'; $id=$plan['id']; ?>
     <article class="pr-tag" data-pr data-i="<?=$n?>" <?=$id==='pro'?'data-featured':''?>>
       <?php if($id==='pro'):?><span class="pr-ribbon">En çok tercih edilen</span><?php endif;?>
-      <div class="pr-tag-top"><span>VENİUX · PAKET 0<?=$n+1?></span><span><?=$free?'ÜCRETSİZ':($once?'TEK ÖDEME':'YILLIK')?></span></div>
+      <div class="pr-tag-top"><span>VENİUX · PAKET 0<?=$n+1?></span><?php $dual=!empty($plan['quarter_try']); ?><span<?=$dual?' class="pp-y"':''?>><?=$free?'ÜCRETSİZ':($once?'TEK ÖDEME':'YILLIK')?></span><?php if($dual):?><span class="pp-q">3 AYLIK</span><?php endif;?></div>
       <h2><?=e($plan['name'])?></h2>
       <p class="pr-for"><?=e($plan['tagline'])?></p>
-      <div class="pr-price"><span><?=number_format((float)$plan['price_try'],0,',','.')?></span><small> ₺</small></div>
-      <p class="pr-period"><?php if($free):?>Süresiz · ücret yok<?php elseif($once):?>tek ödeme · KDV dahil · ilk <?=(int)$plan['bundled_cloud_years']?> yıl web ve mobil hediye<?php else:?>/ yıl · KDV dahil · aylık eşdeğeri <?=$money2($plan['price_try']/12)?><?php endif;?></p>
-      <?php if(!empty($plan['quarter_try'])):?><p class="pr-save">Yıllık alırsanız <?=$money($plan['quarter_try']*4-$plan['price_try'])?> tasarruf</p><p class="pr-period">3 aylık ödeme: <?=$money($plan['quarter_try'])?> / 3 ay · KDV dahil</p><?php endif;?>
+      <div class="pr-price<?=$dual?' pp-y':''?>"><span><?=number_format((float)$plan['price_try'],0,',','.')?></span><small> ₺</small></div>
+      <p class="pr-period<?=$dual?' pp-y':''?>"><?php if($free):?>Süresiz · ücret yok<?php elseif($once):?>tek ödeme · KDV dahil · ilk <?=(int)$plan['bundled_cloud_years']?> yıl web ve mobil hediye<?php else:?>/ yıl · KDV dahil · aylık eşdeğeri <?=$money2($plan['price_try']/12)?><?php endif;?></p>
+      <?php if($dual):?><div class="pr-price pp-q"><span><?=number_format((float)$plan['quarter_try'],0,',','.')?></span><small> ₺</small></div>
+      <p class="pr-period pp-q">/ 3 ay · KDV dahil · aylık eşdeğeri <?=$money2($plan['quarter_try']/3)?></p><?php endif;?>
       <dl class="pr-limits">
         <div><dd><?=e($limit($plan['limits']['warehouses']))?></dd><dt>depo</dt></div>
         <div><dd><?=$plan['limits']['staff']===0?'1':'Sınırsız'?></dd><dt><?=$plan['limits']['staff']===0?'yönetici':'personel'?></dt></div>
@@ -47,12 +50,13 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <ul><?php if($ref):?><li><b><?=e($byId[$ref]['name'])?>’taki her şey</b></li><?php endif;?><?php foreach($own as $key):?><li><?=e($labels[$key]??$key)?></li><?php endforeach;?></ul>
       <?php if($id==='lite'):?><p class="pr-why">Kâr ve maliyet raporu, geçmiş raporlar, Excel, personel, alış faturası ve stok analizi ücretli paketlerde açılır.</p><?php endif;?>
       <?php if($id==='lifetime_desktop'):?><p class="pr-why">İlk yıl web ve mobil erişim hediyedir. Sonrasında bulut, mobil ve yapay zekâ için yıllık abonelik gerekir; masaüstü özellikleri çalışmaya devam eder.</p><?php endif;?>
-      <a class="hx-btn" href="<?=$free?'/#iletisim':'/?request_type=quote&amp;plan='.e($id).'#iletisim'?>"><?=$free?'Lite için görüşelim':e($plan['name']).' için görüşelim'?></a>
+      <div<?=$dual?' class="pp-y"':''?>><a class="hx-btn" href="<?=$free?'/#iletisim':'/?request_type=quote&amp;plan='.e($id).'#iletisim'?>"><?=$free?'Lite için görüşelim':e($plan['name']).' için görüşelim'?></a></div>
+      <?php if($dual):?><div class="pp-q"><a class="hx-btn" href="/?request_type=quote&amp;plan=<?=e($id)?>:uc-aylik#iletisim"><?=e($plan['name'])?> için görüşelim (3 aylık)</a></div><?php endif;?>
       <?php if(!$free):?><a class="hx-textlink" href="<?=VENIUX_TRIAL_URL?>"><?=$trial?> gün ücretsiz deneyin</a><?php endif;?>
     </article>
   <?php endforeach;?>
   </div>
-  <p class="hx-wrap pr-terms" data-pr>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Fiyatlar KDV dahildir. Yıllık fiyat sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p>
+  <p class="hx-wrap pr-terms" data-pr>Online ödeme alınmaz; kapsam, ödeme ve lisans başlangıcı görüşmede netleşir. Fiyatlar KDV dahildir. Yıllık ve 3 aylık seçeneklerin özellikleri aynıdır; fiyat sözleşme süresince sabittir; yenilemede en fazla son 12 aylık TÜFE oranında güncellenebilir ve en az 30 gün önce bildirilir.</p>
 </section>
 
 <section class="pr-sector" id="restoran" aria-label="Pide ve restoran eklentisi"><div class="hx-wrap">
@@ -117,7 +121,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
   <details><summary>Kaç farklı paket var?</summary><p>İki ücretli paket: Pro ve çok depolu işletmeler için İşletme WMS. İkisi de yıllık ya da 3 aylık alınır. Pide ve restoran modülü bunlara eklenen ayrı bir eklentidir.</p></details>
   <details><summary>Ne kadar süre ücretsiz deneyebilirim?</summary><p><?=$trial?> gün boyunca tüm özellikler açıktır; kredi kartı gerekmez. Deneme hesabını <a href="<?=VENIUX_TRIAL_URL?>">/deneme</a> sayfasından e-posta adresinizle açarsınız.</p></details>
   <details><summary>Hırdavat ve züccaciye için ayrı paket almam gerekir mi?</summary><p>Hayır. Ölçü ve raf araması, takım ve set takibi, beden ve renk gibi özellikler Pro ve üstündeki paketlere dahildir.</p></details>
-  <details><summary>Yıllık ile 3 aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır. Pro’yu yıllık ödemek <?=$yearSaving>0?$money($yearSaving).' ':''?>daha avantajlıdır. 3 aylık seçenek, önce kısa süreli denemek isteyenler içindir.</p></details>
+  <details><summary>Yıllık ile 3 aylık arasındaki fark nedir?</summary><p>Özellikler aynıdır; yalnız ödeme dönemi değişir. Yıllık seçenekte aylık eşdeğer tutar daha düşüktür, 3 aylık seçenek daha kısa taahhüt isteyenler içindir.</p></details>
   <details><summary>İnternet kesilince ne olur?</summary><p>Masaüstü uygulama satışı önce bilgisayara kaydeder. Bağlantı geldiğinde bulutla kendiliğinden eşitlenir.</p></details>
   <details><summary>Destek, kurulum ve güncelleme için ek ücret öder miyim?</summary><p>Hayır. WhatsApp ve e-posta desteği, uzak kurulum yardımı ve yeni sürüm güncellemeleri paket fiyatına dahildir. Özel veri aktarımı ve yerinde eğitim ayrıca teklif edilir.</p></details>
   <details><summary>Lisans satın aldığımda verilerim silinir mi?</summary><p>Hayır. Deneme hesabınızdaki ürünler, müşteriler ve satışlar lisans yükseltmesinde aynen kalır.</p></details>

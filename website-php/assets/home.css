@@ -1365,3 +1365,14 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 @media(max-width:900px){.hx-scen-grid{grid-template-columns:1fr}.hx-scen{padding:44px 0}}
 
 @media(min-width:900px){.pr-tags:has(>.pr-tag:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr));max-width:880px;margin-inline:auto}}
+
+.pr-radio{position:absolute;opacity:0;pointer-events:none}
+.pr-toggle{display:flex;justify-content:center;gap:0;margin-bottom:26px}
+.pr-toggle label{cursor:pointer;padding:10px 26px;border:2px solid var(--ink,#17263a);background:transparent;color:var(--ink,#17263a);font-weight:800;letter-spacing:.02em;min-width:130px;text-align:center}
+.pr-toggle label+label{border-left:0}
+#pp-year:checked~.pr-toggle label[for=pp-year],#pp-q:checked~.pr-toggle label[for=pp-q]{background:var(--ink,#17263a);color:#fffdf8}
+#pp-year:focus-visible~.pr-toggle label[for=pp-year],#pp-q:focus-visible~.pr-toggle label[for=pp-q]{outline:3px solid var(--red,#cf4b06);outline-offset:2px}
+.pr-tags .pp-q{display:none}
+#pp-q:checked~.pr-tags .pp-q{display:block}
+#pp-q:checked~.pr-tags .pp-y{display:none}
+#pp-q:checked~.pr-tags .pr-tag-top .pp-q{display:inline}
