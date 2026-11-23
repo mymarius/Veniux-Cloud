@@ -1,8 +1,18 @@
 {
-  "version": "2.4.107",
+  "version": "2.4.108",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.108",
+      "date": "23 Kasım 2026",
+      "title": "Android girişi ve yeni Windows kurulumları artık doğru bulut sunucusuna bağlanır",
+      "items": [
+        "- Android uygulamasında \"Giriş yapılamadı, bilgilerinizi kontrol edin\" hatası giderildi: bulut modu kapalı eski sunucuya bağlanıyordu",
+        "- Yeni Windows kurulumları da varsayılan olarak aynı doğru bulut sunucusuna bağlanır",
+        "- Sunucu beklenmeyen bir yanıt verirse giriş ekranı artık durum kodunu ve ne yapılacağını gösterir"
+      ]
+    },
     {
       "version": "2.4.107",
       "date": "23 Kasım 2026",
