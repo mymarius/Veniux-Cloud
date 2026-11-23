@@ -1,8 +1,17 @@
 {
-  "version": "2.4.105",
+  "version": "2.4.106",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.106",
+      "date": "23 Kasım 2026",
+      "title": "Barkod önerisi düzeldi, web girişinde hesap oluşturma bağlantısı göründü",
+      "items": [
+        "- Barkoddan gelen ürün adındaki gereksiz \"400 g e\" ibaresi temizlendi",
+        "- Lisans etkinleştirdikten sonra web girişinde de \"işletme hesabı oluştur\" bağlantısı görünür"
+      ]
+    },
     {
       "version": "2.4.105",
       "date": "23 Kasım 2026",
