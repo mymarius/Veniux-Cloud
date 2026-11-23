@@ -31,7 +31,7 @@ router.use(async (req,res,next)=>{
     return res.json({valid:true,success:true,token:{payload:{...payload,enabled_features:plan.features,max_users:plan.max_users,max_warehouses:plan.max_warehouses,max_pdas:Math.min(plan.max_pdas,payload.max_devices??plan.max_pdas),device_token:credential}}});
   } catch(error) {
     if(error.status===429)return res.status(429).set('Retry-After','60').json({error:'Lisans deneme sınırına ulaşıldı. Bir dakika sonra tekrar deneyin.'});
-    if([400,403].includes(error.status))return res.status(403).json({error:'Lisans anahtarı geçersiz, süresi dolmuş veya terminal sınırı dolu. Lisans merkezindeki kaydı kontrol edin.'});
+    if([400,403].includes(error.status))return res.status(403).json({error:'Lisans anahtarı geçersiz, süresi dolmuş veya bu anahtarın cihaz hakkı dolu (örneğin aynı anahtar başka bir bilgisayar, telefon ya da tarayıcıda etkin). veniux.com/panel adresinde Lisanslarım bölümünden cihaz kayıtlarını sıfırlayabilir ya da paketinizi yükseltebilirsiniz.'});
     return res.status(503).json({error:'Merkezi lisans doğrulanamadı. Bağlantınızı ve lisans durumunu kontrol edin.'});
   }
 });
