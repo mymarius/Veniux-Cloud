@@ -102,6 +102,12 @@ function vp_migrate(PDO $pdo): void {
         foreach([['pro_3m',499000,'pro'],['business_wms_3m',1299000,'business_wms']] as [$code,$price,$base])$ins->execute([$code,$price,$base]);
         $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','8') ON DUPLICATE KEY UPDATE svalue='8'");
     }
+    if($version<9){
+        // v9 (23 Kas 2026): fiyatlar yeniden yükseltildi. Yalnız v8'in yazdığı varsayılan değerde duran paketler güncellenir (elle değiştirilene dokunulmaz).
+        $upd=$pdo->prepare('UPDATE products SET price=? WHERE code=? AND price=?');
+        foreach([['pro',2499000,1499000],['business_wms',5990000,3990000],['pro_3m',849000,499000],['business_wms_3m',1990000,1299000]] as [$code,$new,$old])$upd->execute([$new,$code,$old]);
+        $pdo->exec("INSERT INTO settings(skey,svalue) VALUES('schema_version','9') ON DUPLICATE KEY UPDATE svalue='9'");
+    }
 }
 
 function vp_migrate_v1(PDO $pdo): void {
