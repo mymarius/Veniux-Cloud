@@ -69,7 +69,7 @@ export default function RetailQuickAdd() {
         try {
           const s = await api.get('/retail/lookup/suggest', { params: { barcode: clean } });
           if (seq !== request.current) return;
-          if (s.data.source === 'off' && s.data.suggestion) {
+          if (s.data.suggestion && s.data.source !== 'catalog' && s.data.source !== 'none') {
             setSuggest({ ...s.data.suggestion, attribution: s.data.attribution, checksum_ok: s.data.checksum_ok });
             setFields({ ...initial, name: s.data.suggestion.suggested_name || s.data.suggestion.name, unit: s.data.suggestion.suggested_unit || 'adet' });
           } else if (s.data.message) setSuggest({ message: s.data.message });
@@ -175,10 +175,10 @@ export default function RetailQuickAdd() {
             {suggest?.name && <aside className="rq-suggest" aria-label="Katalog önerisi" style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 10, margin: '8px 0', border: '1px dashed #f59e0b', borderRadius: 10, background: '#fffbeb' }}>
               {suggest.image_url && <img src={suggest.image_url} alt="" width={56} height={56} loading="lazy" referrerPolicy="no-referrer" style={{ objectFit: 'contain' }} />}
               <div className="min-w-0 flex-1">
-                <b>Open Food Facts önerisi — kontrol edip onaylayın</b>
+                <b>{suggest.attribution?.source || 'Katalog'} önerisi — kontrol edip onaylayın</b>
                 <p style={{ margin: 0 }}>{[suggest.brand && `Marka: ${suggest.brand}`, suggest.quantity_text && `Gramaj: ${suggest.quantity_text}`].filter(Boolean).join(' · ') || 'Ad önerildi.'} Fiyatları siz girin; kayıt "Oluştur" düğmesiyle yapılır.</p>
                 {suggest.checksum_ok === false && <p style={{ margin: 0, color: '#b45309' }}>Barkodun sağlama basamağı tutmuyor; yanlış okunmuş olabilir.</p>}
-                <small><a href={suggest.attribution?.product_url} target="_blank" rel="noreferrer noopener">Veri: Open Food Facts (ODbL), görsel CC BY-SA</a></small>
+                <small>{suggest.attribution?.product_url ? <a href={suggest.attribution.product_url} target="_blank" rel="noreferrer noopener">{suggest.attribution.text}</a> : suggest.attribution?.text}</small>
               </div>
             </aside>}
             {!suggest?.name && suggest?.message && <p className="rq-hint" role="status">{suggest.message}</p>}

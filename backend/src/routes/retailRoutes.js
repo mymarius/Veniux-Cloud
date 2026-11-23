@@ -21,6 +21,8 @@ router.get('/lookup',async(req,res,next)=>{try{
  res.json({product:pk?{id:pk.id,name:pk.name,barcode:pk.barcode,unit:pk.unit,purchase_price:pk.purchase_price,sale_price:pk.sale_price}:null,pack:pk?{unit:pk.uom_code,factor:Number(pk.conversion_factor)}:null});
 }catch(e){next(e);}});
 // Akıllı arama: kendi katalog → Open Food Facts önerisi → elle. Kayıt yazmaz.
+// Sağlayıcı durumu (yalnız platform yöneticisi): sıra, etkinlik, anahtar tanımlı mı (değeri hiç dönmez) ve kullanım sayaçları. Sayaçlar bellektedir.
+router.get('/lookup/providers',requireRole('admin'),(req,res)=>{if(!req.user.isPlatformAdmin)return res.status(403).json({error:'Bu bilgiyi yalnız platform yöneticisi görebilir.'});res.set('Cache-Control','no-store').json({providers:require('../services/barcodeLookupService').status(),config:'VENIUX_BARCODE_PROVIDERS (sıra, virgülle), VENIUX_BARCODELOOKUP_KEY'});});
 router.get('/lookup/suggest',requireRole('admin','manager'),async(req,res,next)=>{try{res.json(await require('../services/barcodeLookupService').suggest(req.user,req.query.barcode));}catch(e){next(e);}});
 router.post('/receive',requireRole('admin','manager'),async(req,res,next)=>{try{
  const body=req.body,tenant=req.user.tenantId;
