@@ -46,8 +46,8 @@
    "id": "pro",
    "name": "Veniux Pro",
    "tagline": "Satış, stok ve cariyi profesyonelce yöneten işletmeler için.",
-   "price_try": 9990,
-   "quarter_try": 3390,
+   "price_try": 14990,
+   "quarter_try": 4990,
    "period": "year",
    "limits": {
     "desktop": 2,
@@ -122,8 +122,8 @@
    "id": "business_wms",
    "name": "Veniux İşletme WMS",
    "tagline": "Birden çok depo, şube ve kasa: depo yönetimi ve büyüme araçları.",
-   "price_try": 27900,
-   "quarter_try": 9490,
+   "price_try": 39900,
+   "quarter_try": 12990,
    "period": "year",
    "limits": {
     "desktop": null,

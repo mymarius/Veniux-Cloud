@@ -37,7 +37,7 @@ $sectorNotes=['Market'=>'Kalabalık kasa, binlerce ürün, tedarikçi faturalar�
       <p class="pr-for"><?=e($plan['tagline'])?></p>
       <div class="pr-price"><span><?=number_format((float)$plan['price_try'],0,',','.')?></span><small> ₺</small></div>
       <p class="pr-period"><?php if($free):?>Süresiz · ücret yok<?php elseif($once):?>tek ödeme · KDV dahil · ilk <?=(int)$plan['bundled_cloud_years']?> yıl web ve mobil hediye<?php else:?>/ yıl · KDV dahil · aylık eşdeğeri <?=$money2($plan['price_try']/12)?><?php endif;?></p>
-      <?php if(!empty($plan['quarter_try'])):?><p class="pr-save">Yıllık ödeyince 3 aylık ödemeye göre <?=$money($plan['quarter_try']*4-$plan['price_try'])?> daha az</p><p class="pr-period">3 aylık ödeme: <?=$money($plan['quarter_try'])?> / 3 ay · KDV dahil</p><?php endif;?>
+      <?php if(!empty($plan['quarter_try'])):?><p class="pr-save">Yıllık alırsanız <?=$money($plan['quarter_try']*4-$plan['price_try'])?> tasarruf</p><p class="pr-period">3 aylık ödeme: <?=$money($plan['quarter_try'])?> / 3 ay · KDV dahil</p><?php endif;?>
       <dl class="pr-limits">
         <div><dd><?=e($limit($plan['limits']['warehouses']))?></dd><dt>depo</dt></div>
         <div><dd><?=$plan['limits']['staff']===0?'1':'Sınırsız'?></dd><dt><?=$plan['limits']['staff']===0?'yönetici':'personel'?></dt></div>

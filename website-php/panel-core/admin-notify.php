@@ -3,7 +3,7 @@ declare(strict_types=1);
 // Yönetim: bildirim kanalları (SMTP, WhatsApp), olay şablonları, önizleme ve gönderim kayıtları.
 
 function vpa_notify_sample_vars(): array {
-    return ['musteri'=>'Demo Market Ltd.','yetkili'=>'Deniz Yılmaz','fatura_no'=>'VNX-2026-0042','tutar'=>'7.990 ₺','son_odeme'=>vp_date(gmdate('Y-m-d H:i:s',time()+86400*3)),'gecikme'=>'3','kalan_gun'=>'3','lisans'=>'VNX-AB12-CD34-EF56','paket'=>'Veniux Pro','bitis'=>vp_date(gmdate('Y-m-d H:i:s',time()+86400*7)),'talep_no'=>'482913','konu'=>'Barkod okuyucu ürünü bulmuyor','gonderen'=>'TOP MARKET LTD. ŞTİ.','yontem'=>'Kredi kartı (iyzico)','firma'=>vp_setting('company_name','Veniux'),'link'=>vp_public_url().'/panel/faturalar/42'];
+    return ['musteri'=>'Demo Market Ltd.','yetkili'=>'Deniz Yılmaz','fatura_no'=>'VNX-2026-0042','tutar'=>'14.990 ₺','son_odeme'=>vp_date(gmdate('Y-m-d H:i:s',time()+86400*3)),'gecikme'=>'3','kalan_gun'=>'3','lisans'=>'VNX-AB12-CD34-EF56','paket'=>'Veniux Pro','bitis'=>vp_date(gmdate('Y-m-d H:i:s',time()+86400*7)),'talep_no'=>'482913','konu'=>'Barkod okuyucu ürünü bulmuyor','gonderen'=>'TOP MARKET LTD. ŞTİ.','yontem'=>'Kredi kartı (iyzico)','firma'=>vp_setting('company_name','Veniux'),'link'=>vp_public_url().'/panel/faturalar/42'];
 }
 
 function vpa_notify(array $a,string $sub=''): void {
