@@ -51,6 +51,47 @@ function accountRate(string $dir):bool {
     }
 }
 
+// E-posta doğrulama: kayıt sonrası hesap 'verified=false' doğar; 48 saat geçerli, tek kullanımlık bağlantı (jeton = hesap anahtarı + 32 hex).
+// 'verified' alanı olmayan eski hesaplar doğrulanmış sayılır; panelden açılan hesaplar yönetici güvencesiyle doğrulanmış açılır.
+function accountVerifyIssue(string $dir,string $key){
+    return accountTransaction($dir,function(array &$accounts)use($key){
+        $a=$accounts[$key]??null;
+        if(!$a||($a['verified']??true)!==false)return null;
+        if(time()-(int)($a['verify_sent']??0)<60)return 'wait';
+        $token=$key.bin2hex(random_bytes(16));
+        $accounts[$key]['verify_hash']=hash('sha256',$token);
+        $accounts[$key]['verify_expires']=time()+172800;
+        $accounts[$key]['verify_sent']=time();
+        return $token;
+    });
+}
+function accountVerifyConfirm(string $dir,string $token): bool {
+    if(!preg_match('/\A[a-f0-9]{96}\z/D',$token))return false;
+    $key=substr($token,0,64);
+    return (bool)accountTransaction($dir,function(array &$accounts)use($key,$token){
+        $a=$accounts[$key]??null;
+        if(!$a||!is_string($a['verify_hash']??null)||!hash_equals($a['verify_hash'],hash('sha256',$token))||(int)($a['verify_expires']??0)<time())return false;
+        $accounts[$key]['verified']=true;unset($accounts[$key]['verify_hash'],$accounts[$key]['verify_expires']);
+        return true;
+    });
+}
+function accountVerifyMail(array $config,string $email,string $token): bool {
+    $url=rtrim((string)($config['url']??''),'/').'/dogrula?t='.$token;
+    if(getenv('VENIUX_SITE_ENV')==='development')error_log('[veniux-account] doğrulama bağlantısı: '.$url);
+    try{
+        if(!vpPanelConfigured())return false;
+        require_once __DIR__.'/panel-core/bootstrap.php';require_once __DIR__.'/panel-core/payments.php';require_once __DIR__.'/panel-core/notify.php';
+        if(!vp_mail_ready())return false;
+        vp_mail_send($email,'Veniux e-posta adresinizi doğrulayın',"Merhaba,\n\nVeniux hesabınızı etkinleştirmek için e-posta adresinizi doğrulayın. Bağlantı 48 saat geçerlidir ve bir kez kullanılabilir.\n\nBu hesabı siz açmadıysanız bu e-postayı yok sayabilirsiniz.",['link'=>$url,'cta'=>'E-postamı doğrula','label'=>'Hesap doğrulama']);
+        return true;
+    }catch(Throwable $t){error_log('[veniux-account] doğrulama e-postası gönderilemedi: '.$t->getMessage());return false;}
+}
+function accountVerifyNotice(string $dir,array $config,string $email,string $lead): array {
+    $key=hash('sha256',$email);$token=accountVerifyIssue($dir,$key);
+    $sent=is_string($token)&&$token!=='wait'?accountVerifyMail($config,$email,$token):($token==='wait');
+    return ['title'=>'E-postanızı doğrulayın','text'=>$lead.($sent?' Gelen kutunuzu (ve istenmeyen klasörünü) kontrol edin; bağlantı 48 saat geçerlidir.':' Doğrulama e-postası şu an gönderilemedi. Birkaç dakika sonra aşağıdan yeniden isteyin.'),'resend'=>$email];
+}
+
 // Server-side module permissions validation
 function accountModulePermissions(string $planCode): array {
     $matrix = [
@@ -98,7 +139,7 @@ function accountModulePermissions(string $planCode): array {
 }
 
 function accountRoutes(string $path,array $config):bool {
-    if(!in_array($path,['/kayit','/giris','/indir','/hesap','/cikis','/dosya/windows','/dosya/android'],true))return false;
+    if(!in_array($path,['/kayit','/giris','/indir','/hesap','/cikis','/dogrula','/dogrula-tekrar','/dosya/windows','/dosya/android'],true))return false;
     if(($_SERVER['HTTPS']??'')!=='on'&&getenv('VENIUX_SITE_ENV')!=='development'){
         if(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){http_response_code(403);echo 'Hesap işlemleri için HTTPS bağlantısı gerekli.';}
         else header('Location: '.$config['url'].$path,true,301);
@@ -108,7 +149,7 @@ function accountRoutes(string $path,array $config):bool {
     if(($_SERVER['HTTPS']??'')==='on')header('Strict-Transport-Security: max-age=31536000');
     header('X-Robots-Tag: noindex, nofollow');header('Cache-Control: no-store');
     $_SESSION['account_csrf']??=bin2hex(random_bytes(32));
-    $error='';$post=($_SERVER['REQUEST_METHOD']??'GET')==='POST';
+    $error='';$notice=null;$post=($_SERVER['REQUEST_METHOD']??'GET')==='POST';
     if(isset($_SESSION['download_account'])&&time()-(int)($_SESSION['account_activity']??0)>7200)unset($_SESSION['download_account']);
     if(isset($_SESSION['download_account']))$_SESSION['account_activity']=time();
     
@@ -117,7 +158,7 @@ function accountRoutes(string $path,array $config):bool {
         if($post){
             if(!is_string($_POST['csrf']??null)||!hash_equals($_SESSION['account_csrf'],$_POST['csrf'])){
                 http_response_code(403);$error='Sayfayı yenileyip tekrar deneyin.';
-            }elseif(!in_array($path,['/kayit','/giris','/cikis'],true)){
+            }elseif(!in_array($path,['/kayit','/giris','/cikis','/dogrula','/dogrula-tekrar'],true)){
                 http_response_code(405);$error='İstek desteklenmiyor.';
             }elseif($path==='/cikis'){
                 unset($_SESSION['download_account']);
@@ -128,6 +169,17 @@ function accountRoutes(string $path,array $config):bool {
             }elseif(!accountRate($dir)){
                 http_response_code(429);header('Retry-After: 900');
                 $error='Deneme sınırına ulaşıldı. 15 dakika sonra tekrar deneyin.';
+            }elseif($path==='/dogrula'){
+                if(accountVerifyConfirm($dir,is_string($_POST['t']??null)?$_POST['t']:'')){
+                    $notice=['title'=>'E-posta adresiniz doğrulandı','text'=>'Hesabınız etkinleştirildi. Şimdi giriş yapabilirsiniz.','login'=>true];
+                }else{http_response_code(400);$error='Doğrulama bağlantısı geçersiz, kullanılmış veya süresi dolmuş. Giriş sayfasından yeni bağlantı isteyebilirsiniz.';}
+            }elseif($path==='/dogrula-tekrar'){
+                $again=is_string($_POST['email']??null)?strtolower(trim($_POST['email'])):'';
+                if(filter_var($again,FILTER_VALIDATE_EMAIL)&&strlen($again)<=190){
+                    $token=accountVerifyIssue($dir,hash('sha256',$again));
+                    if(is_string($token)&&$token!=='wait')accountVerifyMail($config,$again,$token);
+                }
+                $notice=['title'=>'Doğrulama bağlantısı gönderildi','text'=>'Bu adres doğrulanmamış bir hesaba aitse yeni bir bağlantı gönderdik. Gelen kutunuzu ve istenmeyen klasörünü kontrol edin.','resend'=>filter_var($again,FILTER_VALIDATE_EMAIL)?$again:''];
             }else{
                 $email=is_string($_POST['email']??null)?strtolower(trim($_POST['email'])):'';
                 $password=is_string($_POST['password']??null)?$_POST['password']:'';
@@ -151,17 +203,21 @@ function accountRoutes(string $path,array $config):bool {
                                 'plan'=>'isletme',
                                 'license_key'=>'VNX-'.strtoupper(bin2hex(random_bytes(6))).'-'.strtoupper(bin2hex(random_bytes(4))),
                                 'password_hash'=>$hash,
-                                'created_at'=>gmdate('c')
+                                'created_at'=>gmdate('c'),
+                                'verified'=>false
                             ];
                             $accounts[$key]=$value;
                             return $value;
                         });
                         if(!$account){http_response_code(409);$error='Kayıt tamamlanamadı. Bu e-posta ile hesabınız varsa giriş yapın.';}
+                        else{$notice=accountVerifyNotice($dir,$config,$email,'Hesabınız oluşturuldu. Giriş yapabilmek için '.$email.' adresine gönderdiğimiz bağlantıyla e-postanızı doğrulayın.');$account=null;}
                     }else{
                         $account=accountTransaction($dir,fn(array &$accounts)=>$accounts[$key]??null);
                         $dummy='$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi';
                         if(!password_verify($password,$account['password_hash']??$dummy)){
                             $account=null;http_response_code(401);$error='E-posta veya şifre doğrulanamadı.';
+                        }elseif(($account['verified']??true)===false){
+                            http_response_code(403);$notice=['title'=>'E-postanızı doğrulayın','text'=>'Şifreniz doğru ama '.$email.' adresi henüz doğrulanmadı. Size gönderdiğimiz bağlantıya tıklayın; ulaşmadıysa aşağıdan yeniden isteyin.','resend'=>$email];$account=null;
                         }
                     }
                     if($account){
@@ -183,6 +239,11 @@ function accountRoutes(string $path,array $config):bool {
             }
         }
         $account=$_SESSION['download_account']??null;
+        if(!$post&&$path==='/dogrula'){
+            $t=is_string($_GET['t']??null)?$_GET['t']:'';
+            if(preg_match('/\A[a-f0-9]{96}\z/D',$t))$notice=['title'=>'E-posta adresinizi doğrulayın','text'=>'Hesabınızı etkinleştirmek için aşağıdaki düğmeye basın.','confirm'=>$t];
+            else{http_response_code(400);$error='Doğrulama bağlantısı geçersiz. Giriş sayfasından yeni bağlantı isteyebilirsiniz.';}
+        }
         if(str_starts_with($path,'/dosya/')){
             if(!$account){header('Location: /giris',true,303);return true;}
             $platform=substr($path,7);$releaseFile=(getenv('VENIUX_SITE_DATA_DIR')?:dirname(__DIR__).'/.local').'/website-downloads/releases.json';$releases=is_file($releaseFile)?json_decode(file_get_contents($releaseFile),true,16,JSON_THROW_ON_ERROR):[];
@@ -227,7 +288,7 @@ function accountRoutes(string $path,array $config):bool {
     
     $register=$path==='/kayit';
     $isPortal=($path==='/indir'||$path==='/hesap')&&$account;
-    $title=$isPortal?'Müşteri Paneli':($register?'Veniux hesabınızı oluşturun':'Veniux hesabınıza giriş yapın');
+    $title=$isPortal?'Müşteri Paneli':(is_array($notice)?$notice['title']:($register?'Veniux hesabınızı oluşturun':'Veniux hesabınıza giriş yapın'));
     $currentTab=$_GET['tab']??($path==='/indir'?'indirmeler':'genel-bakis');
     $activePlanCode=$account['plan']??'isletme';
     $permissions=accountModulePermissions($activePlanCode);
@@ -333,6 +394,13 @@ function accountRoutes(string $path,array $config):bool {
             <div class="ac-key"><b>VENIUX</b><span>Windows ve Android</span><?=function_exists('homeBarcode')?homeBarcode('hesap',40):''?></div>
         </div>
         <div class="ac-card">
+            <?php if(is_array($notice)):?>
+            <h1><?=e($notice['title'])?></h1>
+            <p class="ac-lead"><?=e($notice['text'])?></p>
+            <?php if(!empty($notice['confirm'])):?><form class="ac-form" action="/dogrula" method="post"><input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>"><input type="hidden" name="t" value="<?=e($notice['confirm'])?>"><button class="hx-btn" type="submit">E-postamı doğrula</button></form><?php endif;?>
+            <?php if(!empty($notice['login'])):?><p class="ac-switch"><a class="hx-btn" href="/giris">Giriş yap</a></p><?php endif;?>
+            <?php if(!empty($notice['resend'])):?><form class="ac-form" action="/dogrula-tekrar" method="post"><input type="hidden" name="csrf" value="<?=e($_SESSION['account_csrf'])?>"><input type="hidden" name="email" value="<?=e($notice['resend'])?>"><button class="hx-btn" type="submit">Bağlantıyı yeniden gönder</button></form><?php endif;?>
+            <?php else:?>
             <h1><?=e($title)?></h1>
             <p class="ac-lead"><?=$register?'İşletmenizi kaydedin ve Veniux indirme merkezine hemen erişin.':'Hesabınıza giriş yaparak lisanslarınızı ve kurulum paketlerinizi yönetin.'?></p>
             <?php if($register):?><p class="ac-after-note">Kayıt işlemini tamamladıktan sonra kurulum dosyasını hemen indirebilir, işletmeniz için <a href="https://app.veniux.com/deneme">14 gün ücretsiz deneme hesabı</a> açabilirsiniz.</p><?php endif;?>
@@ -345,6 +413,7 @@ function accountRoutes(string $path,array $config):bool {
                 <button class="hx-btn" type="submit"><?=$register?'Hesap oluştur ve indirmelere geç':'Giriş yap'?></button>
                 <p class="ac-switch"><?=$register?'Zaten bir hesabınız var mı?':'Henüz bir hesabınız yok mu?'?> <a href="<?=$register?'/giris':'/kayit'?>"><?=$register?'Giriş yapın':'Hemen kayıt olun'?></a></p>
             </form>
+            <?php endif;?>
             <p class="ac-note">Müşteri hesapları sitedeki indirmeler içindir. Veniux sahibi siteye merkezi yönetici hesabıyla giriş yapar. İşletme kullanıcılarını programın içinde oluşturursunuz. E-posta ve işletme adınız hesap hizmeti için saklanır; şifreniz özetlenerek korunur.</p>
         </div>
     </div>

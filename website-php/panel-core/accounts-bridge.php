@@ -14,7 +14,7 @@ function vp_site_account_create(string $email,string $company,string $password){
     return accountTransaction(vp_site_accounts_dir(),function(array &$accounts)use($key,$email,$company,$hash){
         if(isset($accounts[$key]))return false;
         $id=bin2hex(random_bytes(16));
-        $accounts[$key]=['id'=>$id,'email'=>$email,'company'=>$company,'plan'=>'isletme','license_key'=>'VNX-'.strtoupper(bin2hex(random_bytes(6))).'-'.strtoupper(bin2hex(random_bytes(4))),'password_hash'=>$hash,'created_at'=>gmdate('c')];
+        $accounts[$key]=['id'=>$id,'email'=>$email,'company'=>$company,'plan'=>'isletme','license_key'=>'VNX-'.strtoupper(bin2hex(random_bytes(6))).'-'.strtoupper(bin2hex(random_bytes(4))),'password_hash'=>$hash,'created_at'=>gmdate('c'),'verified'=>true];
         return $id;
     });
 }
