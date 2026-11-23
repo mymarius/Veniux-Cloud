@@ -72,3 +72,10 @@ test('uç nokta: yalnız yönetici/müdür, barkod doğrulanır', async () => {
     expect((await request(app).get('/api/retail/lookup/suggest').query({ barcode: CODE })).status).toBe(401);
   } finally { delete process.env.VENIUX_OFF_DISABLED; }
 });
+
+test('OFF gramajındaki tahmini ağırlık işareti ("400 g e") ad önerisine karışmaz', async () => {
+  const fetchImpl = async () => ({ ok: true, status: 200, json: async () => ({ status: 1, product: { code: '3017620422003', product_name: 'Nutella', brands: 'Ferrero', quantity: '400 g e', product_quantity: '400', product_quantity_unit: 'g' } }) });
+  const r = await svc.suggest(user(other), '3017620422003', { fetchImpl });
+  expect(r.suggestion.quantity_text).toBe('400 g');
+  expect(r.suggestion.suggested_name).toBe('Ferrero Nutella 400 g');
+});

@@ -65,7 +65,7 @@ function toSuggestion(p) {
   const name = clean(p.product_name_tr, 200) || clean(p.product_name, 200) || clean(p.generic_name, 200);
   if (!name) return null;
   const brand = clean(String(p.brands || '').split(',')[0], 80);
-  const quantity = clean(p.quantity, 40);
+  const quantity = clean(p.quantity, 40).replace(/(\d\s*(?:g|kg|ml|cl|l))\s+e$/i, '$1'); // OFF "400 g e" sonundaki e = tahmini ağırlık işareti
   const amount = Number(p.product_quantity);
   const unit = clean(p.product_quantity_unit, 8).toLowerCase();
   const nameHasBrand = brand && name.toLocaleLowerCase('tr').includes(brand.toLocaleLowerCase('tr'));
