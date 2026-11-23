@@ -17,7 +17,7 @@ let localServer = null;
 let preparingServer = false;
 let setupPending = false;
 let quitting = false;
-function isBusinessCloud(){return runtime.apiBase==='https://business.veniux.com/api';}
+function isBusinessCloud(){return runtime.apiBase==='https://app.veniux.com/api';}
 
 // Single instance lock
 // The owner greeting speaks on open, before any click.
@@ -52,7 +52,7 @@ if (!gotTheLock) {
     if(app.isPackaged && !setupPending && !process.env.VENIUX_DESKTOP_API_URL && require('fs').existsSync(bundledNode)) {
       const selection=await require('./runtime').selectLocalServer(app.getPath('userData'),runtime.apiBase,async()=>{
         try { const r=await fetch(runtime.healthURL,{signal:AbortSignal.timeout(1500)});const health=await r.json();return r.ok&&health.status==='ok'&&health.target_active===true&&health.migrations?.status==='current'&&['mysql','sqlite'].includes(health.database); }catch{return false;}
-      },'https://business.veniux.com/api');
+      },'https://app.veniux.com/api');
       if(selection?.kind==='external')Object.assign(runtime,require('./runtime').desktopRuntime({VENIUX_DESKTOP_API_URL:selection.apiBase},true));
       // Persist the selected target. An unavailable external server must never turn
       // into a new empty local database, and a managed target must not switch back.

@@ -19,11 +19,11 @@ test('new setup cannot overwrite an existing customer target',async()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'veniux-new-choice-'));
  saveFirstSetup(dir,{kind:'managed'});
  assert.throws(()=>saveFirstSetup(dir,{kind:'external',apiBase:'https://other.example/api'}));
- assert.deepEqual(await selectLocalServer(dir,'http://127.0.0.1:3000/api',async()=>{throw Error('no probe');},'https://business.veniux.com/api'),{kind:'managed'});
+ assert.deepEqual(await selectLocalServer(dir,'http://127.0.0.1:3000/api',async()=>{throw Error('no probe');},'https://app.veniux.com/api'),{kind:'managed'});
 });
 test('cloud default applies only to a fresh profile; existing local records keep their target',async()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'veniux-cloud-'));
- const cloud='https://business.veniux.com/api';
+ const cloud='https://app.veniux.com/api';
  assert.deepEqual(await selectLocalServer(dir,'http://127.0.0.1:3000/api',async()=>{throw Error('no local probe');},cloud),{kind:'external',apiBase:cloud});
  fs.writeFileSync(path.join(dir,'server-selection.json'),JSON.stringify({kind:'managed'}));
  assert.equal((await selectLocalServer(dir,'http://127.0.0.1:3000/api',async()=>true,cloud)).kind,'managed');

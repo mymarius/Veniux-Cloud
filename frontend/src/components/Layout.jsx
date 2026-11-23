@@ -197,7 +197,7 @@ export function Layout({ children }) {
   },[customerSetup?.suggestFirstRun,location.pathname,user.role,navigate]);
   const groups = useMemo(() => personalizeNavigation(NAVIGATION
     .filter(group => !group.modules || group.modules.includes(moduleType))
-    .map(group => ({ ...group, items: group.items.filter(item => (!item.platformOnly || user.is_platform_admin)&&(!item.cloudOnly||window.veniuxDesktop?.apiBase==='https://business.veniux.com/api'||window.VeniuxAndroid?.isCloud?.())) })),customerSetup,location.pathname),
+    .map(group => ({ ...group, items: group.items.filter(item => (!item.platformOnly || user.is_platform_admin)&&(!item.cloudOnly||window.veniuxDesktop?.apiBase==='https://app.veniux.com/api'||window.VeniuxAndroid?.isCloud?.())) })),customerSetup,location.pathname),
   [moduleType, user.is_platform_admin,customerSetup,location.pathname]);
   const sectorPacks = useSectorPacks();
   const sectorItems = SECTOR_NAV.filter(item => sectorPacks && sectorPacks[item.pack]);

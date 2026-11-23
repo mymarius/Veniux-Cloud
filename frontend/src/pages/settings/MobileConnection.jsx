@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import QRCode from 'react-qr-code';
 import api from '../../api/client';
 export default function MobileConnection(){
- const cloud=window.location.origin==='https://business.veniux.com'||window.veniuxDesktop?.apiBase==='https://business.veniux.com/api';
+ const cloud=window.location.origin==='https://app.veniux.com'||window.veniuxDesktop?.apiBase==='https://app.veniux.com/api';
  const [state,setState]=useState({enabled:false,codes:[]}),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
  useEffect(()=>{if(!cloud&&window.veniuxDesktop?.isDesktop)api.get('/settings/mobile').then(r=>setState(r.data)).catch(()=>{});},[cloud]);
  if(cloud)return <div className="veniux-card p-6 space-y-4"><h3 className="font-bold">Bilgisayar ve Android aynı bulut işletmesinde</h3><p>Android uygulamasını güncelleyin. “Bağlantıyı değiştir” ekranından “Veniux buluta bağlan” seçeneğini açın ve aynı hesabınızla giriş yapın.</p><p>Her iki cihaz internet üzerinden aynı kayıtları kullanır. Bilgisayarın açık kalması veya aynı Wi-Fi ağına bağlanmanız gerekmez. İki adımlı doğrulama açıksa doğrulama kodunuz istenir.</p><a className="btn-soft" href="https://veniux.com/indir" target="_blank" rel="noopener noreferrer">Güncel uygulamaları indir</a></div>;

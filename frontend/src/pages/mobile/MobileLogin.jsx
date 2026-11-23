@@ -30,7 +30,7 @@ export default function MobileLogin() {
       navigate(response.data.user.portal_role && !fullProgram ? '/business' : '/dashboard');
     } catch (requestError) {
       setBilling(requestError.response?.data?.billing || null);
-      setError(requestError.response?.data?.error || (!requestError.response ? 'Sunucuya ulaşılamıyor. Bağlantınızı ve sunucu adresini kontrol edin.' : 'Giriş yapılamadı. Bilgilerinizi kontrol edin.'));
+      setError(requestError.response?.data?.error || (!requestError.response ? 'Sunucuya ulaşılamıyor. Bağlantınızı ve sunucu adresini kontrol edin.' : (typeof requestError.response.data === 'object' && requestError.response.data ? 'Giriş yapılamadı. Bilgilerinizi kontrol edin.' : 'Sunucu beklenmeyen bir yanıt verdi (HTTP ' + requestError.response.status + '). Uygulamayı en son sürüme güncelleyin; sürüyorsa destekle iletişime geçin.')));
     } finally { setLoading(false); }
   };
 
