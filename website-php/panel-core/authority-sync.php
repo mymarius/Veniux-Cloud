@@ -68,6 +68,10 @@ function vp_authority_issue(int $lid): bool {
     }
     vp_update('licenses', $lid, ['license_key' => $key, 'authority_id' => $aid, 'authority_hash' => sha1($plan . $seats . $exp . $state)]);
     vp_authority_audit('license.created', $aid, 'panel lisansı #' . $lid);
+    // Ödemeden sonra merkez geç açıldıysa (ilk deneme başarısız, cron açtı) müşteriye bildirim şimdi gider; tekrar gönderilmez (dedupe).
+    if (function_exists('vp_notify_license') && vp_val("SELECT 1 FROM orders WHERE license_id=? AND kind='yeni' AND status='onaylandi'", [$lid])) {
+        try { vp_notify_license('license_activated', $lid, ['dedupe' => 'lic:' . $lid]); } catch (Throwable $t) { error_log('[veniux-panel] lisans bildirimi: ' . $t->getMessage()); }
+    }
     return true;
 }
 

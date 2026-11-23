@@ -241,6 +241,8 @@ function vp_notify_method(string $m): string { return ['havale'=>'Havale / EFT',
 function vp_notify_license(string $event,int $licenseId,array $extra=[]): void {
     $l=vp_row('SELECT l.*,p.name pname FROM licenses l JOIN products p ON p.id=l.product_id WHERE l.id=?',[$licenseId]);if(!$l)return;
     $c=vp_row('SELECT * FROM clients WHERE id=?',[$l['client_id']]);if(!$c)return;
+    // Programda etkinleşmeyecek geçici anahtar e-postayla gitmesin; merkezde açılınca vp_authority_issue yeniden dener.
+    if($event==='license_activated'&&function_exists('vp_license_key_ready')&&!vp_license_key_ready($l))return;
     $vars=['paket'=>$l['pname'],'lisans'=>$l['license_key'],'bitis'=>$l['expires_at']?vp_date($l['expires_at']):'Süresiz','kalan_gun'=>(string)max(0,(int)vp_days_left($l['expires_at']))];
     vp_notify($event,['client'=>$c,'vars'=>$vars,'rows'=>[['Paket',$l['pname']],['Lisans anahtarı',$l['license_key']],['Bitiş',$vars['bitis']]],'link'=>vp_public_url().'/panel/lisanslar/'.$licenseId]+$extra);
 }

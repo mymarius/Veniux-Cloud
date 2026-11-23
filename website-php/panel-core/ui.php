@@ -139,7 +139,9 @@ function vp_license_ticket(array $l,string $href,bool $admin=false): string {
     $exp=$l['expires_at']?vp_date($l['expires_at']):($l['period']==='forever'?'Süresiz':'Ömür boyu');
     $devices=$l['device_limit']!==null?((int)$l['devices_used']).'/'.(int)$l['device_limit']:((int)$l['devices_used']).'/∞';
     return '<article class="vp-ticket'.($off?' vp-ticket--off':'').'"><div class="vp-ticket-main"><span class="vp-ticket-tag">'.e($st).' · '.e(vp_period_label($l['period'])).'</span><h3>'.e($l['pname']??'Lisans').'</h3>'
-        .'<div class="vp-ticket-key"><span>'.e($l['license_key']).'</span><button type="button" data-copy="'.e($l['license_key']).'">Kopyala</button></div>'
+        .(function_exists('vp_license_key_ready')&&!vp_license_key_ready($l)
+            ?'<div class="vp-ticket-key"><span>Anahtarınız hazırlanıyor</span></div>'
+            :'<div class="vp-ticket-key"><span>'.e($l['license_key']).'</span><button type="button" data-copy="'.e($l['license_key']).'">Kopyala</button></div>')
         .'<div class="vp-ticket-meta"><span>Bitiş <b>'.e($exp).'</b></span>'.($days!==null&&$days>=0&&$days<=30?'<span><b>'.$days.' gün</b> kaldı</span>':'').'<span>Cihaz <b>'.e($devices).'</b></span>'.($admin&&isset($l['company'])?'<span><b>'.e($l['company']).'</b></span>':'').'</div></div>'
         .'<a class="vp-ticket-stub" href="'.e($href).'">'.vp_barcode($l['license_key'],34).'<b>Yönet</b><span>Lisans ayrıntısı</span></a></article>';
 }

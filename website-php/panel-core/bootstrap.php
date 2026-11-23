@@ -248,6 +248,11 @@ function vp_rate_ok(string $scope,int $limit=10,int $window=900): bool {
 }
 
 // ---------- numaralar ----------
+/** Lisans merkezi bağlıysa, programın kabul ettiği anahtar (VNX- + 48 onaltılık) merkezde açılmış olmalı; yoksa anahtar henüz kullanılamaz. */
+function vp_license_key_ready(array $l): bool {
+    if(!function_exists('vp_authority_configured')||!vp_authority_configured())return true;
+    return (bool)preg_match('/\AVNX-[A-F0-9]{48}\z/D',(string)($l['license_key']??''))&&!empty($l['authority_id']);
+}
 function vp_license_key(): string {
     $alpha='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     do{$parts=[];for($i=0;$i<3;$i++){$s='';for($j=0;$j<4;$j++)$s.=$alpha[random_int(0,strlen($alpha)-1)];$parts[]=$s;}$key='VNX-'.implode('-',$parts);}
