@@ -1,0 +1,31 @@
+.rbr-scan{display:grid;gap:12px}
+.rbr-row{display:flex;gap:8px;flex-wrap:wrap}
+.rbr-row input{flex:1 1 240px;min-width:0;padding:12px 14px;font-size:18px;border:2px solid #cdd8e6;border-radius:10px}
+.rbr-row input:focus{border-color:#2f6fed;outline:none}
+.rbr-steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#51627a}
+.rbr-steps .rq-chip{min-width:48px;min-height:40px}
+.rbr-steps .rq-chip.on{background:#1e3047;color:#fff}
+.rbr-last{min-height:28px;font-size:15px}
+.rbr-tone-ok{color:#166534}.rbr-tone-warn{color:#b45309}
+.rbr-camera{max-width:520px}
+.rbr-list{margin-top:14px}
+.rbr-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.rbr-actions{display:flex;gap:8px}
+.rbr-scroll{overflow-x:auto;max-height:60vh;overflow-y:auto}
+.rbr-table{width:100%;border-collapse:collapse;font-size:14px}
+.rbr-table th{position:sticky;top:0;background:#f3f6fa;text-align:left;padding:8px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#6b7c94}
+.rbr-table td{padding:8px;border-top:1px solid #e3e9f1;vertical-align:top}
+.rbr-table td small{display:block;color:#7b8aa0;font-size:12px}
+.rbr-table td input,.rbr-table td select{padding:6px 8px;border:1px solid #cdd8e6;border-radius:8px;max-width:130px}
+.rbr-table td input.rbr-name{max-width:none;width:100%;margin-bottom:2px}
+.rbr-qty{display:inline-flex;align-items:center;gap:4px}
+.rbr-qty button{width:34px;height:34px;border:1px solid #cdd8e6;border-radius:8px;background:#fff;display:grid;place-items:center}
+.rbr-qty input{width:64px;text-align:center}
+.rbr-del{border:0;background:transparent;color:#b42318;padding:6px}
+.rbr-bad{background:#fffbeb}.rbr-err{background:#fef2f2}
+.rbr-msg{display:block;font-style:normal;font-size:12px;color:#b42318;margin-top:2px}
+.rbr-confirm{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.rbr-ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rbr-primary{padding:12px 20px;font-size:16px;font-weight:650;border:0;border-radius:10px;background:#1e3047;color:#fff;min-height:48px}
+.rbr-primary:disabled{opacity:.45}
+@media (max-width:640px){.rbr-table th:nth-child(4),.rbr-table td:nth-child(4){min-width:90px}.rbr-table td input{max-width:90px}}

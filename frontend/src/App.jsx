@@ -30,6 +30,7 @@ const NormalDashboard = lazy(() => import('./pages/normal-depo/NormalDashboard')
 const CustomerDisplay = lazy(() => import('./pages/CustomerDisplay'));
 const RetailPos = lazy(() => import('./pages/RetailPos'));
 const RetailQuickAdd = lazy(() => import('./pages/RetailQuickAdd'));
+const RetailBulkReceive = lazy(() => import('./pages/RetailBulkReceive'));
 const NormalWarehouses = lazy(() => import('./pages/normal-depo/NormalWarehouses'));
 const NormalLocations = lazy(() => import('./pages/normal-depo/NormalLocations'));
 const NormalProducts = lazy(() => import('./pages/normal-depo/NormalProducts'));
@@ -253,6 +254,7 @@ function AppContent() {
             <Route path="/musteri-ekrani" element={<CustomerDisplay />} />
             <Route path="/magaza/kasa" element={<ProtectedRoute><RetailPos /></ProtectedRoute>} />
             <Route path="/magaza/hizli-ekle" element={<ProtectedRoute><RetailQuickAdd /></ProtectedRoute>} />
+            <Route path="/magaza/toplu-kabul" element={<ProtectedRoute><RetailBulkReceive /></ProtectedRoute>} />
             <Route path="/normal-depo/analytics" element={<ProtectedRoute><StockMovementInsights /></ProtectedRoute>} />
             <Route path="/raporlar" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/normal-depo/dashboard" element={<ProtectedRoute><NormalDashboard /></ProtectedRoute>} />

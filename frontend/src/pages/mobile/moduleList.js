@@ -7,6 +7,7 @@ export const MOBILE_MODULES = [
   { key: 'price', title: 'Fiyat Gör', to: '/m/tara?mod=fiyat', Icon: Tag, tone: 'orange' },
   { key: 'reports', title: 'Raporlar', to: '/normal-depo/analytics', Icon: BarChart3, tone: 'violet' },
   { key: 'receive', title: 'Mal Kabul', to: '/magaza/hizli-ekle', Icon: PackagePlus, tone: 'sky' },
+  { key: 'bulk-receive', title: 'Toplu Kabul', to: '/magaza/toplu-kabul', Icon: PackagePlus, tone: 'sky' },
   { key: 'pos', title: 'Kasa', to: '/magaza/kasa', Icon: ShoppingCart, tone: 'rose' },
   { key: 'products', title: 'Ürünler', to: '/normal-depo/products', Icon: Package, tone: 'blue' },
   { key: 'print', title: 'Etiket Yazdır', to: '/magaza/etiketler', Icon: Printer, tone: 'teal' },

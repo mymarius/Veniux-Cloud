@@ -64,6 +64,7 @@ const NAVIGATION = [
       { name: 'Stok Listesi', path: '/inventory', icon: Boxes },
       { name: 'Market Kasası', path: '/magaza/kasa', icon: ShoppingCart },
       { name: 'Hızlı Ürün Ekle', path: '/magaza/hizli-ekle', icon: ShoppingCart },
+      { name: 'Toplu Mal Kabul', path: '/magaza/toplu-kabul', icon: ShoppingCart },
       { name: 'Etiket atölyesi', path: '/magaza/etiketler', icon: Printer }
     ]
   },
