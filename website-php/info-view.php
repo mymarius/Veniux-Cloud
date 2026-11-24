@@ -10,6 +10,12 @@ $have = [
     ['yes', 'Excel ve CSV ile ürün aktarımı', 'Dosyanızı yükler, sütunları eşleştirir, önizlemeyi görüp aktarırsınız.'],
     ['yes', 'Sektör paketleri', 'Restoran (masa, garson, mutfak), hırdavat, züccaciye ve benzeri işletmeler için ek ekranlar. Hangisinin açık olacağı paketinize bağlıdır.'],
     ['yes', 'Android uygulaması', 'Telefon kamerasıyla barkod okuma, fiyat ve stok görme, sayım.'],
+    ['yes', 'Toplu mal kabul', 'Barkodları art arda okutup yüzlerce ürünü tek onayla stoğa eklersiniz. Yarım kalan liste bu bilgisayarda saklanır.'],
+    ['yes', 'Çoklu para birimi', 'İşletmenin para birimi TL, ₼ Manat, USD, EUR veya GBP seçilebilir; fiyatlar, fişler ve raporlar seçilen birimi gösterir. Satış kaydı oluştuktan sonra para birimi değişmez.'],
+    ['limited', 'Barkoddan ürün bilgisi', 'Barkod okutunca ürün adı ortak katalogdan ve Open Food Facts’ten gelir; bulunamazsa ürünü elle eklersiniz. Ortak kataloğa katkıyı Ayarlar’dan kapatabilirsiniz. Ücretli barkod sağlayıcısı (Barcode Lookup) gerçek anahtarla denenmedi.'],
+    ['limited', 'Mağaza ile bulut eşitleme', 'Mağaza bilgisayarındaki satış, vardiya ve giderler buluta gider; bulut ürün ve fiyatı mağazaya iner. Gerçek bulut hesabıyla denendi, internet kesintisi ve yarım kalan gönderim senaryoları testlidir. Gerçek bir mağaza bilgisayarında uzun süre açık kalarak denenmedi.'],
+    ['limited', 'Azerbaycanca arayüz', 'Menü, giriş, kasa, hızlı ürün ekleme ve toplu mal kabul Azerbaycancadır; kalan ekranlar Türkçedir. Çeviriler Azerbaycanlı biri tarafından okunmadı.'],
+    ['untested', 'Android el terminali (Zebra DataWedge)', 'Donanım tarayıcısından okuma desteği eklendi; gerçek bir cihazda denenmedi.'],
     ['yes', 'Yapay zekâ asistanı', 'Stok ve satış verileriniz hakkında Türkçe soru sorarsınız. Değişiklik gerektiren her işlem önce size gösterilir, siz onaylamadan uygulanmaz.'],
     ['yes', 'Otomatik yedekleme', 'Her gün şifreli yedek alınır; yedeğin ikinci bir kopyası harici diske yazılabilir. Ayrıntısı aşağıda.'],
     ['yes', 'Otomatik güncelleme', 'Yeni sürüm kendiliğinden indirilir. Ayrıntısı aşağıda.'],
@@ -19,8 +25,12 @@ $have = [
     ['untested', 'Terazi', 'Terazi etiketindeki barkod bugün okunur. Kasada seri port üzerinden kablolu terazi bağlantısı Windows’ta 2.4.82 ile eklendi (CAS, Mettler Toledo, Dibal/Bizerba ve genel düz satır çıktı). Gerçek bir terazide denenmedi.'],
     ['untested', 'Pazaryeri bağlantıları', 'Trendyol: sipariş, stok, iade ve hakediş çekme var, gerçek mağazada denenmedi. Hepsiburada ve N11: bağlantı altyapısı eklendi, gerçek mağazada denenmedi; bağlantı kapalı kaydedilir, siz açarsınız.'],
 ];
+// Hazır olanlar önce, sonra sınırlı, en sonda denenmemişler; kendi içinde yazılış sırası korunur.
+$stateOrder = ['yes' => 0, 'limited' => 1, 'untested' => 2];
+$have = array_map(null, array_keys($have), $have);
+usort($have, fn($a, $b) => [$stateOrder[$a[1][0]], $a[0]] <=> [$stateOrder[$b[1][0]], $b[0]]);
+$have = array_column($have, 1);
 $plan = [
-    ['build', 'Mağaza ile bulutun kendiliğinden eşitlenmesi', 'Yapım aşamasında.'],
     ['plan', 'Yazarkasa (yeni nesil ÖKC) entegrasyonu', 'Planlanıyor. Satışlarınız bugün yazarkasadan geçmez; yasal olarak yazarkasa gerekiyorsa mevcut yazarkasanızı kullanmaya devam edin.'],
     ['plan', 'e-Fatura, e-Arşiv ve e-İrsaliye', 'Planlanıyor. Bugün mükellef sorgulama vardır; gerçek belge gönderimi kapalıdır. Faturalarınızı mevcut yönteminizle kesmeye devam edin.'],
     ['plan', 'Logo, Mikro ve Paraşüt’e doğrudan aktarım', 'Planlanıyor. CSV ve Excel aktarımı bugün vardır.'],
