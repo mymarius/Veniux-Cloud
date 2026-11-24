@@ -1,8 +1,18 @@
 {
-  "version": "2.4.109",
+  "version": "2.4.110",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.110",
+      "date": "25 Kasım 2026",
+      "title": "Giriş hata mesajı Türkçeleşti, 2.4.109 sürüm notları düzeltildi",
+      "items": [
+        "Yanlış e-posta veya parolada giriş ekranı artık İngilizce \"Invalid credentials\" yerine \"E-posta veya parola hatalı.\" yazar",
+        "2.4.109 sürüm notlarında Türkçe karakterlerin bozuk görünmesi giderildi",
+        "Mağaza ile bulut eşitlemesi gerçek bulut hesabıyla denendi; internet kesintisi ve yarım kalan gönderimler için testler eklendi"
+      ]
+    },
     {
       "version": "2.4.109",
       "date": "24 Kasım 2026",
