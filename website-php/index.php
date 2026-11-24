@@ -128,6 +128,7 @@ if (in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD'],true) && ($path==='/index
 }
 
 if (!in_array($_SERVER['REQUEST_METHOD'],['GET','HEAD','POST'],true)) { http_response_code(405); header('Allow: GET, HEAD, POST'); exit; }
+if ($path==='/api/hesap-dogrula') { require __DIR__.'/app-bridge.php'; vxAppBridge($config); exit; }
 if ($_SERVER['REQUEST_METHOD']==='POST' && !in_array($path,['/','/kayit','/giris','/cikis','/dogrula','/dogrula-tekrar','/demo'],true) && !str_starts_with($path,'/api/destek/') && !preg_match('#^/(yonetim|panel|odeme)(/|$)#',$path)) { http_response_code(405); exit; }
 
 ini_set('session.use_strict_mode','1');

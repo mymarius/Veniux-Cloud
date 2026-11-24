@@ -100,16 +100,25 @@ const login = async (req, res) => {
     if (wait) return res.set('Retry-After', String(wait)).status(429).json({ error: 'Çok fazla hatalı deneme. Bir süre sonra tekrar deneyin.' });
 
     // Find user
-    const result = await pool.query(
+    const findUser = () => pool.query(
       'SELECT u.id, u.email, u.password_hash, u.role, u.tenant_id, u.status, u.session_version, t.is_active,t.email AS company_owner_email FROM users u JOIN tenants t ON t.id=u.tenant_id WHERE LOWER(u.email) = $1',
       [email]
     );
+    let result = await findUser();
+
+    // Bulutta hesabı olmayan ama veniux.com hesabı doğrulanmış müşteri: aynı e-posta ve parolayla ilk girişte bulut hesabı açılır.
+    const siteBridge = require('../services/siteAccountBridge');
+    if (result.rows.length === 0 && email !== require('../services/ownerIdentity').OWNER_EMAIL && siteBridge.enabled()) {
+      const site = await siteBridge.verify(email, password);
+      if (site.valid) { await siteBridge.provision(email, password, site.company); result = await findUser(); }
+      else if (site.reason === 'unverified') return res.status(403).json({ error: 'veniux.com hesabınızın e-postası henüz doğrulanmadı. Size gönderilen bağlantıya tıklayın.', code: 'SITE_EMAIL_UNVERIFIED' });
+    }
 
     if (result.rows.length === 0) {
       // Olmayan hesapta da aynı parola maliyeti ödenir: yanıt süresiyle hesap varlığı anlaşılamaz.
       await bcrypt.compare(password, DUMMY_HASH);
       loginThrottle.fail(email, clientAddress);
-      return res.status(401).json({ error: 'E-posta veya parola hatalı.', code: 'INVALID_CREDENTIALS' });
+      return res.status(401).json({ error: 'E-posta veya parola hatalı.' + (siteBridge.enabled() ? ' veniux.com hesabınız varsa aynı e-posta ve parolayla giriş yapabilirsiniz.' : ''), code: 'INVALID_CREDENTIALS' });
     }
 
     // Eski kayıtlarda harf farkıyla çift e-posta kalmış olabilir (Ali@ / ali@): parolası tutan hesap seçilir,
