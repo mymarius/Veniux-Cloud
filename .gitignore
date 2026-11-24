@@ -45,3 +45,11 @@ backend/recovery/
 
 # Yerel testlerin bıraktığı hız sınırı sayaçları
 website-php/rate-*
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
