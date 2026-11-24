@@ -80,6 +80,7 @@ export default function Login() {
           <ArrowRight className="h-4 w-4" />
         </button>
       </form>
+      <p className="mt-4 text-[11px] leading-relaxed text-gray-500">{t('veniux.com hesabınız varsa aynı e-posta ve parolayla giriş yapabilirsiniz; uygulama hesabınız ilk girişte açılır. Parola iki yerde ayrı saklanır: birinde değiştirirseniz diğeri değişmez.')}</p>
       <div className="mt-7 flex items-center justify-between border-t border-gray-200 pt-4 text-[11px] text-gray-500">
         <Link data-testid="link-license-activation" to="/activate" className="flex items-center gap-1.5 font-semibold hover:text-brand-600 transition-colors">
           <Key className="h-3.5 w-3.5" /> Lisans Kontrolü

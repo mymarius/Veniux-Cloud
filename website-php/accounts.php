@@ -410,6 +410,7 @@ function accountRoutes(string $path,array $config):bool {
                 <?php if($register):?><label>İşletme adı<input name="company" required maxlength="160" autocomplete="organization" placeholder="Firma veya mağaza adınız"></label><?php endif;?>
                 <label>E-posta adresi<input name="email" type="email" required maxlength="190" autocomplete="email" placeholder="ornek@isletme.com"></label>
                 <label>Şifre<input name="password" type="password" required minlength="14" maxlength="72" autocomplete="<?=$register?'new-password':'current-password'?>"><small>En az 14 karakter.</small></label>
+                <p class="ac-note"><?=$register?'Aynı e-posta ve parolayla Veniux uygulamasına da (Windows, Android ve app.veniux.com) giriş yaparsınız; uygulama hesabınız ilk girişte otomatik açılır. Parola iki yerde ayrı saklanır: birinde değiştirirseniz diğeri değişmez.':'Bu hesabın e-posta ve parolasıyla Veniux uygulamasına da giriş yapabilirsiniz. Parola iki yerde ayrı saklanır: birinde değiştirirseniz diğeri değişmez.'?></p>
                 <button class="hx-btn" type="submit"><?=$register?'Hesap oluştur ve indirmelere geç':'Giriş yap'?></button>
                 <p class="ac-switch"><?=$register?'Zaten bir hesabınız var mı?':'Henüz bir hesabınız yok mu?'?> <a href="<?=$register?'/giris':'/kayit'?>"><?=$register?'Giriş yapın':'Hemen kayıt olun'?></a></p>
             </form>

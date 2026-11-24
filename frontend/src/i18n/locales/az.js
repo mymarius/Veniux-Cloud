@@ -65,6 +65,7 @@ export default {
   'Yetkili erişim': 'Səlahiyyətli giriş',
   'Çalışma alanınıza giriş yapın': 'İş sahənizə daxil olun',
   'Kurumsal e-posta': 'Korporativ e-poçt',
+  'veniux.com hesabınız varsa aynı e-posta ve parolayla giriş yapabilirsiniz; uygulama hesabınız ilk girişte açılır. Parola iki yerde ayrı saklanır: birinde değiştirirseniz diğeri değişmez.': 'veniux.com hesabınız varsa eyni e-poçt və parolla daxil ola bilərsiniz; tətbiq hesabınız ilk girişdə açılır. Parol iki yerdə ayrı saxlanılır: birində dəyişsəniz digəri dəyişmir.',
   'Şifre': 'Parol',
   'Şifremi unuttum': 'Parolumu unutdum',
   'Şifrenizi girin': 'Parolunuzu daxil edin',
