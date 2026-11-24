@@ -91,7 +91,7 @@ const login = async (req, res) => {
 
     // Validate input
     if (!email || typeof password !== 'string' || !password || Buffer.byteLength(password) > 72) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'E-posta ve parola gerekli.', code: 'CREDENTIALS_REQUIRED' });
     }
 
     const loginThrottle = require('../services/loginThrottle');
@@ -109,7 +109,7 @@ const login = async (req, res) => {
       // Olmayan hesapta da aynı parola maliyeti ödenir: yanıt süresiyle hesap varlığı anlaşılamaz.
       await bcrypt.compare(password, DUMMY_HASH);
       loginThrottle.fail(email, clientAddress);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'E-posta veya parola hatalı.', code: 'INVALID_CREDENTIALS' });
     }
 
     // Eski kayıtlarda harf farkıyla çift e-posta kalmış olabilir (Ali@ / ali@): parolası tutan hesap seçilir,
@@ -129,7 +129,7 @@ const login = async (req, res) => {
 
     if (!validPassword || user.status !== 'active' || Number(user.is_active) !== 1) {
       loginThrottle.fail(email, clientAddress);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'E-posta veya parola hatalı.', code: 'INVALID_CREDENTIALS' });
     }
     if(!require('../services/centralLicense').enabled()&&await require('../services/moduleAccess').getModuleType(user.tenant_id)==='NONE'){
       // Parolası doğru firma yöneticisi, lisansı açacak ödeme bilgisini burada görür; oturum açılmaz.
