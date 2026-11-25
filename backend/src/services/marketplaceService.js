@@ -60,7 +60,7 @@ async function call(connection, method, path, body) {
     backoff.set(waitKey(connection), { until: Date.now() + wait * 1000, seconds: wait });
     fail(`${adapter.label} istek sınırı aşıldı; ${Math.ceil(wait / 60)} dakika sonra yeniden denenecek.`, 502);
   }
-  if (!response.ok) fail(`${adapter.label} isteği başarısız oldu (${response.status}).`, 502);
+  if (!response.ok) throw Object.assign(Error(`${adapter.label} isteği başarısız oldu (${response.status}).`), { status: 502, upstream: response.status });
   const text = await response.text();
   return text ? JSON.parse(text) : {};
 }

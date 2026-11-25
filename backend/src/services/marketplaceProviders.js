@@ -42,8 +42,17 @@ const trendyol = {
   },
   async orders(connection, api, start, end) {
     const out = [];
+    // Trendyol belgesi (25 Kas 2026) yolu /orders olarak verir; eskiden kullanılan /v2/orders yedek olarak denenir (yalnız 404'te).
+    let path = connection.ordersPath || 'orders';
     for (let page = 0; page < 50; page++) {
-      const data = await api('GET', `/order/sellers/${connection.seller_id}/v2/orders?startDate=${start}&endDate=${end}&orderByField=PackageLastModifiedDate&orderByDirection=ASC&page=${page}&size=${this.pageSize}`);
+      const query = `?startDate=${start}&endDate=${end}&orderByField=PackageLastModifiedDate&orderByDirection=ASC&page=${page}&size=${this.pageSize}`;
+      let data;
+      try { data = await api('GET', `/order/sellers/${connection.seller_id}/${path}${query}`); }
+      catch (error) {
+        if (page !== 0 || error.upstream !== 404) throw error;
+        path = path === 'orders' ? 'v2/orders' : 'orders';
+        data = await api('GET', `/order/sellers/${connection.seller_id}/${path}${query}`);
+      }
       for (const pack of data.content || []) {
         const status = String(pack.shipmentPackageStatus || pack.status || '');
         out.push({ id: String(pack.shipmentPackageId ?? pack.id ?? ''), orderNumber: pack.orderNumber == null ? null : String(pack.orderNumber), status, cancelled: ['Cancelled', 'UnSupplied'].includes(status), lines: Array.isArray(pack.lines) ? pack.lines : [] });

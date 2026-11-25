@@ -20,6 +20,7 @@ beforeAll(async () => {
       if (fake.limited) { res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '120' }); return res.end('{}'); }
       if (req.url.includes('/finance/che/')) { const q = new URL(req.url, 'http://x').searchParams; fake.settlementQueries.push(q); return send(200, { totalPages: 1, content: fake.settlements.filter(r => r.type === q.get('transactionType')).map(r => r.row) }); }
       if (req.url.includes('/claims')) return send(200, { totalPages: 1, content: fake.claims });
+      if (fake.docOrders && /\/orders\?/.test(req.url) && !req.url.includes('/v2/')) { fake.orderQueries.push(req.url); return send(200, { totalPages: 1, content: fake.packages }); }
       if (req.url.includes('/v2/orders')) { fake.orderQueries.push(req.url); return send(200, { totalPages: 1, content: fake.packages }); }
       if (req.url.includes('/price-and-inventory')) { fake.stockBodies.push(JSON.parse(raw)); return send(200, { batchRequestId: 'b-1' }); }
       if (req.url.includes('/batch-requests/')) return send(200, fake.batch || { status: 'COMPLETED', failedItemCount: 0, items: [] });
@@ -223,4 +224,17 @@ test('ekstre 15 günlük aralıklarla çekilir; komisyon, hakediş ve tahmini k�
   expect((await auth(A.t, request(app).get('/api/marketplace/trendyol/report'))).body.products.some(p => p.barcode === '321')).toBe(false);
   expect((await auth(F.t, request(app).get('/api/marketplace/trendyol/report?from=2026-02-01&to=2025-01-01'))).status).toBe(400);
   fake.settlements = [];
+});
+
+test('sipariş yolu: belgedeki /orders çalışıyorsa o kullanılır, çalışmıyorsa eski /v2/orders yedeğine düşülür', async () => {
+  await B.connect();
+  const mine = await B.product('222', 5);
+  fake.docOrders = true; fake.orderQueries = []; fake.packages = [pack(2, '222', 1)];
+  await B.sync();
+  expect(fake.orderQueries[0]).toMatch(/\/integration\/order\/sellers\/4321\/orders\?/);
+  expect(await B.stock(mine)).toBe(4);
+  fake.docOrders = false; fake.orderQueries = []; fake.packages = [pack(3, '222', 1)];
+  await B.sync();
+  expect(fake.orderQueries[0]).toContain('/v2/orders');
+  expect(await B.stock(mine)).toBe(3);
 });
