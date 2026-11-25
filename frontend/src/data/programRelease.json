@@ -1,8 +1,19 @@
 {
-  "version": "2.4.112",
+  "version": "2.4.113",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.113",
+      "date": "25 Kasım 2026",
+      "title": "Azerbaycanca arayüz çok daha geniş: kasa, depo, raporlar ve ayar ekranları",
+      "items": [
+        "Kasa araçları, vardiya, satış geçmişi, brüt kâr ve satış raporları Azerbaycancaya çevrildi",
+        "Ürün kataloğu, Excel/CSV aktarımı, tedarikçiler, kullanıcılar, hesap ayarları ve mağaza-bulut eşitleme Azerbaycancada",
+        "Normal depo ekranları (özet, tesisler, lokasyonlar, mal kabul, sevkiyat, sanal terminal) ve çoğu ayar sekmesi çevrildi",
+        "Yedek geri yükleme onayı için yazılacak cümle Türkçe kalır; bu bilerek böyledir"
+      ]
+    },
     {
       "version": "2.4.112",
       "date": "25 Kasım 2026",
