@@ -30,3 +30,17 @@ test('kararlı çerçeve kasa miktarına dönüşür, kararsız ya da eski redde
  assert.throws(()=>scaleReading({...p,timestamp:now-5000},{now}));
  const g=parseScaleLine('generic','750 g');assert.equal(scaleReading({...g,timestamp:now},{now}).quantity,.75);
 });
+
+// Üretici kılavuzlarındaki gerçek çıktı örnekleri (MT-SICS referans kılavuzları: "S S 100.00 g", SIR yanıtı "S D 129.07 kg";
+// ST/US + GS/NT biçimi CAS tipi terazilerde ve benzeri kılavuzlarda). Simülatörün kendi ürettiği satırlara bağlı olmayan karşılaştırma.
+test('kılavuz örnekleri: Toledo SICS yanıtları (kararlı, kararsız, hata ve taşma satırları)', () => {
+  assert.deepEqual(parseScaleLine('toledo', 'S S      100.00 g'), { weight: 100, unit: 'g', stable: true });
+  assert.deepEqual(parseScaleLine('toledo', 'S D     129.07 kg'), { weight: 129.07, unit: 'kg', stable: false });
+  for (const line of ['S I', 'S +', 'S -', 'ES', 'ET', 'EL']) assert.equal(parseScaleLine('toledo', line), null, line);
+});
+test('kılavuz örnekleri: CAS tipi ST/US, GS/NT çıktısı birimin bitişik ya da ayrık yazılması', () => {
+  assert.deepEqual(parseScaleLine('cas', 'ST,GS,+  1.245kg'), { weight: 1.245, unit: 'kg', stable: true });
+  assert.deepEqual(parseScaleLine('cas', 'US,GS,+  0.500 kg'), { weight: 0.5, unit: 'kg', stable: false });
+  assert.deepEqual(parseScaleLine('cas', 'ST,NT,   0.000 kg'), { weight: 0, unit: 'kg', stable: true });
+  assert.equal(parseScaleLine('cas', 'OL'), null);
+});
