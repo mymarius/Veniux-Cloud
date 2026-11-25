@@ -3,7 +3,7 @@
 // yapıya dokunulmaz (React ile çakışmaz). Dil Türkçeye dönünce özgün metin geri yazılır.
 import { LOCALES, getLanguage, subscribeLanguage } from './index.js';
 
-const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'SELECT', 'CODE', 'PRE', 'NOSCRIPT', 'SVG']);
+const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'CODE', 'PRE', 'NOSCRIPT', 'SVG']);
 const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
 const has = (table, key) => Object.prototype.hasOwnProperty.call(table, key);
 
