@@ -170,4 +170,5 @@ async function saveMaps(user, body) {
   });
   return maps(user.tenantId);
 }
-module.exports = { preview, create, list, file, markImported, cancel, getMaps, saveMaps, toCsv, money, number };
+const typeFields = type => (TYPES[type] ? TYPES[type].header.slice() : fail('Geçersiz veri türü.'));
+module.exports = { preview, create, list, file, markImported, cancel, getMaps, saveMaps, toCsv, money, number, typeFields };

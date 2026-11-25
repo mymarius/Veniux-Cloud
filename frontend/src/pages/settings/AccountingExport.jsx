@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
+import AccountingTemplate from './AccountingTemplate';
 
 const TYPES = { sales: 'Satış', payments: 'Tahsilat', returns: 'İade ve iptal', purchases: 'Alış siparişi', stock: 'Stok hareketi', contacts: 'Cari' };
 const STATUS = { created: 'Oluşturuldu', imported: 'İçe alındı', cancelled: 'İptal edildi' };
@@ -18,7 +19,7 @@ const errorOf = (e, fallback) => e.response?.data?.error || fallback;
 export default function AccountingExport() {
   const [form, setForm] = useState({ type: 'sales', from: monthStart(), to: today() });
   const [preview, setPreview] = useState(null), [codes, setCodes] = useState({}), [exports, setExports] = useState([]);
-  const [busy, setBusy] = useState(false), [note, setNote] = useState(null);
+  const [busy, setBusy] = useState(false), [note, setNote] = useState(null), [templateFor, setTemplateFor] = useState(null);
   const load = async () => setExports((await api.get('/accounting-exports')).data || []);
   useEffect(() => { load().catch(() => setNote({ error: true, text: 'Muhasebe aktarımını yalnız firma genelinde yetkili yönetici kullanabilir.' })); }, []);
   const run = async (work, done) => {
@@ -64,7 +65,8 @@ export default function AccountingExport() {
     {note && <p role={note.error ? 'alert' : 'status'} className={note.error ? 'text-sm font-semibold text-red-700' : 'text-sm font-semibold text-emerald-700'}>{note.text}</p>}
     {exports.length > 0 && <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="text-left">Veri</th><th className="text-left">Aralık</th><th className="text-left">Satır</th><th className="text-left">Durum</th><th className="text-left">İşlem</th></tr></thead><tbody>{exports.map(item => <tr key={item.id}>
       <td>{TYPES[item.export_type] || item.export_type}</td><td>{item.date_from} / {item.date_to}</td><td>{item.row_count}</td><td>{STATUS[item.status] || item.status}</td>
-      <td className="flex flex-wrap gap-2">{item.status !== 'cancelled' && <><button type="button" className="btn-soft" disabled={busy} onClick={() => download(item)}>İndir</button>{item.status === 'created' && <button type="button" className="btn-soft" disabled={busy} onClick={() => run(() => api.post(`/accounting-exports/${item.id}/imported`), () => 'İçe alındı olarak işaretlendi.')}>İçe alındı</button>}<button type="button" className="btn-soft" disabled={busy} onClick={() => cancel(item)}>İptal</button></>}</td>
+      <td className="flex flex-wrap gap-2">{item.status !== 'cancelled' && <><button type="button" className="btn-soft" disabled={busy} onClick={() => download(item)}>İndir</button><button type="button" className="btn-soft" disabled={busy} onClick={() => setTemplateFor(templateFor === item.id ? null : item.id)}>Şablonla indir</button>{item.status === 'created' && <button type="button" className="btn-soft" disabled={busy} onClick={() => run(() => api.post(`/accounting-exports/${item.id}/imported`), () => 'İçe alındı olarak işaretlendi.')}>İçe alındı</button>}<button type="button" className="btn-soft" disabled={busy} onClick={() => cancel(item)}>İptal</button></>}</td>
     </tr>)}</tbody></table></div>}
+    {templateFor && exports.find(item => item.id === templateFor) && <AccountingTemplate key={templateFor} item={exports.find(item => item.id === templateFor)} onClose={() => setTemplateFor(null)} />}
   </section>;
 }
