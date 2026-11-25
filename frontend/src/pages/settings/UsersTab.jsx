@@ -1,4 +1,5 @@
 import DialogShell from '../../components/ui/DialogShell';
+import { t as __t } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -122,15 +123,15 @@ export default function UsersTab({embedded=false}) {
     <div className="max-w-5xl space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          {embedded?<h3 className="text-xl font-bold text-gray-900">Kullanıcılar</h3>:<h1 className="text-xl font-bold text-gray-900">Kullanıcılar</h1>}
-          <p className="text-sm text-gray-500 mt-1">Sisteme erişebilen çalışma alanı personellerini ve hesap yetkilerini yönetin.</p>
+          {embedded?<h3 className="text-xl font-bold text-gray-900">{__t('Kullanıcılar')}</h3>:<h1 className="text-xl font-bold text-gray-900">{__t('Kullanıcılar')}</h1>}
+          <p className="text-sm text-gray-500 mt-1">{__t('Sisteme erişebilen çalışma alanı personellerini ve hesap yetkilerini yönetin.')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Kullanıcı Ekle</span>
+          <span>{__t('Yeni Kullanıcı Ekle')}</span>
         </button>
       </div>
 
@@ -141,27 +142,27 @@ export default function UsersTab({embedded=false}) {
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
           <input
             type="text"
-            placeholder="İsim veya e-posta ile ara..."
+            placeholder={__t('İsim veya e-posta ile ara...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-gray-100 border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm text-gray-900 focus:border-brand-500 outline-none"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs font-semibold text-gray-500 font-mono uppercase">Rol:</span>
+          <span className="text-xs font-semibold text-gray-500 font-mono uppercase">{__t('Rol:')}</span>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 font-medium outline-none focus:border-brand-500"
           >
             <option value="ALL">Tümü ({users.length})</option>
-            <option value="admin">Yöneticiler (Admin)</option>
-            <option value="manager">Müdürler (Manager)</option>
-            <option value="warehouse_lead">Depo sorumluları</option>
-            <option value="cashier">Kasiyer (Kasa)</option>
-                  <option value="operator">Operatörler</option>
-            <option value="pharmacist">Kayıt görevlileri</option>
-            <option value="viewer">İzleyiciler (Viewer)</option>
+            <option value="admin">{__t('Yöneticiler (Admin)')}</option>
+            <option value="manager">{__t('Müdürler (Manager)')}</option>
+            <option value="warehouse_lead">{__t('Depo sorumluları')}</option>
+            <option value="cashier">{__t('Kasiyer (Kasa)')}</option>
+                  <option value="operator">{__t('Operatörler')}</option>
+            <option value="pharmacist">{__t('Kayıt görevlileri')}</option>
+            <option value="viewer">{__t('İzleyiciler (Viewer)')}</option>
           </select>
         </div>
       </div>
@@ -181,12 +182,12 @@ export default function UsersTab({embedded=false}) {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono">
                 <tr>
-                  <th className="p-4">Kullanıcı</th>
-                  <th className="p-4">İletişim</th>
-                  <th className="p-4">Rol / Yetki</th>
-                  <th className="p-4">Durum</th>
-                  <th className="p-4">Kayıt Tarihi</th>
-                  <th className="p-4 text-right">İşlemler</th>
+                  <th className="p-4">{__t('Kullanıcı')}</th>
+                  <th className="p-4">{__t('İletişim')}</th>
+                  <th className="p-4">{__t('Rol / Yetki')}</th>
+                  <th className="p-4">{__t('Durum')}</th>
+                  <th className="p-4">{__t('Kayıt Tarihi')}</th>
+                  <th className="p-4 text-right">{__t('İşlemler')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -224,19 +225,19 @@ export default function UsersTab({embedded=false}) {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={()=>setScopeUser(user)} className="icon-btn" title="Depo erişim kapsamı" aria-label={`${user.email} depo erişimi`}><Shield className="w-4 h-4"/></button>
-                        <button onClick={()=>{setMfaPassword('');setMfaUser(user);}} className="icon-btn" title="İki aşamalı doğrulamayı sıfırla" aria-label={`${user.email} iki aşamalı doğrulamasını sıfırla`}><KeyRound className="w-4 h-4"/></button>
+                        <button onClick={()=>setScopeUser(user)} className="icon-btn" title={__t('Depo erişim kapsamı')} aria-label={`${user.email} depo erişimi`}><Shield className="w-4 h-4"/></button>
+                        <button onClick={()=>{setMfaPassword('');setMfaUser(user);}} className="icon-btn" title={__t('İki aşamalı doğrulamayı sıfırla')} aria-label={`${user.email} iki aşamalı doğrulamasını sıfırla`}><KeyRound className="w-4 h-4"/></button>
                         <button
                           onClick={() => setEditingUser({ ...user, newPassword: '' })}
                           className="icon-btn"
-                          title="Düzenle"
+                          title={__t('Düzenle')}
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id, user.email)}
                           className="icon-btn" data-tone="danger"
-                          title="Sil"
+                          title={__t('Sil')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -251,11 +252,11 @@ export default function UsersTab({embedded=false}) {
       </div>
 
       {mfaUser && (
-        <DialogShell isOpen={Boolean(mfaUser)} onClose={() => setMfaUser(null)} title="İki aşamalı doğrulamayı sıfırla">
+        <DialogShell isOpen={Boolean(mfaUser)} onClose={() => setMfaUser(null)} title={__t('İki aşamalı doğrulamayı sıfırla')}>
             <form onSubmit={handleMfaReset} className="space-y-4">
               <p className="text-sm text-gray-600">{mfaUser.email} hesabında iki aşamalı doğrulama kapatılır ve açık oturumları sonlanır. Bunu yalnızca kullanıcının kimliğini doğruladıktan sonra yapın.</p>
               <Input
-                label="Mevcut Şifreniz"
+                label={__t('Mevcut Şifreniz')}
                 type="password"
                 autoComplete="current-password"
                 value={mfaPassword}
@@ -263,10 +264,10 @@ export default function UsersTab({embedded=false}) {
                 required
               />
               <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
-                <button type="button" onClick={() => setMfaUser(null)} className="btn-secondary">Vazgeç</button>
+                <button type="button" onClick={() => setMfaUser(null)} className="btn-secondary">{__t('Vazgeç')}</button>
                 <button type="submit" disabled={submitting} className="btn-primary">
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                  <span>Sıfırla</span>
+                  <span>{__t('Sıfırla')}</span>
                 </button>
               </div>
             </form>
@@ -276,34 +277,34 @@ export default function UsersTab({embedded=false}) {
       {/* Modal: Add User */}
       {scopeUser&&<AccessScopeEditor user={scopeUser} onClose={()=>{setScopeUser(null);fetchUsers();}}/>}
       {showAddModal && (
-        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Yeni kullanıcı">
+        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={__t('Yeni kullanıcı')}>
             <form onSubmit={handleCreateUser} className="space-y-4">
               <Input
-                label="Ad Soyad"
+                label={__t('Ad Soyad')}
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 required
               />
               <Input
-                label="E-Posta Adresi"
+                label={__t('E-Posta Adresi')}
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
               <Input
-                label="İlk Giriş Şifresi"
+                label={__t('İlk Giriş Şifresi')}
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="En az 8 karakter, en fazla 72 bayt"
+                placeholder={__t('En az 8 karakter, en fazla 72 bayt')}
                 required
               />
               <Input
-                label="Telefon"
+                label={__t('Telefon')}
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+90 5XX XXX XX XX"
+                placeholder={__t('+90 5XX XXX XX XX')}
               />
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
@@ -314,13 +315,13 @@ export default function UsersTab({embedded=false}) {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
                 >
-                  <option value="admin">Sistem Yöneticisi (Admin)</option>
-                  <option value="manager">Müdür / Şube müdürü (Manager)</option>
-                  <option value="warehouse_lead">Depo sorumlusu</option>
-                  <option value="cashier">Kasiyer (Kasa)</option>
-                  <option value="operator">Depo operatörü (yalnızca görüntüleme)</option>
-                  <option value="pharmacist">Kayıt görevlisi</option>
-                  <option value="viewer">İzleyici (Viewer - Salt Okunur)</option>
+                  <option value="admin">{__t('Sistem Yöneticisi (Admin)')}</option>
+                  <option value="manager">{__t('Müdür / Şube müdürü (Manager)')}</option>
+                  <option value="warehouse_lead">{__t('Depo sorumlusu')}</option>
+                  <option value="cashier">{__t('Kasiyer (Kasa)')}</option>
+                  <option value="operator">{__t('Depo operatörü (yalnızca görüntüleme)')}</option>
+                  <option value="pharmacist">{__t('Kayıt görevlisi')}</option>
+                  <option value="viewer">{__t('İzleyici (Viewer - Salt Okunur)')}</option>
                 </select>
               </div>
 
@@ -338,7 +339,7 @@ export default function UsersTab({embedded=false}) {
                   className="btn-primary"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span>Kullanıcıyı Kaydet</span>
+                  <span>{__t('Kullanıcıyı Kaydet')}</span>
                 </button>
               </div>
             </form>
@@ -347,16 +348,16 @@ export default function UsersTab({embedded=false}) {
 
       {/* Modal: Edit User */}
       {editingUser && (
-        <DialogShell isOpen={Boolean(editingUser)} onClose={() => setEditingUser(null)} title="Kullanıcıyı düzenle">
+        <DialogShell isOpen={Boolean(editingUser)} onClose={() => setEditingUser(null)} title={__t('Kullanıcıyı düzenle')}>
             <form onSubmit={handleUpdateUser} className="space-y-4">
               <Input
-                label="Ad Soyad"
+                label={__t('Ad Soyad')}
                 value={editingUser.fullName || ''}
                 onChange={(e) => setEditingUser({ ...editingUser, fullName: e.target.value })}
                 required
               />
               <Input
-                label="Telefon"
+                label={__t('Telefon')}
                 value={editingUser.phone || ''}
                 onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
               />
@@ -369,19 +370,19 @@ export default function UsersTab({embedded=false}) {
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                   className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
                 >
-                  <option value="admin">Sistem Yöneticisi (Admin)</option>
-                  <option value="manager">Müdür / Şube müdürü (Manager)</option>
-                  <option value="warehouse_lead">Depo sorumlusu</option>
-                  <option value="cashier">Kasiyer (Kasa)</option>
-                  <option value="operator">Depo operatörü (yalnızca görüntüleme)</option>
-                  <option value="pharmacist">Kayıt görevlisi</option>
-                  <option value="viewer">İzleyici (Viewer - Salt Okunur)</option>
+                  <option value="admin">{__t('Sistem Yöneticisi (Admin)')}</option>
+                  <option value="manager">{__t('Müdür / Şube müdürü (Manager)')}</option>
+                  <option value="warehouse_lead">{__t('Depo sorumlusu')}</option>
+                  <option value="cashier">{__t('Kasiyer (Kasa)')}</option>
+                  <option value="operator">{__t('Depo operatörü (yalnızca görüntüleme)')}</option>
+                  <option value="pharmacist">{__t('Kayıt görevlisi')}</option>
+                  <option value="viewer">{__t('İzleyici (Viewer - Salt Okunur)')}</option>
                 </select>
               </div>
               <Input
-                label="Şifre Sıfırla (İsteğe Bağlı)"
+                label={__t('Şifre Sıfırla (İsteğe Bağlı)')}
                 type="password"
-                placeholder="Değiştirmek istemiyorsanız boş bırakın"
+                placeholder={__t('Değiştirmek istemiyorsanız boş bırakın')}
                 value={editingUser.newPassword || ''}
                 onChange={(e) => setEditingUser({ ...editingUser, newPassword: e.target.value })}
               />
@@ -400,7 +401,7 @@ export default function UsersTab({embedded=false}) {
                   className="btn-primary"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span>Güncelle</span>
+                  <span>{__t('Güncelle')}</span>
                 </button>
               </div>
             </form>

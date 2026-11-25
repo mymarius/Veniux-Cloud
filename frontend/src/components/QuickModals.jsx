@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { t as __t } from '../i18n';
 import QRCode from 'react-qr-code';
 import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, Minus, Plus, Printer, QrCode } from 'lucide-react';
 import apiClient from '../api/client';
@@ -46,9 +47,9 @@ function useStockOptions(isOpen, productIds = []) {
 function Stepper({ value, onChange, min = 1 }) {
   const step = delta => onChange(String(Math.max(min, (parseInt(value, 10) || 0) + delta)));
   return <div className="vx-stepper">
-    <button type="button" onClick={() => step(-1)} aria-label="Azalt"><Minus size={16} /></button>
-    <input type="number" min={min} inputMode="numeric" placeholder="0" value={value} onChange={e => onChange(e.target.value)} required aria-label="Miktar" />
-    <button type="button" onClick={() => step(1)} aria-label="Artır"><Plus size={16} /></button>
+    <button type="button" onClick={() => step(-1)} aria-label={__t('Azalt')}><Minus size={16} /></button>
+    <input type="number" min={min} inputMode="numeric" placeholder="0" value={value} onChange={e => onChange(e.target.value)} required aria-label={__t('Miktar')} />
+    <button type="button" onClick={() => step(1)} aria-label={__t('Artır')}><Plus size={16} /></button>
   </div>;
 }
 
@@ -107,18 +108,18 @@ export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = n
   };
 
   return (
-    <DialogShell isOpen={isOpen} onClose={onClose} title="Hızlı stok hareketi" subtitle="Depoya ürün girişi veya çıkışı yapın"
+    <DialogShell isOpen={isOpen} onClose={onClose} title={__t('Hızlı stok hareketi')} subtitle="Depoya ürün girişi veya çıkışı yapın"
       icon={inbound ? ArrowDownLeft : ArrowUpRight} tone={inbound ? 'green' : 'red'}
       footer={<>
-        <button type="button" className="vx-btn" onClick={onClose}>Vazgeç</button>
+        <button type="button" className="vx-btn" onClick={onClose}>{__t('Vazgeç')}</button>
         <button type="submit" form="quick-stock-form" className="vx-btn" data-variant={inbound ? 'green' : 'red'} disabled={loading || optionsLoading || after < 0}>
           {loading ? 'Kaydediliyor…' : inbound ? 'Girişi onayla' : 'Çıkışı onayla'}
         </button>
       </>}>
       <form id="quick-stock-form" onSubmit={handleSubmit} className="grid gap-4">
-        <div className="vx-toggle" data-value={inbound ? 0 : 1} role="group" aria-label="Hareket türü">
-          <button type="button" data-tone="green" aria-pressed={inbound} onClick={() => setMovementType('inbound')}><ArrowDownLeft size={15} /> Stok girişi</button>
-          <button type="button" data-tone="red" aria-pressed={!inbound} onClick={() => setMovementType('outbound')}><ArrowUpRight size={15} /> Stok çıkışı</button>
+        <div className="vx-toggle" data-value={inbound ? 0 : 1} role="group" aria-label={__t('Hareket türü')}>
+          <button type="button" data-tone="green" aria-pressed={inbound} onClick={() => setMovementType('inbound')}><ArrowDownLeft size={15} /> {__t('Stok girişi')}</button>
+          <button type="button" data-tone="red" aria-pressed={!inbound} onClick={() => setMovementType('outbound')}><ArrowUpRight size={15} /> {__t('Stok çıkışı')}</button>
         </div>
 
         <label className="vx-field">Ürün
@@ -135,20 +136,20 @@ export const QuickStockModal = ({ isOpen, onClose, onSuccess, defaultProduct = n
             <Stepper value={amount} onChange={setAmount} />
           </div>
         </div>
-        <div className="vx-chips" aria-label="Hızlı miktar">
+        <div className="vx-chips" aria-label={__t('Hızlı miktar')}>
           {QUICK_AMOUNTS.map(n => <button key={n} type="button" onClick={() => setAmount(String(n))}>{n}</button>)}
           {!inbound && current > 0 && <button type="button" onClick={() => setAmount(String(current))}>Tümü ({num(current)})</button>}
         </div>
 
         <div className="vx-preview" aria-live="polite">
-          <div><span>Mevcut stok</span><b>{num(current)}</b></div>
+          <div><span>{__t('Mevcut stok')}</span><b>{num(current)}</b></div>
           <ArrowRight size={18} />
-          <div><span>İşlem sonrası</span><b style={{ color: after < 0 ? '#c95858' : undefined }}>{num(after)}</b></div>
+          <div><span>{__t('İşlem sonrası')}</span><b style={{ color: after < 0 ? '#c95858' : undefined }}>{num(after)}</b></div>
           <em style={{ color: inbound ? '#1b8e83' : '#c95858' }}>{qty ? `${inbound ? '+' : '−'}${num(qty)}` : ''}</em>
         </div>
 
-        <label className="vx-field">Açıklama / irsaliye no <small>İsteğe bağlı</small>
-          <input className="vx-input" type="text" placeholder="Örn: Tedarikçi sevkiyatı, irsaliye 2026-118" value={note} onChange={e => setNote(e.target.value)} />
+        <label className="vx-field">{__t('Açıklama / irsaliye no')} <small>{__t('İsteğe bağlı')}</small>
+          <input className="vx-input" type="text" placeholder={__t('Örn: Tedarikçi sevkiyatı, irsaliye 2026-118')} value={note} onChange={e => setNote(e.target.value)} />
         </label>
       </form>
     </DialogShell>
@@ -204,13 +205,13 @@ export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct 
   };
 
   return (
-    <DialogShell isOpen={isOpen} onClose={onClose} title="Depolar arası transfer" subtitle="Ürünü bir depodan diğerine aktarın" icon={ArrowRightLeft} tone="violet"
+    <DialogShell isOpen={isOpen} onClose={onClose} title={__t('Depolar arası transfer')} subtitle="Ürünü bir depodan diğerine aktarın" icon={ArrowRightLeft} tone="violet"
       footer={<>
-        <button type="button" className="vx-btn" onClick={onClose}>Vazgeç</button>
+        <button type="button" className="vx-btn" onClick={onClose}>{__t('Vazgeç')}</button>
         <button type="submit" form="quick-transfer-form" className="vx-btn" data-variant="primary" disabled={loading || warehouses.length < 2}>{loading ? 'Aktarılıyor…' : 'Transferi onayla'}</button>
       </>}>
       <form id="quick-transfer-form" onSubmit={handleTransfer} className="grid gap-4">
-        {warehouses.length < 2 && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-[12.5px] text-amber-800">Transfer için en az iki depo tanımlı olmalı.</p>}
+        {warehouses.length < 2 && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-[12.5px] text-amber-800">{__t('Transfer için en az iki depo tanımlı olmalı.')}</p>}
         <label className="vx-field">Ürün
           <ProductSelect value={productId} onChange={(id, prod) => { setProductId(id); setPicked(prod); }} initial={products} selected={picked || initialProduct} required />
         </label>
@@ -220,14 +221,14 @@ export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct 
               {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </label>
-          <button type="button" className="vx-dialog-close mb-1 hidden sm:grid" aria-label="Depoları değiştir" onClick={() => { setSource(target); setTarget(source); }}><ArrowRightLeft size={16} /></button>
+          <button type="button" className="vx-dialog-close mb-1 hidden sm:grid" aria-label={__t('Depoları değiştir')} onClick={() => { setSource(target); setTarget(source); }}><ArrowRightLeft size={16} /></button>
           <label className="vx-field">Hedef depo
             <select className="vx-input" value={target} onChange={e => setTarget(e.target.value)} required>
               {warehouses.map(w => <option key={w.id} value={w.id} disabled={String(w.id) === source}>{w.name}</option>)}
             </select>
           </label>
         </div>
-        <div className="vx-field">Miktar <Stepper value={amount} onChange={setAmount} /></div>
+        <div className="vx-field">{__t('Miktar')} <Stepper value={amount} onChange={setAmount} /></div>
         <div className="vx-chips">
           {QUICK_AMOUNTS.map(n => <button key={n} type="button" onClick={() => setAmount(String(n))}>{n}</button>)}
           {available > 0 && <button type="button" onClick={() => setAmount(String(available))}>Tümü ({num(available)})</button>}
@@ -237,8 +238,8 @@ export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct 
           <ArrowRight size={18} />
           <div><span>{names[target] || 'Hedef'}</span><b>{num(targetStock)} → {num(targetStock + qty)}</b></div>
         </div>
-        <label className="vx-field">Not <small>İsteğe bağlı</small>
-          <input className="vx-input" type="text" placeholder="Örn: Şube ikmali" value={note} onChange={e => setNote(e.target.value)} />
+        <label className="vx-field">{__t('Not')} <small>{__t('İsteğe bağlı')}</small>
+          <input className="vx-input" type="text" placeholder={__t('Örn: Şube ikmali')} value={note} onChange={e => setNote(e.target.value)} />
         </label>
       </form>
     </DialogShell>
@@ -246,6 +247,6 @@ export const QuickTransferModal = ({ isOpen, onClose, onSuccess, initialProduct 
 };
 
 // 3. Real product labels are prepared in the shared label workshop.
-export const KarekodModal = ({isOpen,onClose,product}) => <DialogShell isOpen={isOpen&&!!product} onClose={onClose} title="Ürün etiketi" subtitle="Gerçek barkod ve kayıtlı satış fiyatı" icon={Printer} footer={<button type="button" className="vx-btn" onClick={onClose}>Kapat</button>}>
-{product&&<div className="space-y-4"><p className="font-semibold">{product.name}</p><p className="text-sm">Raf veya ürün etiketi hazırlayın; ölçüyü, tasarımı ve bağlı yazıcıyı önizlemeden seçin.</p><a className="btn-primary inline-flex" href={(window.location.protocol==='file:'?'#':'')+'/magaza/etiketler?product='+product.id}>Etiket atölyesini aç</a></div>}
+export const KarekodModal = ({isOpen,onClose,product}) => <DialogShell isOpen={isOpen&&!!product} onClose={onClose} title={__t('Ürün etiketi')} subtitle="Gerçek barkod ve kayıtlı satış fiyatı" icon={Printer} footer={<button type="button" className="vx-btn" onClick={onClose}>{__t('Kapat')}</button>}>
+{product&&<div className="space-y-4"><p className="font-semibold">{product.name}</p><p className="text-sm">{__t('Raf veya ürün etiketi hazırlayın; ölçüyü, tasarımı ve bağlı yazıcıyı önizlemeden seçin.')}</p><a className="btn-primary inline-flex" href={(window.location.protocol==='file:'?'#':'')+'/magaza/etiketler?product='+product.id}>{__t('Etiket atölyesini aç')}</a></div>}
 </DialogShell>;

@@ -1,4 +1,5 @@
 import { formatMoney } from '../../../../shared/money.mjs';
+import { t as __t } from '../../i18n';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 
@@ -27,41 +28,41 @@ export default function StoreSync() {
   shifts.forEach(r => { const t = totals.find(x => x.name === r.device_name); if (t) t.out += r.cash_out; });
   const top = Math.max(1, ...totals.map(t => t.net));
   return <section className="veniux-card p-4 mt-4 space-y-4">
-    <h2 className="font-semibold">Mağaza–bulut eşitleme</h2>
-    <p className="text-sm">Bu bilgisayardaki satışlar, iade/iptaller, vardiyalar ve giderler raporlama için bulut hesabına gönderilir; bulutun stoğu ve kendi satışları değişmez. Ürün ve fiyat ise buluttan bu bilgisayara iner: barkodu eşleşen ürünün adı, kategorisi, birimi, satış fiyatı ve KDV oranı bulutun değerine eşitlenir (bulut kazanır), buluttaki yeni ürünler eklenir. Bu bilgisayardaki ürün silinmez; stok ve alış fiyatı değişmez.</p>
+    <h2 className="font-semibold">{__t('Mağaza–bulut eşitleme')}</h2>
+    <p className="text-sm">{__t('Bu bilgisayardaki satışlar, iade/iptaller, vardiyalar ve giderler raporlama için bulut hesabına gönderilir; bulutun stoğu ve kendi satışları değişmez. Ürün ve fiyat ise buluttan bu bilgisayara iner: barkodu eşleşen ürünün adı, kategorisi, birimi, satış fiyatı ve KDV oranı bulutun değerine eşitlenir (bulut kazanır), buluttaki yeni ürünler eklenir. Bu bilgisayardaki ürün silinmez; stok ve alış fiyatı değişmez.')}</p>
 
     <div className="space-y-2">
-      <h3 className="font-medium text-sm">1) Bulut hesabında: mağaza ekle</h3>
-      <p className="text-xs">Bu adımı bulut hesabında (app.veniux.com) yönetici olarak yapın. Her mağaza bilgisayarı için ayrı anahtar üretin; kaybolursa yalnız onu iptal edersiniz.</p>
+      <h3 className="font-medium text-sm">{__t('1) Bulut hesabında: mağaza ekle')}</h3>
+      <p className="text-xs">{__t('Bu adımı bulut hesabında (app.veniux.com) yönetici olarak yapın. Her mağaza bilgisayarı için ayrı anahtar üretin; kaybolursa yalnız onu iptal edersiniz.')}</p>
       <div className="flex flex-wrap gap-2 items-center">
-        <input aria-label="Mağaza adı" className="input" placeholder="Mağaza adı (örn. Kadıköy)" maxLength={80} value={name} onChange={e => setName(e.target.value)} />
-        <button type="button" className="btn-secondary" disabled={busy || name.trim().length < 2} onClick={create}>Anahtar üret</button>
+        <input aria-label={__t('Mağaza adı')} className="input" placeholder={__t('Mağaza adı (örn. Kadıköy)')} maxLength={80} value={name} onChange={e => setName(e.target.value)} />
+        <button type="button" className="btn-secondary" disabled={busy || name.trim().length < 2} onClick={create}>{__t('Anahtar üret')}</button>
       </div>
-      {fresh && <p role="status" className="text-sm border rounded p-2 break-all"><b>{fresh.name}</b> anahtarı: <code>{fresh.key}</code><br /><span className="text-xs">Bu anahtar yalnız şimdi görünür. Mağaza bilgisayarında 2. adıma yapıştırın.</span></p>}
-      {devices.length > 0 && <table className="w-full text-sm"><thead><tr><th className="text-left">Mağaza</th><th className="text-left">Son bağlantı</th><th className="text-left">Durum</th><th /></tr></thead>
-        <tbody>{devices.map(d => <tr key={d.id}><td>{d.name}</td><td>{when(d.last_seen_at)}</td><td>{d.revoked_at ? 'İptal edildi' : 'Etkin'}</td><td>{!d.revoked_at && <button type="button" className="btn-soft" disabled={busy} onClick={() => revoke(d)}>İptal et</button>}</td></tr>)}</tbody></table>}
+      {fresh && <p role="status" className="text-sm border rounded p-2 break-all"><b>{fresh.name}</b> {__t('anahtarı:')} <code>{fresh.key}</code><br /><span className="text-xs">{__t('Bu anahtar yalnız şimdi görünür. Mağaza bilgisayarında 2. adıma yapıştırın.')}</span></p>}
+      {devices.length > 0 && <table className="w-full text-sm"><thead><tr><th className="text-left">{__t('Mağaza')}</th><th className="text-left">{__t('Son bağlantı')}</th><th className="text-left">{__t('Durum')}</th><th /></tr></thead>
+        <tbody>{devices.map(d => <tr key={d.id}><td>{d.name}</td><td>{when(d.last_seen_at)}</td><td>{d.revoked_at ? 'İptal edildi' : 'Etkin'}</td><td>{!d.revoked_at && <button type="button" className="btn-soft" disabled={busy} onClick={() => revoke(d)}>{__t('İptal et')}</button>}</td></tr>)}</tbody></table>}
       {summary.length > 0 && <>
-        <h3 className="font-medium text-sm pt-2">Mağaza karşılaştırması (son 14 gün)</h3>
+        <h3 className="font-medium text-sm pt-2">{__t('Mağaza karşılaştırması (son 14 gün)')}</h3>
         <ul className="text-sm space-y-1">{totals.sort((a, b) => b.net - a.net).map(t => <li key={t.name}>
           <div className="flex justify-between gap-2"><span>{t.name}</span><span><b>{money(t.net)}</b> · {t.sales} satış{t.out > 0 && <> · gider {money(t.out)}</>}</span></div>
           <div role="img" aria-label={t.name + ' ciro çubuğu'} style={{ height: 8, borderRadius: 4, background: 'rgba(127,127,127,.2)' }}><div style={{ height: 8, borderRadius: 4, width: Math.round(t.net / top * 100) + '%', background: '#2f6fed' }} /></div>
         </li>)}</ul>
-        <h3 className="font-medium text-sm pt-2">Günlük ciro</h3>
-        <table className="w-full text-sm"><thead><tr><th className="text-left">Gün</th><th className="text-left">Mağaza</th><th className="text-right">Satış</th><th className="text-right">Net ciro</th></tr></thead>
+        <h3 className="font-medium text-sm pt-2">{__t('Günlük ciro')}</h3>
+        <table className="w-full text-sm"><thead><tr><th className="text-left">{__t('Gün')}</th><th className="text-left">{__t('Mağaza')}</th><th className="text-right">{__t('Satış')}</th><th className="text-right">{__t('Net ciro')}</th></tr></thead>
           <tbody>{summary.map(r => <tr key={r.device_id + r.business_date}><td>{r.business_date}</td><td>{r.device_name}</td><td className="text-right">{r.sale_count}</td><td className="text-right">{money(r.net_total)}</td></tr>)}</tbody></table></>}
     </div>
 
     <div className="space-y-2">
-      <h3 className="font-medium text-sm">2) Mağaza bilgisayarında: buluta bağla</h3>
-      {config?.configured && <p className="text-sm">Bağlı: <b>{config.cloud_url}</b> · {config.enabled ? 'açık' : 'kapalı'} · Bekleyen satış: <b>{config.pending}</b> · Son deneme: {when(config.last_run_at)}{config.last_error && <span role="alert"> · Hata: {config.last_error}</span>}</p>}
+      <h3 className="font-medium text-sm">{__t('2) Mağaza bilgisayarında: buluta bağla')}</h3>
+      {config?.configured && <p className="text-sm">{__t('Bağlı:')} <b>{config.cloud_url}</b> · {config.enabled ? 'açık' : 'kapalı'} · Bekleyen satış: <b>{config.pending}</b> · Son deneme: {when(config.last_run_at)}{config.last_error && <span role="alert"> · Hata: {config.last_error}</span>}</p>}
       <div className="flex flex-wrap gap-2 items-center">
-        <input aria-label="Bulut adresi" className="input" value={form.cloud_url} onChange={e => setForm({ ...form, cloud_url: e.target.value })} />
-        <input aria-label="Cihaz anahtarı" className="input" type="password" autoComplete="off" placeholder="vsk_…" value={form.device_key} onChange={e => setForm({ ...form, device_key: e.target.value })} />
-        <button type="button" className="btn-secondary" disabled={busy || !form.device_key} onClick={save}>Kaydet</button>
-        {config?.configured && <button type="button" className="btn-soft" disabled={busy} onClick={push}>Şimdi gönder</button>}
-        {config?.configured && <button type="button" className="btn-soft" disabled={busy} onClick={remove}>Bağlantıyı kaldır</button>}
+        <input aria-label={__t('Bulut adresi')} className="input" value={form.cloud_url} onChange={e => setForm({ ...form, cloud_url: e.target.value })} />
+        <input aria-label={__t('Cihaz anahtarı')} className="input" type="password" autoComplete="off" placeholder="vsk_…" value={form.device_key} onChange={e => setForm({ ...form, device_key: e.target.value })} />
+        <button type="button" className="btn-secondary" disabled={busy || !form.device_key} onClick={save}>{__t('Kaydet')}</button>
+        {config?.configured && <button type="button" className="btn-soft" disabled={busy} onClick={push}>{__t('Şimdi gönder')}</button>}
+        {config?.configured && <button type="button" className="btn-soft" disabled={busy} onClick={remove}>{__t('Bağlantıyı kaldır')}</button>}
       </div>
-      <p className="text-xs">Anahtar bu bilgisayarın veritabanında saklanır; mağaza bilgisayarını yetkisiz kişilere açmayın.</p>
+      <p className="text-xs">{__t('Anahtar bu bilgisayarın veritabanında saklanır; mağaza bilgisayarını yetkisiz kişilere açmayın.')}</p>
     </div>
     {message && <p role="status" className="text-sm">{message}</p>}
   </section>;

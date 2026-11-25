@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { t as __t } from '../../i18n';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -159,8 +160,8 @@ export default function AccountTab() {
   return (
     <div className="max-w-4xl space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Hesap bilgilerim</h1>
-        <p className="text-sm text-gray-500 mt-1">Kişisel kullanıcı profilinizi ve oturum güvenlik ayarlarınızı yönetin.</p>
+        <h1 className="text-xl font-bold text-gray-900">{__t('Hesap bilgilerim')}</h1>
+        <p className="text-sm text-gray-500 mt-1">{__t('Kişisel kullanıcı profilinizi ve oturum güvenlik ayarlarınızı yönetin.')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -171,7 +172,7 @@ export default function AccountTab() {
               className="w-24 h-24 rounded-full bg-brand-50 border-2 border-brand-500/30 flex items-center justify-center text-brand-600 font-bold text-3xl shadow-inner" />
             <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={savingAvatar}
               className="absolute bottom-0 right-0 grid place-items-center w-9 h-9 rounded-full bg-brand-600 text-white border-2 border-white shadow-md hover:bg-brand-800 disabled:opacity-60 transition-colors"
-              title="Profil fotoğrafını değiştir" aria-label="Profil fotoğrafını değiştir">
+              title={__t('Profil fotoğrafını değiştir')} aria-label={__t('Profil fotoğrafını değiştir')}>
               {savingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
             </button>
             <input ref={avatarInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={handleAvatarSelect} />
@@ -194,15 +195,15 @@ export default function AccountTab() {
 
           <div className="w-full pt-4 border-t border-gray-200 text-left space-y-3 text-xs text-gray-600">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Kayıt Tarihi:</span>
+              <span className="text-gray-500 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {__t('Kayıt Tarihi:')}</span>
               <span className="font-medium text-gray-900">{profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('tr-TR') : '-'}</span>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-              <div className="flex items-center gap-2"><Shield className="w-4 h-4 text-brand-500"/><span className="font-semibold text-gray-900">Hesap güvenliği</span></div>
-              <div className="flex justify-between gap-3"><span>Giriş yöntemi</span><span className="font-medium">Parola</span></div>
-              <div className="flex justify-between gap-3"><span>İki aşamalı doğrulama</span><span className="font-medium">{mfa?mfa.enabled?'Açık':'Kapalı':'Doğrulanamadı'}</span></div>
-              <p className="text-gray-500 leading-relaxed">Oturum süresini ve yeni parolalarda istenen kuralları güvenlik ayarlarından düzenleyebilirsiniz.</p>
-              <button type="button" className="btn-soft w-full" onClick={()=>navigate('/settings?tab=security')}>Güvenlik ayarlarını aç</button>
+              <div className="flex items-center gap-2"><Shield className="w-4 h-4 text-brand-500"/><span className="font-semibold text-gray-900">{__t('Hesap güvenliği')}</span></div>
+              <div className="flex justify-between gap-3"><span>{__t('Giriş yöntemi')}</span><span className="font-medium">{__t('Parola')}</span></div>
+              <div className="flex justify-between gap-3"><span>{__t('İki aşamalı doğrulama')}</span><span className="font-medium">{mfa?mfa.enabled?'Açık':'Kapalı':'Doğrulanamadı'}</span></div>
+              <p className="text-gray-500 leading-relaxed">{__t('Oturum süresini ve yeni parolalarda istenen kuralları güvenlik ayarlarından düzenleyebilirsiniz.')}</p>
+              <button type="button" className="btn-soft w-full" onClick={()=>navigate('/settings?tab=security')}>{__t('Güvenlik ayarlarını aç')}</button>
             </div>
           </div>
         </div>
@@ -211,19 +212,19 @@ export default function AccountTab() {
         <div className="md:col-span-2 veniux-card p-6 space-y-6">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
             <User className="w-5 h-5 text-brand-500" />
-            <h2 className="font-bold text-sm text-gray-900">Profil Detayları</h2>
+            <h2 className="font-bold text-sm text-gray-900">{__t('Profil Detayları')}</h2>
           </div>
 
           <form onSubmit={handleUpdateProfile} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Ad Soyad"
+                label={__t('Ad Soyad')}
                 value={profile.fullName || ''}
                 onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                 required
               />
               <Input
-                label="E-Posta Adresi"
+                label={__t('E-Posta Adresi')}
                 type="email"
                 value={profile.email || ''}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
@@ -231,7 +232,7 @@ export default function AccountTab() {
               />
               {String(profile.email || '').trim().toLowerCase() !== String(savedEmail || '').toLowerCase() && (
                 <Input
-                  label="Mevcut Şifreniz (e-posta değişikliği için)"
+                  label={__t('Mevcut Şifreniz (e-posta değişikliği için)')}
                   type="password"
                   autoComplete="current-password"
                   value={emailPassword}
@@ -243,10 +244,10 @@ export default function AccountTab() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Telefon Numarası"
+                label={__t('Telefon Numarası')}
                 value={profile.phone || ''}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                placeholder="+90 (5XX) XXX XX XX"
+                placeholder={__t('+90 (5XX) XXX XX XX')}
               />
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider font-mono block mb-1.5">
@@ -267,7 +268,7 @@ export default function AccountTab() {
                 className="btn-primary"
               >
                 {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>Değişiklikleri Kaydet</span>
+                <span>{__t('Değişiklikleri Kaydet')}</span>
               </button>
             </div>
           </form>
@@ -278,12 +279,12 @@ export default function AccountTab() {
       <div className="veniux-card p-6 space-y-6">
         <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
           <Lock className="w-5 h-5 text-brand-500" />
-          <h2 className="font-bold text-sm text-gray-900">Şifre Değiştir</h2>
+          <h2 className="font-bold text-sm text-gray-900">{__t('Şifre Değiştir')}</h2>
         </div>
 
         <form onSubmit={handleUpdatePassword} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <Input
-            label="Mevcut Şifre"
+            label={__t('Mevcut Şifre')}
             type="password"
             value={passwordForm.currentPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
@@ -291,19 +292,19 @@ export default function AccountTab() {
             required
           />
           <Input
-            label="Yeni Şifre"
+            label={__t('Yeni Şifre')}
             type="password"
             value={passwordForm.newPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-            placeholder="En az 8 karakter"
+            placeholder={__t('En az 8 karakter')}
             required
           />
           <Input
-            label="Yeni Şifre (Tekrar)"
+            label={__t('Yeni Şifre (Tekrar)')}
             type="password"
             value={passwordForm.confirmPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-            placeholder="En az 8 karakter"
+            placeholder={__t('En az 8 karakter')}
             required
           />
           <div className="sm:col-span-3 flex justify-end pt-2">
@@ -313,7 +314,7 @@ export default function AccountTab() {
               className="btn-primary"
             >
               {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              <span>Şifreyi Güncelle</span>
+              <span>{__t('Şifreyi Güncelle')}</span>
             </button>
           </div>
         </form>
@@ -324,7 +325,7 @@ export default function AccountTab() {
         <div className="flex justify-between items-center pb-3 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-brand-500" />
-            <h2 className="font-bold text-sm text-gray-900">Aktif Oturum ve Güvenlik Cihazı</h2>
+            <h2 className="font-bold text-sm text-gray-900">{__t('Aktif Oturum ve Güvenlik Cihazı')}</h2>
           </div>
           <StatusBadge status="active" text="BU CİHAZ AKTİF" />
         </div>
@@ -334,7 +335,7 @@ export default function AccountTab() {
             <p className="text-gray-500 text-[11px] font-mono mt-0.5">{navigator.userAgent.slice(0, 75)}...</p>
           </div>
           <div className="text-right">
-            <span className="text-gray-500">Son Erişim: </span>
+            <span className="text-gray-500">{__t('Son Erişim:')} </span>
             <span className="font-mono font-medium text-gray-900">{new Date().toLocaleString('tr-TR')}</span>
           </div>
         </div>

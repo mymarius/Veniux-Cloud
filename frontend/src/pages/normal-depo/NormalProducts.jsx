@@ -1,4 +1,5 @@
 import { currencySymbol } from '../../../../shared/money.mjs';
+import { t as __t } from '../../i18n';
 import VariantWizard from '../../components/VariantWizard';
 import ProductBulkImport from '../../components/ProductBulkImport';
 import StockHealthPanel from '../../components/StockHealthPanel';
@@ -264,9 +265,9 @@ export default function NormalProducts() {
       align: 'right',
       render: (row) => (
         <div className="flex items-center justify-end gap-1.5">
-          <button onClick={(e) => handleOpenBarcode(row, e)} className="icon-btn" title="Barkod" aria-label={row.name + ' barkodu'}><Barcode className="w-4 h-4" /></button>
-          <button onClick={(e) => handleOpenEdit(row, e)} className="icon-btn" title="Düzenle" aria-label={row.name + ' düzenle'}><Edit2 className="w-4 h-4" /></button>
-          <button onClick={(e) => handleDeleteProduct(row, e)} className="icon-btn" data-tone="danger" title="Sil" aria-label={row.name + ' sil'}><Trash2 className="w-4 h-4" /></button>
+          <button onClick={(e) => handleOpenBarcode(row, e)} className="icon-btn" title={__t('Barkod')} aria-label={row.name + ' barkodu'}><Barcode className="w-4 h-4" /></button>
+          <button onClick={(e) => handleOpenEdit(row, e)} className="icon-btn" title={__t('Düzenle')} aria-label={row.name + ' düzenle'}><Edit2 className="w-4 h-4" /></button>
+          <button onClick={(e) => handleDeleteProduct(row, e)} className="icon-btn" data-tone="danger" title={__t('Sil')} aria-label={row.name + ' sil'}><Trash2 className="w-4 h-4" /></button>
         </div>
       )
     }
@@ -278,39 +279,39 @@ export default function NormalProducts() {
       <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Ürün Kataloğu</h1>
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">{__t('Ürün Kataloğu')}</h1>
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
               {products.length} KAYIT
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1">Ürün tanımları, barkod eşleşmeleri ve tedarikçi bağlantıları.</p>
+          <p className="text-sm text-slate-500 mt-1">{__t('Ürün tanımları, barkod eşleşmeleri ve tedarikçi bağlantıları.')}</p>
         </div>
 
-        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>Excel / CSV aktar</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>Varyantlı ürün (beden / renk)</button><button type="button" className="btn-secondary" onClick={()=>{loadRates();setShowRates(true);}}>Döviz kurları</button>{hasGroups&&<button type="button" className="btn-secondary" aria-pressed={grouped} onClick={()=>setGrouped(g=>!g)}>{grouped?'Varyantları aç':'Varyantları grupla'}</button>}<button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
+        <div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={()=>setShowImport(!showImport)} aria-expanded={showImport}>{__t('Excel / CSV aktar')}</button><button type="button" className="btn-secondary" onClick={()=>setShowVariants(true)}>{__t('Varyantlı ürün (beden / renk)')}</button><button type="button" className="btn-secondary" onClick={()=>{loadRates();setShowRates(true);}}>{__t('Döviz kurları')}</button>{hasGroups&&<button type="button" className="btn-secondary" aria-pressed={grouped} onClick={()=>setGrouped(g=>!g)}>{grouped?'Varyantları aç':'Varyantları grupla'}</button>}<button onClick={handleOpenAdd} className="flex items-center space-x-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold transition-colors shadow-sm">
           <Plus className="w-4 h-4" />
-          <span>Yeni Ürün Ekle</span>
+          <span>{__t('Yeni Ürün Ekle')}</span>
         </button></div>
       </div>
 
       <Modal isOpen={!!openGroup} onClose={() => setOpenGroup(null)} title={openGroup ? openGroup.base + ' · beden / renk' : ''} size="lg">
-        {openGroup && <div className="space-y-3"><p className="text-sm text-slate-500">Toplam stok: <b>{openGroup.total.toLocaleString('tr-TR')}</b> · {openGroup.rows.length} çeşit. Kırmızı hücre stoğu biten çeşittir.</p>
-          <div className="overflow-auto"><table className="w-full text-sm" aria-label="Beden renk stok tablosu"><thead><tr><th className="p-2 text-left">Beden</th>{(openGroup.hasColor ? openGroup.colors : ['Stok']).map(c => <th key={c} className="p-2">{c}</th>)}</tr></thead>
+        {openGroup && <div className="space-y-3"><p className="text-sm text-slate-500">{__t('Toplam stok:')} <b>{openGroup.total.toLocaleString('tr-TR')}</b> · {openGroup.rows.length} çeşit. Kırmızı hücre stoğu biten çeşittir.</p>
+          <div className="overflow-auto"><table className="w-full text-sm" aria-label={__t('Beden renk stok tablosu')}><thead><tr><th className="p-2 text-left">{__t('Beden')}</th>{(openGroup.hasColor ? openGroup.colors : ['Stok']).map(c => <th key={c} className="p-2">{c}</th>)}</tr></thead>
             <tbody>{openGroup.sizes.map(sz => <tr key={sz} className="border-t"><th className="p-2 text-left">{sz}</th>{(openGroup.hasColor ? openGroup.colors : [null]).map(c => { const q = cellQty(openGroup, sz, c); return <td key={c || 'x'} className="p-2 text-center" style={{ fontWeight: 700, background: q === null ? 'transparent' : q <= 0 ? '#fbe0dc' : undefined, color: q === null ? '#94a3b8' : undefined }}>{q === null ? '—' : q.toLocaleString('tr-TR')}</td>; })}</tr>)}</tbody></table></div>
-          <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={() => setOpenGroup(null)}>Kapat</button></div></div>}
+          <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={() => setOpenGroup(null)}>{__t('Kapat')}</button></div></div>}
       </Modal>
-      <Modal isOpen={showRates} onClose={() => setShowRates(false)} title="Döviz kurları" size="md">
-        <div className="space-y-3"><p className="text-sm text-slate-500">Dövizli fiyatlı ürünler kasada bu kurla ana para birimine çevrilir. Kuru günlük güncelleyin; boş bırakırsanız o para birimindeki ürünler normal TL fiyatından satılır.</p>
-          {fxInfo?.auto_supported === false ? <p className="text-xs text-slate-500">Otomatik kur yalnız ana para birimi TL olan işletmelerde kullanılabilir; kurları elle girin.</p> : <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={!!fxInfo?.auto?.auto_enabled} onChange={async (e) => { try { const r = await apiClient.put('/products/currency-rates/auto', { enabled: e.target.checked }); applyRates(r.data); } catch (err) { showToast(err.response?.data?.error || 'Ayar kaydedilemedi.', 'error'); } }} /> Kuru TCMB'den otomatik güncelle (günlük)</label>}
-          {fxInfo?.auto?.auto_enabled && <div className="text-xs text-slate-500">Son deneme: {fxWhen(fxInfo.auto.last_fetch_at) || '—'}{fxInfo.auto.last_status === 'error' ? <span className="text-amber-700"> · alınamadı, son kur korunuyor ({fxInfo.auto.last_error})</span> : fxInfo.auto.rates_date ? <span> · TCMB kur tarihi {fxInfo.auto.rates_date}</span> : null} <button type="button" className="underline ml-2" onClick={async () => { try { const r = await apiClient.post('/products/currency-rates/refresh'); applyRates(r.data); } catch (err) { showToast(err.response?.data?.error || 'Kur güncellenemedi.', 'error'); } }}>Şimdi güncelle</button></div>}
+      <Modal isOpen={showRates} onClose={() => setShowRates(false)} title={__t('Döviz kurları')} size="md">
+        <div className="space-y-3"><p className="text-sm text-slate-500">{__t('Dövizli fiyatlı ürünler kasada bu kurla ana para birimine çevrilir. Kuru günlük güncelleyin; boş bırakırsanız o para birimindeki ürünler normal TL fiyatından satılır.')}</p>
+          {fxInfo?.auto_supported === false ? <p className="text-xs text-slate-500">{__t('Otomatik kur yalnız ana para birimi TL olan işletmelerde kullanılabilir; kurları elle girin.')}</p> : <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={!!fxInfo?.auto?.auto_enabled} onChange={async (e) => { try { const r = await apiClient.put('/products/currency-rates/auto', { enabled: e.target.checked }); applyRates(r.data); } catch (err) { showToast(err.response?.data?.error || 'Ayar kaydedilemedi.', 'error'); } }} /> {__t('Kuru TCMB\'den otomatik güncelle (günlük)')}</label>}
+          {fxInfo?.auto?.auto_enabled && <div className="text-xs text-slate-500">Son deneme: {fxWhen(fxInfo.auto.last_fetch_at) || '—'}{fxInfo.auto.last_status === 'error' ? <span className="text-amber-700"> · alınamadı, son kur korunuyor ({fxInfo.auto.last_error})</span> : fxInfo.auto.rates_date ? <span> · TCMB kur tarihi {fxInfo.auto.rates_date}</span> : null} <button type="button" className="underline ml-2" onClick={async () => { try { const r = await apiClient.post('/products/currency-rates/refresh'); applyRates(r.data); } catch (err) { showToast(err.response?.data?.error || 'Kur güncellenemedi.', 'error'); } }}>{__t('Şimdi güncelle')}</button></div>}
           <div className="grid grid-cols-3 gap-3">{fxList.map(c => [c, FX_NAMES[c] || c]).map(([c,l]) => <div key={c}><Input type="number" step="0.0001" min="0" label={l+' (1 '+c+' = ? '+fxBaseName+')'} value={rates[c] ?? ''} onChange={(e) => setRates(r => ({ ...r, [c]: e.target.value }))} />{fxInfo?.rates?.[c] && <div className="text-xs mt-1" data-testid={'fx-source-'+c}><span className={fxInfo.rates[c].source === 'auto' ? 'font-semibold text-emerald-700' : 'font-semibold text-slate-600'}>{fxInfo.rates[c].source === 'auto' ? 'Otomatik' : 'Elle'}</span> · {fxWhen(fxInfo.rates[c].updated_at)}</div>}</div>)}</div>
-          <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={() => setShowRates(false)}>Vazgeç</button><button type="button" className="btn-primary" onClick={async () => { try { await apiClient.put('/products/currency-rates', Object.fromEntries(fxList.map(c => [c, rates[c] === '' || rates[c] == null ? null : Number(rates[c])]))); showToast('Kurlar kaydedildi.', 'success'); setShowRates(false); } catch (err) { showToast(err.response?.data?.error || 'Kurlar kaydedilemedi.', 'error'); } }}>Kaydet</button></div></div>
+          <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={() => setShowRates(false)}>{__t('Vazgeç')}</button><button type="button" className="btn-primary" onClick={async () => { try { await apiClient.put('/products/currency-rates', Object.fromEntries(fxList.map(c => [c, rates[c] === '' || rates[c] == null ? null : Number(rates[c])]))); showToast('Kurlar kaydedildi.', 'success'); setShowRates(false); } catch (err) { showToast(err.response?.data?.error || 'Kurlar kaydedilemedi.', 'error'); } }}>{__t('Kaydet')}</button></div></div>
       </Modal>
       <VariantWizard isOpen={showVariants} onClose={()=>setShowVariants(false)} onDone={fetchProducts} />
       {showImport&&<ProductBulkImport onCompleted={fetchProducts}/>}
-      <details className="mobile-stock-details"><summary>Stok ve lot uyarılarını göster</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
-      {lotDetail&&<section className="veniux-card p-4 mb-4" role="dialog" aria-label="Lot detayı"><div className="flex justify-between"><b>{lotDetail.name} · Lot {lotDetail.lot_number}</b><button onClick={()=>setLotDetail(null)}>Kapat</button></div><p>Depo: {lotDetail.warehouse_name} · Miktar: {lotDetail.quantity} · Son kullanma: {lotDetail.expiry_date||'Tarih yok'}</p><button className="btn-soft" data-size="sm" onClick={()=>{setSelectedProductId(lotDetail.product_id);setDrawerOpen(true);}}>Ürünü aç</button></section>}
+      <details className="mobile-stock-details"><summary>{__t('Stok ve lot uyarılarını göster')}</summary><StockHealthPanel onProduct={(id,lot)=>{if(lot)setLotDetail(lot);else{setSelectedProductId(id);setDrawerOpen(true);}}}/></details>
+      {lotDetail&&<section className="veniux-card p-4 mb-4" role="dialog" aria-label={__t('Lot detayı')}><div className="flex justify-between"><b>{lotDetail.name} · Lot {lotDetail.lot_number}</b><button onClick={()=>setLotDetail(null)}>{__t('Kapat')}</button></div><p>Depo: {lotDetail.warehouse_name} · Miktar: {lotDetail.quantity} · Son kullanma: {lotDetail.expiry_date||'Tarih yok'}</p><button className="btn-soft" data-size="sm" onClick={()=>{setSelectedProductId(lotDetail.product_id);setDrawerOpen(true);}}>{__t('Ürünü aç')}</button></section>}
       {/* Hızlı filtreler: ne yapılması gerektiğini söyler (biten, azalan, eksik bilgi) */}
-      <div className="vx-view-chips" role="tablist" aria-label="Ürün görünümü">
+      <div className="vx-view-chips" role="tablist" aria-label={__t('Ürün görünümü')}>
         {VIEWS.map(([key, label]) => (
           <button key={key} type="button" role="tab" aria-selected={view === key} data-tone={key} className="vx-view-chip" onClick={() => setView(key)}>
             {label}<b>{counts[key]}</b>
@@ -327,7 +328,7 @@ export default function NormalProducts() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="İsim, SKU veya barkod ile ara..."
+              placeholder={__t('İsim, SKU veya barkod ile ara...')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-white border border-slate-200 text-sm rounded-md pl-9 pr-3 py-2 outline-none focus:border-slate-400 transition-colors text-slate-800 placeholder:text-slate-400"
@@ -340,7 +341,7 @@ export default function NormalProducts() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="bg-white border border-slate-200 text-sm rounded-md px-3 py-2 outline-none focus:border-slate-400 cursor-pointer transition-colors text-slate-700"
             >
-              <option value="">Tüm Kategoriler</option>
+              <option value="">{__t('Tüm Kategoriler')}</option>
               {categoryOptions(categories.map(c => (typeof c === 'string' ? c : c.category || c.name))).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </Dropdown>
 
@@ -349,7 +350,7 @@ export default function NormalProducts() {
               onChange={(e) => setSupplierFilter(e.target.value)}
               className="bg-white border border-slate-200 text-sm rounded-md px-3 py-2 outline-none focus:border-slate-400 cursor-pointer transition-colors text-slate-700"
             >
-              <option value="">Tüm Tedarikçiler</option>
+              <option value="">{__t('Tüm Tedarikçiler')}</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -380,18 +381,18 @@ export default function NormalProducts() {
       >
         <form onSubmit={handleSaveProduct} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Ürün kodu / SKU" required value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} />
-            <Input label="Barkod / EAN" placeholder="Üretici barkodunu girin; yoksa boş bırakın" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} />
-            <label className="text-sm">Birim<select className="block w-full" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}>{[...new Set(['adet', 'kg', 'g', 'litre', 'paket', 'koli', formData.unit].filter(Boolean))].map(u => <option key={u} value={u}>{u}</option>)}</select></label>
-            {['kg', 'g', 'litre'].includes(formData.unit) && <Input label="Terazi kodu (PLU)" placeholder="Teraziye girilen ürün kodu, örn. 123" inputMode="numeric" value={scaleCode} onChange={(e) => setScaleCode(e.target.value)} />}
+            <Input label={__t('Ürün kodu / SKU')} required value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} />
+            <Input label={__t('Barkod / EAN')} placeholder={__t('Üretici barkodunu girin; yoksa boş bırakın')} value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} />
+            <label className="text-sm">{__t('Birim')}<select className="block w-full" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}>{[...new Set(['adet', 'kg', 'g', 'litre', 'paket', 'koli', formData.unit].filter(Boolean))].map(u => <option key={u} value={u}>{u}</option>)}</select></label>
+            {['kg', 'g', 'litre'].includes(formData.unit) && <Input label={__t('Terazi kodu (PLU)')} placeholder={__t('Teraziye girilen ürün kodu, örn. 123')} inputMode="numeric" value={scaleCode} onChange={(e) => setScaleCode(e.target.value)} />}
           </div>
           
-          <Input label="Ürün adı" required placeholder="Örn. Termal etiket 100 × 150 mm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          <Input label={__t('Ürün adı')} required placeholder={__t('Örn. Termal etiket 100 × 150 mm')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
 
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Kategori (alt grup için: Ana grup › Alt grup)" placeholder="İçecek › Gazlı İçecek" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} onBlur={() => setFormData(f => ({ ...f, category: normalizeCategory(f.category) || f.category }))} />
+            <Input label={__t('Kategori (alt grup için: Ana grup › Alt grup)')} placeholder={__t('İçecek › Gazlı İçecek')} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} onBlur={() => setFormData(f => ({ ...f, category: normalizeCategory(f.category) || f.category }))} />
             <Select 
-              label="Tedarikçi"
+              label={__t('Tedarikçi')}
               value={formData.supplier_id} 
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
               options={[
@@ -402,16 +403,16 @@ export default function NormalProducts() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Input type="number" step="0.01" label="Alış fiyatı (TL)" value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} /><label className="text-sm">Alış fiyatı KDV temeli<select aria-label="Alış fiyatı KDV temeli" className="w-full border rounded-lg p-2" value={formData.purchase_price_tax_basis||''} onChange={e=>setFormData({...formData,purchase_price_tax_basis:e.target.value||null})}><option value="">Doğrulanmadı — maliyet belirsiz</option><option value="exclusive">KDV hariç</option><option value="inclusive">KDV dahil</option></select></label><Input label="Ürün KDV oranı (%)" type="number" min="0" max="100" value={formData.kdv_orani} onChange={e=>setFormData({...formData,kdv_orani:e.target.value})}/>
-            <Input type="number" step="0.01" required label="Satış fiyatı (TL, KDV dahil)" value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} />
-            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">Toptan ve özel fiyat (isteğe bağlı)</summary><p className="text-xs text-slate-500 mt-1">Boş bırakılan fiyat için kasada normal satış fiyatı kullanılır. Kasada fiyat türünü seçince bu fiyatlar geçerli olur.</p><div className="grid grid-cols-2 gap-4 mt-2"><Input type="number" step="0.01" min="0" label="Toptan fiyatı (TL)" value={tiers.tier2} onChange={(e) => { setTiers(t => ({ ...t, tier2: e.target.value })); setTiersTouched(true); }} /><Input type="number" step="0.01" min="0" label="Özel fiyat (TL)" value={tiers.tier3} onChange={(e) => { setTiers(t => ({ ...t, tier3: e.target.value })); setTiersTouched(true); }} /></div></details>
-            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">Dövizli fiyat (isteğe bağlı)</summary><p className="text-xs text-slate-500 mt-1">Fiyatı dövizle girerseniz kasada, girdiğiniz güncel kurla ana para birimine ('+fxBaseName+') çevrilir. Kur girilmemişse normal fiyat kullanılır.</p><div className="grid grid-cols-2 gap-4 mt-2"><label className="text-sm">Para birimi<select className="block w-full border rounded-lg p-2 mt-1" value={fx.currency} onChange={(e) => { setFx(v => ({ ...v, currency: e.target.value })); setFxTouched(true); }}><option value="">Yok (yalnız {fxBaseName})</option>{fxList.map(c => <option key={c} value={c}>{(FX_NAMES[c] || c) + ' (' + c + ')'}</option>)}</select></label><Input type="number" step="0.01" min="0" label="Döviz fiyatı" disabled={!fx.currency} value={fx.price} onChange={(e) => { setFx(v => ({ ...v, price: e.target.value })); setFxTouched(true); }} /></div></details>
-            <Input type="number" min="0" max="1000000" step="0.001" label="Minimum stok" value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
-            <Input type="number" min="0" step="0.001" label="Hedef stok (sipariş önerisi)" value={formData.max_stock_level} onChange={e=>setFormData({...formData,max_stock_level:e.target.value})}/>
+            <Input type="number" step="0.01" label={__t('Alış fiyatı (TL)')} value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} /><label className="text-sm">{__t('Alış fiyatı KDV temeli')}<select aria-label={__t('Alış fiyatı KDV temeli')} className="w-full border rounded-lg p-2" value={formData.purchase_price_tax_basis||''} onChange={e=>setFormData({...formData,purchase_price_tax_basis:e.target.value||null})}><option value="">{__t('Doğrulanmadı — maliyet belirsiz')}</option><option value="exclusive">{__t('KDV hariç')}</option><option value="inclusive">{__t('KDV dahil')}</option></select></label><Input label={__t('Ürün KDV oranı (%)')} type="number" min="0" max="100" value={formData.kdv_orani} onChange={e=>setFormData({...formData,kdv_orani:e.target.value})}/>
+            <Input type="number" step="0.01" required label={__t('Satış fiyatı (TL, KDV dahil)')} value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} />
+            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">{__t('Toptan ve özel fiyat (isteğe bağlı)')}</summary><p className="text-xs text-slate-500 mt-1">{__t('Boş bırakılan fiyat için kasada normal satış fiyatı kullanılır. Kasada fiyat türünü seçince bu fiyatlar geçerli olur.')}</p><div className="grid grid-cols-2 gap-4 mt-2"><Input type="number" step="0.01" min="0" label={__t('Toptan fiyatı (TL)')} value={tiers.tier2} onChange={(e) => { setTiers(t => ({ ...t, tier2: e.target.value })); setTiersTouched(true); }} /><Input type="number" step="0.01" min="0" label={__t('Özel fiyat (TL)')} value={tiers.tier3} onChange={(e) => { setTiers(t => ({ ...t, tier3: e.target.value })); setTiersTouched(true); }} /></div></details>
+            <details className="col-span-2"><summary className="cursor-pointer text-sm font-semibold">{__t('Dövizli fiyat (isteğe bağlı)')}</summary><p className="text-xs text-slate-500 mt-1">Fiyatı dövizle girerseniz kasada, girdiğiniz güncel kurla ana para birimine ('+fxBaseName+') çevrilir. Kur girilmemişse normal fiyat kullanılır.</p><div className="grid grid-cols-2 gap-4 mt-2"><label className="text-sm">{__t('Para birimi')}<select className="block w-full border rounded-lg p-2 mt-1" value={fx.currency} onChange={(e) => { setFx(v => ({ ...v, currency: e.target.value })); setFxTouched(true); }}><option value="">Yok (yalnız {fxBaseName})</option>{fxList.map(c => <option key={c} value={c}>{(FX_NAMES[c] || c) + ' (' + c + ')'}</option>)}</select></label><Input type="number" step="0.01" min="0" label={__t('Döviz fiyatı')} disabled={!fx.currency} value={fx.price} onChange={(e) => { setFx(v => ({ ...v, price: e.target.value })); setFxTouched(true); }} /></div></details>
+            <Input type="number" min="0" max="1000000" step="0.001" label={__t('Minimum stok')} value={formData.min_stock_level} onChange={e=>setFormData({...formData,min_stock_level:e.target.value})}/>
+            <Input type="number" min="0" step="0.001" label={__t('Hedef stok (sipariş önerisi)')} value={formData.max_stock_level} onChange={e=>setFormData({...formData,max_stock_level:e.target.value})}/>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4">
-            <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Vazgeç</button>
+            <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">{__t('Vazgeç')}</button>
             <button type="submit" className="btn-primary">{editingProduct ? 'Değişiklikleri kaydet' : 'Ürünü oluştur'}</button>
           </div>
         </form>
