@@ -218,6 +218,33 @@ describe('kartla ödeme', () => {
     expect((await admin('patch', '/orders/' + id + '/status', { status: 'cancelled' })).body.refund).toBe('manual');
     cancelResult = { status: 'success' }; refundResult = { status: 'success' };
   });
+  test('gölge imza denetimi: uyumlu yanıt "uyumlu", uyumsuz yanıt "UYUMSUZ" notu bırakır; ödeme her iki durumda alınır', async () => {
+    const make = async () => {
+      const o = await shop('post', '/orders', order(), key());
+      const row = (await db.query('SELECT p.token,o.id,o.number FROM online_payments p JOIN online_orders o ON o.id=p.order_id WHERE o.public_code=$1', [o.body.code])).rows[0];
+      return row;
+    };
+    const notes = async id => (await db.query('SELECT note FROM online_order_events WHERE order_id=$1 ORDER BY id', [id])).rows.map(r => r.note);
+    const base = row => ({ status: 'success', paymentStatus: 'SUCCESS', paidPrice: '200.00', price: '200.00', currency: 'TRY', conversationId: row.number, basketId: 'S-' + String(row.number).padStart(6, '0'), paymentId: 'SIG-' + row.id, token: row.token });
+    let row = await make();
+    let res = base(row);
+    res.signature = payments.detailSignature('sandbox-secret-key-456', res).expected;
+    detail = () => res;
+    await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: row.token });
+    expect((await notes(row.id)).join('|')).toContain('iyzico yanıt imzası: uyumlu');
+    row = await make();
+    res = base(row); res.signature = 'f'.repeat(64);
+    detail = () => res;
+    await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: row.token });
+    const joined = (await notes(row.id)).join('|');
+    expect(joined).toContain('UYUMSUZ (ödeme etkilenmedi)');
+    expect(joined).toContain('SUCCESS:SIG-');
+    expect((await shop('get', '/orders/' + (await db.query('SELECT public_code FROM online_orders WHERE id=$1', [row.id])).rows[0].public_code)).body.payment.status).toBe('paid');
+  });
+  test('imza hesabı: fiyatta sondaki sıfırlar atılır (10.50 → 10.5, 200.00 → 200), alan sırası belgedeki gibidir', () => {
+    const { parts } = payments.detailSignature('k', { paymentStatus: 'SUCCESS', paymentId: '1', currency: 'TRY', basketId: 'B', conversationId: 'C', paidPrice: '10.50', price: '200.00', token: 'T' });
+    expect(parts.join(':')).toBe('SUCCESS:1:TRY:B:C:10.5:200:T');
+  });
   test('geçersiz token reddedilir; yanlış işletmenin ödemesi karışmaz', async () => {
     expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: '!!' })).status).toBe(400);
     expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: 'yok-boyle-token-12345' })).status).toBe(404);

@@ -70,6 +70,14 @@ async function iyzico(settings, path, payload) {
   const res = await transport.post(host + path, { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: auth, 'x-iyzi-rnd': random }, body);
   return res.json || {};
 }
+// iyzico yanıt imzası (belge: "İmza yanıtının doğrulanması"): alanlar ':' ile birleştirilir, HMAC-SHA256(gizli anahtar), onaltılık. Fiyatlarda sondaki sıfırlar atılır.
+// Alan sırası gerçek sandbox yanıtıyla DOĞRULANMADI: bu yüzden yalnız "gölge" denetimdir, sonuç sipariş notuna yazılır, ödemeyi ASLA engellemez.
+const priceText = v => (v === undefined || v === null ? '' : String(v).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, ''));
+const DETAIL_SIGNATURE_FIELDS = ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'];
+function detailSignature(secret, res) {
+  const parts = DETAIL_SIGNATURE_FIELDS.map(key => (key === 'paidPrice' || key === 'price' ? priceText(res[key]) : (res[key] === undefined || res[key] === null ? '' : String(res[key]))));
+  return { parts, expected: crypto.createHmac('sha256', secret).update(parts.join(':')).digest('hex') };
+}
 // Sepet kalemleri toplamı ödenecek tutara eşit olmalı: indirim kalemlere orantılı dağıtılır, kargo ayrı kalem olur.
 function basketOf(order, items, discountC, shippingC) {
   const lines = items.map(i => ({ id: String(i.product_id), name: String(i.name).slice(0, 100), c: cents(i.line_total) }));
@@ -105,6 +113,16 @@ async function start({ store, order, items, customer, discountC, shippingC, orig
 }
 const fromCents = c => Math.round(c) / 100;
 
+async function shadowSignature(settings, tenantId, order, res) {
+  try {
+    if (!res || typeof res.signature !== 'string') return;
+    const { parts, expected } = detailSignature(settings.keys.secret_key, res);
+    const same = expected.toLowerCase() === res.signature.toLowerCase();
+    const note = same ? 'iyzico yanıt imzası: uyumlu' : 'iyzico yanıt imzası: UYUMSUZ (ödeme etkilenmedi) alanlar=' + parts.join(':') + ' gelen=' + res.signature.slice(0, 64);
+    await db.query('INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,$3,$3,$4)', [tenantId, Number(order.id), order.status, note.slice(0, 500)]);
+  } catch { /* gölge denetim ödemeyi etkilemez */ }
+}
+
 // Geri çağırma: iyzico müşteriyi token ile geri gönderir. Sonuç ASLA bu istekteki bilgiye göre değil, sunucudan sunucuya sorguyla belirlenir.
 async function complete(token) {
   const store = require('./onlineStoreService');
@@ -120,6 +138,7 @@ async function complete(token) {
     const res = await iyzico(settings, '/payment/iyzipos/checkoutform/auth/ecom/detail', { locale: 'tr', conversationId: order.number, token });
     ok = res.status === 'success' && res.paymentStatus === 'SUCCESS' && cents(res.paidPrice) === cents(pay.amount) && String(res.basketId) === String(store.codeOf(order.number));
     ref = res.paymentId ? String(res.paymentId) : null;
+    await shadowSignature(settings, tenantId, order, res);
     if (!ok) why = String(res.errorMessage || res.paymentStatus || 'Ödeme onaylanmadı').slice(0, 200);
   } catch { why = 'Ödeme sonucu doğrulanamadı.'; ok = null; }
   // Doğrulama hatasında (ağ) sonuç belirsizdir: ödeme "beklemede" kalır, müşteri sipariş sayfasından tekrar sorgular, süre dolunca iptal edilir.
@@ -186,4 +205,4 @@ async function statusFor(tenantId, orderIds) {
   return out;
 }
 
-module.exports = { getSettings, saveSettings, removeSettings, cardEnabled, start, complete, expirePending, refund, statusFor, transport, basketOf, EXPIRE_MS };
+module.exports = { detailSignature, getSettings, saveSettings, removeSettings, cardEnabled, start, complete, expirePending, refund, statusFor, transport, basketOf, EXPIRE_MS };
