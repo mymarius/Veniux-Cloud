@@ -1,8 +1,18 @@
 {
-  "version": "2.4.113",
+  "version": "2.4.114",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.114",
+      "date": "25 Kasım 2026",
+      "title": "Azerbaycanca arayüz tüm ekranlarda daha eksiksiz: yerinde çeviri ve yeni metinler",
+      "items": [
+        "Ekrandaki Türkçe metinler, çevirisi sözlükte varsa kod içinde üretilenler dahil otomatik Azerbaycancaya çevrilir",
+        "Özet panosu, stok listesi, satın alma siparişleri, raporlar, uyarılar, lisans ve rol ekranları ile menü Azerbaycancada",
+        "Kasa ekranında ve Normal depo özetinde kalan Türkçe metinler çevrildi"
+      ]
+    },
     {
       "version": "2.4.113",
       "date": "25 Kasım 2026",
