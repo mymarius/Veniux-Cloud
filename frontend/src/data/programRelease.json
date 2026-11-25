@@ -1,8 +1,19 @@
 {
-  "version": "2.4.111",
+  "version": "2.4.112",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.112",
+      "date": "25 Kasım 2026",
+      "title": "Terazi teşhis ekranı, Trendyol sipariş yolu güncellemesi ve muhasebe şablonunda tarih/sayı biçimleri",
+      "items": [
+        "Terazi panelinde yeni Teşhis bölümü: teraziden gelen son satırlar, okundu/okunamadı durumu ve panoya kopyala düğmesi",
+        "Terazi okuma, üretici kılavuzlarındaki Mettler Toledo ve CAS tipi örnek satırlarla doğrulandı",
+        "Trendyol sipariş çekme, belgedeki güncel adresi önce dener; yanıt gelmezse eski adrese düşer",
+        "Muhasebe şablonuyla indirmede tarih (GG.AA.YYYY, GG/AA/YYYY) ve sayı (virgüllü veya noktalı) biçimi seçilebilir"
+      ]
+    },
     {
       "version": "2.4.111",
       "date": "25 Kasım 2026",
