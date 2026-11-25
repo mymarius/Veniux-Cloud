@@ -54,3 +54,8 @@ Not: "oluşturma" süresi 20 ms'lik yapay bekleme içerir (istek güvenlik duvar
 2. Çevrimdışı kasa: Playwright kurulumu ve service worker E2E.
 3. `requestFirewall` kararı (yukarı).
 4. Hepsiburada, N11, iyzico resmî belgelerinin okunması.
+
+## 26 Kas güncellemesi — pazaryeri ve iyzico belge uyumu
+- Hepsiburada, N11 ve iyzico belgeleri okundu (Hepsiburada otomatik istemciye 403 verdi, okunamadı). Ayrıntılı karşılaştırma: `TEST_REPORT_MARKETPLACE_PAYMENT.md`.
+- **Düzeltilen gerçek sorunlar:** (1) iyzico: geri çağırma gelmeyen ödeme, süre dolunca sorulmadan iptal ediliyordu; (2) iyzico: gün sonundan sonra iptal reddedilince iade denenmiyordu; (3) N11: `UnSupplied` paketinde stok düşülü kalıyordu; (4) N11: stok görevi sonucu hiç sorulmuyordu; (5) görev sonucu sorgusu hata verirse sipariş eşitlemesi duruyordu.
+- Uygulanmadı: N11 iade/parçalı iptal (SOAP), iyzico yanıt imzası doğrulaması ve webhook, kısmi iade. Nedenleri raporda.

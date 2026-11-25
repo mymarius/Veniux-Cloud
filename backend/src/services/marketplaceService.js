@@ -117,7 +117,10 @@ async function test(user, provider = DEFAULT_PROVIDER) {
 
 async function checkLastBatch(connection) {
   if (!connection.last_batch_id) return null;
-  const result = await adapterOf(connection.provider).checkBatch(connection, apiFor(connection));
+  // Görev sonucu yalnız bilgi amaçlıdır: sorgu hata verirse sipariş ve stok eşitlemesi durmaz, görev bir sonraki turda yeniden sorulur.
+  let result;
+  try { result = await adapterOf(connection.provider).checkBatch(connection, apiFor(connection)); }
+  catch (error) { console.error('[pazaryeri] Görev sonucu alınamadı:', connection.tenant_id, error.message); return null; }
   if (!result.done) return null;
   await db.query('UPDATE marketplace_connections SET last_batch_id=NULL WHERE id=$1 AND tenant_id=$2', [connection.id, connection.tenant_id]);
   return result.problem || null;

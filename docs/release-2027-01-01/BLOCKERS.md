@@ -41,3 +41,16 @@ Bu liste, kodla çözülemeyen ve gerçek hesap, cihaz, ücret ya da yasal yetki
 
 ## Test sırasında üretimde **yapılmayacaklar**
 Gerçek ödeme, gerçek e-belge gönderimi, gerçek pazaryeri siparişi, gerçek ÖKC fişi, gerçek müşteri verisiyle test. Bunların hepsi için açık yetkilendirme gerekir; yetki gelene kadar yalnız mock/simülatör/sandbox kullanılır.
+
+## Ek (26 Kas): iyzico, N11, Hepsiburada gerçek test adımları
+**iyzico sandbox (ücretsiz, şirket gerekmeden denenebilir görünüyor; ücret bilgisi belgede yok):**
+1. https://sandbox-merchant.iyzipay.com/auth/register adresinde sandbox hesabı aç.
+2. Ayarlar → Firma Ayarları → API Anahtarları'ndan API ve güvenlik anahtarını al (anahtarlar `sandbox-` ile başlar).
+3. Veniux → Online mağaza → Ödeme ayarları: sandbox seçili, anahtarları gir, kartla ödemeyi aç.
+4. Vitrinde sipariş ver; ödeme sayfasında test kartı kullan: başarılı `5890040000000016`, yetersiz bakiye `4111111111111129`, süresi geçmiş `4125111111111115`. SKT gelecek tarih, CVV herhangi; 3D Secure SMS şifresi `123456`. Kaynak: https://docs.iyzico.com/ek-bilgiler/test-kartlari.md
+5. Denenecek: başarılı ödeme, reddedilen ödeme, ödeme sayfasını kapatıp 30 dakika sonra sipariş durumu (Veniux iyzico'ya sorar), sipariş iptali (iade).
+6. Sonucu bana (hangi adım ne gösterdi) yaz; yanıt imzası ve webhook doğrulamasını gerçek yanıtla birlikte yazarım.
+
+**N11:** satıcı hesabı gerekir; belgede test ortamı yok. Teknik sorular için `sellerintegration@n11.com`. Canlı mağazada stok gerçekten değişir: bağlantıyı önce kapalı kaydet, "Bağlantıyı dene", sonra tek ürünle dene. İade (claim) kısmı bu sürümde yok.
+
+**Hepsiburada:** belgelere otomatik erişim 403 veriyor. Yapılacak: https://developers.hepsiburada.com/tr/ sayfalarını (kimlik doğrulama, sipariş, stok/fiyat, iade, SIT/test ortamı) tarayıcıdan PDF olarak kaydedip `.local/docs-hepsiburada/` altına koy ve bana söyle; kodu belgeyle karşılaştırırım.

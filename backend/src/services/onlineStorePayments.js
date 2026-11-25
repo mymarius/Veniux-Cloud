@@ -11,6 +11,8 @@ const cents = v => Math.round(Number(v) * 100);
 const money = c => (c / 100).toFixed(2);
 const HOSTS = { live: 'https://api.iyzipay.com', sandbox: 'https://sandbox-api.iyzipay.com' };
 const EXPIRE_MS = 30 * 60 * 1000;
+// iyzico'ya ulaşılamadığı için sonucu bilinmeyen ödeme, bu süreden önce iptal edilmez (para alınmış olabilir).
+const UNKNOWN_HOLD_MS = 24 * 3600 * 1000;
 const stamp = (d = new Date()) => d.toISOString().slice(0, 19).replace('T', ' ');
 const millis = value => Date.parse(String(value).replace(' ', 'T') + 'Z');
 
@@ -143,9 +145,15 @@ async function complete(token) {
 async function expirePending(tenantId) {
   const store = require('./onlineStoreService');
   const cutoff = stamp(new Date(Date.now() - EXPIRE_MS));
-  const rows = (await db.query(`SELECT order_id,tenant_id FROM online_payments WHERE status='pending' AND created_at<$1${tenantId ? ' AND tenant_id=$2' : ''} ORDER BY created_at LIMIT 50`, tenantId ? [cutoff, tenantId] : [cutoff])).rows;
+  const rows = (await db.query(`SELECT order_id,tenant_id,token,created_at FROM online_payments WHERE status='pending' AND created_at<$1${tenantId ? ' AND tenant_id=$2' : ''} ORDER BY created_at LIMIT 50`, tenantId ? [cutoff, tenantId] : [cutoff])).rows;
+  const holdCutoff = stamp(new Date(Date.now() - UNKNOWN_HOLD_MS));
   let n = 0;
   for (const r of rows) {
+    // Müşteri ödemeyi yapıp tarayıcıyı kapatmış olabilir (geri çağırma hiç gelmez): iptal etmeden önce iyzico'ya sorulur.
+    let verdict; try { verdict = await complete(r.token); } catch { verdict = { status: 'pending' }; }
+    if (verdict.status === 'paid') continue; // para alınmış: sipariş ödenmiş olur, iptal edilmez
+    if (verdict.status === 'failed' || verdict.status === 'cancelled') { n++; continue; }
+    if (String(r.created_at) >= holdCutoff) continue; // sonuç bilinmiyor: 24 saate kadar bekletilir
     await db.query("UPDATE online_payments SET status='expired' WHERE order_id=$1 AND status='pending'", [Number(r.order_id)]);
     if (await store.systemCancel(Number(r.tenant_id), Number(r.order_id), 'Ödeme süresi doldu')) n++;
   }
@@ -161,6 +169,11 @@ async function refund(tenantId, orderId) {
     const settings = await loadSettings(tenantId);
     const res = await iyzico(settings, '/payment/cancel', { locale: 'tr', conversationId: 'iade-' + orderId, paymentId: pay.provider_ref, ip: '127.0.0.1' });
     if (res.status === 'success') state = 'done';
+    else {
+      // İptal yalnız gün sonundan önce mümkündür (iyzico belgesi, hata 10223 REQUIRES_DAY_END); sonrası için paymentId ile iade (V2).
+      const second = await iyzico(settings, '/v2/payment/refund', { locale: 'tr', conversationId: 'iade-' + orderId, paymentId: pay.provider_ref, price: money(cents(pay.amount)), ip: '127.0.0.1' });
+      if (second.status === 'success') state = 'done';
+    }
   } catch { /* elle iade */ }
   await db.query('UPDATE online_payments SET refund_state=$2 WHERE order_id=$1', [orderId, state]);
   return state;

@@ -16,14 +16,16 @@ let n = 0; const key = () => 'faz3-key-' + Date.now() + '-' + (++n);
 const order = (over = {}) => ({ delivery_method: 'pickup', payment_method: 'card', customer_name: 'Ayşe Demir', phone: '0532 123 45 67', email: 'ayse@example.com', consent: true, items: [{ product_id: p.id, quantity: 2 }], ...over });
 const stockOf = async () => Number((await db.query('SELECT COALESCE(SUM(quantity),0) AS q FROM stock_records WHERE product_id=$1', [p.id])).rows[0].q);
 // İyzico sahte yanıtları: başlatma token verir; sorgulama sahne durumuna göre döner.
-let detail = null;
+let detail = null, cancelResult = { status: 'success' }, refundResult = { status: 'success' }, throwOnDetail = false;
 const realTransport = payments.transport.post;
 beforeAll(async () => {
   payments.transport.post = async (url, headers, body) => {
     const b = JSON.parse(body); calls.push({ url, headers, body: b });
     if (url.includes('/initialize/')) return { status: 200, json: { status: 'success', token: 'tok-' + b.conversationId + '-' + calls.length, paymentPageUrl: 'https://sandbox-cpp.iyzipay.com?token=abc' } };
+    if (throwOnDetail && url.includes('/detail')) throw new Error('ağ yok');
     if (url.includes('/detail')) return { status: 200, json: typeof detail === 'function' ? detail(b) : detail };
-    if (url.includes('/payment/cancel')) return { status: 200, json: { status: 'success' } };
+    if (url.includes('/payment/cancel')) return { status: 200, json: cancelResult };
+    if (url.includes('/v2/payment/refund')) return { status: 200, json: refundResult };
     return { status: 404, json: {} };
   };
   owner = await createTenant();
@@ -168,6 +170,53 @@ describe('kartla ödeme', () => {
     const cancel = await admin('patch', `/orders/${row.id}/status`, { status: 'cancelled' });
     expect(cancel.body.refund).toBe('done');
     expect(calls.find(c => c.url.endsWith('/payment/cancel')).body.paymentId).toBe('P9');
+  });
+  test('müşteri ödemeyi yapıp tarayıcıyı kapattı (geri çağırma yok): süre dolunca iyzico sorulur, para alınmışsa sipariş iptal edilmez', async () => {
+    const before = await stockOf();
+    const o = await shop('post', '/orders', order(), key());
+    const row = (await db.query('SELECT p.token,o.id,o.number FROM online_payments p JOIN online_orders o ON o.id=p.order_id WHERE o.public_code=$1', [o.body.code])).rows[0];
+    await db.query("UPDATE online_payments SET created_at='2020-01-01 00:00:00' WHERE order_id=$1", [row.id]);
+    detail = () => ({ status: 'success', paymentStatus: 'SUCCESS', paidPrice: '200.00', basketId: 'S-' + String(row.number).padStart(6, '0'), paymentId: 'PAID-1' });
+    expect(await payments.expirePending(owner.tenantId)).toBe(0);
+    const view = (await shop('get', '/orders/' + o.body.code)).body;
+    expect(view.payment.status).toBe('paid');
+    expect(view.status).not.toBe('cancelled');
+    expect(await stockOf()).toBe(before - 2);
+  });
+  test('iyzico sorgusu ağ hatası verirse sonuç belirsizdir: ödeme 24 saat iptal edilmez; sonra elle kontrol için iptal edilir', async () => {
+    const before = await stockOf();
+    const o = await shop('post', '/orders', order(), key());
+    const id = (await db.query('SELECT id FROM online_orders WHERE public_code=$1', [o.body.code])).rows[0].id;
+    await db.query("UPDATE online_payments SET created_at=$2 WHERE order_id=$1", [id, new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ')]);
+    throwOnDetail = true;
+    expect(await payments.expirePending(owner.tenantId)).toBe(0);
+    expect((await shop('get', '/orders/' + o.body.code)).body.status).not.toBe('cancelled');
+    expect(await stockOf()).toBe(before - 2);
+    await db.query("UPDATE online_payments SET created_at='2020-01-01 00:00:00' WHERE order_id=$1", [id]);
+    expect(await payments.expirePending(owner.tenantId)).toBe(1);
+    throwOnDetail = false;
+    expect((await shop('get', '/orders/' + o.body.code)).body.status).toBe('cancelled');
+    expect(await stockOf()).toBe(before);
+  });
+  test('iade: gün sonundan sonra iptal reddedilirse paymentId ile V2 iade denenir; ikisi de olmazsa elle iade', async () => {
+    const make = async paymentId => {
+      const o = await shop('post', '/orders', order(), key());
+      const row = (await db.query('SELECT p.token,o.id,o.number FROM online_payments p JOIN online_orders o ON o.id=p.order_id WHERE o.public_code=$1', [o.body.code])).rows[0];
+      detail = () => ({ status: 'success', paymentStatus: 'SUCCESS', paidPrice: '200.00', basketId: 'S-' + String(row.number).padStart(6, '0'), paymentId });
+      await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: row.token });
+      return row.id;
+    };
+    cancelResult = { status: 'failure', errorCode: '10223', errorMessage: 'REQUIRES_DAY_END' };
+    let id = await make('PV2-1');
+    calls = [];
+    expect((await admin('patch', '/orders/' + id + '/status', { status: 'cancelled' })).body.refund).toBe('done');
+    const second = calls.find(c => c.url.endsWith('/v2/payment/refund'));
+    expect(second.body.paymentId).toBe('PV2-1');
+    expect(second.body.price).toBe('200.00');
+    refundResult = { status: 'failure', errorCode: '10245' };
+    id = await make('PV2-2');
+    expect((await admin('patch', '/orders/' + id + '/status', { status: 'cancelled' })).body.refund).toBe('manual');
+    cancelResult = { status: 'success' }; refundResult = { status: 'success' };
   });
   test('geçersiz token reddedilir; yanlış işletmenin ödemesi karışmaz', async () => {
     expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: '!!' })).status).toBe(400);

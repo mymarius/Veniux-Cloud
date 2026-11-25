@@ -5,7 +5,7 @@ const app = require('../src/index');
 const pool = require('../src/config/database');
 const { createTenant } = require('./factories/index');
 
-const fake = { hbOrders: [], n11Packages: [], headers: [], bodies: [], urls: [], reject: false };
+const fake = { hbOrders: [], n11Packages: [], headers: [], bodies: [], urls: [], reject: false, n11Task: null, n11TaskStatus: 200 };
 let server, T, warehouseId, productId;
 const auth = r => r.set('Authorization', 'Bearer ' + T.token);
 beforeAll(async () => {
@@ -19,6 +19,7 @@ beforeAll(async () => {
       if (req.url.startsWith('/orders/merchantid/')) return send(200, { totalCount: fake.hbOrders.length, items: fake.hbOrders });
       if (req.url.includes('/inventory-uploads')) { fake.bodies.push(JSON.parse(raw)); return send(200, { id: 'up-1' }); }
       if (req.url.startsWith('/rest/delivery/v1/shipmentPackages')) return send(200, { totalPages: 1, totalElements: fake.n11Packages.length, content: fake.n11Packages });
+      if (req.url.includes('/task-details/page-query')) { fake.bodies.push(JSON.parse(raw)); return send(fake.n11TaskStatus, fake.n11Task || {}); }
       if (req.url.includes('/price-stock-update')) { fake.bodies.push(JSON.parse(raw)); return send(200, { id: 'task-9' }); }
       send(404, {});
     });
@@ -103,6 +104,40 @@ describe('N11', () => {
     const r = await auth(request(app).post('/api/marketplace/n11/sync'));
     expect(r.body.orders.needs_review).toBe(1);
     expect(await stock()).toBe(before);
+  });
+  test('belge uyumu: UnSupplied (satıcı tedarik edemedi) paketi iptal gibi işlenir, stok geri gelir', async () => {
+    const before = await stock();
+    fake.n11Packages = [{ id: 601, orderNumber: 'N6', shipmentPackageStatus: 'Created', lines: [{ stockCode: 'PZ-111', quantity: 2 }] }];
+    expect((await auth(request(app).post('/api/marketplace/n11/sync'))).body.orders.deducted).toBe(1);
+    expect(await stock()).toBe(before - 2);
+    fake.n11Packages = [{ id: 601, orderNumber: 'N6', shipmentPackageStatus: 'UnSupplied', lines: [{ stockCode: 'PZ-111', quantity: 2 }] }];
+    await auth(request(app).post('/api/marketplace/n11/sync'));
+    expect(await stock()).toBe(before);
+  });
+  test('stok görevi sonucu: reddedilen kalem bildirilir, kuyruktaki görev beklenir, hata sipariş eşitlemesini durdurmaz', async () => {
+    const lastError = async () => (await pool.query("SELECT last_error FROM marketplace_connections WHERE tenant_id=$1 AND provider='n11'", [T.tenantId])).rows[0].last_error;
+    const queueBatch = async () => pool.query("UPDATE marketplace_connections SET last_batch_id='77' WHERE tenant_id=$1 AND provider='n11'", [T.tenantId]);
+    fake.n11Packages = [];
+    await queueBatch(); fake.n11Task = { status: 'IN_QUEUE' };
+    await auth(request(app).post('/api/marketplace/n11/sync'));
+    expect((await pool.query("SELECT last_batch_id FROM marketplace_connections WHERE tenant_id=$1 AND provider='n11'", [T.tenantId])).rows[0].last_batch_id).toBeTruthy();
+    expect(fake.bodies.find(b => b.taskId === 77)).toBeTruthy();
+    await queueBatch(); fake.n11Task = { status: 'PROCESSED', skus: { content: [{ itemCode: 'PZ-111', status: 'FAIL', reasons: ['Stok kodu bulunamadı'] }, { itemCode: 'X', status: 'SUCCESS' }] } };
+    await auth(request(app).post('/api/marketplace/n11/sync'));
+    expect(await lastError()).toMatch(/1 ürün reddedildi: Stok kodu bulunamadı/);
+    await queueBatch(); fake.n11Task = { status: 'REJECT' };
+    await auth(request(app).post('/api/marketplace/n11/sync'));
+    expect(await lastError()).toMatch(/reddetti/);
+    await queueBatch(); fake.n11Task = { status: 'PROCESSED', skus: { content: [{ itemCode: 'PZ-111', status: 'SUCCESS' }] } };
+    await auth(request(app).post('/api/marketplace/n11/sync'));
+    expect(await lastError()).toBeNull();
+    await queueBatch(); fake.n11TaskStatus = 500;
+    fake.n11Packages = [{ id: 602, orderNumber: 'N7', shipmentPackageStatus: 'Created', lines: [{ stockCode: 'PZ-111', quantity: 1 }] }];
+    const before = await stock();
+    const r = await auth(request(app).post('/api/marketplace/n11/sync'));
+    fake.n11TaskStatus = 200; fake.n11Packages = [];
+    expect(r.body.orders.deducted).toBe(1);
+    expect(await stock()).toBe(before - 1);
   });
 });
 

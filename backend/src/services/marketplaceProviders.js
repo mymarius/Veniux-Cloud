@@ -152,7 +152,17 @@ const n11 = {
     const data = await api('GET', `/rest/delivery/v1/shipmentPackages?startDate=${now - 86400000}&endDate=${now}&page=0&size=1`);
     return { ok: true, packages_visible: Number(data.totalElements ?? (data.content || []).length ?? 0) };
   },
-  async checkBatch() { return { done: true, problem: null }; },
+  // Görev sonucu (N11 belgesi, "Task detay sorgulama"): POST /ms/product/task-details/page-query; durum PROCESSED | IN_QUEUE | REJECT, kalem durumu SUCCESS | FAIL.
+  async checkBatch(connection, api) {
+    const id = /^\d+$/.test(String(connection.last_batch_id)) ? Number(connection.last_batch_id) : connection.last_batch_id;
+    const data = await api('POST', '/ms/product/task-details/page-query', { taskId: id, pageable: { page: 0, size: 1000 } });
+    if (data.status === 'IN_QUEUE') return { done: false };
+    if (data.status === 'REJECT') return { done: true, problem: 'N11 stok güncellemesini reddetti.' };
+    const failed = ((data.skus && data.skus.content) || []).filter(item => item.status === 'FAIL');
+    if (!failed.length) return { done: true, problem: null };
+    const reason = failed[0].reasons && failed[0].reasons[0];
+    return { done: true, problem: `Son stok gönderiminde ${failed.length} ürün reddedildi${reason ? ': ' + String(reason).slice(0, 160) : ''}.` };
+  },
   async orders(connection, api, start, end) {
     const out = [];
     for (let page = 0; page < 50; page++) {
@@ -160,7 +170,7 @@ const n11 = {
       for (const pack of data.content || []) {
         const status = String(pack.shipmentPackageStatus || pack.status || '');
         const lines = (pack.lines || pack.items || []).map(line => ({ barcode: line.stockCode || line.barcode || line.sku, quantity: line.quantity }));
-        out.push({ id: String(pack.id ?? pack.packageId ?? ''), orderNumber: pack.orderNumber == null ? null : String(pack.orderNumber), status, cancelled: /cancel|iptal/i.test(status), lines });
+        out.push({ id: String(pack.id ?? pack.packageId ?? ''), orderNumber: pack.orderNumber == null ? null : String(pack.orderNumber), status, cancelled: /cancel|iptal|unsupplied/i.test(status), lines });
       }
       if (page + 1 >= Number(data.totalPages || 0)) break;
     }
