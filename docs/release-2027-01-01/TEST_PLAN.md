@@ -3,7 +3,8 @@
 ## Katmanlar ve nasıl çalıştırılır
 | Katman | Komut | Not |
 |---|---|---|
-| Backend birim + entegrasyon (SQLite) | `cd backend && npm test` | `NODE_ENV=test`, `jest --runInBand`; ~5 dakika |
+| Backend birim + entegrasyon (SQLite) | `cd backend && npm test` | `NODE_ENV=test`, `jest --runInBand`; ~9 dakika |
+| Eşitleme yük testi (ağır, varsayılan atlanır) | `cd backend && SYNC_LOAD=1000 npx jest tests/storeSyncLoad.test.js --runInBand --setupFilesAfterEnv ./tests/setup.js` | Ortak test veritabanını şişirir; sonra `backend/stok_takip_test.db` silinmeli (yoksa yedek testleri 5 sn zaman aşımına düşer) |
 | Backend MySQL | `npm run test:mysql` | Yerel MySQL 8.4 gerekir (yükseltme/kesim testleri) |
 | Frontend + paylaşılan + simülatör | `cd frontend && node --test src/lib/*.test.mjs src/i18n/*.test.mjs ../shared/*.test.mjs ../tools/hardware-sim/*.test.mjs` | 221 test |
 | Lint | `cd backend && npx oxlint` | yalnız uyarı |

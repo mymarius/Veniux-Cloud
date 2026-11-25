@@ -10,7 +10,10 @@ const { createTenant, createWarehouse, openTestShift } = require('./factories');
 
 // Eşitleme yük ve dayanıklılık: 1.000 satış, aynı satışın 10 kez gönderilmesi, bulut/yerel toplam karşılaştırması.
 // 10.000 kayıt senaryosu SYNC_LOAD=10000 ile elle çalıştırılır (süre ve bellek ortama bağlıdır).
-const COUNT = Number(process.env.SYNC_LOAD || 1000);
+// Ağır test: ortak test veritabanını şişirir (10.000 satırda ~60 MB) ve yedek testlerini yavaşlatır. Bu yüzden yalnızca SYNC_LOAD ayarlıyken çalışır:
+//   SYNC_LOAD=1000 npx jest tests/storeSyncLoad.test.js ...   sonra backend/stok_takip_test.db silinmelidir.
+const COUNT = Number(process.env.SYNC_LOAD || 0);
+const heavy = COUNT > 0 ? test : test.skip;
 let store, cloud, w, shift, deviceKey;
 const admin = who => ({ ...who, role: 'admin' });
 const auth = (who, req) => req.set('Authorization', 'Bearer ' + who.token);
@@ -20,6 +23,7 @@ const toCloud = async (url, opts) => {
 };
 
 beforeAll(async () => {
+  if (!COUNT) return;
   store = await createTenant(); cloud = await createTenant();
   w = await createWarehouse(store.tenantId);
   const p = (await db.query("INSERT INTO products(tenant_id,sku,name,barcode,unit,sale_price,module_type) VALUES($1,'LOAD-1','Yük ürünü','000-LOAD','adet',10,'NORMAL') RETURNING id", [store.tenantId])).rows[0];
@@ -29,7 +33,7 @@ beforeAll(async () => {
   await sync.saveConfig(admin(store), { cloud_url: 'http://localhost:3999', device_key: deviceKey });
 }, 60000);
 
-test(`${COUNT} satış eşitlenir; ikinci tur ve 10 tekrar çift kayıt oluşturmaz; yerel ve bulut toplamları eşit`, async () => {
+heavy(`${COUNT} satış eşitlenir; ikinci tur ve 10 tekrar çift kayıt oluşturmaz; yerel ve bulut toplamları eşit`, async () => {
   const sell = () => auth(store, request(app).post('/api/scanner/sale')).set('Idempotency-Key', crypto.randomUUID())
     .send({ warehouse_id: w.id, shift_id: shift.shift_id, register_id: shift.register_id, items: [{ barcode: '000-LOAD', count: 1 }], payment_method: 'cash' });
   const t0 = Date.now();
