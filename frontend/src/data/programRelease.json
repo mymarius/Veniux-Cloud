@@ -1,8 +1,19 @@
 {
-  "version": "2.4.117",
+  "version": "2.4.118",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.118",
+      "date": "25 Kasım 2026",
+      "title": "Hepsiburada bağlantısı resmî belgeye göre düzeltildi (hâlâ denenmedi etiketiyle)",
+      "items": [
+        "Hepsiburada stok gönderimi yalnız stok için doğru uca (stock-uploads) gidiyor; fiyat da gidiyorsa envanter ucu fiyat ve stokla birlikte kullanılıyor",
+        "Hepsiburada siparişleri kalem kalem okunuyor ve eşleşen ürünün stoğundan düşülüyor; eşleşmeyen kalem incelemeye alınıyor",
+        "Hepsiburada iptalleri ayrı iptal listesinden okunuyor ve stok geri veriliyor",
+        "Hepsiburada stok yüklemesinin sonucu sorgulanıyor, reddedilen ürünler uyarı olarak görünüyor"
+      ]
+    },
     {
       "version": "2.4.117",
       "date": "25 Kasım 2026",
