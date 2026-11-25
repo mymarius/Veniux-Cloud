@@ -1,8 +1,19 @@
 {
-  "version": "2.4.110",
+  "version": "2.4.111",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.111",
+      "date": "25 Kasım 2026",
+      "title": "Site hesabıyla giriş, muhasebe şablonuyla indirme ve terazi okuma iyileştirmeleri",
+      "items": [
+        "veniux.com hesabınızın e-posta ve parolasıyla uygulamaya da giriş yapabilirsiniz; bulut hesabınız ilk girişte otomatik açılır (parola iki yerde ayrı saklanır, biri değişince diğeri değişmez)",
+        "Muhasebe aktarımında kendi programınızın şablonunu (CSV veya Excel) seçip sütunları eşleyerek doldurulmuş dosyayı indirebilirsiniz",
+        "Terazi bağlantısı daha sağlam hâle getirildi ve sahte seri portla test edildi: kablo çıkması ve yoklamalı teraziler dahil",
+        "Giriş ekranına, site hesabı ve parola davranışını anlatan not eklendi"
+      ]
+    },
     {
       "version": "2.4.110",
       "date": "25 Kasım 2026",
