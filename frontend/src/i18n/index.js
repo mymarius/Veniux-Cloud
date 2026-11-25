@@ -34,6 +34,7 @@ function apply(code, persist) {
 }
 
 export const getLanguage = () => current;
+export const subscribeLanguage = cb => { listeners.add(cb); return () => listeners.delete(cb); };
 export const setLanguage = code => apply(code, true);
 
 export function translate(language, text, params = []) {

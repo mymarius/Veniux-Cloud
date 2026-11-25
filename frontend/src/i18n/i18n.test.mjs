@@ -55,3 +55,16 @@ test('çevrilen sayfalar: __t() ile sarılan tüm metinlerin Azerbaycanca karş�
   }
   assert.deepEqual(missing, []);
 });
+
+import { translateExact } from './domTranslate.js';
+test('DOM çevirisi: yalnız tam eşleşme çevrilir, boşluk korunur, eşleşmeyen ve kullanıcı verisi olan metin değişmez', () => {
+  const table = { 'Kaydet': 'Yadda saxla', 'Ürün': 'Məhsul' };
+  assert.equal(translateExact(table, 'Kaydet'), 'Yadda saxla');
+  assert.equal(translateExact(table, '  Kaydet\n'), '  Yadda saxla\n');
+  assert.equal(translateExact(table, 'Kaydet ve çık'), null);
+  assert.equal(translateExact(table, 'kaydet'), null);
+  assert.equal(translateExact(table, 'Bilinmeyen'), null);
+  assert.equal(translateExact(table, 'toString'), null);
+  assert.equal(translateExact(table, 12), null);
+  assert.equal(translateExact({ A1: 'A1' }, 'A1'), null);
+});

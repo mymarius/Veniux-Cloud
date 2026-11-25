@@ -4,6 +4,7 @@ import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 
 import apiClient from './api/client';
 import { setActiveCurrency } from '../../shared/money.mjs';
 import { initLanguage } from './i18n';
+import { startDomTranslation } from './i18n/domTranslate';
 const Router = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 import { ToastProvider } from './components/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -15,6 +16,9 @@ import AssistantLauncher from './components/AssistantLauncher';
 import ConnectionStatus from './components/ConnectionStatus';
 import BackupHealth from './components/BackupHealth';
 import PrintStationWorker from './components/PrintStationWorker';
+
+// Sarılmamış Türkçe metinleri seçili dilde yerinde çevirir (dil Türkçeyse hiçbir şey yapmaz).
+startDomTranslation();
 import PrintStationLink from './components/PrintStationLink';
 const LabelCenter=lazy(()=>import('./pages/LabelCenter'));
 
