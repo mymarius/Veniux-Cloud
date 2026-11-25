@@ -1,8 +1,18 @@
 {
-  "version": "2.4.114",
+  "version": "2.4.115",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.115",
+      "date": "25 Kasım 2026",
+      "title": "Mağaza eşitlemesinde satış kaybı riski kapatıldı",
+      "items": [
+        "Mağaza bilgisayarı, buluttan gerçek yanıt almadan satışları gönderilmiş saymaz; Wi-Fi giriş sayfası veya kesik yanıt gelirse kayıtlar bekler ve hata görünür",
+        "Eşitleme 10.000 satışla denendi: çift kayıt yok, toplamlar eşit",
+        "Azerbaycanca arayüzde açılır liste seçenekleri de çevrilir"
+      ]
+    },
     {
       "version": "2.4.114",
       "date": "25 Kasım 2026",
