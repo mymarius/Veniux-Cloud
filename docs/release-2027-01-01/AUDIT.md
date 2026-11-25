@@ -29,7 +29,7 @@ Ayrıntı ve kanıt dosyaları: `INTEGRATION_MATRIX.md`.
 | Alan | Durum | Kanıt / not |
 |---|---|---|
 | Mağaza→bulut eşitleme (satış, vardiya, gider) | AUTOMATED_TESTED | `storeSync.test.js` (10), `storeSyncFailures.test.js` (5): ağ kopması, yarıda 500, kayıp yanıt, 1200 ürün. 24 Kas'ta gerçek bulut hesabına tek satışlık gerçek HTTPS denemesi (SANDBOX_VERIFIED düzeyi, uzun süre yok) |
-| Çevrimdışı kasa | AUTOMATED_TESTED (sunucu), IMPLEMENTED_UNTESTED (tarayıcı/service worker katmanı) | `offlineSaleService` testleri var; tarayıcı çevrimdışı akışı otomatik testte **yok**, Chrome'da elle denendi |
+| Çevrimdışı kasa | AUTOMATED_TESTED (mantık, IndexedDB bağdaştırıcısı, service worker), gerçek tarayıcı yaşam döngüsü elle | `offline.test.mjs` (kuyruk, sıra, idempotency, 60.000 ürün), `offlineStore.test.mjs` (gerçek IndexedDB API'si, yeniden açılış, atomik katalog), `serviceWorker.test.mjs` (11: çevrimdışı açılış, önbellek kuralları, sürüm temizliği). Gerçek Chrome'da kesinti/yeniden başlatma hâlâ elle |
 | Barkod sağlayıcı katmanı | AUTOMATED_TESTED | `barcodeProviders`, `sharedCatalog` testleri; Open Food Facts gerçek çağrı yok; Barcode Lookup anahtarsız |
 | Terazi (seri port) | AUTOMATED_TESTED (sahte port + simülatör + kılavuz örnekleri) | `scalePort.test.mjs`, `scaleProtocols.test.mjs`; gerçek terazi yok |
 | Zebra DataWedge | IMPLEMENTED_UNTESTED | `MainActivity.java` derlendi, cihazda/emülatörde çalıştırılmadı |
@@ -46,7 +46,8 @@ Ayrıntı ve kanıt dosyaları: `INTEGRATION_MATRIX.md`.
 
 ## 4. Bilinen riskler ve kusurlar
 1. **Tür/CI açığı:** CI'da test koşmuyordu, tür denetimi yok → regresyonlar elle yakalanıyordu. `ci.yml` eklendi.
-2. **Çevrimdışı kasa tarayıcı katmanı otomatik testsiz** (service worker, IndexedDB kuyruğu, önbellek sürüm yükseltmesi). En büyük doğrulama boşluğu.
+2. **Çevrimdışı kasa:** mantık, IndexedDB ve service worker artık otomatik testli (25 Kas). Kalan: gerçek Chrome/Edge'de service worker yaşam döngüsü ve gerçek ağ kesintisi (Playwright kurulu değil; elle prosedür  §1).
+2b. **Yayın kapısı eksikti:** `yayinla.py` yalnız `src/lib/*.test.mjs` ve `countScan.test.mjs` koşuyordu; çevrimdışı (`src/lib/offline`), i18n, utils, paylaşılan ve simülatör testleri yayını **engellemiyordu**. Düzeltildi (aşağı).
 3. **Uzun süreli gerçek mağaza kullanımı yok.** Eşitleme, yedek ve kasa bellek davranışı gerçek yük altında ölçülmedi (yalnız sentetik 205 satır, 1200 ürün).
 4. **SKU kiracılar arası benzersiz** (düşük önem bilgi sızıntısı); veri taşıma gerektirir. `GUVENLIK-INCELEMESI-2026-11-24.md`.
 5. **Sunucu mesajları Türkçe** (Azerbaycanca arayüzde bile). `moneyText` yalnız birim için.
@@ -56,7 +57,7 @@ Ayrıntı ve kanıt dosyaları: `INTEGRATION_MATRIX.md`.
 9. **Plesk elle yayın:** otomatik geri alma yok; her yayında dump + kaynak yedeği elle alınır.
 
 ## 5. Eksik testler (öncelik sırasıyla)
-1. Tarayıcı çevrimdışı kasa E2E (Playwright, service worker).
+1. Gerçek tarayıcıda çevrimdışı kasa E2E (Playwright veya elle): kesinti, yeniden başlatma, service worker güncelleme.
 2. Eşitleme yük testi: 1.000 ve 10.000 kayıt, süre ve bellek.
 3. İstemci tarafı eşitleme kuyruğu kalıcılığı: uygulama/bilgisayar yeniden başlatma.
 4. Çok kiracılı izolasyon: pazaryeri, muhasebe şablonu, köprü uçları için IDOR testleri.

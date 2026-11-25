@@ -23,7 +23,7 @@ Eşitleme senaryoları (kullanıcı listesinden). Kaynak: `storeSync*.test.js`.
 | 4–5 | İnternet kes/geri gelsin | GEÇTİ (sahte `fetch` hatası) |
 | 6 | İstek ulaştı, yanıt kayıp | GEÇTİ |
 | 7 | Aynı satış 10 kez | GEÇTİ (10 tekrar, 0 yeni kayıt, yük testinde) |
-| 8–10 | Tarayıcı/bilgisayar/worker yeniden başlama | YAPILMADI (istemci kuyruğu tarayıcı katmanında) |
+| 8–10 | Tarayıcı/bilgisayar/worker yeniden başlama | KISMEN GEÇTİ: IndexedDB'de yeniden açılış (50 satır, sıra korunur) geçti; gerçek tarayıcı/bilgisayar yeniden başlatma elle (HARDWARE_TEST_GUIDE §1) |
 | 11 | İki mağaza aynı ürün | YAPILMADI |
 | 12 | Fiyat güncellemesi sırasında satış | YAPILMADI |
 | 13 | Bozuk/yarım yanıt | GEÇTİ (HTML ara sayfa, kesik JSON, eksik alan, uyuşmayan sayı; kod düzeltildi) |

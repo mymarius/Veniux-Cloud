@@ -6,7 +6,7 @@ Sütunlar: Unit · Integration (sunucu API+DB) · E2E (tarayıcı/cihaz) · Mock
 |---|---|---|---|---|---|---|---|
 | Mağaza→bulut eşitleme | ✔ | ✔ (15) | △ (elle) | ✔ (sahte fetch) | △ (gerçek bulut, tek satış) | — | AUTOMATED_TESTED |
 | Çevrimdışı kasa (sunucu) | ✔ | ✔ | — | — | — | — | AUTOMATED_TESTED |
-| Çevrimdışı kasa (tarayıcı) | — | — | △ (Chrome elle) | — | — | — | IMPLEMENTED_UNTESTED |
+| Çevrimdışı kasa (IndexedDB + service worker) | ✔ (21) | ✔ (gerçek IndexedDB API, sahte ortam) | △ (Chrome elle) | ✔ (sahte self/caches) | — | — | AUTOMATED_TESTED (gerçek tarayıcı kesintisi elle) |
 | Barkod sağlayıcı katmanı | ✔ | ✔ | — | ✔ | — | — | AUTOMATED_TESTED |
 | Open Food Facts (gerçek çağrı) | — | — | — | ✔ | — | — | MOCK_TESTED |
 | Barcode Lookup | — | — | — | ✔ | — | — | MOCK_TESTED (anahtarsız) |

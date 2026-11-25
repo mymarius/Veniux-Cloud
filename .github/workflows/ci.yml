@@ -52,7 +52,7 @@ jobs:
       - run: npm ci
         working-directory: frontend
       - name: Frontend, paylaşılan ve donanım simülatörü testleri
-        run: node --test src/lib/*.test.mjs src/i18n/*.test.mjs ../shared/*.test.mjs ../tools/hardware-sim/*.test.mjs
+        run: node --test tests/*.test.js src/lib/*.test.mjs src/lib/offline/*.test.mjs src/i18n/*.test.mjs src/utils/*.test.mjs ../shared/*.test.mjs ../tools/hardware-sim/*.test.mjs
         working-directory: frontend
       - name: Derleme
         run: npm run build

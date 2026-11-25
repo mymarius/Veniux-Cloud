@@ -21,7 +21,8 @@ function open() {
 const run = (storeName, mode, work) => open().then(db => new Promise((resolve, reject) => {
   const tx = db.transaction(storeName, mode), store = tx.objectStore(storeName);
   let result;
-  Promise.resolve(work(store, tx)).then(value => { result = value; }).catch(reject);
+  // İş hata verirse işlem iptal edilir: aksi halde işlem o ana kadarki yazmalarla tamamlanır (ör. liste silinir, yenisi yarım kalır).
+  Promise.resolve(work(store, tx)).then(value => { result = value; }).catch(error => { try { tx.abort(); } catch { /* işlem zaten bitmiş */ } reject(error); });
   tx.oncomplete = () => resolve(result);
   tx.onerror = () => reject(tx.error);
   tx.onabort = () => reject(tx.error || new Error('Çevrimdışı depo işlemi iptal edildi.'));

@@ -77,7 +77,7 @@ def bump(title, items):
 def tests():
     step('Testler çalışıyor, yaklaşık 3-5 dakika sürer. Pencereyi kapatmayın.')
     run(f'{NPM} test', cwd=ROOT / 'backend', shell=True)
-    run('node --test tests/*.test.js src/lib/*.test.mjs ../shared/countScan.test.mjs', cwd=ROOT / 'frontend', shell=True)
+    run('node --test tests/*.test.js src/lib/*.test.mjs src/lib/offline/*.test.mjs src/i18n/*.test.mjs src/utils/*.test.mjs ../shared/*.test.mjs ../tools/hardware-sim/*.test.mjs', cwd=ROOT / 'frontend', shell=True)
     run(['node', 'desktop/update-check.cjs'])
 
 
