@@ -46,7 +46,7 @@ Ayrıntı ve kanıt dosyaları: `INTEGRATION_MATRIX.md`.
 
 ## 4. Bilinen riskler ve kusurlar
 1. **Tür/CI açığı:** CI'da test koşmuyordu, tür denetimi yok → regresyonlar elle yakalanıyordu. `ci.yml` eklendi.
-2. **Çevrimdışı kasa:** mantık, IndexedDB ve service worker artık otomatik testli (25 Kas). Kalan: gerçek Chrome/Edge'de service worker yaşam döngüsü ve gerçek ağ kesintisi (Playwright kurulu değil; elle prosedür  §1).
+2. **Çevrimdışı kasa:** mantık, IndexedDB ve service worker artık otomatik testli (25 Kas). Kalan: gerçek Chrome/Edge'de service worker yaşam döngüsü ve gerçek ağ kesintisi (Playwright kurulu değil; elle prosedür: HARDWARE_TEST_GUIDE.md §1).
 2b. **Yayın kapısı eksikti:** `yayinla.py` yalnız `src/lib/*.test.mjs` ve `countScan.test.mjs` koşuyordu; çevrimdışı (`src/lib/offline`), i18n, utils, paylaşılan ve simülatör testleri yayını **engellemiyordu**. Düzeltildi (aşağı).
 3. **Uzun süreli gerçek mağaza kullanımı yok.** Eşitleme, yedek ve kasa bellek davranışı gerçek yük altında ölçülmedi (yalnız sentetik 205 satır, 1200 ürün).
 4. **SKU kiracılar arası benzersiz** (düşük önem bilgi sızıntısı); veri taşıma gerektirir. `GUVENLIK-INCELEMESI-2026-11-24.md`.
