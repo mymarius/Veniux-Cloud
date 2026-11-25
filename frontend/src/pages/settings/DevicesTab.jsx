@@ -1,4 +1,5 @@
 import DialogShell from '../../components/ui/DialogShell';
+import { t as __t } from '../../i18n';
 import WeightedLabelSettings from '../../components/WeightedLabelSettings';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
@@ -73,15 +74,15 @@ export default function DevicesTab() {
     <div className="max-w-5xl space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">El terminalleri</h1>
-          <p className="text-sm text-gray-500 mt-1">Terminal kayıtlarını ve son bildirilen verileri görün. Kayıtlı olması cihazın çevrimiçi olduğunu göstermez.</p>
+          <h1 className="text-xl font-bold text-gray-900">{__t('El terminalleri')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{__t('Terminal kayıtlarını ve son bildirilen verileri görün. Kayıtlı olması cihazın çevrimiçi olduğunu göstermez.')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Terminal Ekle</span>
+          <span>{__t('Yeni Terminal Ekle')}</span>
         </button>
       </div>
 
@@ -94,8 +95,8 @@ export default function DevicesTab() {
         ) : devices.length === 0 ? (
           <div className="col-span-3 veniux-card p-12 text-center text-gray-500">
             <Smartphone className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="font-bold text-gray-900">Henüz Kayıtlı Terminal Yok</h3>
-            <p className="text-xs text-gray-500 mt-1">Depoda kullandığınız Zebra, Honeywell veya akıllı telefon terminallerini ekleyin.</p>
+            <h3 className="font-bold text-gray-900">{__t('Henüz Kayıtlı Terminal Yok')}</h3>
+            <p className="text-xs text-gray-500 mt-1">{__t('Depoda kullandığınız Zebra, Honeywell veya akıllı telefon terminallerini ekleyin.')}</p>
           </div>
         ) : (
           devices.map((device) => (
@@ -115,15 +116,15 @@ export default function DevicesTab() {
 
               <div className="space-y-2 text-xs text-gray-600 pt-2 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><Cpu className="w-3.5 h-3.5" /> Üretici:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><Cpu className="w-3.5 h-3.5" /> {__t('Üretici:')}</span>
                   <span className="font-medium text-gray-900">{device.manufacturer || 'Bilgi yok'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><BatteryCharging className="w-3.5 h-3.5 text-emerald-600" /> Batarya:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><BatteryCharging className="w-3.5 h-3.5 text-emerald-600" /> {__t('Batarya:')}</span>
                   <span className="font-mono font-semibold text-emerald-700">{device.battery_level == null ? 'Bilgi yok' : `%${device.battery_level}`} </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><Wifi className="w-3.5 h-3.5 text-blue-500" /> IP / Sinyal:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><Wifi className="w-3.5 h-3.5 text-blue-500" /> {__t('IP / Sinyal:')}</span>
                   <span className="font-mono text-gray-700">{device.last_ip_address || 'Bilgi yok'}</span>
                 </div>
               </div>
@@ -134,10 +135,10 @@ export default function DevicesTab() {
                 </span>
                 <button
                   disabled
-                  title="Bu sürümde cihazın canlı bağlantısını ölçen bir ping servisi bulunmuyor."
+                  title={__t('Bu sürümde cihazın canlı bağlantısını ölçen bir ping servisi bulunmuyor.')}
                   className="px-2.5 py-1 text-xs text-gray-400 rounded-lg cursor-not-allowed"
                 >
-                  <span>Canlı ping desteklenmiyor</span>
+                  <span>{__t('Canlı ping desteklenmiyor')}</span>
                 </button>
               </div>
             </div>
@@ -147,20 +148,20 @@ export default function DevicesTab() {
 
       {/* Modal: Register Device */}
       {showAddModal && (
-        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Terminal ekle">
+        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={__t('Terminal ekle')}>
             <form onSubmit={handleRegisterDevice} className="space-y-4">
               <Input
-                label="Cihaz UID / Seri Numarası"
+                label={__t('Cihaz UID / Seri Numarası')}
                 value={formData.device_uid}
                 onChange={(e) => setFormData({ ...formData, device_uid: e.target.value })}
-                placeholder="Örn: TC26-SCAN-004"
+                placeholder={__t('Örn: TC26-SCAN-004')}
                 required
               />
               <Input
-                label="Cihaz Görünen Adı"
+                label={__t('Cihaz Görünen Adı')}
                 value={formData.device_name}
                 onChange={(e) => setFormData({ ...formData, device_name: e.target.value })}
-                placeholder="Örn: 2 Nolu Toplama Terminali"
+                placeholder={__t('Örn: 2 Nolu Toplama Terminali')}
                 required
               />
               <div className="grid grid-cols-2 gap-3">
@@ -177,7 +178,7 @@ export default function DevicesTab() {
                     <option value="Honeywell">Honeywell EDA51</option>
                     <option value="Datalogic">Datalogic Memor</option>
                     <option value="Newland">Newland MT90</option>
-                    <option value="Mobile Camera">Android / iOS Kamera</option>
+                    <option value="Mobile Camera">{__t('Android / iOS Kamera')}</option>
                   </select>
                 </div>
                 <div>
@@ -210,7 +211,7 @@ export default function DevicesTab() {
                   className="btn-primary"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span>Terminali Kaydet</span>
+                  <span>{__t('Terminali Kaydet')}</span>
                 </button>
               </div>
             </form>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { t as __t } from '../../i18n';
 import { Check, Laptop, Moon, Palette, Play, RotateCcw, Rows3, Sun, Volume2, Type, Square, Gauge } from 'lucide-react';
 import { Panel } from '../../components/dashboard/AnalyticsKit';
 import { useToast } from '../../components/Toast';
@@ -35,29 +36,29 @@ export default function AppearanceTab() {
     <div className="appearance-page">
       <header className="ax-head" style={{ marginBottom: 18 }}>
         <div>
-          <span className="ax-eyebrow"><i />Ayarlar · kişisel</span>
-          <h1>Görünüm</h1>
-          <p>Ekran modu, yazı tipi, boyut, renk, kart biçimi ve hareket tercihleri. Seçimleriniz anında uygulanır ve bu cihazda hatırlanır.</p>
+          <span className="ax-eyebrow"><i />{__t('Ayarlar · kişisel')}</span>
+          <h1>{__t('Görünüm')}</h1>
+          <p>{__t('Ekran modu, yazı tipi, boyut, renk, kart biçimi ve hareket tercihleri. Seçimleriniz anında uygulanır ve bu cihazda hatırlanır.')}</p>
         </div>
         <div className="ax-actions">
-          <button className="ax-btn" onClick={reset} disabled={isDefault}><RotateCcw size={15} /> Varsayılana dön</button>
+          <button className="ax-btn" onClick={reset} disabled={isDefault}><RotateCcw size={15} /> {__t('Varsayılana dön')}</button>
         </div>
       </header>
 
       <div className="easy-card" style={{cursor:'default'}} aria-checked={!!prefs.easy}>
-        <b>Ekran büyüklüğü</b>
-        <span>Yazıları ve düğmeleri istediğiniz boyuta getirin. Müşterinize gösterirken büyütüp küçültebilirsiniz.</span>
+        <b>{__t('Ekran büyüklüğü')}</b>
+        <span>{__t('Yazıları ve düğmeleri istediğiniz boyuta getirin. Müşterinize gösterirken büyütüp küçültebilirsiniz.')}</span>
         <div className="size-step" style={{marginTop:12}}>
-          <button type="button" aria-label="Küçült" disabled={!prefs.easy} onClick={() => { const i = SCALES.indexOf(prefs.scale); update(i <= 0 ? { easy: false } : { scale: SCALES[i - 1] }); }}>A−</button>
+          <button type="button" aria-label={__t('Küçült')} disabled={!prefs.easy} onClick={() => { const i = SCALES.indexOf(prefs.scale); update(i <= 0 ? { easy: false } : { scale: SCALES[i - 1] }); }}>A−</button>
           <output>{prefs.easy ? `%${prefs.scale}` : 'Normal'}</output>
-          <button type="button" aria-label="Büyüt" disabled={prefs.easy && prefs.scale >= 150} onClick={() => { if (!prefs.easy) update({ easy: true, scale: 110 }); else update({ scale: SCALES[Math.min(SCALES.length - 1, SCALES.indexOf(prefs.scale) + 1)] }); }}>A+</button>
+          <button type="button" aria-label={__t('Büyüt')} disabled={prefs.easy && prefs.scale >= 150} onClick={() => { if (!prefs.easy) update({ easy: true, scale: 110 }); else update({ scale: SCALES[Math.min(SCALES.length - 1, SCALES.indexOf(prefs.scale) + 1)] }); }}>A+</button>
           <button type="button" style={{fontSize:15,padding:'0 16px'}} onClick={() => update({ easy: !prefs.easy, scale: 120 })}>{prefs.easy ? 'Normale dön' : 'Kolay kullanım'}</button>
         </div>
       </div>
 
       <div className="appearance-grid">
-        <Panel icon={Sun} title="Ekran modu" subtitle={prefs.mode === 'system' ? `Şu an sistem ayarı: ${theme === 'dark' ? 'koyu' : 'açık'}` : 'Uygulamanın genel renk düzeni'}>
-          <div className="appearance-options" role="radiogroup" aria-label="Ekran modu">
+        <Panel icon={Sun} title={__t('Ekran modu')} subtitle={prefs.mode === 'system' ? `Şu an sistem ayarı: ${theme === 'dark' ? 'koyu' : 'açık'}` : 'Uygulamanın genel renk düzeni'}>
+          <div className="appearance-options" role="radiogroup" aria-label={__t('Ekran modu')}>
             {MODES.map(({ id, label, hint, icon: Icon }) => (
               <button key={id} role="radio" aria-checked={prefs.mode === id} className="appearance-option" onClick={() => update({ mode: id })}>
                 <span className={`appearance-preview appearance-preview-${id}`} aria-hidden="true"><i /><b /><b /></span>
@@ -69,8 +70,8 @@ export default function AppearanceTab() {
           </div>
         </Panel>
 
-        <Panel icon={Palette} title="Vurgu rengi" subtitle="Butonlar, seçili öğeler ve bağlantılar">
-          <div className="appearance-swatches" role="radiogroup" aria-label="Vurgu rengi">
+        <Panel icon={Palette} title={__t('Vurgu rengi')} subtitle="Butonlar, seçili öğeler ve bağlantılar">
+          <div className="appearance-swatches" role="radiogroup" aria-label={__t('Vurgu rengi')}>
             {ACCENTS.map(accent => (
               <button key={accent.id} role="radio" aria-checked={prefs.accent === accent.id} className="appearance-swatch" onClick={() => update({ accent: accent.id })}>
                 <span className="appearance-dot" style={{ background: accent.hex }} aria-hidden="true">{prefs.accent === accent.id && <Check size={14} />}</span>
@@ -79,14 +80,14 @@ export default function AppearanceTab() {
             ))}
           </div>
           <div className="appearance-sample" aria-hidden="true">
-            <span className="btn-primary appearance-sample-btn">Birincil buton</span>
-            <span className="btn-soft">İkincil işlem</span>
-            <span className="appearance-sample-link">Bağlantı</span>
+            <span className="btn-primary appearance-sample-btn">{__t('Birincil buton')}</span>
+            <span className="btn-soft">{__t('İkincil işlem')}</span>
+            <span className="appearance-sample-link">{__t('Bağlantı')}</span>
           </div>
         </Panel>
 
-        <Panel icon={Rows3} title="Yoğunluk" subtitle="Tablo satırları ve yazı boyutu">
-          <div className="appearance-density" role="radiogroup" aria-label="Yoğunluk">
+        <Panel icon={Rows3} title={__t('Yoğunluk')} subtitle="Tablo satırları ve yazı boyutu">
+          <div className="appearance-density" role="radiogroup" aria-label={__t('Yoğunluk')}>
             {DENSITIES.map(({ id, label, hint }) => (
               <button key={id} role="radio" aria-checked={prefs.density === id} className="appearance-option appearance-option-row" onClick={() => update({ density: id })}>
                 <span className="appearance-radio" aria-hidden="true" />
@@ -96,33 +97,33 @@ export default function AppearanceTab() {
           </div>
         </Panel>
 
-        <Panel icon={Type} title="Yazı ve okunabilirlik" subtitle="Tüm ekranlarda ortak yazı tipi">
-          <p className="text-sm"><strong>Veniux Manrope</strong> · Bilgisayar ve telefonda aynı yazı tipi kullanılır. Yazı dosyası programın içindedir; internet gerekmez.</p>
-          <p className="text-xs text-gray-500 mt-4 mb-2">İçerik yazı boyutu</p><div className="appearance-size-options" role="radiogroup" aria-label="Yazı boyutu">{[['small','Küçük'],['standard','Standart'],['large','Büyük']].map(([id,label])=><button key={id} role="radio" aria-checked={prefs.textSize===id} className="appearance-option" onClick={()=>update({textSize:id})}><b>{label}</b></button>)}</div>
+        <Panel icon={Type} title={__t('Yazı ve okunabilirlik')} subtitle="Tüm ekranlarda ortak yazı tipi">
+          <p className="text-sm"><strong>Veniux Manrope</strong> {__t('· Bilgisayar ve telefonda aynı yazı tipi kullanılır. Yazı dosyası programın içindedir; internet gerekmez.')}</p>
+          <p className="text-xs text-gray-500 mt-4 mb-2">{__t('İçerik yazı boyutu')}</p><div className="appearance-size-options" role="radiogroup" aria-label={__t('Yazı boyutu')}>{[['small','Küçük'],['standard','Standart'],['large','Büyük']].map(([id,label])=><button key={id} role="radio" aria-checked={prefs.textSize===id} className="appearance-option" onClick={()=>update({textSize:id})}><b>{label}</b></button>)}</div>
         </Panel>
-        <Panel icon={Square} title="Görünüm stili" subtitle="Veniux: sitemizle aynı kâğıt görünümü (krem zemin, köşeli kartlar). Cam: yarı saydam kartlar ve yumuşak gölge">
-          <div className="appearance-size-options" role="radiogroup" aria-label="Görünüm stili">{[['classic','Veniux'],['glass','Cam']].map(([id,label])=><button key={id} role="radio" aria-checked={(prefs.style||'classic')===id} className="appearance-option" onClick={()=>update({style:id})}><b>{label}</b></button>)}</div>
+        <Panel icon={Square} title={__t('Görünüm stili')} subtitle="Veniux: sitemizle aynı kâğıt görünümü (krem zemin, köşeli kartlar). Cam: yarı saydam kartlar ve yumuşak gölge">
+          <div className="appearance-size-options" role="radiogroup" aria-label={__t('Görünüm stili')}>{[['classic','Veniux'],['glass','Cam']].map(([id,label])=><button key={id} role="radio" aria-checked={(prefs.style||'classic')===id} className="appearance-option" onClick={()=>update({style:id})}><b>{label}</b></button>)}</div>
         </Panel>
-        <Panel icon={Square} title="Kart biçimi" subtitle="Paneller ve bilgi kartlarının köşe görünümü">
-          <div className="appearance-size-options" role="radiogroup" aria-label="Kart köşeleri">{[['sharp','Keskin',8],['balanced','Dengeli',14],['soft','Yumuşak',22]].map(([id,label,radius])=><button key={id} role="radio" aria-checked={prefs.corners===id} className="appearance-option" onClick={()=>update({corners:id})}><span className="appearance-corner-preview" style={{borderRadius:radius}} aria-hidden="true"/><b>{label}</b></button>)}</div>
+        <Panel icon={Square} title={__t('Kart biçimi')} subtitle="Paneller ve bilgi kartlarının köşe görünümü">
+          <div className="appearance-size-options" role="radiogroup" aria-label={__t('Kart köşeleri')}>{[['sharp','Keskin',8],['balanced','Dengeli',14],['soft','Yumuşak',22]].map(([id,label,radius])=><button key={id} role="radio" aria-checked={prefs.corners===id} className="appearance-option" onClick={()=>update({corners:id})}><span className="appearance-corner-preview" style={{borderRadius:radius}} aria-hidden="true"/><b>{label}</b></button>)}</div>
         </Panel>
-        {!window.veniuxDesktop&&<Panel icon={Gauge} title="Hareket ve performans" subtitle="Dekoratif geçişleri kişiselleştirin">
-          <div className="appearance-density" role="radiogroup" aria-label="Arayüz hareketleri">{[['subtle','Hafif geçişler','Kısa sayfa ve düğme geçişleri.'],['off','Hareketleri kapat','Dekoratif animasyonlar ve tıklama efektleri kapalı.']].map(([id,label,hint])=><button key={id} role="radio" aria-checked={prefs.motion===id} className="appearance-option appearance-option-row" onClick={()=>update({motion:id})}><span className="appearance-radio"/><span><b>{label}</b><small>{hint}</small></span></button>)}</div><p className="text-xs text-gray-500 mt-3">İşletim sisteminin azaltılmış hareket tercihi de korunur. Bu ayar veri yenilemeyi ve güvenlik kontrollerini kapatmaz.</p>
+        {!window.veniuxDesktop&&<Panel icon={Gauge} title={__t('Hareket ve performans')} subtitle="Dekoratif geçişleri kişiselleştirin">
+          <div className="appearance-density" role="radiogroup" aria-label={__t('Arayüz hareketleri')}>{[['subtle','Hafif geçişler','Kısa sayfa ve düğme geçişleri.'],['off','Hareketleri kapat','Dekoratif animasyonlar ve tıklama efektleri kapalı.']].map(([id,label,hint])=><button key={id} role="radio" aria-checked={prefs.motion===id} className="appearance-option appearance-option-row" onClick={()=>update({motion:id})}><span className="appearance-radio"/><span><b>{label}</b><small>{hint}</small></span></button>)}</div><p className="text-xs text-gray-500 mt-3">{__t('İşletim sisteminin azaltılmış hareket tercihi de korunur. Bu ayar veri yenilemeyi ve güvenlik kontrollerini kapatmaz.')}</p>
         </Panel>}
-        <Panel icon={Gauge} title="Dokunmatik terminal" subtitle="Kasa ve garson cihazları için büyük dokunma alanları">
-          <div className="appearance-density" role="radiogroup" aria-label="Dokunmatik mod">{[[false,'Fare ve klavye','Standart düğme ve satır boyları.'],[true,'Dokunmatik ekran','Düğmeler, alanlar ve satırlar parmakla rahat basılacak kadar büyür.']].map(([id,label,hint])=><button key={String(id)} role="radio" aria-checked={!!prefs.touch===id} className="appearance-option" onClick={() => update({ touch: id })}><b>{label}</b><small>{hint}</small></button>)}</div>
+        <Panel icon={Gauge} title={__t('Dokunmatik terminal')} subtitle="Kasa ve garson cihazları için büyük dokunma alanları">
+          <div className="appearance-density" role="radiogroup" aria-label={__t('Dokunmatik mod')}>{[[false,'Fare ve klavye','Standart düğme ve satır boyları.'],[true,'Dokunmatik ekran','Düğmeler, alanlar ve satırlar parmakla rahat basılacak kadar büyür.']].map(([id,label,hint])=><button key={String(id)} role="radio" aria-checked={!!prefs.touch===id} className="appearance-option" onClick={() => update({ touch: id })}><b>{label}</b><small>{hint}</small></button>)}</div>
         </Panel>
-        <Panel icon={Volume2} title="Tarama sesleri" subtitle="Barkod, kasa ve el terminali">
+        <Panel icon={Volume2} title={__t('Tarama sesleri')} subtitle="Barkod, kasa ve el terminali">
           <div className="appearance-sound">
             <div>
-              <b>Bip ve hata sesleri</b>
-              <small>Başarılı okutmada kısa bip, hatalı barkodda uyarı sesi çalar.</small>
+              <b>{__t('Bip ve hata sesleri')}</b>
+              <small>{__t('Başarılı okutmada kısa bip, hatalı barkodda uyarı sesi çalar.')}</small>
             </div>
-            <button role="switch" aria-checked={prefs.sound} aria-label="Tarama sesleri" className="appearance-switch" onClick={() => update({ sound: !prefs.sound })}><span /></button>
+            <button role="switch" aria-checked={prefs.sound} aria-label={__t('Tarama sesleri')} className="appearance-switch" onClick={() => update({ sound: !prefs.sound })}><span /></button>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
-            <button className="btn-soft" data-size="sm" onClick={() => playBeep('success')} disabled={!prefs.sound}><Play size={13} /> Başarılı sesi dinle</button>
-            <button className="btn-soft" data-size="sm" onClick={() => playBeep('error')} disabled={!prefs.sound}><Play size={13} /> Hata sesini dinle</button>
+            <button className="btn-soft" data-size="sm" onClick={() => playBeep('success')} disabled={!prefs.sound}><Play size={13} /> {__t('Başarılı sesi dinle')}</button>
+            <button className="btn-soft" data-size="sm" onClick={() => playBeep('error')} disabled={!prefs.sound}><Play size={13} /> {__t('Hata sesini dinle')}</button>
           </div>
         </Panel>
       </div>

@@ -1,4 +1,5 @@
 import DialogShell from '../../components/ui/DialogShell';
+import { t as __t } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../api/client';
 import { useToast } from '../../components/Toast';
@@ -66,15 +67,15 @@ export default function WarehouseTab() {
     <div className="max-w-5xl space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Depo ayarları</h1>
-          <p className="text-sm text-gray-500 mt-1">Depolarınız ve raf adresi düzeniniz.</p>
+          <h1 className="text-xl font-bold text-gray-900">{__t('Depo ayarları')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{__t('Depolarınız ve raf adresi düzeniniz.')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Depo Ekle</span>
+          <span>{__t('Yeni Depo Ekle')}</span>
         </button>
       </div>
 
@@ -106,11 +107,11 @@ export default function WarehouseTab() {
 
               <div className="space-y-2 text-xs text-gray-600 pt-2 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Konum:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {__t('Konum:')}</span>
                   <span className="font-medium text-gray-900 truncate max-w-[150px]">{wh.location || 'Belirtilmedi'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><Layers className="w-3.5 h-3.5" /> Kapasite:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><Layers className="w-3.5 h-3.5" /> {__t('Kapasite:')}</span>
                   <span className="font-mono font-semibold text-gray-900">{wh.capacity?.toLocaleString('tr-TR') ?? 'Belirtilmedi'} Palet/Göz</span>
                 </div>
               </div>
@@ -123,10 +124,10 @@ export default function WarehouseTab() {
       <div className="veniux-card p-6 space-y-6">
         <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
           <Settings2 className="w-5 h-5 text-brand-500" />
-          <h2 className="font-bold text-sm text-gray-900">Toplama kuralları (önizleme)</h2>
+          <h2 className="font-bold text-sm text-gray-900">{__t('Toplama kuralları (önizleme)')}</h2>
         </div>
 
-        <p role="status" className="text-sm text-gray-500">Strateji seçenekleri önizlemedir; bu sürümde kaydedilemez ve stok kurallarını değiştirmez. Mevcut lot ve FEFO kuralları ilgili işlem ekranlarında uygulanır.</p>
+        <p role="status" className="text-sm text-gray-500">{__t('Strateji seçenekleri önizlemedir; bu sürümde kaydedilemez ve stok kurallarını değiştirmez. Mevcut lot ve FEFO kuralları ilgili işlem ekranlarında uygulanır.')}</p>
         <fieldset disabled className="space-y-5 opacity-60">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -138,9 +139,9 @@ export default function WarehouseTab() {
                 onChange={(e) => setStrategy({ ...strategy, algorithm: e.target.value })}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
               >
-                <option value="FEFO">Son kullanma tarihi en yakın olan önce</option>
-                <option value="FIFO">FIFO (First In, First Out) - İlk Giren Stok İlk Çıkar</option>
-                <option value="LIFO">LIFO (Last In, First Out) - Son Giren İlk Çıkar</option>
+                <option value="FEFO">{__t('Son kullanma tarihi en yakın olan önce')}</option>
+                <option value="FIFO">{__t('FIFO (First In, First Out) - İlk Giren Stok İlk Çıkar')}</option>
+                <option value="LIFO">{__t('LIFO (Last In, First Out) - Son Giren İlk Çıkar')}</option>
               </select>
               <p className="text-[11px] text-gray-500 mt-1">
                 Son kullanma tarihi izlenen ürünlerde önce tarihi yaklaşan parti çıkar.
@@ -148,10 +149,10 @@ export default function WarehouseTab() {
             </div>
 
             <Input
-              label="Raf ve Lokasyon Kod Şablonu"
+              label={__t('Raf ve Lokasyon Kod Şablonu')}
               value={strategy.shelfFormat}
               onChange={(e) => setStrategy({ ...strategy, shelfFormat: e.target.value })}
-              placeholder="Örn: KORIDOR-RAF-KAT-GÖZ (A-01-02-03)"
+              placeholder={__t('Örn: KORIDOR-RAF-KAT-GÖZ (A-01-02-03)')}
             />
 
             <div>
@@ -205,7 +206,7 @@ export default function WarehouseTab() {
               className="btn-primary"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>Strateji kaydetme henüz açık değil</span>
+              <span>{__t('Strateji kaydetme henüz açık değil')}</span>
             </button>
           </div>
         </fieldset>
@@ -213,25 +214,25 @@ export default function WarehouseTab() {
 
       {/* Modal: Add Warehouse */}
       {showAddModal && (
-        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Depo ekle">
+        <DialogShell isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={__t('Depo ekle')}>
             <form onSubmit={handleAddWarehouse} className="space-y-4">
               <Input
-                label="Depo Adı"
+                label={__t('Depo Adı')}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Örn: Anadolu Dağıtım Deposu"
+                placeholder={__t('Örn: Anadolu Dağıtım Deposu')}
                 required
               />
               <Input
-                label="Fiziksel Konum / Şehir"
+                label={__t('Fiziksel Konum / Şehir')}
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Örn: Kocaeli / Gebze OSB"
+                placeholder={__t('Örn: Kocaeli / Gebze OSB')}
                 required
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Kapasite (Palet/Göz)"
+                  label={__t('Kapasite (Palet/Göz)')}
                   type="number"
                   value={formData.capacity}
                   onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value, 10) || 0 })}
@@ -246,10 +247,10 @@ export default function WarehouseTab() {
                     onChange={(e) => setFormData({ ...formData, warehouse_type: e.target.value })}
                     className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 outline-none focus:border-brand-500"
                   >
-                    <option value="NORMAL">Normal Ticari Depo</option>
+                    <option value="NORMAL">{__t('Normal Ticari Depo')}</option>
                     
-                    <option value="COLD_CHAIN">Soğuk Hava Deposu (2-8°C)</option>
-                    <option value="QUARANTINE">Karantina & İade Bölgesi</option>
+                    <option value="COLD_CHAIN">{__t('Soğuk Hava Deposu (2-8°C)')}</option>
+                    <option value="QUARANTINE">{__t('Karantina & İade Bölgesi')}</option>
                   </select>
                 </div>
               </div>
@@ -268,7 +269,7 @@ export default function WarehouseTab() {
                   className="btn-primary"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span>Depoyu Kaydet</span>
+                  <span>{__t('Depoyu Kaydet')}</span>
                 </button>
               </div>
             </form>

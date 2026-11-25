@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { t as __t } from '../../i18n';
 import api from '../../api/client';
 import { useToast } from '../../components/Toast';
 import { classifyScan, printerStatusText } from '../../lib/scannerProbe.mjs';
@@ -109,16 +110,16 @@ export default function DiagnosticsPanel() {
     <section className="veniux-card p-4 space-y-4" data-testid="diagnostics-panel">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-semibold">Veniux Tanılama</h2>
-          <p className="text-sm text-slate-500">Bilgisayarın, ağın, verinin ve cihazların gerçek durumunu ölçer. Hiçbir şeyi değiştirmez; sorun varsa öneri verir.</p>
+          <h2 className="font-semibold">{__t('Veniux Tanılama')}</h2>
+          <p className="text-sm text-slate-500">{__t('Bilgisayarın, ağın, verinin ve cihazların gerçek durumunu ölçer. Hiçbir şeyi değiştirmez; sorun varsa öneri verir.')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-primary" disabled={busy} onClick={() => run({ mode: 'quick' })}>Hızlı tarama</button>
-          <button type="button" className="btn-secondary" disabled={busy} onClick={() => run({ mode: 'full' })}>Tam tarama</button>
-          {busy && <button type="button" className="btn-secondary" onClick={cancel}>İptal</button>}
+          <button type="button" className="btn-primary" disabled={busy} onClick={() => run({ mode: 'quick' })}>{__t('Hızlı tarama')}</button>
+          <button type="button" className="btn-secondary" disabled={busy} onClick={() => run({ mode: 'full' })}>{__t('Tam tarama')}</button>
+          {busy && <button type="button" className="btn-secondary" onClick={cancel}>{__t('İptal')}</button>}
         </div>
       </div>
-      {!hasEngine && <p className="text-sm bg-slate-50 border border-slate-200 rounded p-3" role="status">Bilgisayar ölçümleri (bellek, disk, yedek, yazıcı) yalnız Veniux masaüstü programında çalışır; tarayıcıda sunucu ve kuyruk ölçümleri yapılır, diğerleri "Ölçülemedi" görünür.</p>}
+      {!hasEngine && <p className="text-sm bg-slate-50 border border-slate-200 rounded p-3" role="status">{__t('Bilgisayar ölçümleri (bellek, disk, yedek, yazıcı) yalnız Veniux masaüstü programında çalışır; tarayıcıda sunucu ve kuyruk ölçümleri yapılır, diğerleri "Ölçülemedi" görünür.')}</p>}
       {busy && <div role="status" className="text-sm" data-testid="diag-progress">Taranıyor{progress?.total ? ` · ${progress.done}/${progress.total}` : '…'}{progress?.current ? ` · ${progress.current}` : ''}<div className="h-1.5 bg-slate-200 rounded mt-1"><div className="h-1.5 bg-brand-500 rounded" style={{ width: progress?.total ? Math.round(progress.done / progress.total * 100) + '%' : '10%' }} /></div></div>}
 
       {scan && (<>
@@ -139,41 +140,41 @@ export default function DiagnosticsPanel() {
                   {r.advice && <div className="text-xs text-amber-800 mt-0.5">Öneri: {r.advice}</div>}
                 </div>
                 <span className="text-xs text-slate-400">{r.ms} ms</span>
-                {hasEngine && /^(sys|data|net|dev)\./.test(r.id) && r.id !== 'dev.barcode' && r.id !== 'dev.test-print' && <button type="button" className="text-xs underline" disabled={busy} onClick={() => run({ id: r.id })}>Yeniden dene</button>}
+                {hasEngine && /^(sys|data|net|dev)\./.test(r.id) && r.id !== 'dev.barcode' && r.id !== 'dev.test-print' && <button type="button" className="text-xs underline" disabled={busy} onClick={() => run({ id: r.id })}>{__t('Yeniden dene')}</button>}
               </div>
             ))}
           </div>
         ))}
         <div className="flex flex-wrap gap-2">
-          {hasEngine && <button type="button" className="btn-secondary" onClick={exportPackage}>Destek paketi oluştur</button>}
-          <button type="button" className="btn-secondary" onClick={backupNow}>Şimdi yedek al</button>
+          {hasEngine && <button type="button" className="btn-secondary" onClick={exportPackage}>{__t('Destek paketi oluştur')}</button>}
+          <button type="button" className="btn-secondary" onClick={backupNow}>{__t('Şimdi yedek al')}</button>
         </div>
-        {hasEngine && <p className="text-xs text-slate-500">Destek paketi parola, anahtar, e-posta, telefon, IBAN ve müşteri bilgilerinden arındırılır, kaydedeceğiniz yeri siz seçersiniz ve hiçbir yere otomatik gönderilmez.</p>}
+        {hasEngine && <p className="text-xs text-slate-500">{__t('Destek paketi parola, anahtar, e-posta, telefon, IBAN ve müşteri bilgilerinden arındırılır, kaydedeceğiniz yeri siz seçersiniz ve hiçbir yere otomatik gönderilmez.')}</p>}
       </>)}
 
       <div className="grid gap-3 md:grid-cols-2">
         <div className="p-3 rounded-lg border border-slate-200 space-y-2">
-          <h3 className="font-semibold text-sm">Barkod okuyucu testi</h3>
-          <p className="text-xs text-slate-500">Başlatıp kutuya bir ürünün barkodunu okuyucuyla okutun (20 sn).</p>
+          <h3 className="font-semibold text-sm">{__t('Barkod okuyucu testi')}</h3>
+          <p className="text-xs text-slate-500">{__t('Başlatıp kutuya bir ürünün barkodunu okuyucuyla okutun (20 sn).')}</p>
           <button type="button" className="btn-secondary" onClick={() => { setProbe(null); setWaiting(true); }}>{waiting ? 'Bekleniyor…' : 'Testi başlat'}</button>
-          <input aria-label="Barkod test kutusu" className="border rounded p-2 w-full" disabled={!waiting} onKeyDown={onKey} placeholder="Barkodu buraya okutun" autoComplete="off" />
+          <input aria-label={__t('Barkod test kutusu')} className="border rounded p-2 w-full" disabled={!waiting} onKeyDown={onKey} placeholder={__t('Barkodu buraya okutun')} autoComplete="off" />
           {probe && <p className="text-sm" role="status">{manual['dev.barcode']?.summary}</p>}
           {!waiting && !probe && manual['dev.barcode'] && <p className="text-sm" role="status">{manual['dev.barcode'].summary}</p>}
         </div>
         <div className="p-3 rounded-lg border border-slate-200 space-y-2">
-          <h3 className="font-semibold text-sm">Yazıcı deneme fişi</h3>
-          {!hasEngine ? <p className="text-xs text-slate-500">Yalnız masaüstü programında.</p> : printers.length === 0 ? <p className="text-xs text-slate-500">Windows'ta tanımlı yazıcı bulunamadı.</p> : (<>
-            <select aria-label="Yazıcı" className="border rounded p-2 w-full" value={printer} onChange={e => setPrinter(e.target.value)}>{printers.map(p => <option key={p.name} value={p.name}>{p.name} · {printerStatusText(p.status)}</option>)}</select>
-            <button type="button" className="btn-secondary" onClick={testPrint}>Deneme fişi yazdır</button>
-            <p className="text-xs text-slate-500">Mali fiş değildir; yalnız yazıcıyı sınar.</p>
+          <h3 className="font-semibold text-sm">{__t('Yazıcı deneme fişi')}</h3>
+          {!hasEngine ? <p className="text-xs text-slate-500">{__t('Yalnız masaüstü programında.')}</p> : printers.length === 0 ? <p className="text-xs text-slate-500">{__t('Windows\'ta tanımlı yazıcı bulunamadı.')}</p> : (<>
+            <select aria-label={__t('Yazıcı')} className="border rounded p-2 w-full" value={printer} onChange={e => setPrinter(e.target.value)}>{printers.map(p => <option key={p.name} value={p.name}>{p.name} · {printerStatusText(p.status)}</option>)}</select>
+            <button type="button" className="btn-secondary" onClick={testPrint}>{__t('Deneme fişi yazdır')}</button>
+            <p className="text-xs text-slate-500">{__t('Mali fiş değildir; yalnız yazıcıyı sınar.')}</p>
           </>)}
         </div>
       </div>
 
       {hasEngine && catalog.length > 0 && <details className="text-sm"><summary className="cursor-pointer font-semibold">Testler ({catalog.length}) ve geçmiş ({history.length})</summary>
         <ul className="mt-2 space-y-1">{catalog.map(t => <li key={t.id}><strong>{t.name}</strong> <span className="text-slate-500">— {t.description}{t.quick ? ' (hızlı taramada)' : ''}</span></li>)}</ul>
-        <h4 className="font-semibold mt-3">Son taramalar</h4>
-        {history.length === 0 ? <p className="text-slate-500">Henüz tarama yok.</p> : <ul className="space-y-1">{history.map(h => <li key={h.id} className="flex gap-2"><span className={'text-[11px] font-bold px-2 rounded-full border ' + STATUS_META[h.level].tone}>{STATUS_META[h.level].label}</span><span>{when(h.at)} · {h.mode === 'quick' ? 'hızlı' : h.mode === 'single' ? 'tek test' : 'tam'} · {h.results.length} test</span></li>)}</ul>}
+        <h4 className="font-semibold mt-3">{__t('Son taramalar')}</h4>
+        {history.length === 0 ? <p className="text-slate-500">{__t('Henüz tarama yok.')}</p> : <ul className="space-y-1">{history.map(h => <li key={h.id} className="flex gap-2"><span className={'text-[11px] font-bold px-2 rounded-full border ' + STATUS_META[h.level].tone}>{STATUS_META[h.level].label}</span><span>{when(h.at)} · {h.mode === 'quick' ? 'hızlı' : h.mode === 'single' ? 'tek test' : 'tam'} · {h.results.length} test</span></li>)}</ul>}
       </details>}
     </section>
   );

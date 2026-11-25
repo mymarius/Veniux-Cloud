@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { t as __t } from '../../i18n';
 import api from '../../api/client';
 
 const today = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
@@ -20,33 +21,33 @@ export default function PromoSettings() {
   const toggle = async c => { try { await api.put(`/scanner/pro/campaigns/${c.id}/active`, { active: !Number(c.active) }); await load(); } catch (e) { fail(e); } };
   const addCard = async e => { e.preventDefault(); try { await api.post('/scanner/pro/loyalty/cards', card, { headers: { 'Idempotency-Key': crypto.randomUUID() } }); setCard({ card_no: '', name: '', phone: '' }); setMessage('Kart oluşturuldu.'); await load(); } catch (e) { fail(e); } };
   return <section className="veniux-card p-4 mt-4 space-y-3">
-    <h2 className="font-semibold">Kampanyalar ve sadakat</h2>
-    <p className="text-sm">Kampanya kasada otomatik uygulanır; her ürüne en çok indirim veren tek kampanya geçer. "Onay gerekir" işaretli kampanya yalnız yönetici, müdür veya indirim yetkisi verilmiş kasiyerin satışında uygulanır. Sadakat: her 10 TL alışverişe 1 puan, 1 puan 10 kuruş indirim; iadede kazanılan puan geri alınır.</p>
-    <button type="button" className="btn-secondary" onClick={load}>Yükle</button>
+    <h2 className="font-semibold">{__t('Kampanyalar ve sadakat')}</h2>
+    <p className="text-sm">{__t('Kampanya kasada otomatik uygulanır; her ürüne en çok indirim veren tek kampanya geçer. "Onay gerekir" işaretli kampanya yalnız yönetici, müdür veya indirim yetkisi verilmiş kasiyerin satışında uygulanır. Sadakat: her 10 TL alışverişe 1 puan, 1 puan 10 kuruş indirim; iadede kazanılan puan geri alınır.')}</p>
+    <button type="button" className="btn-secondary" onClick={load}>{__t('Yükle')}</button>
     {message && <p role="status" className="text-sm">{message}</p>}
     {campaigns && <>
       <form className="grid sm:grid-cols-3 gap-2" onSubmit={save}>
-        <label className="text-sm">Ad<input className="block w-full" value={form.name} onChange={set('name')} required /></label>
-        <label className="text-sm">Tür<select className="block w-full" value={form.kind} onChange={set('kind')}><option value="buy_x_pay_y">X al Y öde</option><option value="percent">Yüzde indirim</option></select></label>
+        <label className="text-sm">{__t('Ad')}<input className="block w-full" value={form.name} onChange={set('name')} required /></label>
+        <label className="text-sm">{__t('Tür')}<select className="block w-full" value={form.kind} onChange={set('kind')}><option value="buy_x_pay_y">{__t('X al Y öde')}</option><option value="percent">{__t('Yüzde indirim')}</option></select></label>
         <label className="text-sm">Ürün barkodu{form.kind === 'percent' ? ' (boş: tüm ürünler)' : ''}<input className="block w-full" value={form.barcode} onChange={set('barcode')} inputMode="numeric" /></label>
-        {form.kind === 'buy_x_pay_y' ? <><label className="text-sm">Alınan adet<input className="block w-full" type="number" min="2" value={form.buy_qty} onChange={set('buy_qty')} /></label><label className="text-sm">Ödenen adet<input className="block w-full" type="number" min="1" value={form.pay_qty} onChange={set('pay_qty')} /></label></>
-          : <label className="text-sm">İndirim %<input className="block w-full" type="number" min="1" max="90" value={form.percent} onChange={set('percent')} /></label>}
-        <label className="text-sm">Başlangıç<input className="block w-full" type="date" value={form.starts_on} onChange={set('starts_on')} /></label>
-        <label className="text-sm">Bitiş<input className="block w-full" type="date" value={form.ends_on} onChange={set('ends_on')} /></label>
-        <label className="text-sm flex gap-2 items-center"><input type="checkbox" checked={form.requires_approval} onChange={set('requires_approval')} />Onay gerekir</label>
-        <button className="btn-primary">Kampanya ekle</button>
+        {form.kind === 'buy_x_pay_y' ? <><label className="text-sm">{__t('Alınan adet')}<input className="block w-full" type="number" min="2" value={form.buy_qty} onChange={set('buy_qty')} /></label><label className="text-sm">{__t('Ödenen adet')}<input className="block w-full" type="number" min="1" value={form.pay_qty} onChange={set('pay_qty')} /></label></>
+          : <label className="text-sm">{__t('İndirim %')}<input className="block w-full" type="number" min="1" max="90" value={form.percent} onChange={set('percent')} /></label>}
+        <label className="text-sm">{__t('Başlangıç')}<input className="block w-full" type="date" value={form.starts_on} onChange={set('starts_on')} /></label>
+        <label className="text-sm">{__t('Bitiş')}<input className="block w-full" type="date" value={form.ends_on} onChange={set('ends_on')} /></label>
+        <label className="text-sm flex gap-2 items-center"><input type="checkbox" checked={form.requires_approval} onChange={set('requires_approval')} />{__t('Onay gerekir')}</label>
+        <button className="btn-primary">{__t('Kampanya ekle')}</button>
       </form>
-      <table className="w-full text-sm"><thead><tr><th className="text-left">Kampanya</th><th className="text-left">Kural</th><th className="text-left">Tarih</th><th /></tr></thead><tbody>{campaigns.map(c => <tr key={c.id}><td>{c.name}{Number(c.requires_approval) ? ' · onaylı' : ''}</td><td>{KIND[c.kind]} · {c.kind === 'percent' ? `%${c.percent}` : `${c.buy_qty} al ${c.pay_qty} öde`} · {c.product_name || 'tüm ürünler'}</td><td>{c.starts_on} – {c.ends_on}</td><td><button type="button" className="btn-soft" onClick={() => toggle(c)}>{Number(c.active) ? 'Durdur' : 'Başlat'}</button></td></tr>)}</tbody></table>
+      <table className="w-full text-sm"><thead><tr><th className="text-left">{__t('Kampanya')}</th><th className="text-left">{__t('Kural')}</th><th className="text-left">{__t('Tarih')}</th><th /></tr></thead><tbody>{campaigns.map(c => <tr key={c.id}><td>{c.name}{Number(c.requires_approval) ? ' · onaylı' : ''}</td><td>{KIND[c.kind]} · {c.kind === 'percent' ? `%${c.percent}` : `${c.buy_qty} al ${c.pay_qty} öde`} · {c.product_name || 'tüm ürünler'}</td><td>{c.starts_on} – {c.ends_on}</td><td><button type="button" className="btn-soft" onClick={() => toggle(c)}>{Number(c.active) ? 'Durdur' : 'Başlat'}</button></td></tr>)}</tbody></table>
     </>}
     {cards && <>
-      <h3 className="font-semibold">Sadakat kartları</h3>
+      <h3 className="font-semibold">{__t('Sadakat kartları')}</h3>
       <form className="flex flex-wrap gap-2 items-end" onSubmit={addCard}>
-        <label className="text-sm">Kart no<input className="block w-full" value={card.card_no} onChange={e => setCard({ ...card, card_no: e.target.value })} required /></label>
-        <label className="text-sm">Müşteri adı<input className="block w-full" value={card.name} onChange={e => setCard({ ...card, name: e.target.value })} required /></label>
-        <label className="text-sm">Telefon (isteğe bağlı)<input className="block w-full" value={card.phone} onChange={e => setCard({ ...card, phone: e.target.value })} /></label>
-        <button className="btn-primary">Kart oluştur</button>
+        <label className="text-sm">{__t('Kart no')}<input className="block w-full" value={card.card_no} onChange={e => setCard({ ...card, card_no: e.target.value })} required /></label>
+        <label className="text-sm">{__t('Müşteri adı')}<input className="block w-full" value={card.name} onChange={e => setCard({ ...card, name: e.target.value })} required /></label>
+        <label className="text-sm">{__t('Telefon (isteğe bağlı)')}<input className="block w-full" value={card.phone} onChange={e => setCard({ ...card, phone: e.target.value })} /></label>
+        <button className="btn-primary">{__t('Kart oluştur')}</button>
       </form>
-      <table className="w-full text-sm"><thead><tr><th className="text-left">Kart</th><th className="text-left">Müşteri</th><th className="text-right">Puan</th></tr></thead><tbody>{cards.map(c => <tr key={c.id}><td>{c.card_no}</td><td>{c.name}</td><td className="text-right">{c.points}</td></tr>)}</tbody></table>
+      <table className="w-full text-sm"><thead><tr><th className="text-left">{__t('Kart')}</th><th className="text-left">{__t('Müşteri')}</th><th className="text-right">{__t('Puan')}</th></tr></thead><tbody>{cards.map(c => <tr key={c.id}><td>{c.card_no}</td><td>{c.name}</td><td className="text-right">{c.points}</td></tr>)}</tbody></table>
     </>}
   </section>;
 }
