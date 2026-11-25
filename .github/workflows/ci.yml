@@ -1,0 +1,62 @@
+name: CI
+
+# Her push ve pull request'te lint, test, derleme ve bağımlılık denetimi çalışır.
+# Gizli anahtar kullanmaz; testler ayrı test veritabanıyla ve sahte dış servislerle çalışır, gerçek hesaba dokunmaz.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Lint (uyarı olabilir, hata olmamalı)
+        run: npx oxlint
+        working-directory: backend
+      - name: Backend testleri (SQLite)
+        run: npm test
+        working-directory: backend
+        env:
+          CI: 'true'
+      - name: Bağımlılık denetimi (yüksek ve kritik)
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: backend
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - name: Frontend, paylaşılan ve donanım simülatörü testleri
+        run: node --test src/lib/*.test.mjs src/i18n/*.test.mjs ../shared/*.test.mjs ../tools/hardware-sim/*.test.mjs
+        working-directory: frontend
+      - name: Derleme
+        run: npm run build
+        working-directory: frontend
+      - name: Bağımlılık denetimi (yüksek ve kritik)
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: frontend
