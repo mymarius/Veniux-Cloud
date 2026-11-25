@@ -1,4 +1,5 @@
 import DialogShell from '../../components/ui/DialogShell';
+import { t as __t } from '../../i18n';
 import { Dropdown } from '../../components/ui';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -249,7 +250,7 @@ export default function NormalLocations() {
             className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-md shadow-sm transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Koridor / Raf Ekle</span>
+            <span>{__t('Koridor / Raf Ekle')}</span>
           </button>
         </div>
       </div>
@@ -262,7 +263,7 @@ export default function NormalLocations() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Göz kodu ara..."
+              placeholder={__t('Göz kodu ara...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-md outline-none focus:border-slate-400 w-64 transition-colors"
@@ -275,7 +276,7 @@ export default function NormalLocations() {
             onChange={(e) => setSelectedZone(e.target.value)}
             className="px-3.5 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-md outline-none focus:border-slate-400 cursor-pointer"
           >
-            <option value="ALL">Tüm Bölgeler</option>
+            <option value="ALL">{__t('Tüm Bölgeler')}</option>
             {zones.map(z => <option key={z} value={z}>{z}</option>)}
           </Dropdown>
 
@@ -285,7 +286,7 @@ export default function NormalLocations() {
             onChange={(e) => setSelectedAisle(e.target.value)}
             className="px-3.5 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-md outline-none focus:border-slate-400 cursor-pointer"
           >
-            <option value="ALL">Tüm Koridorlar</option>
+            <option value="ALL">{__t('Tüm Koridorlar')}</option>
             {aisles.map(a => <option key={a} value={a}>{a} Koridoru</option>)}
           </Dropdown>
         </div>
@@ -294,23 +295,23 @@ export default function NormalLocations() {
         <div className="flex items-center gap-4 text-[11px] text-slate-500 font-semibold">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-emerald-50 border border-emerald-200 inline-block" />
-            <span>Boş (%0)</span>
+            <span>{__t('Boş (%0)')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-brand-50 border border-brand-200 inline-block" />
-            <span>Kısmi Dolu</span>
+            <span>{__t('Kısmi Dolu')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-red-50 border border-red-200 inline-block" />
-            <span>Tam Dolu</span>
+            <span>{__t('Tam Dolu')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-cyan-50 border border-cyan-200 inline-block" />
-            <span>Soğuk Alan</span>
+            <span>{__t('Soğuk Alan')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-300 inline-block" />
-            <span>Kilitli</span>
+            <span>{__t('Kilitli')}</span>
           </div>
         </div>
       </div>
@@ -319,7 +320,7 @@ export default function NormalLocations() {
       {warehouses.length === 0 ? (
         <div className="bg-slate-50 p-12 text-center text-slate-500 border border-slate-200 rounded-lg shadow-sm">
           <Warehouse className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-700 mb-1">Kayıtlı Tesis Bulunmuyor</h3>
+          <h3 className="text-base font-semibold text-slate-700 mb-1">{__t('Kayıtlı Tesis Bulunmuyor')}</h3>
           <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">
             Sistemde kayıtlı herhangi bir depo bulunmuyor. Raf ve lokasyon haritasını görüntülemek için lütfen önce yeni bir tesis oluşturun.
           </p>
@@ -328,19 +329,19 @@ export default function NormalLocations() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Tesis Yönetimine Git</span>
+            <span>{__t('Tesis Yönetimine Git')}</span>
           </button>
         </div>
       ) : loading ? (
         <div className="p-12 text-center text-slate-500 border border-slate-200 bg-white rounded-lg shadow-sm">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-slate-400 mb-3" />
-          <p className="text-sm">Matris yükleniyor...</p>
+          <p className="text-sm">{__t('Matris yükleniyor...')}</p>
         </div>
       ) : Object.keys(groupedByAisle).length === 0 ? (
         <div className="p-12 text-center text-slate-500 border border-slate-200 bg-slate-50 rounded-lg shadow-sm">
           <Boxes className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-slate-700 mb-1">Bu tesiste tanımlı lokasyon bulunmuyor</p>
-          <p className="text-xs text-slate-500 mt-1">Yukarıdaki "Koridor / Raf Ekle" butonunu kullanarak matrisi oluşturun.</p>
+          <p className="text-sm font-semibold text-slate-700 mb-1">{__t('Bu tesiste tanımlı lokasyon bulunmuyor')}</p>
+          <p className="text-xs text-slate-500 mt-1">{__t('Yukarıdaki "Koridor / Raf Ekle" butonunu kullanarak matrisi oluşturun.')}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -443,15 +444,15 @@ export default function NormalLocations() {
               className="py-2.5 px-3 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs"
             >
               <ArrowRightLeft className="w-4 h-4" />
-              <span>Stok Transferi</span>
+              <span>{__t('Stok Transferi')}</span>
             </button>
           </div>
 
           {/* Stored Items in Bin */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase">GÖZDE BULUNAN STOKLAR</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase">{__t('GÖZDE BULUNAN STOKLAR')}</h3>
             {binDetailLoading ? (
-              <div className="p-4 text-center text-xs text-gray-400">Yükleniyor...</div>
+              <div className="p-4 text-center text-xs text-gray-400">{__t('Yükleniyor...')}</div>
             ) : selectedBin.records?.length > 0 ? (
               selectedBin.records.map((rec, idx) => (
                 <div key={idx} className="p-3.5 bg-gray-50 rounded-lg border border-gray-100 space-y-2 text-xs">
@@ -464,8 +465,8 @@ export default function NormalLocations() {
                   </div>
                   {rec.lot_number && (
                     <div className="text-[10px] text-gray-500 flex justify-between border-t border-gray-200/60 pt-1.5">
-                      <span>Parti (Lot): <strong className="text-gray-900">{rec.lot_number}</strong></span>
-                      <span>SKT: <strong className="text-gray-900">{rec.expiry_date || 'Yok'}</strong></span>
+                      <span>{__t('Parti (Lot):')} <strong className="text-gray-900">{rec.lot_number}</strong></span>
+                      <span>{__t('SKT:')} <strong className="text-gray-900">{rec.expiry_date || 'Yok'}</strong></span>
                     </div>
                   )}
                 </div>
@@ -482,23 +483,23 @@ export default function NormalLocations() {
 
       {/* 5. Aisle Generator Modal */}
       {showGridModal && (
-        <DialogShell isOpen={showGridModal} onClose={()=>setShowGridModal(false)} title="Koridor ve raf oluştur">
+        <DialogShell isOpen={showGridModal} onClose={()=>setShowGridModal(false)} title={__t('Koridor ve raf oluştur')}>
 <form onSubmit={handleGenerateGrid} className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block text-gray-500 mb-1">Koridor Kodu (A, B, C...)</label>
+                <label className="block text-gray-500 mb-1">{__t('Koridor Kodu (A, B, C...)')}</label>
                 <input
                   type="text"
                   required
                   value={gridForm.aisle_code}
                   onChange={(e) => setGridForm({ ...gridForm, aisle_code: e.target.value.toUpperCase() })}
-                  placeholder="Örn: B"
+                  placeholder={__t('Örn: B')}
                   className="w-full bg-gray-100 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 outline-none focus:border-indigo-500 font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-gray-500 mb-1 text-[11px]">Raf Sayısı</label>
+                  <label className="block text-gray-500 mb-1 text-[11px]">{__t('Raf Sayısı')}</label>
                   <input
                     type="number"
                     min="1"
@@ -508,7 +509,7 @@ export default function NormalLocations() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-500 mb-1 text-[11px]">Kat Sayısı</label>
+                  <label className="block text-gray-500 mb-1 text-[11px]">{__t('Kat Sayısı')}</label>
                   <input
                     type="number"
                     min="1"
@@ -518,7 +519,7 @@ export default function NormalLocations() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-500 mb-1 text-[11px]">Göz / Kat</label>
+                  <label className="block text-gray-500 mb-1 text-[11px]">{__t('Göz / Kat')}</label>
                   <input
                     type="number"
                     min="1"

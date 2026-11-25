@@ -1,4 +1,5 @@
 import { Dropdown } from '../../components/ui';
+import { t as __t } from '../../i18n';
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/client';
 import { cleanWaybill, shortReceiptNo } from '../../lib/inboundEntry.mjs';
@@ -192,7 +193,7 @@ export default function NormalInbound() {
           className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-full shadow-sm transition"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Mal Kabul Başlat</span>
+          <span>{__t('Yeni Mal Kabul Başlat')}</span>
         </button>
       </div>
 
@@ -201,7 +202,7 @@ export default function NormalInbound() {
         <div className="p-4 border-b border-gray-100 flex justify-between items-center text-xs bg-gray-50/70">
           <div className="flex items-center gap-2">
             <Truck className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-bold text-gray-900 uppercase">RAMPA İRSALİYE KUYRUĞU</h3>
+            <h3 className="font-bold text-gray-900 uppercase">{__t('RAMPA İRSALİYE KUYRUĞU')}</h3>
           </div>
           <button onClick={fetchInitialData} className="p-1.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-900 transition shadow-2xs">
             <RefreshCw className="w-3.5 h-3.5" />
@@ -211,28 +212,28 @@ export default function NormalInbound() {
         {loading && receipts.length === 0 ? (
           <div className="p-12 text-center text-gray-400 text-xs">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
-            <span>Mal kabul kayıtları yükleniyor...</span>
+            <span>{__t('Mal kabul kayıtları yükleniyor...')}</span>
           </div>
         ) : receipts.length === 0 ? (
           <div className="p-12 text-center text-gray-400 text-xs">
             <Inbox className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-            <p className="text-sm font-bold text-gray-700">Bekleyen mal kabul belgesi bulunmuyor.</p>
-            <p className="text-xs text-gray-500 mt-1">Mal geldiğinde barkodları okutun; ürünler stoğa ve rafa işlenir.</p>
-            <button type="button" className="vx-empty-cta" onClick={() => setShowModal(true)}>+ Yeni mal kabul başlat</button>
+            <p className="text-sm font-bold text-gray-700">{__t('Bekleyen mal kabul belgesi bulunmuyor.')}</p>
+            <p className="text-xs text-gray-500 mt-1">{__t('Mal geldiğinde barkodları okutun; ürünler stoğa ve rafa işlenir.')}</p>
+            <button type="button" className="vx-empty-cta" onClick={() => setShowModal(true)}>{__t('+ Yeni mal kabul başlat')}</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left whitespace-nowrap text-xs">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                  <th className="px-4 py-3">Kabul No</th>
-                  <th className="px-4 py-3">Depo</th>
-                  <th className="px-4 py-3">Tedarikçi</th>
-                  <th className="px-4 py-3">İrsaliye No</th>
-                  <th className="px-4 py-3">Miktar (Kabul/Beklenen)</th>
-                  <th className="px-4 py-3">Durum</th>
-                  <th className="px-4 py-3">Kabul Tarihi</th>
-                  <th className="px-4 py-3 text-right">İşlem</th>
+                  <th className="px-4 py-3">{__t('Kabul No')}</th>
+                  <th className="px-4 py-3">{__t('Depo')}</th>
+                  <th className="px-4 py-3">{__t('Tedarikçi')}</th>
+                  <th className="px-4 py-3">{__t('İrsaliye No')}</th>
+                  <th className="px-4 py-3">{__t('Miktar (Kabul/Beklenen)')}</th>
+                  <th className="px-4 py-3">{__t('Durum')}</th>
+                  <th className="px-4 py-3">{__t('Kabul Tarihi')}</th>
+                  <th className="px-4 py-3 text-right">{__t('İşlem')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -325,7 +326,7 @@ export default function NormalInbound() {
                 <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                   MAL KABUL KALEMLERİ ({selectedReceipt.items?.length || 0})
                 </h3>
-                <span className="text-gray-400 text-[11px]">Hedef rafa yerleştirerek stoğu onaylayın</span>
+                <span className="text-gray-400 text-[11px]">{__t('Hedef rafa yerleştirerek stoğu onaylayın')}</span>
               </div>
 
               <div className="space-y-3">
@@ -341,7 +342,7 @@ export default function NormalInbound() {
                         </div>
                       </div>
                       <span className="shrink-0 text-sm font-bold text-gray-900 bg-white px-3 py-1 rounded-full border border-gray-200 tabular-nums">
-                        {qty(item.expected_qty)} <span className="text-[11px] font-bold text-gray-400">adet</span>
+                        {qty(item.expected_qty)} <span className="text-[11px] font-bold text-gray-400">{__t('adet')}</span>
                       </span>
                     </div>
 
@@ -390,8 +391,8 @@ export default function NormalInbound() {
                   <Truck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Yeni İrsaliyeli Mal Kabul Belgesi</h3>
-                  <p className="text-[11px] text-gray-500">Mal kabul ve raf yerleştirme kaydı</p>
+                  <h3 className="text-base font-bold text-gray-900">{__t('Yeni İrsaliyeli Mal Kabul Belgesi')}</h3>
+                  <p className="text-[11px] text-gray-500">{__t('Mal kabul ve raf yerleştirme kaydı')}</p>
                 </div>
               </div>
               <button 
@@ -405,7 +406,7 @@ export default function NormalInbound() {
             <form onSubmit={handleCreateReceipt} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-gray-700 mb-1 font-semibold">Hedef Depo *</label>
+                  <label className="block text-gray-700 mb-1 font-semibold">{__t('Hedef Depo *')}</label>
                   <Dropdown
                     required
                     value={form.warehouse_id}
@@ -416,23 +417,23 @@ export default function NormalInbound() {
                   </Dropdown>
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1 font-semibold">Tedarikçi</label>
+                  <label className="block text-gray-700 mb-1 font-semibold">{__t('Tedarikçi')}</label>
                   <Dropdown
                     value={form.supplier_id}
                     onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
                     className="w-full bg-gray-50 p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-medium focus:border-brand-500"
                   >
-                    <option value="">Seçiniz (Opsiyonel)</option>
+                    <option value="">{__t('Seçiniz (Opsiyonel)')}</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </Dropdown>
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1 font-semibold">İrsaliye No <span className="font-normal text-gray-500">(isteğe bağlı)</span></label>
+                  <label className="block text-gray-700 mb-1 font-semibold">{__t('İrsaliye No')} <span className="font-normal text-gray-500">{__t('(isteğe bağlı)')}</span></label>
                   <input
                     type="text"
                     value={form.waybill_no}
                     onChange={(e) => setForm({ ...form, waybill_no: e.target.value })}
-                    placeholder="Örn: IRS-2026-001"
+                    placeholder={__t('Örn: IRS-2026-001')}
                     className="w-full bg-gray-50 p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none font-bold placeholder:text-gray-400 focus:border-brand-500"
                   />
                 </div>
@@ -451,7 +452,7 @@ export default function NormalInbound() {
                   </button>
                 </div>
 
-                <SerialScanInput id="inbound-scan" label="Barkod okutun veya ürün adı/SKU yazıp Enter'a basın" hint="Barkod okut → kalem otomatik eklenir, aynı ürün tekrar okununca miktar artar" onScan={handleScanCode} />
+                <SerialScanInput id="inbound-scan" label={__t('Barkod okutun veya ürün adı/SKU yazıp Enter\'a basın')} hint="Barkod okut → kalem otomatik eklenir, aynı ürün tekrar okununca miktar artar" onScan={handleScanCode} />
 
                 <div className="space-y-2.5">
                   {form.items.map((item, idx) => (
@@ -484,7 +485,7 @@ export default function NormalInbound() {
                             required
                             value={item.expected_qty}
                             onChange={(e) => handleItemChange(idx, 'expected_qty', Number(e.target.value))}
-                            placeholder="Miktar"
+                            placeholder={__t('Miktar')}
                             className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none text-center font-bold focus:border-brand-500 text-xs"
                           />
                         </div>
@@ -493,7 +494,7 @@ export default function NormalInbound() {
                             type="text"
                             value={item.lot_number}
                             onChange={(e) => handleItemChange(idx, 'lot_number', e.target.value)}
-                            placeholder="Lot / Parti No"
+                            placeholder={__t('Lot / Parti No')}
                             className="w-full bg-white p-2.5 border border-gray-200 text-gray-900 rounded-xl outline-none focus:border-brand-500 text-xs placeholder:text-gray-400"
                           />
                         </div>

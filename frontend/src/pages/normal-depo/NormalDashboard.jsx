@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { t as __t } from '../../i18n';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Activity, AlertTriangle, ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Boxes, Clock, Flame,
@@ -101,19 +102,19 @@ export default function NormalDashboard() {
   return <div className="ax-page" data-testid="page-dashboard">
     <header className="ax-head">
       <div>
-        <span className="ax-eyebrow"><i />Stok ve depo · canlı</span>
-        <h1>Depo Özeti</h1>
+        <span className="ax-eyebrow"><i />{__t('Stok ve depo · canlı')}</span>
+        <h1>{__t('Depo Özeti')}</h1>
         <p>{warehouseName} · giriş, çıkış ve stok hareketlerinin {days} günlük analizi</p>
       </div>
       <div className="ax-actions">
-        <select aria-label="Depo seçin" data-testid="select-dashboard-warehouse" className="ax-select" value={warehouseId} onChange={e => setWarehouseId(e.target.value)}>
-          <option value="all">Tüm depolar</option>
+        <select aria-label={__t('Depo seçin')} data-testid="select-dashboard-warehouse" className="ax-select" value={warehouseId} onChange={e => setWarehouseId(e.target.value)}>
+          <option value="all">{__t('Tüm depolar')}</option>
           {data?.warehouses.map(w => <option key={w.id} value={String(w.id)}>{w.name}</option>)}
         </select>
-        <Segmented label="Dönem" value={days} onChange={setDays} options={PERIODS} />
-        <button className="ax-btn" onClick={() => setTick(t => t + 1)} aria-label="Verileri yenile" data-testid="button-dashboard-refresh"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
-        <button className="ax-btn" onClick={() => navigate('/normal-depo/terminal')} data-testid="button-dashboard-terminal"><Smartphone size={15} /> Terminal</button>
-        <button className="ax-btn" data-primary onClick={() => setStockModal('inbound')}><Plus size={15} /> Stok girişi</button>
+        <Segmented label={__t('Dönem')} value={days} onChange={setDays} options={PERIODS} />
+        <button className="ax-btn" onClick={() => setTick(t => t + 1)} aria-label={__t('Verileri yenile')} data-testid="button-dashboard-refresh"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
+        <button className="ax-btn" onClick={() => navigate('/normal-depo/terminal')} data-testid="button-dashboard-terminal"><Smartphone size={15} /> {__t('Terminal')}</button>
+        <button className="ax-btn" data-primary onClick={() => setStockModal('inbound')}><Plus size={15} /> {__t('Stok girişi')}</button>
       </div>
     </header>
 
@@ -122,45 +123,45 @@ export default function NormalDashboard() {
     {view && <>
       <StockHealthPanel compact/>
       <section className="ax-grid ax-kpis ax-reveal">
-        <Kpi label="Stok değeri" value={view.value} format={tl} icon={Wallet} tone="violet" detail={`${num(view.units)} birim · ${num(view.recordCount)} kayıt`} />
+        <Kpi label={__t('Stok değeri')} value={view.value} format={tl} icon={Wallet} tone="violet" detail={`${num(view.units)} birim · ${num(view.recordCount)} kayıt`} />
         <Kpi label={occupancy === null ? 'Kritik ürün' : 'Raf doluluğu'} value={occupancy ?? view.health.counts.critical + view.health.counts.out} format={occupancy === null ? undefined : v => `%${Math.round(v)}`} icon={occupancy === null ? AlertTriangle : Layers} tone="amber" detail={occupancy === null ? 'kritik + tükenen' : `${num(occupied)} / ${num(locations.length)} raf dolu`} />
-        <Kpi label="Giriş işlemi" value={view.ops.inbound} icon={ArrowDownLeft} tone="teal" trend={change(view.ops.inbound, view.ops.prevInbound)} />
-        <Kpi label="Çıkış / satış işlemi" value={view.ops.outbound} icon={ArrowUpRight} tone="red" trend={change(view.ops.outbound, view.ops.prevOutbound)} />
+        <Kpi label={__t('Giriş işlemi')} value={view.ops.inbound} icon={ArrowDownLeft} tone="teal" trend={change(view.ops.inbound, view.ops.prevInbound)} />
+        <Kpi label={__t('Çıkış / satış işlemi')} value={view.ops.outbound} icon={ArrowUpRight} tone="red" trend={change(view.ops.outbound, view.ops.prevOutbound)} />
       </section>
 
       <section className="ax-grid ax-2-1 ax-reveal">
-        <Panel icon={Activity} title="Giriş ve çıkış akışı" subtitle="Günlük stok giriş / çıkış miktarı" action={<Link to="/normal-depo/movements">Stok hareketleri <ArrowUpRight size={13} /></Link>}>
+        <Panel icon={Activity} title={__t('Giriş ve çıkış akışı')} subtitle="Günlük stok giriş / çıkış miktarı" action={<Link to="/normal-depo/movements">{__t('Stok hareketleri')} <ArrowUpRight size={13} /></Link>}>
           <div className="ax-stats">
-            <div><span>Günlük ort. giriş</span><b style={{ color: IN }}>{num(current.inbound / days)}</b></div>
-            <div><span>Günlük ort. çıkış</span><b style={{ color: OUT }}>{num(current.outbound / days)}</b></div>
-            <div><span>En yoğun gün</span><b>{view.busiest && view.busiest.inbound + view.busiest.outbound ? view.busiest.label : '—'}</b></div>
-            <div><span>Çıkış / giriş oranı</span><b>{current.inbound ? `%${Math.round((current.outbound / current.inbound) * 100)}` : '—'}</b></div>
+            <div><span>{__t('Günlük ort. giriş')}</span><b style={{ color: IN }}>{num(current.inbound / days)}</b></div>
+            <div><span>{__t('Günlük ort. çıkış')}</span><b style={{ color: OUT }}>{num(current.outbound / days)}</b></div>
+            <div><span>{__t('En yoğun gün')}</span><b>{view.busiest && view.busiest.inbound + view.busiest.outbound ? view.busiest.label : '—'}</b></div>
+            <div><span>{__t('Çıkış / giriş oranı')}</span><b>{current.inbound ? `%${Math.round((current.outbound / current.inbound) * 100)}` : '—'}</b></div>
           </div>
-          <BusinessChart key={`flow-${days}-${warehouseId}`} title="Günlük giriş ve çıkış" height={290} labels={view.timeline.map(d => d.label)} datasets={[
+          <BusinessChart key={`flow-${days}-${warehouseId}`} title={__t('Günlük giriş ve çıkış')} height={290} labels={view.timeline.map(d => d.label)} datasets={[
             { label: 'Giriş', data: view.timeline.map(d => d.inbound), borderColor: IN },
             { label: 'Çıkış', data: view.timeline.map(d => d.outbound), borderColor: OUT }
           ]} />
         </Panel>
-        <Panel icon={PieChart} title="Hareket türleri" subtitle={`Son ${days} gündeki işlemlerin dağılımı`}>
-          <BusinessChart key={`types-${days}-${warehouseId}`} type="doughnut" title="Hareket türleri" height={240} legend={false} center={{ value: num(view.types.reduce((s, t) => s + t[1], 0)), label: 'işlem' }}
+        <Panel icon={PieChart} title={__t('Hareket türleri')} subtitle={`Son ${days} gündeki işlemlerin dağılımı`}>
+          <BusinessChart key={`types-${days}-${warehouseId}`} type="doughnut" title={__t('Hareket türleri')} height={240} legend={false} center={{ value: num(view.types.reduce((s, t) => s + t[1], 0)), label: 'işlem' }}
             labels={view.types.map(t => t[0])} datasets={[{ label: 'İşlem', data: view.types.map(t => t[1]), backgroundColor: chartColors }]} />
           <Legend items={view.types.map(([label, value], i) => [label, chartColors[i % chartColors.length], num(value)])} />
         </Panel>
       </section>
 
       <section className="ax-grid ax-1-1 ax-reveal">
-        <Panel icon={Flame} title="En çok hareket gören ürünler" subtitle="Giriş ve çıkış miktarına göre ilk 7 ürün">
-          <BusinessChart key={`movers-${days}-${warehouseId}`} type="bar" horizontal stacked title="En çok hareket gören ürünler" height={260} labels={view.movers.map(m => m.name.length > 22 ? m.name.slice(0, 21) + '…' : m.name)} datasets={[
+        <Panel icon={Flame} title={__t('En çok hareket gören ürünler')} subtitle="Giriş ve çıkış miktarına göre ilk 7 ürün">
+          <BusinessChart key={`movers-${days}-${warehouseId}`} type="bar" horizontal stacked title={__t('En çok hareket gören ürünler')} height={260} labels={view.movers.map(m => m.name.length > 22 ? m.name.slice(0, 21) + '…' : m.name)} datasets={[
             { label: 'Giriş', data: view.movers.map(m => m.inbound), backgroundColor: IN },
             { label: 'Çıkış', data: view.movers.map(m => m.outbound), backgroundColor: OUT }
           ]} />
         </Panel>
-        <Panel icon={AlertTriangle} title="Stok sağlığı" subtitle="Minimum ve maksimum seviyelere göre" action={<Link to="/normal-depo/products">Ürünler <ArrowUpRight size={13} /></Link>}>
+        <Panel icon={AlertTriangle} title={__t('Stok sağlığı')} subtitle="Minimum ve maksimum seviyelere göre" action={<Link to="/normal-depo/products">{__t('Ürünler')} <ArrowUpRight size={13} /></Link>}>
           {(() => {
             const g = view.health.counts;
             const rows = [['Sağlıklı', g.healthy, IN], ['Kritik', g.critical, '#e9ad51'], ['Tükendi', g.out, OUT], ['Fazla stok', g.excess, '#9b8cdb']];
             return <>
-              <BusinessChart key={`health-${warehouseId}`} type="doughnut" title="Stok sağlığı" height={190} legend={false} center={{ value: num(rows.reduce((s, r) => s + r[1], 0)), label: 'ürün' }}
+              <BusinessChart key={`health-${warehouseId}`} type="doughnut" title={__t('Stok sağlığı')} height={190} legend={false} center={{ value: num(rows.reduce((s, r) => s + r[1], 0)), label: 'ürün' }}
                 labels={rows.map(r => r[0])} datasets={[{ label: 'Ürün', data: rows.map(r => r[1]), backgroundColor: rows.map(r => r[2]) }]} />
               <Legend items={rows.map(([label, value, color]) => [label, color, value])} />
             </>;
@@ -169,22 +170,22 @@ export default function NormalDashboard() {
       </section>
 
       <section className="ax-grid ax-1-1 ax-reveal">
-        <Panel icon={Boxes} title="Kategorilere göre stok değeri" subtitle="Alış fiyatı üzerinden">
-          <BusinessChart key={`cat-${warehouseId}`} type="bar" title="Kategorilere göre stok değeri" height={260} legend={false} valueFormat={compact}
+        <Panel icon={Boxes} title={__t('Kategorilere göre stok değeri')} subtitle="Alış fiyatı üzerinden">
+          <BusinessChart key={`cat-${warehouseId}`} type="bar" title={__t('Kategorilere göre stok değeri')} height={260} legend={false} valueFormat={compact}
             labels={view.categories.map(c => c[0])} datasets={[{ label: 'Değer', data: view.categories.map(c => c[1]), backgroundColor: chartColors }]} />
         </Panel>
-        <Panel icon={Warehouse} title="Depolara göre stok değeri" subtitle="Tüm depoların karşılaştırması">
+        <Panel icon={Warehouse} title={__t('Depolara göre stok değeri')} subtitle="Tüm depoların karşılaştırması">
           <BarList rows={view.byWarehouse.map(([label, value], i) => ({ label, value, color: warehouseName === label ? BLUE : chartColors[(i + 1) % chartColors.length] }))} format={tl} empty="Henüz depoda stok yok." />
-          <h3 className="mb-3 mt-6 text-[12px] font-semibold text-slate-600">Öncelikli ürünler</h3>
+          <h3 className="mb-3 mt-6 text-[12px] font-semibold text-slate-600">{__t('Öncelikli ürünler')}</h3>
           <BarList rows={view.health.attention.slice(0, 5).map(p => ({ label: p.name, value: p.qty, hint: `Minimum ${num(p.min_stock_level)} · ${p.sku}`, color: p.qty <= 0 ? OUT : '#e9ad51' }))} format={num} empty="Kritik seviyede ürün yok." />
         </Panel>
       </section>
 
       <section className="ax-grid ax-reveal">
-        <Panel icon={ArrowRightLeft} title="Son hareketler" subtitle="En yeni 10 stok işlemi" action={<Link to="/normal-depo/movements">Tümü <ArrowUpRight size={13} /></Link>}>
+        <Panel icon={ArrowRightLeft} title={__t('Son hareketler')} subtitle="En yeni 10 stok işlemi" action={<Link to="/normal-depo/movements">{__t('Tümü')} <ArrowUpRight size={13} /></Link>}>
           <div className="overflow-x-auto">
             <table className="ax-table">
-              <thead><tr><th>İşlem</th><th>Ürün</th><th>Depo</th><th data-num>Miktar</th><th data-num>Zaman</th></tr></thead>
+              <thead><tr><th>{__t('İşlem')}</th><th>{__t('Ürün')}</th><th>{__t('Depo')}</th><th data-num>{__t('Miktar')}</th><th data-num>{__t('Zaman')}</th></tr></thead>
               <tbody>
                 {view.movements.slice(0, 10).map(row => {
                   const qty = Number(row.change_amount || 0);
@@ -197,7 +198,7 @@ export default function NormalDashboard() {
                     <td data-num className="text-slate-500">{date ? date.toLocaleString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                   </tr>;
                 })}
-                {!view.movements.length && <tr><td colSpan={5} className="py-10 text-center text-slate-400">Henüz stok hareketi bulunmuyor.</td></tr>}
+                {!view.movements.length && <tr><td colSpan={5} className="py-10 text-center text-slate-400">{__t('Henüz stok hareketi bulunmuyor.')}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -205,22 +206,22 @@ export default function NormalDashboard() {
       </section>
 
       <details className="ax-more" onToggle={e => setMore(e.currentTarget.open)}>
-        <summary>Ayrıntılı analiz: günlük net değişim, saatlik dağılım, yoğunluk haritası</summary>
+        <summary>{__t('Ayrıntılı analiz: günlük net değişim, saatlik dağılım, yoğunluk haritası')}</summary>
         {more && <>
           <section className="ax-grid ax-1-1">
-        <Panel icon={TrendingUp} title="Günlük net değişim" subtitle="Girişten çıkış düşülerek bulunan net miktar">
-          <BusinessChart key={`net-${days}-${warehouseId}`} type="bar" title="Günlük net değişim" height={260} legend={false} labels={view.timeline.map(d => d.label)}
+        <Panel icon={TrendingUp} title={__t('Günlük net değişim')} subtitle="Girişten çıkış düşülerek bulunan net miktar">
+          <BusinessChart key={`net-${days}-${warehouseId}`} type="bar" title={__t('Günlük net değişim')} height={260} legend={false} labels={view.timeline.map(d => d.label)}
             datasets={[{ label: 'Net', data: view.timeline.map(d => d.net), backgroundColor: view.timeline.map(d => (d.net >= 0 ? IN : OUT)) }]} />
         </Panel>
-        <Panel icon={Clock} title="Saatlik dağılım" subtitle="Günün hangi saatlerinde stok hareket ediyor">
-          <BusinessChart key={`hourly-${days}-${warehouseId}`} type="bar" stacked title="Saatlik giriş ve çıkış" height={240} labels={view.hourly.map((_, h) => String(h).padStart(2, '0'))} datasets={[
+        <Panel icon={Clock} title={__t('Saatlik dağılım')} subtitle="Günün hangi saatlerinde stok hareket ediyor">
+          <BusinessChart key={`hourly-${days}-${warehouseId}`} type="bar" stacked title={__t('Saatlik giriş ve çıkış')} height={240} labels={view.hourly.map((_, h) => String(h).padStart(2, '0'))} datasets={[
             { label: 'Giriş', data: view.hourly.map(h => h.inbound), backgroundColor: IN },
             { label: 'Çıkış', data: view.hourly.map(h => h.outbound), backgroundColor: OUT }
           ]} />
         </Panel>
           </section>
           <section className="ax-grid">
-        <Panel icon={Activity} title="Haftalık yoğunluk haritası" subtitle="Gün ve saate göre işlem sayısı">
+        <Panel icon={Activity} title={__t('Haftalık yoğunluk haritası')} subtitle="Gün ve saate göre işlem sayısı">
           <Heatmap key={`heat-${days}-${warehouseId}`} grid={view.heat} />
         </Panel>
           </section>

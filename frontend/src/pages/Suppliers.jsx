@@ -1,4 +1,5 @@
 import { money } from '../lib/stockAnalytics';
+import { t as __t } from '../i18n';
 ﻿import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import {
@@ -175,42 +176,42 @@ export default function Suppliers() {
           className="flex items-center space-x-1.5 px-4 py-2 bg-brand-500 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Tedarikçi Ekle</span>
+          <span>{__t('Yeni Tedarikçi Ekle')}</span>
         </button>
       </div>
 
       {/* Metric Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">AKTİF TEDARİKÇİ</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{__t('AKTİF TEDARİKÇİ')}</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-gray-900 text-gray-900">{suppliers.length}</p>
-          <span className="text-[10px] text-gray-500 block">Kayıtlı tedarikçi</span>
+          <span className="text-[10px] text-gray-500 block">{__t('Kayıtlı tedarikçi')}</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-500">Ortalama temin süresi</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-500">{__t('Ortalama temin süresi')}</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-brand-500">
             {(suppliers.reduce((s, d) => s + (d.lead_time_days || 3), 0) / (suppliers.length || 1)).toFixed(1)} Gün
           </p>
-          <span className="text-[10px] text-gray-500 block">Ortalama teslim süresi</span>
+          <span className="text-[10px] text-gray-500 block">{__t('Ortalama teslim süresi')}</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">Tedarik edilen ürünler</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">{__t('Tedarik edilen ürünler')}</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-emerald-500">{suppliers.reduce((n,s)=>n+Number(s.product_count||0),0)}</p>
-          <span className="text-[10px] text-gray-500 block">Tedarikçi ürün bağlantıları</span>
+          <span className="text-[10px] text-gray-500 block">{__t('Tedarikçi ürün bağlantıları')}</span>
         </div>
 
         <div className="bg-white bg-gray-100 p-4 rounded-xl border border-gray-200 border-gray-200 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Sipariş geçmişi</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{__t('Sipariş geçmişi')}</span>
           <p className="text-2xl font-bold font-mono tabular-nums text-gray-900 text-gray-900">{suppliers.reduce((n,s)=>n+Number(s.order_count||0),0)}</p>
-          <span className="text-[10px] text-gray-500 block">Tedarikçilere verilen siparişler</span>
+          <span className="text-[10px] text-gray-500 block">{__t('Tedarikçilere verilen siparişler')}</span>
         </div>
       </div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSuppliers.length === 0 && <div className="ax-empty col-span-full p-10 text-center"><strong>Henüz tedarikçi yok</strong><p className="mt-2">Üstteki düğmeyle ilk tedarikçinizi ekleyin.</p></div>}
+        {filteredSuppliers.length === 0 && <div className="ax-empty col-span-full p-10 text-center"><strong>{__t('Henüz tedarikçi yok')}</strong><p className="mt-2">{__t('Üstteki düğmeyle ilk tedarikçinizi ekleyin.')}</p></div>}
         {filteredSuppliers.map((s) => {
           const isSelected = selectedSupplierDetail?.id === s.id;
 
@@ -273,7 +274,7 @@ export default function Suppliers() {
               </div>
 
               <div className="pt-2 border-t border-gray-200 border-gray-200 flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-500">Teslimat Süresi:</span>
+                <span className="text-gray-500">{__t('Teslimat Süresi:')}</span>
                 <span className="font-bold text-brand-500">{s.lead_time_days || 3} Gün</span>
               </div>
             </div>
@@ -281,7 +282,7 @@ export default function Suppliers() {
         })}
       </div>
 
-      {selectedSupplierDetail&&<section className="veniux-card p-5 space-y-5"><div className="flex justify-between gap-3"><div><h2 className="text-lg font-semibold">{selectedSupplierDetail.name} · Tedarikçi kartı</h2><p className="text-sm text-gray-500">{selectedSupplierDetail.contact_name||'Yetkili belirtilmedi'} · {selectedSupplierDetail.phone||'Telefon yok'} · {selectedSupplierDetail.email||'E-posta yok'}</p><p className="text-sm text-gray-500">{selectedSupplierDetail.address||'Adres belirtilmedi'}</p></div><div className="flex gap-2">{canManage&&<Link className="btn-primary" to={'/purchase-orders?supplier='+selectedSupplierDetail.id}>Bu tedarikçiden sipariş ver</Link>}<button className="btn-soft" onClick={()=>handleViewDetail(selectedSupplierDetail)}>Yenile</button></div></div><div className="grid lg:grid-cols-2 gap-5"><div><h3 className="font-semibold text-sm mb-2">Tedarik edilen ürünler</h3>{selectedSupplierDetail.products?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.products.map(p=><div key={p.id} className="border-b py-2 text-sm"><b>{p.name}</b><p className="text-xs text-gray-500">{p.sku} · Alış {money(p.purchase_price)}</p></div>)}</div>:<p className="text-sm text-gray-500">Henüz ürün bağlantısı yok.</p>}</div><div><h3 className="font-semibold text-sm mb-2">Sipariş geçmişi</h3>{selectedSupplierDetail.orders?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.orders.map(o=><Link key={o.id} className="block border-b py-2 text-sm" to={'/purchase-orders?order='+o.id}><b className="break-all">{o.order_no}</b><p className="text-xs text-gray-500">{purchaseStatus[o.status]||o.status} · Alınan {o.received_quantity} · Kalan {o.remaining_quantity} · {money(o.total_amount)}</p></Link>)}</div>:<p className="text-sm text-gray-500">Henüz sipariş yok.</p>}</div></div>{!!selectedSupplierDetail.deliveries?.length&&<div><h3 className="font-semibold text-sm">Mal kabul geçmişi</h3><div className="max-h-72 overflow-auto">{selectedSupplierDetail.deliveries.map(i=><p key={i.id} className="text-sm border-b py-2">{i.product_name} · {i.waybill_no||i.receipt_no} · Alınan {i.received_qty}, iade {i.returned_qty} · Lot {i.lot_number||'Yok'} · {i.expiry_date||'Tarih yok'} · {i.location_code||'Rafsız'}</p>)}</div></div>}{canManage&&<SupplierReturnPanel key={selectedSupplierDetail.id} deliveries={selectedSupplierDetail.deliveries||[]} endpoint={'/suppliers/'+selectedSupplierDetail.id+'/returns'} onDone={async()=>{await handleViewDetail(selectedSupplierDetail);showToast('Tedarikçiye iade kaydedildi.','success');}}/>}{!!selectedSupplierDetail.returns?.length&&<div><h3 className="font-semibold text-sm">Tedarikçiye iade geçmişi</h3>{selectedSupplierDetail.returns.map(r=><p key={r.id} className="text-sm border-b py-2">{new Date(r.created_at).toLocaleString('tr-TR')} · {r.reason}</p>)}</div>}</section>}
+      {selectedSupplierDetail&&<section className="veniux-card p-5 space-y-5"><div className="flex justify-between gap-3"><div><h2 className="text-lg font-semibold">{selectedSupplierDetail.name} · Tedarikçi kartı</h2><p className="text-sm text-gray-500">{selectedSupplierDetail.contact_name||'Yetkili belirtilmedi'} · {selectedSupplierDetail.phone||'Telefon yok'} · {selectedSupplierDetail.email||'E-posta yok'}</p><p className="text-sm text-gray-500">{selectedSupplierDetail.address||'Adres belirtilmedi'}</p></div><div className="flex gap-2">{canManage&&<Link className="btn-primary" to={'/purchase-orders?supplier='+selectedSupplierDetail.id}>{__t('Bu tedarikçiden sipariş ver')}</Link>}<button className="btn-soft" onClick={()=>handleViewDetail(selectedSupplierDetail)}>{__t('Yenile')}</button></div></div><div className="grid lg:grid-cols-2 gap-5"><div><h3 className="font-semibold text-sm mb-2">{__t('Tedarik edilen ürünler')}</h3>{selectedSupplierDetail.products?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.products.map(p=><div key={p.id} className="border-b py-2 text-sm"><b>{p.name}</b><p className="text-xs text-gray-500">{p.sku} · Alış {money(p.purchase_price)}</p></div>)}</div>:<p className="text-sm text-gray-500">{__t('Henüz ürün bağlantısı yok.')}</p>}</div><div><h3 className="font-semibold text-sm mb-2">{__t('Sipariş geçmişi')}</h3>{selectedSupplierDetail.orders?.length?<div className="max-h-72 overflow-auto">{selectedSupplierDetail.orders.map(o=><Link key={o.id} className="block border-b py-2 text-sm" to={'/purchase-orders?order='+o.id}><b className="break-all">{o.order_no}</b><p className="text-xs text-gray-500">{purchaseStatus[o.status]||o.status} · Alınan {o.received_quantity} · Kalan {o.remaining_quantity} · {money(o.total_amount)}</p></Link>)}</div>:<p className="text-sm text-gray-500">{__t('Henüz sipariş yok.')}</p>}</div></div>{!!selectedSupplierDetail.deliveries?.length&&<div><h3 className="font-semibold text-sm">{__t('Mal kabul geçmişi')}</h3><div className="max-h-72 overflow-auto">{selectedSupplierDetail.deliveries.map(i=><p key={i.id} className="text-sm border-b py-2">{i.product_name} · {i.waybill_no||i.receipt_no} · Alınan {i.received_qty}, iade {i.returned_qty} · Lot {i.lot_number||'Yok'} · {i.expiry_date||'Tarih yok'} · {i.location_code||'Rafsız'}</p>)}</div></div>}{canManage&&<SupplierReturnPanel key={selectedSupplierDetail.id} deliveries={selectedSupplierDetail.deliveries||[]} endpoint={'/suppliers/'+selectedSupplierDetail.id+'/returns'} onDone={async()=>{await handleViewDetail(selectedSupplierDetail);showToast('Tedarikçiye iade kaydedildi.','success');}}/>}{!!selectedSupplierDetail.returns?.length&&<div><h3 className="font-semibold text-sm">{__t('Tedarikçiye iade geçmişi')}</h3>{selectedSupplierDetail.returns.map(r=><p key={r.id} className="text-sm border-b py-2">{new Date(r.created_at).toLocaleString('tr-TR')} · {r.reason}</p>)}</div>}</section>}
 
       {/* Add / Edit Supplier Modal */}
       {showModal && (
@@ -299,11 +300,11 @@ export default function Suppliers() {
 
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs font-medium">
               <div>
-                <label className="block text-gray-500 mb-1">Tedarikçi Firma Adı</label>
+                <label className="block text-gray-500 mb-1">{__t('Tedarikçi Firma Adı')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Örn: Örnek Toptan Gıda A.Ş."
+                  placeholder={__t('Örn: Örnek Toptan Gıda A.Ş.')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-2.5 bg-gray-100 dark:bg-gray-100 border border-gray-200 border-gray-200 rounded-xl outline-none focus:border-indigo-500"
@@ -312,10 +313,10 @@ export default function Suppliers() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 mb-1">Yetkili / Temsilci</label>
+                  <label className="block text-gray-500 mb-1">{__t('Yetkili / Temsilci')}</label>
                   <input
                     type="text"
-                    placeholder="Ahmet Yılmaz"
+                    placeholder={__t('Ahmet Yılmaz')}
                     value={formData.contact_name}
                     onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
                     className="w-full p-2.5 bg-gray-100 dark:bg-gray-100 border border-gray-200 border-gray-200 rounded-xl outline-none focus:border-indigo-500"
@@ -323,7 +324,7 @@ export default function Suppliers() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 mb-1">Vergi No / VKN</label>
+                  <label className="block text-gray-500 mb-1">{__t('Vergi No / VKN')}</label>
                   <input
                     type="text"
                     placeholder="1234567890"
@@ -336,7 +337,7 @@ export default function Suppliers() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-500 mb-1">Telefon</label>
+                  <label className="block text-gray-500 mb-1">{__t('Telefon')}</label>
                   <input
                     type="text"
                     placeholder="0216 555 0000"
@@ -347,10 +348,10 @@ export default function Suppliers() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-500 mb-1">E-Posta</label>
+                  <label className="block text-gray-500 mb-1">{__t('E-Posta')}</label>
                   <input
                     type="email"
-                    placeholder="siparis@ornektoptan.com.tr"
+                    placeholder={__t('siparis@ornektoptan.com.tr')}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full p-2.5 bg-gray-100 dark:bg-gray-100 border border-gray-200 border-gray-200 rounded-xl outline-none focus:border-indigo-500"
@@ -359,7 +360,7 @@ export default function Suppliers() {
               </div>
 
               <div>
-                <label className="block text-gray-500 mb-1">Ortalama Temin Süresi (Gün)</label>
+                <label className="block text-gray-500 mb-1">{__t('Ortalama Temin Süresi (Gün)')}</label>
                 <input
                   type="number"
                   min="1"
@@ -369,7 +370,7 @@ export default function Suppliers() {
                 />
               </div>
 
-              <label className="block text-gray-500">Adres<textarea value={formData.address} onChange={e=>setFormData({...formData,address:e.target.value})} className="w-full p-2.5 border border-gray-200 rounded-xl"/></label>
+              <label className="block text-gray-500">{__t('Adres')}<textarea value={formData.address} onChange={e=>setFormData({...formData,address:e.target.value})} className="w-full p-2.5 border border-gray-200 rounded-xl"/></label>
 
               <div className="flex justify-end space-x-2 pt-3 border-t border-gray-200 border-gray-200">
                 <button
