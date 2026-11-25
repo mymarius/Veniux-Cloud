@@ -1,8 +1,20 @@
 {
-  "version": "2.4.116",
+  "version": "2.4.117",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.117",
+      "date": "25 Kasım 2026",
+      "title": "Online mağaza ödemelerinde ve N11 eşitlemesinde güvenlik ve doğruluk düzeltmeleri",
+      "items": [
+        "Kartla ödeme yapıp tarayıcıyı kapatan müşterinin siparişi, süre dolunca iyzico'ya sorulmadan iptal edilmez; para alınmışsa sipariş korunur",
+        "İyzico iptali gün sonundan sonra reddedilirse iade ikinci yolla denenir",
+        "N11 siparişlerinde tedarik edilemeyen paket iptal sayılır ve stok geri gelir; N11 stok güncelleme sonucu kontrol edilir",
+        "Pazaryeri stok sonucu sorgusu hata verirse sipariş eşitlemesi durmaz",
+        "İyzico yanıt imzası kontrolü (yalnız bilgi amaçlı sipariş notu) eklendi"
+      ]
+    },
     {
       "version": "2.4.116",
       "date": "25 Kasım 2026",
