@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MODELS, LineFramer, parseScaleLine } from '../../../shared/scaleProtocols.mjs';
+import { MODELS } from '../../../shared/scaleProtocols.mjs';
+import { openScalePort } from './scalePort.mjs';
 
 const KEY = 'veniux_scale';
 const readPrefs = () => {
@@ -27,34 +28,12 @@ export function useScale() {
   }, []);
 
   const open = useCallback(async (port, config) => {
-    const model = MODELS[config.model] || MODELS.generic;
-    let closed = false, reader, writer, timer;
-    const framer = new LineFramer(line => {
-      const parsed = parseScaleLine(config.model, line);
-      if (parsed) setFrame({ ...parsed, timestamp: Date.now() });
+    const handle = await openScalePort(port, config, {
+      onFrame: parsed => setFrame({ ...parsed, timestamp: Date.now() }),
+      onLost: lost => { resource.current = null; setFrame(null); setStatus('Terazi bağlı değil'); if (lost) setError('Terazi bağlantısı koptu. Kabloyu kontrol edip yeniden bağlayın.'); },
     });
-    const close = async () => {
-      closed = true; clearInterval(timer); framer.reset();
-      try { await reader?.cancel(); } catch { /* zaten kapalı */ }
-      try { writer?.releaseLock(); } catch { /* zaten kapalı */ }
-      try { await port.close(); } catch { /* zaten kapalı */ }
-    };
-    await port.open({ baudRate: config.baud, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
-    resource.current = { close };
+    resource.current = handle;
     setStatus('Terazi bağlı'); setError('');
-    if (model.request) {
-      writer = port.writable.getWriter();
-      const bytes = new TextEncoder().encode(model.request);
-      timer = setInterval(() => { writer.write(bytes).catch(() => {}); }, model.pollMs || 300);
-    }
-    reader = port.readable.getReader();
-    const decoder = new TextDecoder();
-    (async () => {
-      try {
-        while (!closed) { const { value, done } = await reader.read(); if (done) break; framer.feed(decoder.decode(value, { stream: true })); }
-      } catch { if (!closed) setError('Terazi bağlantısı koptu. Kabloyu kontrol edip yeniden bağlayın.'); }
-      finally { if (!closed) { await close(); resource.current = null; setFrame(null); setStatus('Terazi bağlı değil'); } }
-    })();
   }, []);
 
   const connect = useCallback(async () => {

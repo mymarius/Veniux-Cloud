@@ -23,8 +23,8 @@ $have = [
     ['limited', 'Müşteri ve fırsat takibi (hafif CRM)', 'Aday, fırsat, görev, şirket ve kişi kayıtları tutulur; işletmeye özel ve basit bir çalışma alanıdır. Gelişmiş CRM (otomasyon, e-posta entegrasyonu, raporlama) değildir.'],
     ['limited', 'Bulut kasası, internet kesilince', 'Nakit ve kart satış devam eder, bağlantı gelince satışlar kendiliğinden gönderilir. Kasa sayfasının önceden internetle açılmış olması gerekir; Chrome’da denendi. İndirim, iade, veresiye ve sadakat çevrimdışıyken kapalıdır.'],
     ['limited', 'Online mağaza', 'Ürünleri seçip tek adreste yayınlarsınız, siparişler stokla birlikte düşer. Kapıda ve mağazada ödeme vardır. Kartla ödeme için kendi iyzico hesabınız gerekir; bu bağlantı gerçek hesapla henüz denenmedi.'],
-    ['untested', 'Terazi', 'Terazi etiketindeki barkod bugün okunur. Kasada seri port üzerinden kablolu terazi bağlantısı Windows’ta 2.4.82 ile eklendi (CAS, Mettler Toledo, Dibal/Bizerba ve genel düz satır çıktı). Gerçek bir terazide denenmedi.'],
-    ['untested', 'Pazaryeri bağlantıları', 'Trendyol: sipariş, stok, iade ve hakediş çekme var, gerçek mağazada denenmedi. Hepsiburada ve N11: bağlantı altyapısı eklendi, gerçek mağazada denenmedi; bağlantı kapalı kaydedilir, siz açarsınız.'],
+    ['untested', 'Terazi', 'Terazi etiketindeki barkod bugün okunur. Kasada seri port üzerinden kablolu terazi bağlantısı Windows’ta 2.4.82 ile eklendi (CAS, Mettler Toledo, Dibal/Bizerba ve genel düz satır çıktı). Terazi simülatörleriyle ve sahte seri portla denendi (CAS, Toledo, Dibal ve genel model; kararlı/kararsız ağırlık, kablo çıkması, port kullanımda); gerçek bir terazide denenmedi.'],
+    ['untested', 'Pazaryeri bağlantıları', 'Trendyol: sipariş, stok, iade ve hakediş çekme var. Hepsiburada ve N11: bağlantı altyapısı var, bağlantı kapalı kaydedilir, siz açarsınız. Üçü de sahte sunucu yanıtlarıyla testlidir (stok bir kez düşer, iptalde geri gelir, hız sınırı, reddedilen anahtar); gerçek bir mağaza hesabıyla denenmedi.'],
 ];
 // Hazır olanlar önce, sonra sınırlı, en sonda denenmemişler; kendi içinde yazılış sırası korunur.
 $stateOrder = ['yes' => 0, 'limited' => 1, 'untested' => 2];
