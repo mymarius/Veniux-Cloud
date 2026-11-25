@@ -95,3 +95,11 @@ test('hatalı istekler reddedilir; başka işletme paketini şablonlayamaz', asy
   const stranger = await request(app).post(`/api/accounting-exports/${id}/template`).set(auth(other)).send({ ...good, mapping: { A: { field: 'urun' } } });
   expect(stranger.status).toBeGreaterThanOrEqual(400);
 });
+
+test('tarih ve sayı biçimi seçilebilir: GG.AA.YYYY, GG/AA/YYYY ve noktalı ondalık', async () => {
+  const id = await packageWithSale(owner, 'Süt', '2025-03-10');
+  const res = await post(id, { filename: 's.csv', data: csvTemplate(['T1', 'T2', 'T3', 'Tut'], ',').toString('base64'), mapping: { T1: { field: 'tarih', as: 'date_dmy' }, T2: { field: 'tarih', as: 'date_slash' }, T3: { field: 'tarih' }, Tut: { field: 'toplam', as: 'number_dot' } } });
+  expect(res.status).toBe(200);
+  const row = res.text.replace(/^\uFEFF/, '').trim().split(/\r?\n/)[1].split(',');
+  expect(row).toEqual(['10.03.2025', '10/03/2025', '2025-03-10', '120']);
+});

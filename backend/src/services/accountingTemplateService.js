@@ -80,7 +80,8 @@ function cleanMapping(mapping, templateHeaders, packageHeader) {
     if (typeof entry.field === 'string') {
       const at = packageHeader.indexOf(entry.field);
       if (at < 0) fail(`"${name}" için seçilen alan bu pakette yok: ${entry.field}`);
-      return out.push({ at, number: entry.as === 'number' });
+      const as = ['number', 'number_dot', 'date_dmy', 'date_slash'].includes(entry.as) ? entry.as : 'text';
+      return out.push({ at, as });
     }
     return out.push(null);
   });
@@ -100,12 +101,13 @@ function fill({ filename, buffer, mapping, content, headerRow }) {
     if (!entry) return { text: '' };
     if (entry.value !== undefined) return { text: entry.value };
     const raw = row[entry.at] ?? '';
-    if (entry.number) { const n = toNumber(raw); return n === null ? { text: unquote(raw) } : { number: n }; }
+    if (entry.as === 'number' || entry.as === 'number_dot') { const n = toNumber(raw); return n === null ? { text: unquote(raw) } : { number: n, dot: entry.as === 'number_dot' }; }
+    if (entry.as === 'date_dmy' || entry.as === 'date_slash') { const d = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw)); return d ? { text: entry.as === 'date_dmy' ? `${d[3]}.${d[2]}.${d[1]}` : `${d[3]}/${d[2]}/${d[1]}` } : { text: raw }; }
     return { text: raw };
   }));
   if (template.kind === 'csv') {
     const lines = [template.headers.map(name => csvCell(name, template.delimiter)).join(template.delimiter)];
-    for (const row of values) lines.push(row.map(cell => csvCell(cell.number !== undefined ? String(cell.number).replace('.', ',') : cell.text, template.delimiter)).join(template.delimiter));
+    for (const row of values) lines.push(row.map(cell => csvCell(cell.number !== undefined ? cell.dot ? String(cell.number) : String(cell.number).replace('.', ',') : cell.text, template.delimiter)).join(template.delimiter));
     return { name: 'veniux-sablon.csv', type: 'text/csv; charset=utf-8', content: Buffer.from('﻿' + lines.join('\r\n') + '\r\n', 'utf8') };
   }
   const sheet = template.workbook.Sheets[template.sheetName];

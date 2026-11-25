@@ -11,6 +11,9 @@ const FIELD_NAMES = {
   unvan: 'Ünvan', adres: 'Adres',
 };
 const NUMERIC = new Set(['miktar', 'kdv_haric', 'kdv_orani', 'kdv', 'toplam', 'tutar', 'alinan_miktar', 'birim_fiyat']);
+const DATES = new Set(['tarih', 'siparis_tarihi']);
+const FORMATS = { number: [['number', 'Sayı, virgüllü (1234,50)'], ['number_dot', 'Sayı, noktalı (1234.50)'], ['text', 'Metin']], date: [['text', 'Yıl-Ay-Gün (2026-11-25)'], ['date_dmy', 'Gün.Ay.Yıl (25.11.2026)'], ['date_slash', 'Gün/Ay/Yıl (25/11/2026)']] };
+const formatsFor = f => (NUMERIC.has(f) ? FORMATS.number : DATES.has(f) ? FORMATS.date : null);
 const storeKey = (name, type) => `veniux.accountingTemplate.${type}.${name}`;
 const read = key => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } };
 const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* hatırlama isteğe bağlı */ } };
@@ -39,7 +42,7 @@ export default function AccountingTemplate({ item, onClose }) {
   const setRow = (header, patch) => setRows(current => ({ ...current, [header]: { ...(current[header] || {}), ...patch } }));
   const mapping = () => Object.fromEntries(Object.entries(rows).map(([header, row]) => {
     if (row.kind === 'value') return [header, { value: row.value || '' }];
-    if (row.kind === 'field' && row.field) return [header, { field: row.field, as: row.number ? 'number' : undefined }];
+    if (row.kind === 'field' && row.field) return [header, { field: row.field, as: row.as || (NUMERIC.has(row.field) ? 'number' : undefined) }];
     return [header, null];
   }).filter(([, entry]) => entry));
   const download = async () => {
@@ -72,7 +75,7 @@ export default function AccountingTemplate({ item, onClose }) {
             const v = e.target.value;
             if (v === '__value') setRow(header, { kind: 'value', field: '', number: false });
             else if (!v) setRow(header, { kind: '', field: '' });
-            else setRow(header, { kind: 'field', field: v, number: NUMERIC.has(v) });
+            else setRow(header, { kind: 'field', field: v, as: NUMERIC.has(v) ? 'number' : 'text' });
           }}>
             <option value="">Boş bırak</option>
             {info.fields.map(f => <option key={f} value={f}>{FIELD_NAMES[f] || f}</option>)}
@@ -80,7 +83,7 @@ export default function AccountingTemplate({ item, onClose }) {
           </select>
           {rows[header]?.kind === 'value' && <input aria-label={`${header} sabit değeri`} value={rows[header]?.value || ''} maxLength={200} onChange={e => setRow(header, { value: e.target.value })} />}
         </span>
-        <label className="flex items-center gap-1 text-xs">{rows[header]?.kind === 'field' && <><input type="checkbox" checked={!!rows[header]?.number} onChange={e => setRow(header, { number: e.target.checked })} />Sayı</>}</label>
+        <span className="text-xs">{rows[header]?.kind === 'field' && formatsFor(rows[header].field) && <select aria-label={`${header} biçimi`} value={rows[header].as || formatsFor(rows[header].field)[0][0]} onChange={e => setRow(header, { as: e.target.value })}>{formatsFor(rows[header].field).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select>}</span>
       </div> : null)}</div>
       <button type="button" className="btn-primary" disabled={busy || !Object.keys(mapping()).length} onClick={download}>Doldurulmuş dosyayı indir</button>
     </div>}
