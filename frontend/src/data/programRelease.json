@@ -1,8 +1,18 @@
 {
-  "version": "2.4.115",
+  "version": "2.4.116",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.116",
+      "date": "25 Kasım 2026",
+      "title": "Çevrimdışı kasada ürün listesi yazımı güvenli hâle getirildi",
+      "items": [
+        "Çevrimdışı kasa için ürün listesi yazılırken hata olursa (ör. depolama dolarsa) eski liste artık korunur; yarım liste kalmaz",
+        "Çevrimdışı kasa depolaması ve sayfa önbelleği (çevrimdışı açılış) için otomatik testler eklendi",
+        "Sürüm öncesi denetim kapsamı genişletildi: çevrimdışı, çeviri ve terazi testleri de yayını denetler"
+      ]
+    },
     {
       "version": "2.4.115",
       "date": "25 Kasım 2026",
