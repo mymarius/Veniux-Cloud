@@ -88,3 +88,12 @@ test('port açılamazsa hata yukarı verilir (başka program kullanıyor)', asyn
   const port = fakePort(); port.open = async () => { throw new Error('busy'); };
   await assert.rejects(() => openScalePort(port, { model: 'cas', baud: 9600 }, {}), /busy/);
 });
+
+test('teşhis: ham satırlar ve okunup okunamadıkları bildirilir', async () => {
+  const port = fakePort(), seen = [];
+  const scale = await openScalePort(port, { model: 'cas', baud: 9600 }, { onFrame: () => {}, onLine: (line, parsed) => seen.push([line, !!parsed]) });
+  port.line('???'); port.line(formatScaleLine('cas', { weight: 1, stable: true }));
+  await wait(30);
+  assert.deepEqual(seen, [['???', false], ['ST,GS,   1.000 kg', true]]);
+  await scale.close();
+});

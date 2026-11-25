@@ -2,12 +2,13 @@ import { MODELS, LineFramer, parseScaleLine } from '../../../shared/scaleProtoco
 
 // Web Serial portunu açar, teraziyi okur. Tarayıcıya bağlı kısım (React durumu) useScale.js'te; bu dosya yalnız port mantığıdır,
 // bu yüzden sahte bir port ile (gerçek terazi olmadan) denenebilir.
-// onFrame({ weight, unit, stable }), onLost(): bağlantı beklenmedik koptuğunda. Döner: { close }.
-export async function openScalePort(port, config, { onFrame, onLost, setTimer = setInterval, clearTimer = clearInterval } = {}) {
+// onFrame({ weight, unit, stable }), onLine(ham satır, ayrıştırılmış ya da null): teşhis ekranı için, onLost(): bağlantı beklenmedik koptuğunda. Döner: { close }.
+export async function openScalePort(port, config, { onFrame, onLine, onLost, setTimer = setInterval, clearTimer = clearInterval } = {}) {
   const model = MODELS[config.model] || MODELS.generic;
   let closed = false, reader, writer, timer;
   const framer = new LineFramer(line => {
     const parsed = parseScaleLine(config.model, line);
+    onLine?.(line, parsed);
     if (parsed) onFrame?.(parsed);
   });
   const close = async () => {

@@ -14,6 +14,7 @@ const savePrefs = p => { try { localStorage.setItem(KEY, JSON.stringify(p)); } c
 export function useScale() {
   const [prefs, setPrefsState] = useState(readPrefs);
   const [frame, setFrame] = useState(null);
+  const [raw, setRaw] = useState([]);
   const [status, setStatus] = useState('Terazi bağlı değil');
   const [error, setError] = useState('');
   const resource = useRef(null);
@@ -30,6 +31,7 @@ export function useScale() {
   const open = useCallback(async (port, config) => {
     const handle = await openScalePort(port, config, {
       onFrame: parsed => setFrame({ ...parsed, timestamp: Date.now() }),
+      onLine: (line, parsed) => setRaw(old => [...old, { line: line.slice(0, 120), ok: !!parsed, at: Date.now() }].slice(-15)),
       onLost: lost => { resource.current = null; setFrame(null); setStatus('Terazi bağlı değil'); if (lost) setError('Terazi bağlantısı koptu. Kabloyu kontrol edip yeniden bağlayın.'); },
     });
     resource.current = handle;
@@ -52,5 +54,5 @@ export function useScale() {
   }, [supported, open]);
 
   const connected = status === 'Terazi bağlı';
-  return { supported, prefs, setPrefs, frame, status, connected, error, connect, disconnect };
+  return { supported, prefs, setPrefs, frame, raw, status, connected, error, connect, disconnect };
 }
