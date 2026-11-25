@@ -16,6 +16,7 @@ $have = [
     ['limited', 'Mağaza ile bulut eşitleme', 'Mağaza bilgisayarındaki satış, vardiya ve giderler buluta gider; bulut ürün ve fiyatı mağazaya iner. Gerçek bulut hesabıyla denendi, internet kesintisi ve yarım kalan gönderim senaryoları testlidir. Gerçek bir mağaza bilgisayarında uzun süre açık kalarak denenmedi.'],
     ['limited', 'Azerbaycanca arayüz', 'Menü, giriş, kasa, hızlı ürün ekleme ve toplu mal kabul Azerbaycancadır; kalan ekranlar Türkçedir. Çeviriler Azerbaycanlı biri tarafından okunmadı.'],
     ['untested', 'Android el terminali (Zebra DataWedge)', 'Donanım tarayıcısından okuma desteği eklendi; gerçek bir cihazda denenmedi.'],
+    ['limited', 'Muhasebe aktarım paketleri', 'Satış, tahsilat, iade, alış, stok hareketi ve cari kayıtları CSV olarak indirilir; hesap kodlarını siz tanımlarsınız, paket aynı kaydı iki kez içermez. Dosya genel biçimdedir: Logo, Mikro veya Paraşüt’ün kendi şablonuna birebir uyduğu bu programlarla denenmedi.'],
     ['yes', 'Yapay zekâ asistanı', 'Stok ve satış verileriniz hakkında Türkçe soru sorarsınız. Değişiklik gerektiren her işlem önce size gösterilir, siz onaylamadan uygulanmaz.'],
     ['yes', 'Otomatik yedekleme', 'Her gün şifreli yedek alınır; yedeğin ikinci bir kopyası harici diske yazılabilir. Ayrıntısı aşağıda.'],
     ['yes', 'Otomatik güncelleme', 'Yeni sürüm kendiliğinden indirilir. Ayrıntısı aşağıda.'],
@@ -33,7 +34,7 @@ $have = array_column($have, 1);
 $plan = [
     ['plan', 'Yazarkasa (yeni nesil ÖKC) entegrasyonu', 'Planlanıyor. Satışlarınız bugün yazarkasadan geçmez; yasal olarak yazarkasa gerekiyorsa mevcut yazarkasanızı kullanmaya devam edin.'],
     ['plan', 'e-Fatura, e-Arşiv ve e-İrsaliye', 'Planlanıyor. Bugün mükellef sorgulama vardır; gerçek belge gönderimi kapalıdır. Faturalarınızı mevcut yönteminizle kesmeye devam edin.'],
-    ['plan', 'Logo, Mikro ve Paraşüt’e doğrudan aktarım', 'Planlanıyor. CSV ve Excel aktarımı bugün vardır.'],
+    ['plan', 'Logo, Mikro ve Paraşüt’e doğrudan aktarım', 'Planlanıyor. Bu programlara bugün doğrudan bağlantı yoktur; muhasebe aktarım paketleri (CSV) ve Excel dosyaları indirilip programa elle yüklenir, bu programların kendi şablonlarıyla denenmedi.'],
     ['no', 'iPhone uygulaması', 'Yok. Telefon desteği Android içindir.'],
 ];
 $chips = ['yes' => ['Hazır', 'yes'], 'limited' => ['Sınırlı', 'limited'], 'untested' => ['Denenmedi', 'untested'], 'build' => ['Yapım aşamasında', 'build'], 'plan' => ['Planlanıyor', 'plan'], 'no' => ['Yok', 'no']];
