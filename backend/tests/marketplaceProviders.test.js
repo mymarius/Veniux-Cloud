@@ -5,7 +5,7 @@ const app = require('../src/index');
 const pool = require('../src/config/database');
 const { createTenant } = require('./factories/index');
 
-const fake = { hbOrders: [], n11Packages: [], headers: [], bodies: [], urls: [], reject: false, n11Task: null, n11TaskStatus: 200 };
+const fake = { hbOrders: [], hbCancelled: [], hbPaths: [], hbUpload: { status: 'Done', errors: [] },n11Packages: [], headers: [], bodies: [], urls: [], reject: false, n11Task: null, n11TaskStatus: 200 };
 let server, T, warehouseId, productId;
 const auth = r => r.set('Authorization', 'Bearer ' + T.token);
 beforeAll(async () => {
@@ -16,8 +16,11 @@ beforeAll(async () => {
       fake.headers.push(req.headers); fake.urls.push(req.url);
       const send = (code, body) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
       if (fake.reject) return send(401, {});
+      if (req.url.startsWith('/orders/merchantid/') && req.url.includes('/cancelled')) return send(200, { items: fake.hbCancelled });
       if (req.url.startsWith('/orders/merchantid/')) return send(200, { totalCount: fake.hbOrders.length, items: fake.hbOrders });
-      if (req.url.includes('/inventory-uploads')) { fake.bodies.push(JSON.parse(raw)); return send(200, { id: 'up-1' }); }
+      if (req.method === 'GET' && /-uploads\/id\//.test(req.url)) return send(200, fake.hbUpload);
+      if (req.url.includes('/stock-uploads')) { fake.bodies.push(JSON.parse(raw)); fake.hbPaths.push('stock'); return send(200, { id: 'st-1' }); }
+      if (req.url.includes('/inventory-uploads')) { fake.bodies.push(JSON.parse(raw)); fake.hbPaths.push('inventory'); return send(200, { id: 'up-1' }); }
       if (req.url.startsWith('/rest/delivery/v1/shipmentPackages')) return send(200, { totalPages: 1, totalElements: fake.n11Packages.length, content: fake.n11Packages });
       if (req.url.includes('/task-details/page-query')) { fake.bodies.push(JSON.parse(raw)); return send(fake.n11TaskStatus, fake.n11Task || {}); }
       if (req.url.includes('/price-stock-update')) { fake.bodies.push(JSON.parse(raw)); return send(200, { id: 'task-9' }); }
@@ -68,17 +71,53 @@ describe('Hepsiburada', () => {
   });
   test('sipariş stoktan düşer, tekrar çekilince çift düşmez, iptal stoğu geri verir; stok pazaryerine gider', async () => {
     const before = await stock();
-    fake.hbOrders = [{ orderNumber: 'HB1', status: 'Open', items: [{ merchantSku: 'PZ-111', quantity: 2 }] }];
+    // Belgeye göre ödemesi tamamlanmış liste düz kalem listesidir (items.id, items.sku, items.orderNumber, items.quantity).
+    fake.hbOrders = [{ id: 'line-1', orderNumber: 'HB1', status: 'Open', sku: 'HBV0000TEST', merchantSku: 'PZ-111', quantity: 2 }];
+    fake.hbPaths.length = 0;
     const first = await auth(request(app).post('/api/marketplace/hepsiburada/sync'));
     expect(first.status).toBe(200); expect(first.body.orders.deducted).toBe(1);
     expect(await stock()).toBe(before - 2);
     expect(first.body.stock_sent).toBeGreaterThan(0);
-    expect(fake.bodies.at(-1)[0]).toMatchObject({ merchantSku: 'PZ-111', availableStock: before - 2 });
+    // Yalnız stok: stock-uploads (fiyat zorunlu olan envanter ucu kullanılmaz).
+    expect(fake.hbPaths).toEqual(['stock']);
+    expect(fake.bodies.at(-1)[0]).toEqual({ merchantSku: 'PZ-111', availableStock: before - 2 });
     expect((await auth(request(app).post('/api/marketplace/hepsiburada/sync'))).body.orders.seen).toBe(1);
     expect(await stock()).toBe(before - 2);
-    fake.hbOrders = [{ orderNumber: 'HB1', status: 'Cancelled', items: [{ merchantSku: 'PZ-111', quantity: 2 }] }];
+    // İptal ayrı uçtan gelir (lineItemId); sipariş listesinden çıkması iptal sayılmaz.
+    fake.hbOrders = [];
+    fake.hbCancelled = [{ lineItemId: 'line-1', orderNumber: 'HB1', cancelledBy: 'Customer', merchantSku: 'PZ-111', sku: 'HBV0000TEST', quantity: 2 }];
     expect((await auth(request(app).post('/api/marketplace/hepsiburada/sync'))).body.orders.restored).toBe(1);
     expect(await stock()).toBe(before);
+    fake.hbCancelled = [];
+  });
+  test('yalnız HB SKU gelirse eşleşmeyen kalem incelemeye düşer, stok değişmez', async () => {
+    const before = await stock();
+    fake.hbOrders = [{ id: 'line-2', orderNumber: 'HB2', status: 'Open', sku: 'HBV0000YOK', quantity: 1 }];
+    const r = await auth(request(app).post('/api/marketplace/hepsiburada/sync'));
+    fake.hbOrders = [];
+    expect(r.body.orders.needs_review).toBe(1);
+    expect(await stock()).toBe(before);
+  });
+  test('stok yükleme sonucu sorgulanır: reddedilen satır uyarı olarak görünür, sorgu hatası eşitlemeyi durdurmaz', async () => {
+    const svc = require('../src/services/marketplaceProviders').providers.hepsiburada;
+    const connection = { seller_id: 'abcd1234-aaaa-bbbb-cccc-1234567890ab', last_batch_id: 'stock:st-1,inv:up-1' };
+    const api = (method, path) => { fake.urls.push(path); return Promise.resolve(fake.hbUpload); };
+    fake.hbUpload = { status: 'Done', errors: [] };
+    expect(await svc.checkBatch(connection, api)).toEqual({ done: true, problem: null });
+    fake.hbUpload = { status: 'Done', errors: [{ elementNo: 1, errors: ['ProductNotFound'] }] };
+    expect((await svc.checkBatch(connection, api)).problem).toContain('reddedildi');
+    fake.hbUpload = { status: 'Processing' };
+    expect(await svc.checkBatch(connection, api)).toEqual({ done: false });
+    fake.hbUpload = { status: 'Done', errors: [] };
+  });
+  test('fiyat da gidiyorsa envanter ucu fiyat ve stokla birlikte kullanılır', async () => {
+    const svc = require('../src/services/marketplaceProviders').providers.hepsiburada;
+    const calls = [];
+    const api = (method, path, body) => { calls.push([path, body]); return Promise.resolve({ id: 'x' + calls.length }); };
+    const id = await svc.pushStock({ seller_id: 'm1' }, api, [{ barcode: 'A', units: 3, cents: 1250, sendPrice: true }, { barcode: 'B', units: 0, cents: 100, sendPrice: false }]);
+    expect(calls[0][0]).toContain('/stock-uploads'); expect(calls[0][1]).toEqual([{ merchantSku: 'B', availableStock: 0 }]);
+    expect(calls[1][0]).toContain('/inventory-uploads'); expect(calls[1][1]).toEqual([{ merchantSku: 'A', availableStock: 3, price: 12.5 }]);
+    expect(id).toBe('stock:x1,inv:x2');
   });
 });
 

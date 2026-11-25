@@ -35,4 +35,5 @@ Test kanıtı: ilgili dosya adları `AUDIT.md` §3'te; tam çalıştırma çıkt
 ## Karar notları (kaynak: resmî belgeler, okuma tarihi 25 Kas 2026)
 - **Trendyol:** taban adres `https://apigw.trendyol.com/integration` (test: `stageapigw...`); sipariş `GET /order/sellers/{id}/orders`; stok `POST /inventory/sellers/{id}/products/price-and-inventory` (aynı istek 15 dakikada tekrarlanamaz, ≤1000 öğe); ekstre `/finance/che/...` (15 gün sınırı). 10 sn'de 50 istek sınırı (429). `User-Agent: <satıcıId> - SelfIntegration` zorunlu. Retry-After belgede yok.
 - **Test ortamı:** Trendyol stage için satıcı hesabı + IP izin listesi gerekiyor (Seller Center destek talebi).
-- **Hepsiburada / N11 / iyzico / Paraşüt / GİB:** bu turda resmî belge okunmadı; ilgili sprintte okunacak.
+- **Hepsiburada:** 25 Kas 2026'da developers.hepsiburada.com okundu (sipariş, listeleme, kimlik); özet `.local/docs-hepsiburada/OZET-25-Kasim-2026.md`. Kod belgeye göre düzeltildi (stock-uploads, düz kalem listesi, /cancelled ucu, yükleme sonucu sorgusu). Hâlâ MOCK_TESTED: gerçek yanıt biçimi, merchantSku'nun sipariş kaleminde gelip gelmediği ve tarih biçimi doğrulanmadı. Webhook modeli ve test süreci adımları okunmadı.
+- **N11 / iyzico:** `TEST_REPORT_MARKETPLACE_PAYMENT.md` içinde. **Paraşüt / GİB:** belge okunmadı.

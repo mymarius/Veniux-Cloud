@@ -109,25 +109,66 @@ const hepsiburada = {
     const data = await api('GET', `oms:/orders/merchantid/${encode(connection.seller_id)}?offset=0&limit=1`);
     return { ok: true, orders_visible: Number(data.totalCount ?? (data.items || []).length ?? 0) };
   },
-  async checkBatch() { return { done: true, problem: null }; },
+  // Yükleme kimlikleri "stock:<id>,inv:<id>" biçiminde saklanır. Sonuç: Status Done/Failed, errors dizisi
+  // (belge: Listing Envanter Güncelleme Sorgulama; stok sorgusu aynı desene göre, gerçek yanıtla doğrulanmadı).
+  async checkBatch(connection, api) {
+    const merchant = encode(connection.seller_id);
+    const problems = [];
+    for (const part of String(connection.last_batch_id || '').split(',')) {
+      const [kind, id] = part.split(':');
+      if (!id || !['stock', 'inv'].includes(kind)) continue;
+      const result = await api('GET', `lst:/listings/merchantid/${merchant}/${kind === 'stock' ? 'stock' : 'inventory'}-uploads/id/${encode(id)}`);
+      const status = String(result.status || '');
+      if (!/^(done|failed)$/i.test(status)) return { done: false };
+      const errors = Array.isArray(result.errors) ? result.errors : [];
+      if (/failed/i.test(status) || errors.length) problems.push(errors.length ? `${errors.length} ürün reddedildi` : 'işlem başarısız');
+    }
+    return { done: true, problem: problems.length ? `Hepsiburada stok gönderimi: ${problems.join('; ')}.` : null };
+  },
+  // Belge: "Ödemesi Tamamlanmış Siparişleri Listeleme" düz kalem listesi döndürür (items.id, items.sku = HB SKU, items.orderNumber,
+  // items.quantity, items.status Open/Unpacked). İptal edilen kalemler ayrı uçtan gelir (/cancelled: lineItemId, merchantSku, quantity).
+  // Her kalem tek bir "paket" sayılır; kalem kimliği kalıcıdır, aynı kalem tekrar gelirse çift düşülmez.
   async orders(connection, api, start, end) {
-    const out = [];
+    const out = [], merchant = encode(connection.seller_id);
+    const range = `begindate=${encode(hbDate(start))}&enddate=${encode(hbDate(end))}`;
     for (let offset = 0; offset < 50 * this.pageSize; offset += this.pageSize) {
-      const data = await api('GET', `oms:/orders/merchantid/${encode(connection.seller_id)}?offset=${offset}&limit=${this.pageSize}&begindate=${encode(hbDate(start))}&enddate=${encode(hbDate(end))}`);
-      const list = data.items || data.content || [];
-      for (const order of list) {
-        const status = String(order.status || 'Open');
-        const lines = (order.items || order.lines || []).map(line => ({ barcode: line.merchantSku || line.hepsiburadaSku || line.sku, quantity: line.quantity }));
-        out.push({ id: String(order.orderNumber ?? order.id ?? ''), orderNumber: order.orderNumber == null ? null : String(order.orderNumber), status, cancelled: /cancel/i.test(status), lines });
+      const data = await api('GET', `oms:/orders/merchantid/${merchant}?offset=${offset}&limit=${this.pageSize}&${range}`);
+      const list = Array.isArray(data) ? data : data.items || data.content || [];
+      for (const item of list) {
+        const id = String(item.id ?? item.lineItemId ?? '');
+        if (!id) continue;
+        // merchantSku bu uçta belgelenmemiş; yoksa HB SKU kullanılır ve eşleşmezse sipariş incelemeye düşer (stok değişmez).
+        out.push({ id, orderNumber: item.orderNumber == null ? null : String(item.orderNumber), status: String(item.status || 'Open'), cancelled: false, lines: [{ barcode: item.merchantSku || item.sku, quantity: item.quantity }] });
       }
       if (list.length < this.pageSize) break;
+    }
+    const cancelPage = 50;
+    for (let offset = 0; offset < 50 * cancelPage; offset += cancelPage) {
+      const data = await api('GET', `oms:/orders/merchantid/${merchant}/cancelled?offset=${offset}&limit=${cancelPage}&${range}`);
+      const list = Array.isArray(data) ? data : data.items || data.content || [];
+      for (const item of list) {
+        const id = String(item.lineItemId ?? item.id ?? '');
+        if (!id) continue;
+        out.push({ id, orderNumber: item.orderNumber == null ? null : String(item.orderNumber), status: `Cancelled${item.cancelledBy ? 'By' + item.cancelledBy : ''}`, cancelled: true, lines: [] });
+      }
+      if (list.length < cancelPage) break;
     }
     return out;
   },
   async claims() { return []; },
+  // Yalnız stok: stock-uploads. Fiyat da gidecekse envanter yüklemesi (price ve availableStock birlikte zorunlu). Belge: en çok 4000 satır.
   async pushStock(connection, api, part) {
-    const data = await api('POST', `lst:/listings/merchantid/${encode(connection.seller_id)}/inventory-uploads`, part.map(row => ({ merchantSku: row.barcode, availableStock: row.units, ...(row.sendPrice ? { price: row.cents / 100 } : {}) })));
-    return data && data.id ? String(data.id) : null;
+    const merchant = encode(connection.seller_id), ids = [];
+    const stockOnly = part.filter(row => !row.sendPrice), priced = part.filter(row => row.sendPrice);
+    if (stockOnly.length) {
+      const data = await api('POST', `lst:/listings/merchantid/${merchant}/stock-uploads`, stockOnly.map(row => ({ merchantSku: row.barcode, availableStock: row.units })));
+      if (data && data.id) ids.push(`stock:${data.id}`);
+    }
+    if (priced.length) {
+      const data = await api('POST', `lst:/listings/merchantid/${merchant}/inventory-uploads`, priced.map(row => ({ merchantSku: row.barcode, availableStock: row.units, price: row.cents / 100 })));
+      if (data && data.id) ids.push(`inv:${data.id}`);
+    }
+    return ids.length ? ids.join(',') : null;
   }
 };
 
