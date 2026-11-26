@@ -5,6 +5,12 @@ $sdkRoot=Join-Path $projectRoot '.local/android-sdk'
 $toolsRoot=Join-Path $sdkRoot 'build-tools/android-15'
 $platformJar=Join-Path $sdkRoot 'platform/android-35/android.jar'
 $javaRoot='C:/Program Files/Java/jdk-17'
+# Java güncellemesi klasör adını değiştirebilir (jdk-17.0.x): kurulu en yeni JDK 17 kullanılır.
+if(-not (Test-Path "$javaRoot/bin/javac.exe")){
+ $found=Get-ChildItem 'C:/Program Files/Java' -Directory -Filter 'jdk-17*' -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.FullName)/bin/javac.exe" } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+ if(-not $found){ throw 'JDK 17 bulunamadı (C:/Program Files/Java altında jdk-17* yok).' }
+ $javaRoot=$found.FullName -replace '\\','/'
+}
 $androidManifest=[xml](Get-Content -Raw -Encoding UTF8 -LiteralPath "$AndroidDir/AndroidManifest.xml")
 $releaseVersion=$androidManifest.manifest.GetAttribute('versionName','http://schemas.android.com/apk/res/android')
 $releaseCode=[int]$androidManifest.manifest.GetAttribute('versionCode','http://schemas.android.com/apk/res/android')
