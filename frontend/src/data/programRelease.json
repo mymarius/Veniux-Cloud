@@ -1,8 +1,19 @@
 {
-  "version": "2.4.118",
+  "version": "2.4.119",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.119",
+      "date": "26 Kasım 2026",
+      "title": "Çevrimdışı satış gönderimi ve eşitleme güvenilirliği düzeltmeleri",
+      "items": [
+        "Çevrimdışıyken kapatılıp açılan kasada bekleyen satışlar, bağlantı gelince artık kendiliğinden gönderiliyor",
+        "Tarayıcı depolaması dolu veya bozuk olsa da kasa sayfası sunucudan açılır",
+        "Mağaza–bulut eşitlemesinde otomatik ve elle gönderim çakışınca aynı kayıt iki kez gönderilmez, aynı ürün iki kez eklenmez",
+        "Mağazada yoğun rapor veya toplu işlem sırasında kasa satışları istek sınırına takılmaz"
+      ]
+    },
     {
       "version": "2.4.118",
       "date": "25 Kasım 2026",
