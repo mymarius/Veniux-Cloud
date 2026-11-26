@@ -17,3 +17,17 @@ Kurallar: çalışan sistemi yeniden yazma, production verisine dokunma, gerçek
 ## Bu turda yapılan (Sprint 1 başlangıcı)
 - `docs/release-2027-01-01/` altında 8 belge.
 - `.github/workflows/ci.yml`: backend lint, backend jest, frontend/shared testleri, frontend build, `npm audit` (yüksek ve kritik).
+
+## Bayi Portalı ve çok şubeli kasa (26 Kasım 2026'da plana eklendi)
+Temel: mevcut "Saha ve bayi" bölümü (davetle bayi, sipariş, yönetici onayı, saha ziyareti; yalnız koddan görüldü, ekranda denenmedi). Başka firmaların adı veya tasarımı kullanılmaz.
+
+| Sıra | İş | Büyüklük | Hedef | Durum |
+|---|---|---|---|---|
+| 1 | Mevcut "Saha ve bayi" ekranını çalıştırıp denemek, hataları düzeltmek; onaylanan siparişin nerede bittiğini saptamak | Küçük | 27 Kas | Bekliyor |
+| 2 | Duyuru ve haber ekranı (yönetici yazar, bayi okur) | Küçük | 27 Kas | Bekliyor |
+| 3 | Bayinin kendi başvurusu ve yönetici onayı (istek sınırı, kötüye kullanım koruması) | Küçük–orta | 27 Kas | Bekliyor |
+| 4 | Onaylanan siparişi stok, sevkiyat ve cari hesaba bağlamak | 1. maddeden sonra belli olur | Pazar sonrası (Aralık) | Bekliyor |
+| 5 | Başvuru evrakı yükleme (şifreli/yetkili saklama, silme süresi, KVKK metni) | Orta | Pazar sonrası (Aralık); metin avukat incelemesi ister | Bekliyor |
+| 6 | Çok şubeli kullanım denemesi: çok mağazalı eşitleme yükü, MySQL ile | Orta | Pazar sonrası (Aralık) | Bekliyor |
+
+Dış engelli, söz verilmeyecek: yeni nesil ÖKC (üretici SDK ve onayı), belirli bir ERP ile canlı entegrasyon (ERP adı ve teknik belgesi gerekir). Mali fişin ayrı yazarkasadan kesildiği kullanım biçimi satıştan önce mali müşavire sorulacak.
