@@ -1,4 +1,7 @@
 const {clientAddress}=require('./apiThrottle');
+// Kasa uçları ayrı sayılır: aynı mağaza IP'sinden rapor, eşitleme ve toplu işlemler yoğun olsa da satış 429 almaz.
+// Sınır kaldırılmaz; kasa sayacının üst sınırı genel sayaçla aynıdır.
+const POS_PATH=/^\/api\/scanner\/(?:sale|sale-quote|sale-status|lookup|search)(?:\/|$)/i;
 function createFirewall({limit=6000,burst=600,clock=Date.now}={}){
  const clients=new Map();
  return (req,res,next)=>{
@@ -15,9 +18,10 @@ function createFirewall({limit=6000,burst=600,clock=Date.now}={}){
   const ip=clientAddress({socket:req.socket,headers:req.headers||{}});
   const now=clock(),minute=Math.floor(now/60000),tick=Math.floor(now/10000);
   for(const [key,v] of clients)if(v.expires<now)clients.delete(key);
-  if(!clients.has(ip)&&clients.size>=4096)clients.delete(clients.keys().next().value);
-  const old=clients.get(ip)||{},count=old.minute===minute?old.count+1:1,quick=old.tick===tick?old.quick+1:1;
-  clients.set(ip,{minute,tick,count:Math.min(count,limit+1),quick:Math.min(quick,burst+1),expires:now+70000});
+  const slot=POS_PATH.test(path)?ip+'|pos':ip;
+  if(!clients.has(slot)&&clients.size>=4096)clients.delete(clients.keys().next().value);
+  const old=clients.get(slot)||{},count=old.minute===minute?old.count+1:1,quick=old.tick===tick?old.quick+1:1;
+  clients.set(slot,{minute,tick,count:Math.min(count,limit+1),quick:Math.min(quick,burst+1),expires:now+70000});
   if(count>limit||quick>burst)return deny(429,'REQUEST_RATE');
   next();
  };

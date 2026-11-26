@@ -31,3 +31,12 @@ test('vekil arkasında her istemcinin kotası ayrıdır; başlığı değiştire
  // doğrudan bağlantıda başlığa güvenilmez
  expect(run('198.51.100.9',['1.1.1.1','2.2.2.2','3.3.3.3'],()=>1000)).toEqual([200,200,429]);
 });
+
+test('kasa satış uçları genel sayaçtan ayrıdır; ikisi de kendi sınırında durur',async()=>{
+ const server=app({limit:2,burst:2,clock:()=>1000});
+ const get=path=>request(server).get(path).then(r=>r.status);
+ expect([await get('/api/products'),await get('/api/products'),await get('/api/products')]).toEqual([200,200,429]);
+ expect([await get('/api/scanner/sale'),await get('/API/Scanner/lookup/123'),await get('/api/scanner/search?q=a')]).toEqual([200,200,429]);
+ // benzer adlı başka uç kasa sayacını kullanamaz
+ expect(await get('/api/scanner/sales-report')).toBe(429);
+});
