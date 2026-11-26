@@ -25,6 +25,7 @@ $pages = [
  '/lot-miat-takibi' => ['title'=>'Lot ve Son Kullanma Tarihi Takibi | Veniux','description'=>'Ürünleri parti ve son kullanma tarihiyle takip edin, yaklaşan tarihleri görün, lot ayrıntısına ulaşın. Veniux lot ve miat takibi.','label'=>'LOT VE MİAT TAKİBİ','headline'=>'Tarihi geçen mal rafta kalmasın.','intro'=>'Aynı ürünün partilerini ayrı izleyin, yaklaşan son kullanma tarihlerini zamanında görün.'],
  '/market-pos' => ['title'=>'Market Kasa Programı ve POS Satış Sistemi | Veniux','description'=>'Barkodlu satış, nakit, kart ve parçalı ödeme, vardiya, gün sonu ve iade. Kasadan yapılan satış stoktan anında düşer. Veniux market kasa programı.','label'=>'Market ve POS','headline'=>'Barkod okundu, stok düştü.','intro'=>'Kasiyer için hızlı, yönetici için kayıtlı. Vardiya, gün sonu ve iade aynı ekranda.'],
  '/yapay-zeka' => ['title'=>'Yapay Zekâ Destekli Operasyon Asistanı | Veniux','description'=>'Stok ve satış verileriniz hakkında soru sorun, önerilen işlemleri onaylayarak uygulayın. Değişiklikler onayınız olmadan yapılmaz.','label'=>'Operasyon asistanı','headline'=>'Kayıtlarınıza soru sorun.','intro'=>'Asistan stok, satın alma ve depo kayıtlarınızı özetler. Önerdiği işlemi ancak siz onaylarsanız yapar.'],
+ '/ozel-yazilim' => ['title'=>'Özel Yazılım: Web Sitesi, Web ve Mobil Uygulama | Veniux','description'=>'Küçük işletmeler için web sitesi, küçük web ve mobil uygulama. Yazılı teklif, ara gösterimler ve almadığımız işler açıkça yazılı.','label'=>'ÖZEL YAZILIM'],
  '/bilgilendirme' => ['title'=>'Veniux Hakkında Her Şey | Neler Var, Neler Yok, Nasıl Çalışır','description'=>'Veniux’un bugün ne yaptığı, neyi henüz yapmadığı, kurulum, yedekleme, güncelleme ve destek. Her özelliğin durumu açıkça yazılı.','label'=>'BİLGİLENDİRME'],
  '/demo' => ['title'=>'Veniux Demo | Stok ve Kasa Programını Deneyin','description'=>'Veniux ekosistemini birebir canlı demo görüşmesi ile işletmenizin süreçlerinde keşfedin.','label'=>'DEMO TALEP ET','headline'=>'Programı kendi işinizle görün.','intro'=>'Depo sayınızı ve ne aradığınızı yazın, Veniux’u sizin işinize göre gösterelim.']
 ];
@@ -220,7 +221,7 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <link rel="icon" type="image/webp" href="/assets/logo-40-v1.webp">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f4eee2">
-    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||$path==="/stok-programlari-karsilastirma"||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu","/bilgilendirme"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
+    <?php $vsOwn=$path==="/"||isset($topics[$path])||isset($growthPages[$path])||isset($sectorPages[$path])||isset($legalPages[$path])||$path==="/stok-programlari-karsilastirma"||in_array($path,["/program-indir","/fiyatlandirma","/surum-arsivi","/guncelleme-notlari","/sunucu-kurulumu","/bilgilendirme","/ozel-yazilim"],true); if(!$vsOwn):?><link rel="stylesheet" href="/assets/<?=e($assetManifest[$assetGroup])?>"><?php endif;?>
     <link rel="stylesheet" href="/assets/veniux-site.css"><link rel="stylesheet" href="/assets/cookie-consent.css">
     <link rel="preload" href="/assets/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/home.css?v=20261124a"><link rel="stylesheet" href="/assets/nav.css?v=20261123a"><script src="/assets/nav.js?v=20261117c" defer></script><script src="/assets/home.js?v=20261124a" defer></script><script src="/assets/chat.js?v=20261113e" defer></script>
     <script type="application/ld+json" nonce="<?=e($nonce)?>"><?=json_encode($schema, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?></script>
@@ -249,6 +250,8 @@ $schema=siteSeoGraph($config,$page,$path,$notFound);
     <?php require __DIR__."/release-notes-view.php"; ?>
 <?php elseif($path==="/bilgilendirme"): ?>
     <?php require __DIR__."/info-view.php"; ?>
+<?php elseif($path==="/ozel-yazilim"): ?>
+    <?php require __DIR__."/custom-software-view.php"; ?>
 <?php elseif($path==="/sunucu-kurulumu"): ?>
     <?php require __DIR__."/hosting-guide.php"; ?>
 <?php elseif($path==="/stok-programlari-karsilastirma"): ?>

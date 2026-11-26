@@ -39,7 +39,7 @@ Veniux ürününden ayrı, insan emeğiyle verilen hizmettir; Veniux işini aksa
 |---|---|---|---|
 | 1 | Hizmet kapsamını yazmak: alınan ve alınmayan işler | Aralık | Bekliyor |
 | 2 | Teklif şablonu: kapsam, teslim tarihi, ödeme aşamaları, değişiklik talebi, bakım süresi, kaynak kod ve alan adı sahipliği, kişisel veri sorumluluğu | Aralık | Bekliyor |
-| 3 | veniux.com'a "Özel yazılım" sayfası ve iletişim yolu (olmayan referans ya da ortaklık yazılmaz) | Aralık | Bekliyor |
+| 3 | veniux.com'a "Özel yazılım" sayfası ve iletişim yolu (olmayan referans ya da ortaklık yazılmaz) | 26 Kas | Yazıldı, yerelde denendi; Azerbaycanca metni yok |
 | 4 | Gerçek işlerden örnek çalışma bölümü (müşteri izniyle) | İlk işten sonra | Bekliyor |
 
 Ücretli iş ve fatura için şirket kuruluşu (1 Ocak 2027) beklenir ya da mali müşavire sorulur; sözleşme metni avukata gösterilir.
