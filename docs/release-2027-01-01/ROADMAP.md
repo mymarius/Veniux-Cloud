@@ -31,3 +31,15 @@ Temel: mevcut "Saha ve bayi" bölümü (davetle bayi, sipariş, yönetici onayı
 | 6 | Çok şubeli kullanım denemesi: çok mağazalı eşitleme yükü, MySQL ile | Orta | Pazar sonrası (Aralık) | Bekliyor |
 
 Dış engelli, söz verilmeyecek: yeni nesil ÖKC (üretici SDK ve onayı), belirli bir ERP ile canlı entegrasyon (ERP adı ve teknik belgesi gerekir). Mali fişin ayrı yazarkasadan kesildiği kullanım biçimi satıştan önce mali müşavire sorulacak.
+
+## Ek hizmet: özel yazılım (web sitesi, küçük web veya mobil uygulama) (26 Kasım 2026'da plana eklendi)
+Veniux ürününden ayrı, insan emeğiyle verilen hizmettir; Veniux işini aksatmayacak büyüklükte işler alınır.
+
+| Sıra | İş | Hedef | Durum |
+|---|---|---|---|
+| 1 | Hizmet kapsamını yazmak: alınan ve alınmayan işler | Aralık | Bekliyor |
+| 2 | Teklif şablonu: kapsam, teslim tarihi, ödeme aşamaları, değişiklik talebi, bakım süresi, kaynak kod ve alan adı sahipliği, kişisel veri sorumluluğu | Aralık | Bekliyor |
+| 3 | veniux.com'a "Özel yazılım" sayfası ve iletişim yolu (olmayan referans ya da ortaklık yazılmaz) | Aralık | Bekliyor |
+| 4 | Gerçek işlerden örnek çalışma bölümü (müşteri izniyle) | İlk işten sonra | Bekliyor |
+
+Ücretli iş ve fatura için şirket kuruluşu (1 Ocak 2027) beklenir ya da mali müşavire sorulur; sözleşme metni avukata gösterilir.
