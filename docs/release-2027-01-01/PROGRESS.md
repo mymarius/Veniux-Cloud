@@ -41,6 +41,11 @@ Son güncelleme: 25 Kasım 2026 (Sprint 1 başlangıcı). Her çalışma sonunda
 | CRM | IMPLEMENTED_UNTESTED | evet | sınırlı | — | — | CRUD/yetki testleri |
 | Azerbaycanca | IMPLEMENTED_UNTESTED | kısmi | 7 | geçti | canlı gözle bakıldı | yerli okuyucu, sunucu mesajları |
 
+## 26 Kasım: eşitleme senaryoları
+- `storeSyncScenarios.test.js` (6): yarıda kapanma sonrası devam, iki mağaza aynı barkod, satış sırasında bulut fiyatı değişimi, yerel fiyat/bulut kazanır, çakışan gönderim, çakışan ürün çekme. Hepsi sahte ağ + SQLite ile; gerçek mağaza ve MySQL değil.
+- **Bulunan ve düzeltilen:** aynı mağaza için iki gönderim/ürün çekme aynı anda çalışabiliyordu (aynı satışlar iki kez yollanıyordu). Artık mağaza başına tek iş çalışır.
+- Bilinen davranış: yerelde elle değiştirilen fiyat, bulutta o ürün değişene kadar korunur.
+
 ## Yük sonuçları (ortam: Windows 10, tek makine, SQLite, sahte ağ)
 | Satış | Oluşturma | Eşitleme | Bellek (RSS) | Sonuç |
 |---|---|---|---|---|
