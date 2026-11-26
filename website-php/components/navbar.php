@@ -13,7 +13,7 @@ $navProduct=[
 ];
 $navSectorNames=['/market-stok-ve-kasa-programi'=>'Market','/kirtasiye-stok-programi'=>'Kırtasiye','/hirdavat-stok-programi'=>'Hırdavat','/kafe-hizli-satis-programi'=>'Kafe','/zuccaciye-barkod-programi'=>'Züccaciye','/pide-restoran-programi'=>'Pide ve restoran'];
 $navSectors=array_filter($navSectorNames,fn($route)=>isset($sectorPages[$route]),ARRAY_FILTER_USE_KEY);
-$navInfo=[['/bilgilendirme','Her şeyin durumu'],['/sunucu-kurulumu','Kurulum seçenekleri'],['/ozel-yazilim','Özel yazılım'],['/guncelleme-notlari','Güncelleme notları'],['/surum-arsivi','Sürüm arşivi'],['/stok-programlari-karsilastirma','Program seçerken']];
+$navInfo=[['/bilgilendirme','Her şeyin durumu'],['/sunucu-kurulumu','Kurulum seçenekleri'],['/web-sitesi','Web sitesi hizmeti'],['/guncelleme-notlari','Güncelleme notları'],['/surum-arsivi','Sürüm arşivi'],['/stok-programlari-karsilastirma','Program seçerken']];
 $navSolutionActive=in_array($path,array_merge(array_column($navProduct,0),array_keys($navSectors)),true);
 ?>
 <header class="vs-header" data-nav>

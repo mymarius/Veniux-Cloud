@@ -32,14 +32,14 @@ Temel: mevcut "Saha ve bayi" bölümü (davetle bayi, sipariş, yönetici onayı
 
 Dış engelli, söz verilmeyecek: yeni nesil ÖKC (üretici SDK ve onayı), belirli bir ERP ile canlı entegrasyon (ERP adı ve teknik belgesi gerekir). Mali fişin ayrı yazarkasadan kesildiği kullanım biçimi satıştan önce mali müşavire sorulacak.
 
-## Ek hizmet: özel yazılım (web sitesi, küçük web veya mobil uygulama) (26 Kasım 2026'da plana eklendi)
-Veniux ürününden ayrı, insan emeğiyle verilen hizmettir; Veniux işini aksatmayacak büyüklükte işler alınır.
+## Ek hizmet: küçük işletme web sitesi (26 Kasım 2026; web ve mobil uygulama işi kapsamdan çıkarıldı)
+Veniux ürününden ayrı, insan emeğiyle verilen hizmettir. Yalnız iki paket: tanıtım sitesi (tek sayfa) ve işletme sitesi (en fazla 5 sayfa). E-ticaret, üyelik ve uygulama işi alınmaz.
 
 | Sıra | İş | Hedef | Durum |
 |---|---|---|---|
-| 1 | Hizmet kapsamını yazmak: alınan ve alınmayan işler | Aralık | Bekliyor |
-| 2 | Teklif şablonu: kapsam, teslim tarihi, ödeme aşamaları, değişiklik talebi, bakım süresi, kaynak kod ve alan adı sahipliği, kişisel veri sorumluluğu | Aralık | Bekliyor |
-| 3 | veniux.com'a "Özel yazılım" sayfası ve iletişim yolu (olmayan referans ya da ortaklık yazılmaz) | 26 Kas | Yazıldı, yerelde denendi; Azerbaycanca metni yok |
-| 4 | Gerçek işlerden örnek çalışma bölümü (müşteri izniyle) | İlk işten sonra | Bekliyor |
+| 1 | Paket kapsamı | 26 Kas | Sayfada yazılı |
+| 2 | Teklif şablonu: kapsam, teslim tarihi, ödeme aşamaları, değişiklik talebi, bakım, dosya ve alan adı sahipliği, kişisel veri sorumluluğu | Aralık | Bekliyor |
+| 3 | veniux.com/web-sitesi sayfası | 26 Kas | Yazıldı; Azerbaycanca metni yok |
+| 4 | İlk 2–3 işte harcanan saati not edip "şu fiyattan başlar" eklemek; müşteri izniyle örnek çalışma | İlk işlerden sonra | Bekliyor |
 
 Ücretli iş ve fatura için şirket kuruluşu (1 Ocak 2027) beklenir ya da mali müşavire sorulur; sözleşme metni avukata gösterilir.
