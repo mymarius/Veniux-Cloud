@@ -12,15 +12,23 @@ $csUrl = whatsappUrl('Merhaba, web sitesi hizmeti hakkında görüşmek istiyoru
   </div>
 </section>
 
-<section class="ho-steps-sec" id="paketler">
-  <div class="hx-wrap">
-    <h2>Paketler</h2>
-    <ol class="ho-steps">
-      <li><h3>Tanıtım sitesi</h3><p>Tek sayfa. WhatsApp ve iletişim bilgileri, telefona uyumlu görünüm. 1 tur düzeltme. <b>Fiyat için teklif alın.</b></p></li>
-      <li><h3>İşletme sitesi</h3><p>En fazla 5 sayfa. İletişim formu, temel arama motoru ayarları, telefona uyumlu görünüm. 2 tur düzeltme. <b>Fiyat için teklif alın.</b></p></li>
-    </ol>
-    <p>İki pakette de alan adı ve hosting ücreti ile logo tasarımı dahil değildir. Metin ve fotoğrafları siz verirsiniz. Teslimden sonraki bakım ayrıca konuşulur.</p>
+<section class="pr-rack" id="paketler" aria-label="Paketler">
+  <div class="hx-wrap pr-tags pr-two">
+<?php foreach([
+    ['01','Tanıtım sitesi','İnternette görünmek isteyen işletmeler için.',false,['Tek sayfa','WhatsApp ve iletişim bilgileri','Telefona uyumlu görünüm','1 tur düzeltme']],
+    ['02','İşletme sitesi','Hizmetini ve ürününü anlatmak isteyenler için.',true,['En fazla 5 sayfa','İletişim formu','Temel arama motoru ayarları','Telefona uyumlu görünüm','2 tur düzeltme']],
+] as [$no,$name,$for,$dark,$items]):?>
+    <article class="pr-tag"<?=$dark?' data-featured':''?>>
+      <div class="pr-tag-top"><span>VENİUX · WEB <?=$no?></span><span>PAKET</span></div>
+      <h2><?=e($name)?></h2>
+      <p class="pr-for"><?=e($for)?></p>
+      <div class="pr-price"><span>Teklif alın</span></div>
+      <ul><?php foreach($items as $item):?><li><?=e($item)?></li><?php endforeach;?></ul>
+      <div><a class="hx-btn" href="<?=e(whatsappUrl('Merhaba, '.$name.' paketi için teklif almak istiyorum.'))?>" target="_blank" rel="noopener noreferrer"><?=e($name)?> için yazın</a></div>
+    </article>
+<?php endforeach;?>
   </div>
+  <p class="hx-wrap pr-terms">İki pakette de alan adı ve hosting ücreti ile logo tasarımı dahil değildir. Metin ve fotoğrafları siz verirsiniz. Teslimden sonraki bakım ayrıca konuşulur.</p>
 </section>
 
 <section class="ho-steps-sec" id="surec">
