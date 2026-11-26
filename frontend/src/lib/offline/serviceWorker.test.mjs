@@ -157,3 +157,14 @@ test('bildirim hedefi: başka siteye yönlendirme yapılamaz; gövde ve başlık
   assert.equal(message.body.length, 240);
   assert.equal(message.url, '/m');
 });
+
+test('önbelleğe yazılamazsa (disk dolu, bozuk depolama) sayfa ve dosyalar yine sunucudan gelir', async () => {
+  const { sw, state, caches } = boot();
+  const open = caches.open;
+  caches.open = async name => ({ ...(await open(name)), put: async () => { throw new Error('QuotaExceededError'); } });
+  state.responder = () => res('<html>kasa</html>', { contentType: 'text/html' });
+  assert.equal(await (await sw.handlers.navigate(req('/magaza/kasa', { mode: 'navigate' }))).text(), '<html>kasa</html>');
+  state.responder = () => res('js');
+  assert.equal(await (await sw.handlers['asset-immutable'](req('/assets/a-1.js'))).text(), 'js');
+  assert.equal(await (await sw.handlers['asset-fresh'](req('/pwa-192.png'))).text(), 'js');
+});

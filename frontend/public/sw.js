@@ -24,6 +24,8 @@ async function hasBody(response) { try { return (await response.clone().arrayBuf
 const isHtml = response => /text\/html/i.test(response.headers.get('content-type') || '');
 const withTimeout = (promise, ms) => new Promise((resolve, reject) => { const t = setTimeout(() => reject(new Error('zaman aşımı')), ms); promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); }); });
 
+// Önbelleğe yazma hatası (disk dolu, bozuk depolama) sunucudan gelen yanıtı asla engellemez: dosya saklanmadan döner.
+async function save(cache, key, response) { try { await cache.put(key, response); return true; } catch { return false; } }
 async function trim(cache) {
   const keys = await cache.keys();
   for (let i = 0; i < keys.length - MAX_ASSETS; i++) await cache.delete(keys[i]);
@@ -32,7 +34,7 @@ async function navigate(request) {
   const cache = await caches.open(SHELL), cached = await cache.match('/index.html', MATCH);
   try {
     const response = cached ? await withTimeout(fetch(request), NAV_TIMEOUT_MS) : await fetch(request);
-    if (response.ok && isHtml(response)) { if (await hasBody(response)) await cache.put('/index.html', response.clone()); return response; }
+    if (response.ok && isHtml(response)) { if (await hasBody(response)) await save(cache, '/index.html', response.clone()); return response; }
     if (!response.ok && response.status >= 500 && cached) return cached;
     return response;
   } catch (error) {
@@ -44,14 +46,14 @@ async function assetImmutable(request) {
   const cache = await caches.open(ASSETS), cached = await cache.match(request, MATCH);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok && response.type === 'basic' && await hasBody(response)) { await cache.put(request, response.clone()); await trim(cache); }
+  if (response.ok && response.type === 'basic' && await hasBody(response)) { if (await save(cache, request, response.clone())) await trim(cache).catch(() => {}); }
   return response;
 }
 async function assetFresh(request) {
   const cache = await caches.open(ASSETS);
   try {
     const response = await fetch(request);
-    if (response.ok && response.type === 'basic' && await hasBody(response)) await cache.put(request, response.clone());
+    if (response.ok && response.type === 'basic' && await hasBody(response)) await save(cache, request, response.clone());
     return response;
   } catch (error) {
     const cached = await cache.match(request, MATCH);

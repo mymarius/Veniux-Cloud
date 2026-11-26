@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../api/client';
-import { createOfflineQueue, createSender, isNetworkFailure } from './offlineQueue.mjs';
+import { createOfflineQueue, createSender, isNetworkFailure, shouldFlush } from './offlineQueue.mjs';
 import { downloadCatalog, buildIndex, findProduct } from './offlineCatalog.mjs';
 import { salesStore, catalogStore } from './offlineStore';
 
@@ -58,9 +58,12 @@ export function useOffline({ enabled = true } = {}) {
       misses.current = ok ? 0 : misses.current + 1;
       const offlineNow = !ok && (misses.current >= 2 || navigator.onLine === false);
       setOnline(!offlineNow);
-      if (!offlineNow && !wasOnline.current) flush();
+      // Yalnız bu oturumda görülen "çevrimdışı → çevrimiçi" geçişine güvenilmez: sayfa veya program çevrimdışıyken yeniden açılıp
+      // bağlantı hemen gelirse geçiş hiç görülmez. Sunucu yanıt veriyorsa ve bekleyen satış varsa her yoklamada gönderilir.
+      if (ok && shouldFlush(await queue.counts().catch(() => null), wasOnline.current)) flush();
       wasOnline.current = !offlineNow;
     };
+    check(); // açılışta bekleyen satış varsa hemen gönder
     const timer = setInterval(check, HEARTBEAT_MS);
     window.addEventListener('online', check); window.addEventListener('offline', check);
     return () => { live = false; clearInterval(timer); window.removeEventListener('online', check); window.removeEventListener('offline', check); };

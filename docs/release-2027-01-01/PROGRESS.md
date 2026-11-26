@@ -46,6 +46,12 @@ Son güncelleme: 25 Kasım 2026 (Sprint 1 başlangıcı). Her çalışma sonunda
 - **Bulunan ve düzeltilen:** aynı mağaza için iki gönderim/ürün çekme aynı anda çalışabiliyordu (aynı satışlar iki kez yollanıyordu). Artık mağaza başına tek iş çalışır.
 - Bilinen davranış: yerelde elle değiştirilen fiyat, bulutta o ürün değişene kadar korunur.
 
+## 26 Kasım: istek sınırı ve çevrimdışı kasa (gerçek Chrome)
+- Kasa satış uçları güvenlik duvarında ayrı sayaçta (sınır aynı: 6000/dk, 600/10 sn).
+- Gerçek Chrome 158 (headless, DevTools protokolü), yerel sunucu, geçici veritabanı. Çevrimdışı = yerel sunucu kapatıldı (tarayıcının ağı kesilmedi, navigator.onLine=true). Geçen: kapalıyken sayfa yenileme, nakit satış, yeniden açılışta kuyruğun korunması, sunucu dönünce 8 sn içinde otomatik gönderim, 3 satış / stok 20→17 / çift kayıt yok.
+- **Bulunan ve düzeltilen:** (1) çevrimdışıyken yeniden açılıp bağlantı hemen gelince bekleyen satış kendiliğinden gitmiyordu; (2) `sw.js` önbelleğe yazamazsa sunucu yanıtı olduğu halde sayfa açılmıyordu.
+- Denenmeyen: Android uygulaması, masaüstü programı içinde aynı senaryo, canlı MySQL bulut.
+
 ## Yük sonuçları (ortam: Windows 10, tek makine, SQLite, sahte ağ)
 | Satış | Oluşturma | Eşitleme | Bellek (RSS) | Sonuç |
 |---|---|---|---|---|

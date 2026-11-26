@@ -201,3 +201,11 @@ test('büyük katalog: 60.000 ürün (600 sayfa) eksiksiz iner ve barkod aramas�
   for (let i = 0; i < 1000; i++) assert.ok(findProduct(index, String(869000000000 + 1 + (i * 59) % 60000)));
   assert.ok(performance.now() - t < 200, '1000 arama 200 ms altında olmalı');
 });
+
+test('yeniden açılışta bekleyen satış, bağlantı geçişi görülmese de gönderilir; yalnız çakışma tetiklemez', async () => {
+  const { shouldFlush } = await import('./offlineQueue.mjs');
+  assert.equal(shouldFlush({ pending: 1, conflict: 0 }, true), true);
+  assert.equal(shouldFlush({ pending: 0, conflict: 2 }, true), false);
+  assert.equal(shouldFlush({ pending: 0 }, false), true);
+  assert.equal(shouldFlush(null, true), false);
+});

@@ -54,6 +54,9 @@ export function createOfflineQueue(store) {
   };
 }
 
+// Sunucu yanıt verdiğinde gönderim gerekli mi: bekleyen satış varsa ya da bağlantı yeni geldiyse evet (çakışmadakiler tek başına tetiklemez).
+export const shouldFlush = (counts, wasOnline) => Number(counts?.pending) > 0 || !wasOnline;
+
 // Gönderilmeyi bekleyen satış ne kadar süredir cihazda? 1 saat: bilgi, 12 saat: uyarı, 24 saat: kritik (satışlar kaybolabilir).
 export function pendingWarning(oldestPendingAt, now = Date.now()) {
   const at = Date.parse(oldestPendingAt || '');
