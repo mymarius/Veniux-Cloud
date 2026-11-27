@@ -57,3 +57,17 @@ Kaynak: kullanıcının verdiği kapsamlı denetim metni, dört küçük göreve
 Ertelenen (pilot marketlerden gerçek geri bildirim gelene kadar): yatırımcı belgeleri, müşteri kazanma ve fiyat büyütme çalışması, Azerbaycan açılımı. Senaryo 3 (çevrimdışı) 26 Kas'ta yerel Chrome'da, senaryo 8 (pazaryeri siparişi) yalnız sahte sunucuyla denendi; senaryo 6 (şubeler arası transfer) çok şube işine bağlı.
 
 Sanal market laboratuvarı (`qa-lab/README.md`): 27 Kas'ta 1. Aşama ve hafif modda 2. Aşama yapıldı. Sıradaki 3. Aşama (sentetik veri), ardından yukarıdaki 1. görev (market testi) bu laboratuvarda yürütülür.
+
+## 1 Ocak 2027'ye kadar haftalık takvim (27 Kasım 2026'da eklendi)
+Hedef takvimdir, garanti değildir. Haftalık kullanım limiti biterse alttaki "isteğe bağlı" işler kayar; "zorunlu" işler öne alınır. Her haftanın sonunda gerçek durum yazılır; çalıştırılmayan test "geçti" sayılmaz.
+
+| Hafta | Zorunlu | İsteğe bağlı (limit kalırsa) |
+|---|---|---|
+| 30 Kas - 6 Ara | Lab 3. Aşama: sabit tohumlu sahte market (1.000+ ürün, 3 kasa, 10 tedarikçi, 5 çalışan, lot/SKT). Market testi başlar | "Saha ve bayi" kapalıyken görünen düğme ve sekmeler |
+| 7 - 13 Ara | Lab 4. Aşama: kasa, iade, vardiya, stok, depo, SKT, tedarikçi, Excel testleri; iki/üç kasa eşzamanlılığı; bulunan kritik hataları düzeltme. Çoklu barkod: eksikliği doğrula, gerekiyorsa ekle (veritabanı değişikliği) | Bayi: duyuru ekranı ve bayi başvurusu (aynı veritabanı yükseltmesiyle) |
+| 14 - 20 Ara | Güvenlik ve yedek: işletme ayrımı, yetkiler, yedekten gerçek geri yükleme. Lab 5. Aşama: çevrimdışı senaryolar ve pazaryeri sahte sunucusu | Hepsiburada webhook/test süreci, barkod sağlayıcı testleri; MySQL test ortamı (indirme onayı gerekir) |
+| 21 - 27 Ara | Pilot market paketi (kurulum, veri aktarımı, kısa eğitim, destek). Şirket kuruluşu kontrol listesi. Lab 8. Aşama: HTML/JUnit raporu ve kullanım belgesi | Lab 6. Aşama: yazıcı, çekmece, ödeme terminali, ÖKC benzetimleri (gerçek cihaz kanıtı değildir) |
+| 28 - 31 Ara | Son tam test turu, yayın (program, bulut, site), dürüst durum raporu | Lab 7. Aşama: ZAP ve k6 taraması (indirme onayı gerekir) |
+
+Ocak sonrasına bırakılanlar: bayi siparişini stok/sevkiyat/cari hesaba bağlama, bayi evrak yükleme (KVKK metni ve avukat), çok şube yük denemesi, kalan Azerbaycanca ekranlar, Docker ortamı, yatırımcı belgeleri. Web sitesi hizmeti teklif şablonu: Aralık içinde limit kalırsa.
+Gerçek hesap, cihaz ya da şirket isteyenler (iyzico, pazaryerleri, ÖKC, e-belge, terazi, kod imzalama) takvimle bitirilemez; erişim geldikçe sınanır.
