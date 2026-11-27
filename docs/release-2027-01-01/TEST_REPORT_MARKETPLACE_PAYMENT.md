@@ -52,3 +52,17 @@ Bu rapor yalnız bu turda **resmî belgeden** doğrulananları ve **gerçekten �
 - **N11:** satıcı hesabı + API anahtarı; test ortamı belgede yok, `sellerintegration@n11.com` ile sorulmalı. Canlı mağazada **gerçek stok değişir**: önce kapalı bağlantı kaydedip "Bağlantıyı dene".
 - **Hepsiburada:** belgeler otomatik okunamadı. Senin yapacağın: developers.hepsiburada.com'dan ilgili sayfaları (kimlik, sipariş, stok, iade, SIT ortamı) PDF/metin olarak kaydedip bana ver, ya da entegrasyon e-postasından test ortamı bilgisini iste.
 - **Trendyol:** stage için satıcı hesabı + IP izin listesi (Seller Center destek talebi).
+
+## 5. iyzico SANDBOX denemesi (27 Kasım 2026, canlı bulut app.veniux.com, sandbox anahtarlarıyla)
+| Senaryo | Sonuç |
+|---|---|
+| Checkout Form başlatma ve ödeme sayfası | Geçti |
+| Başarılı kart (3D Secure ekranıyla) | Ödeme alındı. İlk denemede dönüş "Bu kaynaktan erişime izin verilmiyor" ile reddedildi (gerçek hata; 2.4.121'de düzeltildi). Sipariş yine de sonradan sorguyla "ödendi" oldu |
+| Dönüş düzeltmesinden sonra (S-000003) | Müşteri sipariş sayfasına döndü, "Ödemeniz alındı" |
+| Yanıt imzası (gölge doğrulama) | S-000001 ve S-000003 "uyumlu" |
+| Sipariş iptali ile iade (S-000001) | iyzico panelinde "Tamamı İade Edildi". Veniux panelinde iade bilgisi GÖRÜNMÜYOR |
+| Eşzamanlı sorguda çift olay notu | Bulundu; kodda düzeltildi (henüz yayınlanmadı) |
+| Reddedilen kart, ödeme sayfasını kapatıp süre dolması, webhook | DENENMEDİ (webhook ucu yazılmadı; hesapta özellik açık) |
+
+Bu sonuçlar yalnız sandbox içindir (SANDBOX_VERIFIED); canlı ödeme denenmedi.
+Bulunan küçük kusurlar: kartla siparişte yönetim panelinde "Mağazada ödeme" yazıyor; e-posta alanı "isteğe bağlı" görünüyor ama kartta zorunlu; anahtar alanlarını tarayıcı kayıtlı e-posta/parolayla dolduruyor; iade durumu panelde yok.
