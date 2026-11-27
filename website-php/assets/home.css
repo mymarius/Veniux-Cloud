@@ -1423,3 +1423,12 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 #hx-tour-6:focus-visible~.hx-tour-tabs label:nth-of-type(7){outline:3px solid var(--orange);outline-offset:3px}
 .pr-tags.pr-one{grid-template-columns:minmax(0,1fr);max-width:480px;margin-inline:auto}
 .pr-tags.pr-one .pr-tag[data-featured]{margin-top:0}
+/* Randevu paketi özellik grupları: numarasız kartlar, aşama etiketi ve madde listesi */
+.ho-steps.bk-groups>li::before{content:none}
+.bk-groups small{display:inline-block;margin-bottom:8px;padding:3px 10px;border:1px solid var(--ink);border-radius:999px;font-weight:800;font-size:12px;letter-spacing:.04em}
+.bk-groups ul{margin:10px 0 0;padding-left:18px;list-style:disc}
+.bk-groups ul li{margin:4px 0;font-size:16px;line-height:1.45}
+/* İç maddeler adım kartı stilini devralmasın */
+.ho-steps.bk-groups ul li{display:list-item;background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin:4px 0;min-height:0;counter-increment:none;transform:none;rotate:none;translate:none;font-size:16px;line-height:1.45}
+.ho-steps.bk-groups ul li::before,.ho-steps.bk-groups ul li::after{content:none}
+.ho-steps.bk-groups ul li:hover{translate:none;box-shadow:none}
