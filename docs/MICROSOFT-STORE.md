@@ -15,3 +15,6 @@ Paket Windows'a kurulup çalıştırılmadı (imzasız olduğu için); yazıcı,
 
 ## Gönderim için gerekenler
 Gizlilik politikası adresi, ekran görüntüleri, açıklama, yaş derecelendirme anketi, fiyat/pazar seçimi, `runFullTrust` gerekçesi, onay ekibi için deneme hesabı (gerçek müşteri verisi olmayan; parola depoya yazılmaz).
+
+## 28 Kasım durumu
+Partner Center taslağında Pricing (indirme ücretsiz, TRY 0, tüm pazarlar), Properties (Business; gizlilik adresi; "Store dışı satın alma" ve "üretken yapay zekâ" beyanları), Packages, Store listing (yalnız Türkçe, 1 ekran görüntüsü; İngilizce liste kaldırıldı) ve Submission options (onaydan sonra elle yayınla; runFullTrust gerekçesi) tamam. Kalan: yaş anketi (IARC koşulları ve e-posta paylaşımı: kullanıcı yapar), Additional Testing Information deneme hesabı (kullanıcı), gönderim. Gönderilmedi.
