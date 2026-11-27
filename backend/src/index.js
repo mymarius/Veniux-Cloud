@@ -18,6 +18,9 @@ const localOrigins=require('./middlewares/productionPrivacy').defaultOrigins(POR
 const allowedOrigins=new Set(process.env.CORS_ORIGIN?process.env.CORS_ORIGIN.split(',').map(s=>s.trim()):localOrigins);
 app.use((req,res,next)=>{
   const origin=req.get('origin');
+  // Ödeme dönüşü: ödeme sayfası/banka, müşterinin tarayıcısını buraya kendi kaynağından form POST ile geri gönderir.
+  // Yalnız bu uç kaynak denetiminden muaftır; uç yalnız ödeme anahtarını alır ve sonucu sağlayıcıya sunucudan sorar (CORS izni verilmez).
+  if(req.method==='POST'&&require('./middlewares/productionPrivacy').paymentReturn(req.path))return next();
   if(!require('./middlewares/productionPrivacy').originAllowed(origin,allowedOrigins,req.get('x-veniux-desktop-origin')))return res.status(403).json({error:'Bu kaynaktan erişime izin verilmiyor.'});
   if(req.path.startsWith('/api/'))res.set('Cache-Control','no-store');
   next();

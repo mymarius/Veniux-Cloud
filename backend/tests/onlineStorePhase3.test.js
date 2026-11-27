@@ -122,7 +122,8 @@ describe('kartla ödeme', () => {
     const pay2 = (await db.query('SELECT p.token,o.number FROM online_payments p JOIN online_orders o ON o.id=p.order_id WHERE o.public_code=$1', [o2.body.code])).rows[0];
     expect(await stockOf()).toBe(stockAfter - 2);
     detail = () => ({ status: 'success', paymentStatus: 'SUCCESS', paidPrice: '200.00', basketId: 'S-' + String(pay2.number).padStart(6, '0'), paymentId: 'P2' });
-    const good = await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: pay2.token });
+    // Gerçek tarayıcı dönüşü ödeme sayfasının/bankanın kaynağıyla gelir (bazı 3D Secure akışlarında "null"); reddedilmemelidir.
+    const good = await request(app).post('/api/public/shop/faz3-magaza/payment/callback').set('Origin', 'https://sandbox-cpp.iyzipay.com').type('form').send({ token: pay2.token });
     expect(good.headers.location).toBe(`/magaza/faz3-magaza/siparis/${o2.body.code}`);
     expect((await shop('get', `/orders/${o2.body.code}`)).body.payment.status).toBe('paid');
     // aynı token tekrar gelirse etkisiz
@@ -249,4 +250,17 @@ describe('kartla ödeme', () => {
     expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: '!!' })).status).toBe(400);
     expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback').type('form').send({ token: 'yok-boyle-token-12345' })).status).toBe(404);
   });
+});
+
+test('kaynak denetimi muafiyeti yalnız ödeme dönüşü POST isteğine özgüdür', async () => {
+  const evil = 'https://baska.site';
+  for (const origin of [evil, 'null']) {
+    const r = await request(app).post('/api/public/shop/faz3-magaza/payment/callback').set('Origin', origin).type('form').send({ token: 'yok-boyle-bir-odeme-123' });
+    expect(r.status).toBe(404);
+    if (origin === evil) expect(r.headers['access-control-allow-origin']).toBeUndefined(); // 'null' yerel kurulumda masaüstü için zaten izinlidir
+  }
+  expect((await request(app).get('/api/public/shop/faz3-magaza/payment/callback').set('Origin', evil)).status).toBe(403);
+  expect((await request(app).post('/api/public/shop/faz3-magaza/orders').set('Origin', evil).send({})).status).toBe(403);
+  expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback/x').set('Origin', evil)).status).toBe(403);
+  expect((await request(app).post('/api/auth/login').set('Origin', evil).send({})).status).toBe(403);
 });

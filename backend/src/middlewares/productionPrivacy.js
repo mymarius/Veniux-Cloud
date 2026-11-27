@@ -91,4 +91,5 @@ function boundary(req,res,next) {
   };
   next();
 }
-module.exports={originAllowed,text,logValue,installLogs,boundary,defaultOrigins,errorBody,contentSecurityPolicy};
+const paymentReturn = path => /^\/api\/public\/shop\/[a-z0-9-]{1,80}\/payment\/callback$/i.test(String(path));
+module.exports={paymentReturn,originAllowed,text,logValue,installLogs,boundary,defaultOrigins,errorBody,contentSecurityPolicy};
