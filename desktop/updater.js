@@ -21,6 +21,7 @@ function install(){
 
 function startUpdater(app){
  if(!app.isPackaged)return;
+ if(process.windowsStore)return; // Store sürümünü Microsoft Store günceller
  autoUpdater.setFeedURL({provider:'generic',url:'https://api.veniux.com/updates/files/'});
  // Güncelleme arka planda iner; hazır olunca yeşil ok görünür. Kullanıcı tıklamazsa program kapanınca kurulur.
  autoUpdater.disableDifferentialDownload=true;autoUpdater.autoDownload=true;autoUpdater.autoInstallOnAppQuit=true;

@@ -42,14 +42,16 @@ if (!gotTheLock) {
       process.env.VENIUX_LICENSE_AUTHORITY_URL=authority.url;
       process.env.VENIUX_LICENSE_AUTHORITY_PUBLIC_KEY=path.join(process.resourcesPath,'license-authority-public.pem');
     }
+    // Microsoft Store sürümü yalnız Veniux bulutuna bağlanır: yerel sunucu kurulumu (dosya indirme, kaldırınca silinen veri) yoktur.
+    if(process.windowsStore)Object.assign(runtime,require('./runtime').desktopRuntime({VENIUX_DESKTOP_API_URL:'https://app.veniux.com/api'},true));
     const bundledNode=path.join(process.resourcesPath,'local-server/node.exe');
-    const setupMode=app.isPackaged?require('./runtime').installerMode(path.join(path.dirname(app.getPath('exe')),'veniux-setup-mode.txt')):null;
+    const setupMode=app.isPackaged&&!process.windowsStore?require('./runtime').installerMode(path.join(path.dirname(app.getPath('exe')),'veniux-setup-mode.txt')):null;
     const selectionFile=path.join(app.getPath('userData'),'server-selection.json');
-    if(app.isPackaged&&!process.env.VENIUX_DESKTOP_API_URL&&!require('fs').existsSync(selectionFile)){
+    if(app.isPackaged&&!process.windowsStore&&!process.env.VENIUX_DESKTOP_API_URL&&!require('fs').existsSync(selectionFile)){
       if(setupMode==='managed')require('./runtime').saveFirstSetup(app.getPath('userData'),{kind:'managed'});
       else setupPending=true;
     }
-    if(app.isPackaged && !setupPending && !process.env.VENIUX_DESKTOP_API_URL && require('fs').existsSync(bundledNode)) {
+    if(app.isPackaged && !process.windowsStore && !setupPending && !process.env.VENIUX_DESKTOP_API_URL && require('fs').existsSync(bundledNode)) {
       const selection=await require('./runtime').selectLocalServer(app.getPath('userData'),runtime.apiBase,async()=>{
         try { const r=await fetch(runtime.healthURL,{signal:AbortSignal.timeout(1500)});const health=await r.json();return r.ok&&health.status==='ok'&&health.target_active===true&&health.migrations?.status==='current'&&['mysql','sqlite'].includes(health.database); }catch{return false;}
       },'https://app.veniux.com/api');
