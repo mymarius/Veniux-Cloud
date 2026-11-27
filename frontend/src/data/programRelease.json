@@ -1,8 +1,16 @@
 {
-  "version": "2.4.119",
+  "version": "2.4.120",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.120",
+      "date": "27 Kasım 2026",
+      "title": "Saha ve bayi bölümü artık açılabiliyor",
+      "items": [
+        "Saha ve bayi bölümünü işletme yöneticisi veya müdürü tek düğmeyle açıp kapatabilir; önceden bölümü açmanın yolu yoktu"
+      ]
+    },
     {
       "version": "2.4.119",
       "date": "26 Kasım 2026",
