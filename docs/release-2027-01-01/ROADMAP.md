@@ -85,3 +85,5 @@ Karar koşulu (13 Aralık): en az 5 salon fiyatı kabul eder ve 2-3'ü pilot olm
 | Pilot sonrası | WhatsApp onay ve hatırlatma; talebe göre bot, bekleme listesi, kapora, kampanya |
 
 Salonlara kesin tarih ve "hazır" sözü verilmez; şirket kurulmadan ücret alınmaz (mali müşavire sorulur).
+
+Fiyat (27 Kas, ön fiyat, kesinleşmedi): berber ve güzellik salonu için TEK paket "Randevu", 9.990 ₺/yıl KDV dahil, tek şube, 10 personele kadar. Rakip fiyatı araştırılmadı; salon görüşmeleriyle doğrulanacak. Site sayfası `veniux.com/randevu` "hazırlanıyor" etiketiyle.

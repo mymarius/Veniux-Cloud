@@ -1,6 +1,6 @@
 <?php
 // Randevu paketi (berber ve güzellik salonu). Ürün HENÜZ YOK: her yerde "hazırlanıyor" ve "planlanan" yazılır;
-// satın alma, deneme ya da kesin tarih sunulmaz. Fiyatlar ön fiyattır.
+// satın alma, deneme ya da kesin tarih sunulmaz. Fiyat ön fiyattır.
 require_once __DIR__.'/whatsapp.php';
 $bkAsk = static fn(string $plan) => whatsappUrl('Merhaba, randevu paketi için ön kayıt istiyorum ('.$plan.'). Personel sayımız: ');
 ?>
@@ -13,29 +13,24 @@ $bkAsk = static fn(string $plan) => whatsappUrl('Merhaba, randevu paketi için �
   </div>
 </section>
 
-<section class="pr-rack" id="paketler" aria-label="Planlanan paketler">
-  <div class="hx-wrap pr-tags pr-two">
-<?php foreach([
-    [1,'Randevu Berber','Tek şube, 3 personele kadar.',6990,false,'3'],
-    [2,'Randevu Salon','Tek şube, 10 personele kadar.',11990,true,'10'],
-] as [$no,$name,$for,$price,$dark,$staff]):?>
-    <article class="pr-tag" data-pr data-i="<?=$no?>"<?=$dark?' data-featured':''?>>
-      <div class="pr-tag-top"><span>VENİUX · RANDEVU 0<?=$no?></span><span>HAZIRLANIYOR</span></div>
-      <h2><?=e($name)?></h2>
-      <p class="pr-for"><?=e($for)?></p>
-      <div class="pr-price"><span><?=number_format($price,0,',','.')?></span><small> ₺</small></div>
+<section class="pr-rack" id="paketler" aria-label="Planlanan paket">
+  <div class="hx-wrap pr-tags pr-one">
+    <article class="pr-tag" data-pr data-i="1" data-featured>
+      <div class="pr-tag-top"><span>VENİUX · RANDEVU PAKETİ</span><span>HAZIRLANIYOR</span></div>
+      <h2>Randevu</h2>
+      <p class="pr-for">Berber ve güzellik salonları için tek paket. Tek şube, 10 personele kadar.</p>
+      <div class="pr-price"><span>9.990</span><small> ₺</small></div>
       <p class="pr-period">/ yıl · KDV dahil · planlanan ön fiyat</p>
       <ul>
-        <li><?=$staff?> personele kadar takvim</li>
+        <li>10 personele kadar takvim</li>
         <li>Hizmet, süre ve fiyat tanımı</li>
         <li>Elle randevu; çakışan saate izin vermeme</li>
         <li>Müşteri kaydı ve randevu geçmişi</li>
         <li>Salona özel ana panel</li>
         <li>Online randevu bağlantısı (ikinci aşama)</li>
       </ul>
-      <div><a class="hx-btn" href="<?=e($bkAsk($name))?>" target="_blank" rel="noopener noreferrer"><?=e($name)?> için ön kayıt</a></div>
+      <div><a class="hx-btn" href="<?=e($bkAsk('Randevu'))?>" target="_blank" rel="noopener noreferrer">Ücretsiz ön kayıt</a></div>
     </article>
-<?php endforeach;?>
   </div>
   <p class="hx-wrap pr-terms" data-pr>Listelenen özelliklerin tamamı planlanmıştır ve değişebilir. Fiyat, paket kullanıma açılırken kesinleşir. Ön kayıt ücretsizdir, sizi bağlamaz; şu an ödeme alınmaz.</p>
 </section>

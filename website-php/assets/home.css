@@ -1421,3 +1421,5 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 #hx-tour-6:checked~.hx-tour-panels figure:nth-of-type(7){display:block}
 #hx-tour-6:checked~.hx-tour-tabs label:nth-of-type(7){background:var(--ink);color:#fff}
 #hx-tour-6:focus-visible~.hx-tour-tabs label:nth-of-type(7){outline:3px solid var(--orange);outline-offset:3px}
+.pr-tags.pr-one{grid-template-columns:minmax(0,1fr);max-width:480px;margin-inline:auto}
+.pr-tags.pr-one .pr-tag[data-featured]{margin-top:0}
