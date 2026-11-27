@@ -55,3 +55,5 @@ Kaynak: kullanıcının verdiği kapsamlı denetim metni, dört küçük göreve
 | 4 | Şirket kuruluşu kontrol listesi | Mali müşavire ve avukata sorulacaklar: şirket türü, yazılım ve marka sahipliği, sözleşmeler, KVKK, fatura, banka, ödeme sağlayıcı. Hukuk/vergi sonucu yazılmaz | Bekliyor |
 
 Ertelenen (pilot marketlerden gerçek geri bildirim gelene kadar): yatırımcı belgeleri, müşteri kazanma ve fiyat büyütme çalışması, Azerbaycan açılımı. Senaryo 3 (çevrimdışı) 26 Kas'ta yerel Chrome'da, senaryo 8 (pazaryeri siparişi) yalnız sahte sunucuyla denendi; senaryo 6 (şubeler arası transfer) çok şube işine bağlı.
+
+Sanal market laboratuvarı (`qa-lab/README.md`): 27 Kas'ta 1. Aşama ve hafif modda 2. Aşama yapıldı. Sıradaki 3. Aşama (sentetik veri), ardından yukarıdaki 1. görev (market testi) bu laboratuvarda yürütülür.
