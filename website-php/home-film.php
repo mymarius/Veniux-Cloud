@@ -10,16 +10,15 @@ $filmSteps = [
   ['Sipariş önerisi', 'Biten ürün için öneri hazır; siparişi siz onaylarsınız.'],
   ['Gün sonu', 'Satış, indirim, nakit ve kart tek raporda.'],
 ];
-$filmImages = [
-  1 => 'Ürünler: Excel ve CSV ile ürün aktarımı, Veniux ürün kataloğu ekranı',
-  2 => 'Mal kabul: IRS-2026-0142 irsaliyesi 36 / 36 tamamlandı, ürünler rafa yerleşti',
-  3 => 'Etiket: 100 × 40 mm raf etiketi önizlemesi, filtre kahve 46,00 TL',
-  4 => 'Kasa: barkodla satış sepeti, stok anında düşer',
-  5 => 'Kampanya: 3 al 2 öde kampanyası 46 TL indirim uyguladı',
-  6 => 'Ödeme: kartla 257,00 TL ödeme kaydı',
-  7 => 'Sayım: sistemde 24, sayılan 19, yönetici onayı bekliyor',
-  8 => 'Sipariş önerisi: düşük stoklu ürünler için önerilen miktarlar',
-  9 => 'Gün sonu: net satış 3.260 TL, net nakit 3.003 TL, net kart 257 TL',
+// [düğme adı, görsel, genişlik, yükseklik, başlık, açıklama, alternatif metin]
+$tourShots = [
+  ['Genel bakış', 'shot-overview.jpg', 1500, 900, 'Güne tek ekrandan bakın.', 'Stok değeri, dönem giriş ve çıkışı, kritik seviyedeki ürünler ve açık uyarılar.', 'Veniux genel bakış ekranı: stok değeri, uyarılar ve stok sağlığı'],
+  ['Ürünler', 'shot-products.jpg', 1500, 900, 'Ürün listeniz derli toplu.', 'Stok miktarı, barkod, kategori ve fiyat aynı satırda. Excel ve CSV ile aktarılır.', 'Veniux ürün kataloğu ekranı: stok, barkod ve fiyat sütunları'],
+  ['Kasa', 'shot-pos.jpg', 1500, 900, 'Barkodu okutun, ödemeyi alın.', 'Satılan ürün stoktan düşer. Bekletme, fiyat sorgulama ve iade aynı ekranda.', 'Veniux satış kasası ekranı: satış sepeti ve ödeme düğmesi'],
+  ['Depo', 'product-warehouse-v4.jpg', 1914, 860, 'Her deponun stoğu ayrı.', 'Depoları ve içlerindeki ürünleri miktar ve maliyetiyle görün.', 'Veniux depo ekranı: iki depo ve depo envanteri'],
+  ['Lot ve miat', 'product-lot-v4.jpg', 1914, 860, 'Tarihi yaklaşanı önceden görün.', 'Düşük stok, tükenen, tarihi yaklaşan ve tarihi geçmiş kayıtlar tek panelde.', 'Veniux stok ve lot takibi paneli'],
+  ['Stok hareketleri', 'shot-movements.jpg', 1500, 900, 'Neyin ne zaman değiştiği kayıtlı.', 'Giriş, çıkış ve transferler tarih sırasıyla listelenir.', 'Veniux stok hareketleri ekranı'],
+  ['Sayım', 'product-count-v1.jpg', 1366, 768, 'Barkod okutarak sayın.', 'Rafı veya ürünü okutun, sayılan miktarı girin, farkı inceleyin.', 'Veniux stok sayımı ekranı'],
 ];
 ?>
 <section class="hx-film" id="tanitim" aria-labelledby="film-title">
@@ -45,16 +44,21 @@ $filmImages = [
     </div>
   </div>
   <div class="hx-wrap">
-    <h3 class="hx-film-gal-title">Adım adım görseller</h3>
-    <div class="hx-film-gal-wrap">
-    <button type="button" class="hx-gal-btn hx-gal-prev" aria-label="Önceki görsel" data-gal="-1">&#8249;</button>
-    <button type="button" class="hx-gal-btn hx-gal-next" aria-label="Sonraki görsel" data-gal="1">&#8250;</button>
-    <ul class="hx-film-gallery" tabindex="0" aria-label="Adım adım görseller, yatay kaydırılır">
-      <?php foreach ($filmImages as $n => $alt): ?>
-      <li><img src="/assets/tanitim-adim-<?= $n ?>-v1.webp" width="540" height="675" loading="lazy" decoding="async" alt="<?= e($alt) ?>"></li>
-      <?php endforeach; ?>
-    </ul>
-    <div class="hx-gal-dots" aria-hidden="true"></div>
+    <h3 class="hx-film-gal-title">Ekranlara yakından bakın</h3>
+    <p class="hx-tour-note">Ekranlar Veniux arayüzünden; işletme ve ürünler örnek kayıtlardır. Büyütmek için görsele dokunun.</p>
+    <div class="hx-tour" role="group" aria-label="Ekran turu">
+      <?php foreach ($tourShots as $i => $shot): ?><input type="radio" name="hx-tour" id="hx-tour-<?= $i ?>"<?= $i === 0 ? ' checked' : '' ?>><?php endforeach; ?>
+      <div class="hx-tour-tabs">
+        <?php foreach ($tourShots as $i => $shot): ?><label for="hx-tour-<?= $i ?>"><?= e($shot[0]) ?></label><?php endforeach; ?>
+      </div>
+      <div class="hx-tour-panels">
+        <?php foreach ($tourShots as $i => [$tab, $file, $w, $h, $title, $text, $alt]): ?>
+        <figure>
+          <a href="/assets/<?= e($file) ?>" target="_blank" rel="noopener"><img src="/assets/<?= e($file) ?>" width="<?= $w ?>" height="<?= $h ?>" loading="lazy" decoding="async" alt="<?= e($alt) ?>"></a>
+          <figcaption><b><?= e($title) ?></b><span><?= e($text) ?></span></figcaption>
+        </figure>
+        <?php endforeach; ?>
+      </div>
     </div>
   </div>
 </section>
