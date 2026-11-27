@@ -264,3 +264,16 @@ test('kaynak denetimi muafiyeti yalnız ödeme dönüşü POST isteğine özgüd
   expect((await request(app).post('/api/public/shop/faz3-magaza/payment/callback/x').set('Origin', evil)).status).toBe(403);
   expect((await request(app).post('/api/auth/login').set('Origin', evil).send({})).status).toBe(403);
 });
+
+test('aynı ödeme için eşzamanlı sorgular tek sonuç yazar: not ve ödeme kaydı çiftlenmez', async () => {
+  const db = require('../src/config/database');
+  const payments = require('../src/services/onlineStorePayments');
+  const done = (await db.query("SELECT * FROM online_payments WHERE status='paid' ORDER BY order_id DESC LIMIT 1")).rows[0];
+  await db.query("UPDATE online_payments SET status='pending',paid_at=NULL WHERE order_id=$1", [done.order_id]);
+  const notes = async () => Number((await db.query("SELECT COUNT(*) c FROM online_order_events WHERE order_id=$1 AND note='Kartla ödeme alındı'", [done.order_id])).rows[0].c);
+  const before = await notes();
+  const results = await Promise.all([payments.complete(done.token), payments.complete(done.token), payments.complete(done.token)]);
+  expect(await notes()).toBeLessThanOrEqual(before + 1);
+  const final = (await db.query('SELECT status FROM online_payments WHERE order_id=$1', [done.order_id])).rows[0].status;
+  expect(results.every(r => r.status === final || r.status === 'cancelled')).toBe(true);
+});

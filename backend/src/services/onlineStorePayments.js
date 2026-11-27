@@ -124,6 +124,14 @@ async function shadowSignature(settings, tenantId, order, res) {
 }
 
 // Geri çağırma: iyzico müşteriyi token ile geri gönderir. Sonuç ASLA bu istekteki bilgiye göre değil, sunucudan sunucuya sorguyla belirlenir.
+// Aynı ödeme için sorgular (liste + özet + sağlayıcı dönüşü) çakışabilir: sonucu yalnız "beklemede" kaydı ilk değiştiren işlem yazar;
+// not, bildirim, iade ve iptal yalnız onda çalışır. Diğerleri kayıtlı sonucu döndürür.
+async function claim(orderId, status, ref, error) {
+  const done = await db.query("UPDATE online_payments SET status=$2,provider_ref=COALESCE($3,provider_ref),error=$4,paid_at=$5 WHERE order_id=$1 AND status='pending'", [orderId, status, ref, error, status === 'paid' ? stamp() : null]);
+  return done.rowCount === 1;
+}
+const current = async orderId => (await db.query('SELECT status FROM online_payments WHERE order_id=$1', [orderId])).rows[0]?.status || 'pending';
+
 async function complete(token) {
   const store = require('./onlineStoreService');
   if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{8,200}$/.test(token)) fail('Geçersiz ödeme bilgisi.', 400, 'BAD_TOKEN');
@@ -133,29 +141,28 @@ async function complete(token) {
   const order = (await db.query('SELECT * FROM online_orders WHERE id=$1 AND tenant_id=$2', [orderId, tenantId])).rows[0];
   const settings = await loadSettings(tenantId);
   if (pay.status !== 'pending') return { code: order.public_code, status: pay.status };
-  let ok = false, ref = null, why = null;
+  let ok = false, ref = null, why = null, detail = null;
   try {
     const res = await iyzico(settings, '/payment/iyzipos/checkoutform/auth/ecom/detail', { locale: 'tr', conversationId: order.number, token });
     ok = res.status === 'success' && res.paymentStatus === 'SUCCESS' && cents(res.paidPrice) === cents(pay.amount) && String(res.basketId) === String(store.codeOf(order.number));
     ref = res.paymentId ? String(res.paymentId) : null;
-    await shadowSignature(settings, tenantId, order, res);
+    detail = res;
     if (!ok) why = String(res.errorMessage || res.paymentStatus || 'Ödeme onaylanmadı').slice(0, 200);
   } catch { why = 'Ödeme sonucu doğrulanamadı.'; ok = null; }
   // Doğrulama hatasında (ağ) sonuç belirsizdir: ödeme "beklemede" kalır, müşteri sipariş sayfasından tekrar sorgular, süre dolunca iptal edilir.
   if (ok === null) return { code: order.public_code, status: 'pending' };
+  if (!(await claim(orderId, ok ? 'paid' : 'failed', ref, ok ? null : why))) return { code: order.public_code, status: await current(orderId) };
+  await shadowSignature(settings, tenantId, order, detail);
   if (ok) {
     if (order.status === 'cancelled') {
       // Süresi dolup iptal edilmiş siparişe para geldi: iade denenir.
-      await db.query("UPDATE online_payments SET status='paid',provider_ref=$2,paid_at=$3 WHERE order_id=$1", [orderId, ref, stamp()]);
       await refund(tenantId, orderId);
       return { code: order.public_code, status: 'cancelled' };
     }
-    await db.query("UPDATE online_payments SET status='paid',provider_ref=$2,paid_at=$3 WHERE order_id=$1", [orderId, ref, stamp()]);
     await db.query("INSERT INTO online_order_events (tenant_id,order_id,from_status,to_status,note) VALUES ($1,$2,$3,$3,$4)", [tenantId, orderId, order.status, 'Kartla ödeme alındı']);
     store.announcePaid(tenantId, orderId).catch(() => {});
     return { code: order.public_code, status: 'paid' };
   }
-  await db.query("UPDATE online_payments SET status='failed',error=$2 WHERE order_id=$1", [orderId, why]);
   await store.systemCancel(tenantId, orderId, 'Ödeme alınamadı');
   return { code: order.public_code, status: 'failed' };
 }
