@@ -23,7 +23,7 @@ Temel: mevcut "Saha ve bayi" bölümü (davetle bayi, sipariş, yönetici onayı
 
 | Sıra | İş | Büyüklük | Hedef | Durum |
 |---|---|---|---|---|
-| 1 | Mevcut "Saha ve bayi" ekranını çalıştırıp denemek, hataları düzeltmek; onaylanan siparişin nerede bittiğini saptamak | Küçük | 27 Kas | Bekliyor |
+| 1 | Mevcut "Saha ve bayi" ekranını çalıştırıp denemek, hataları düzeltmek; onaylanan siparişin nerede bittiğini saptamak | Küçük | 27 Kas | Bitti: bölümü açacak yol yoktu, eklendi; yerel Chrome'da aç → müşteri → sipariş → onay geçti. Onay yalnız durumu değiştirir (stok, cari, fatura yok). Davetli bayi/saha ekranı yalnız API testleriyle |
 | 2 | Duyuru ve haber ekranı (yönetici yazar, bayi okur) | Küçük | 27 Kas | Bekliyor |
 | 3 | Bayinin kendi başvurusu ve yönetici onayı (istek sınırı, kötüye kullanım koruması) | Küçük–orta | 27 Kas | Bekliyor |
 | 4 | Onaylanan siparişi stok, sevkiyat ve cari hesaba bağlamak | 1. maddeden sonra belli olur | Pazar sonrası (Aralık) | Bekliyor |

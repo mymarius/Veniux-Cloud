@@ -19,6 +19,21 @@ router.post('/accept-invitation',inviteLimit,safe(async(req,res)=>{
  });res.status(201).json({success:true});
 }));
 router.use(authMiddleware);
+// Bölümü açıp kapatma: yalnız işletme yöneticisi ve müdürü. Bölüm kapalıyken de erişilebilmesi için rol denetiminden önce gelir.
+const canManage=req=>Boolean(req.user.isPlatformAdmin)||['admin','manager'].includes(req.user.role);
+const portalEnabled=async tenant=>Boolean(Number((await db.query('SELECT enabled FROM business_portal_settings WHERE tenant_id=$1',[tenant])).rows[0]?.enabled||0));
+router.get('/settings',safe(async(req,res)=>res.json({enabled:await portalEnabled(req.user.tenantId),can_manage:canManage(req)})));
+router.post('/settings',safe(async(req,res)=>{
+ if(!canManage(req))access.fail('Bu bölümü yalnız işletme yöneticisi açıp kapatabilir.');
+ if(typeof req.body.enabled!=='boolean')access.fail('Açık/kapalı bilgisi gerekli.',400);
+ const value=req.body.enabled?1:0;
+ await db.transaction(async tx=>{
+  const updated=await tx.query('UPDATE business_portal_settings SET enabled=$1,updated_at=CURRENT_TIMESTAMP WHERE tenant_id=$2',[value,req.user.tenantId]);
+  if(!updated.rowCount)await tx.query('INSERT INTO business_portal_settings(tenant_id,enabled) VALUES($1,$2)',[req.user.tenantId,value]);
+  await tx.query('INSERT INTO audit_logs(tenant_id,user_email,action,entity_type,entity_id,details) VALUES($1,$2,$3,$4,$5,$6)',[req.user.tenantId,req.user.email,'business.portal_toggled','tenant',req.user.tenantId,JSON.stringify({enabled:Boolean(value)})]);
+ });
+ res.json({enabled:Boolean(value)});
+}));
 router.use(async(req,res,next)=>{try{req.business=await access.role({...req.user,centralLicense:req.centralLicense});next();}catch(e){next(e);}});
 const admin=(req,res,next)=>req.business.role==='admin'?next():res.status(403).json({error:'Yönetici yetkisi gerekli.'});
 router.get('/me',safe(async(req,res)=>res.json({role:req.business.role,email:req.user.email,tenant_id:req.user.tenantId})));

@@ -55,3 +55,17 @@ test('revoke invalidates existing sessions',async()=>{
  expect((await call(owner,'post','/members/'+(dealer.userId||dealer.id)+'/revoke',{})).status).toBe(200);
  expect((await call(dealer,'get','/orders')).status).toBe(401);
 });
+test('bölümü yalnız işletme yöneticisi açıp kapatır; kapalıyken veri uçları reddedilir',async()=>{
+ const fresh=await createTenant();
+ expect((await call(fresh,'get','/settings')).body).toEqual({enabled:false,can_manage:true});
+ expect((await call(fresh,'get','/me')).status).toBe(403);
+ expect((await call(fresh,'post','/settings',{enabled:'evet'})).status).toBe(400);
+ expect((await call(fresh,'post','/settings',{enabled:true})).status).toBe(200);
+ expect((await call(fresh,'get','/me')).body.role).toBe('admin');
+ expect((await call(field,'get','/settings')).body.can_manage).toBe(false);
+ expect((await call(field,'post','/settings',{enabled:false})).status).toBe(403);
+ expect((await call(fresh,'post','/settings',{enabled:false})).status).toBe(200);
+ expect((await call(fresh,'get','/partners')).status).toBe(403);
+ // başka işletmenin ayarı etkilenmez
+ expect((await call(owner,'get','/me')).status).toBe(200);
+});
