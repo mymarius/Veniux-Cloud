@@ -71,3 +71,17 @@ Hedef takvimdir, garanti değildir. Haftalık kullanım limiti biterse alttaki "
 
 Ocak sonrasına bırakılanlar: bayi siparişini stok/sevkiyat/cari hesaba bağlama, bayi evrak yükleme (KVKK metni ve avukat), çok şube yük denemesi, kalan Azerbaycanca ekranlar, Docker ortamı, yatırımcı belgeleri. Web sitesi hizmeti teklif şablonu: Aralık içinde limit kalırsa.
 Gerçek hesap, cihaz ya da şirket isteyenler (iyzico, pazaryerleri, ÖKC, e-belge, terazi, kod imzalama) takvimle bitirilemez; erişim geldikçe sınanır.
+
+## Randevu paketi: berber ve güzellik salonu (27 Kasım 2026'da plana eklendi, karar 13 Aralık)
+Veniux'un içinde sektör paketi olarak (ayrı program ve ayrı teknoloji yığını yok). Paket açık olan işletmede alana özel ana panel ve menü görünür: bugünkü ve yaklaşan randevular, personel takvimi ve doluluk, tamamlanan/iptal/gelmeyen, yeni müşteri, günlük-aylık gelir (yalnız yetkili rol), en çok istenen hizmetler. Rakamlar gerçek kayıtlardan gelir; depo/market ekranları bu işletmede gereksizse gizlenir. Giriş, işletme ayrımı, roller ve rapor altyapısının ne kadarının kullanılabileceği kod incelemesiyle doğrulanacak.
+
+Karar koşulu (13 Aralık): en az 5 salon fiyatı kabul eder ve 2-3'ü pilot olmaya söz verir (kullanıcı 10 ilgili salon bulduğunu bildirdi; fiyat ve pilot sözü henüz doğrulanmadı).
+
+| Dönem | İş |
+|---|---|
+| Aralık | Kullanıcı: salon görüşmeleri (fiyat, pilot, olmazsa olmazlar), Meta WhatsApp şart ve ücretleri. Karar sonrası ekran taslağı |
+| Ocak | 1. sürüm: alana özel panel, hizmet, personel ve çalışma saatleri, takvim, elle randevu, veritabanında çakışma engeli |
+| Şubat | Müşterinin bağlantıdan online randevu alması; 2-3 salonla pilot |
+| Pilot sonrası | WhatsApp onay ve hatırlatma; talebe göre bot, bekleme listesi, kapora, kampanya |
+
+Salonlara kesin tarih ve "hazır" sözü verilmez; şirket kurulmadan ücret alınmaz (mali müşavire sorulur).
