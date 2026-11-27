@@ -43,3 +43,15 @@ Veniux ürününden ayrı, insan emeğiyle verilen hizmettir. Yalnız iki paket:
 | 4 | İlk 2–3 işte harcanan saati not edip "şu fiyattan başlar" eklemek; müşteri izniyle örnek çalışma | İlk işlerden sonra | Bekliyor |
 
 Ücretli iş ve fatura için şirket kuruluşu (1 Ocak 2027) beklenir ya da mali müşavire sorulur; sözleşme metni avukata gösterilir.
+
+## Market (bakkal / süpermarket) hazırlık görevleri (27 Kasım 2026'da plana eklendi)
+Kaynak: kullanıcının verdiği kapsamlı denetim metni, dört küçük göreve bölündü. Metin tek seferde çalıştırılmaz. Çalıştırılmayan test "geçti" yazılmaz; sahte sunucu ve simülatör sonucu gerçek test sayılmaz (n11 ve Hepsiburada gerçek hesapla denenmedi).
+
+| Sıra | Görev | Kapsam | Durum |
+|---|---|---|---|
+| 1 | Market testi (limit yenilenince ilk iş) | Sonuç tablosu "geçti / kaldı / özellik yok": (a) ürün aç, mal kabul, barkod okut, sat, stok düşsün; (b) farklı son kullanma tarihli lotlar, ilk dolacak ilk satılsın, miadı geçmiş ürün kasada engellensin; (c) iade: stok, ödeme ve mali kayıt; (d) vardiya aç-kapat, ödeme mutabakatı; (e) Excel'den ürün aktarımı, barkod tutarlılığı. Ayrıca çoklu barkod, tartı barkodu, iki kasanın aynı ürünü aynı anda satması | Bekliyor |
+| 2 | Güvenlik ve yedek | İşletmeler arası veri ayrımı (veritabanı ve API), yetkiler, yedekten gerçek geri yükleme ve veri bütünlüğü | Bekliyor |
+| 3 | Pilot market paketi | Kurulum, Excel veri aktarımı, kısa eğitim, destek adımları; ilk hedef 3-5 pilot market | Bekliyor |
+| 4 | Şirket kuruluşu kontrol listesi | Mali müşavire ve avukata sorulacaklar: şirket türü, yazılım ve marka sahipliği, sözleşmeler, KVKK, fatura, banka, ödeme sağlayıcı. Hukuk/vergi sonucu yazılmaz | Bekliyor |
+
+Ertelenen (pilot marketlerden gerçek geri bildirim gelene kadar): yatırımcı belgeleri, müşteri kazanma ve fiyat büyütme çalışması, Azerbaycan açılımı. Senaryo 3 (çevrimdışı) 26 Kas'ta yerel Chrome'da, senaryo 8 (pazaryeri siparişi) yalnız sahte sunucuyla denendi; senaryo 6 (şubeler arası transfer) çok şube işine bağlı.
