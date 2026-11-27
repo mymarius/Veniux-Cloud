@@ -1,8 +1,16 @@
 {
-  "version": "2.4.120",
+  "version": "2.4.121",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.121",
+      "date": "27 Kasım 2026",
+      "title": "Online mağazada kartla ödeme dönüşü düzeltildi",
+      "items": [
+        "Kartla ödemeyi tamamlayan müşteri artık sipariş sayfasına dönüyor; önceden dönüş isteği güvenlik denetiminde reddediliyordu"
+      ]
+    },
     {
       "version": "2.4.120",
       "date": "27 Kasım 2026",
