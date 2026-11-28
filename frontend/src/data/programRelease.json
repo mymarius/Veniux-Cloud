@@ -1,8 +1,20 @@
 {
-  "version": "2.4.121",
+  "version": "2.4.122",
   "date": "12 Kasım 2026",
   "minServer": "2.4.0",
   "releases": [
+    {
+      "version": "2.4.122",
+      "date": "28 Kasım 2026",
+      "title": "Online mağaza ödeme kayıtları ve yönetim ekranı düzeltmeleri",
+      "items": [
+        "Aynı ödeme aynı anda iki kez sorgulansa da sonuç yalnız bir kez işlenir",
+        "İptal edilen kartlı siparişte iade durumu yönetim ekranında görünür",
+        "Kartla ödenen siparişte ödeme yöntemi doğru yazılır",
+        "Tarayıcının ödeme anahtarı kutularını kayıtlı bilgilerle doldurması engellenmeye çalışıldı",
+        "Saha ve bayi bölümü kapalıyken gereksiz düğme ve sekmeler gizlenir"
+      ]
+    },
     {
       "version": "2.4.121",
       "date": "27 Kasım 2026",
