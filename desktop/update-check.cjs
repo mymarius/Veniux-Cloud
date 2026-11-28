@@ -4,7 +4,7 @@ const updater={setFeedURL:x=>feed=x,on:(event,callback)=>events[event]=callback,
 const timers=[],immediates=[];const app={isPackaged:true,on:()=>{}};
 class Notification{constructor(options){notices.push(options);}show(){}}
 const win={isDestroyed:()=>false,webContents:{send:(channel,payload)=>sent.push([channel,payload])}};
-const sandbox={require:name=>name==='electron-updater'?{autoUpdater:updater}:{BrowserWindow:{getAllWindows:()=>[win]},Notification},module:{exports:{}},console,setImmediate:fn=>{immediates.push(fn);},setTimeout:fn=>{timers.push(fn);return {unref(){}};},setInterval:fn=>{timers.push(fn);return {unref(){}};},clearTimeout(){},clearInterval(){}};
+const sandbox={process:{windowsStore:false},require:name=>name==='electron-updater'?{autoUpdater:updater}:{BrowserWindow:{getAllWindows:()=>[win]},Notification},module:{exports:{}},console,setImmediate:fn=>{immediates.push(fn);},setTimeout:fn=>{timers.push(fn);return {unref(){}};},setInterval:fn=>{timers.push(fn);return {unref(){}};},clearTimeout(){},clearInterval(){}};
 vm.runInNewContext(fs.readFileSync(__dirname+'/updater.js','utf8'),sandbox);
 const mod=sandbox.module.exports;mod.startUpdater(app);
 (async()=>{
@@ -20,5 +20,10 @@ const mod=sandbox.module.exports;mod.startUpdater(app);
  assert.equal(mod.install(),true);assert.equal(mod.getState().status,'installing');assert(notices[0].body.includes('9.0.0'));
  immediates.forEach(fn=>fn());assert.equal(installs,1);assert.equal(JSON.stringify(installArgs),JSON.stringify([true,true]),'sessiz kurulum ve kurulum sonrası yeniden açma');
  assert.equal(mod.install(),false,'ikinci tıklama tekrar kurmamalı');
+ // Microsoft Store sürümü kendi güncelleyicisini çalıştırmaz (Store günceller).
+ const storeTimers=[];let storeFeed=null;
+ const storeSandbox={...sandbox,process:{windowsStore:true},module:{exports:{}},require:name=>name==='electron-updater'?{autoUpdater:{...updater,setFeedURL:x=>storeFeed=x}}:{BrowserWindow:{getAllWindows:()=>[win]},Notification},setTimeout:fn=>{storeTimers.push(fn);return {unref(){}};},setInterval:fn=>{storeTimers.push(fn);return {unref(){}};}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/updater.js','utf8'),storeSandbox);storeSandbox.module.exports.startUpdater(app);
+ assert.equal(storeFeed,null);assert.equal(storeTimers.length,0,'Store sürümünde güncelleme zamanlayıcısı kurulmamalı');
  console.log('PASS: central feed, progress, ready state, install only on click (silent + relaunch), install on quit fallback');
 })();
