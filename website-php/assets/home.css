@@ -1432,3 +1432,10 @@ html.pr-force .vf-word.vf-dancing:after{animation-play-state:running!important}
 .ho-steps.bk-groups ul li{display:list-item;background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin:4px 0;min-height:0;counter-increment:none;transform:none;rotate:none;translate:none;font-size:16px;line-height:1.45}
 .ho-steps.bk-groups ul li::before,.ho-steps.bk-groups ul li::after{content:none}
 .ho-steps.bk-groups ul li:hover{translate:none;box-shadow:none}
+/* İndirme sayfası: Microsoft Store seçeneği */
+.pg-store{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;justify-content:space-between;margin:28px 0 18px;padding:24px 26px;background:var(--ink);color:#fff;border:2px solid var(--ink);border-radius:16px;box-shadow:10px 10px 0 var(--orange)}
+.pg-store>div{flex:1 1 320px;min-width:0}
+.pg-store h2{margin:8px 0 8px;font-size:30px;color:#fff}
+.pg-store p{margin:0;color:#dfe5ee;font-size:16px;line-height:1.5}
+.pg-store-tag{display:inline-block;padding:3px 10px;border:1px solid #ffb27f;color:#ffb27f;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.04em}
+@media(max-width:700px){.pg-store{padding:18px;box-shadow:6px 6px 0 var(--orange)}.pg-store .hx-btn{width:100%;text-align:center}}

@@ -87,7 +87,7 @@ $faq = [
     <h2>Kurulum ve ilk gün</h2>
     <ol class="ho-steps">
       <li><h3>Programı indirin.</h3><p>Windows için kurulum dosyasını, Android için uygulamayı <a href="/program-indir">indirme sayfasından</a> alın. Her dosyanın SHA-256 özeti <a href="/surum-arsivi">sürüm arşivinde</a> yazılıdır; indirdiğiniz dosyayı bununla doğrulayabilirsiniz.</p></li>
-      <li><h3>Windows uyarısı çıkabilir.</h3><p>Kurulum dosyası henüz kod imzalı değildir. Windows “bilgisayarınızı korudu” diyebilir. Dosyayı bu siteden indirdiyseniz <b>Ek bilgi</b> ve ardından <b>Yine de çalıştır</b> ile devam edebilirsiniz. İmzalı kurulum için çalışıyoruz.</p></li>
+      <li><h3>Windows uyarısı çıkabilir.</h3><p>Bulutla çalışacaksanız <a href="https://apps.microsoft.com/detail/9njp3f9m49c0?hl=tr-TR&amp;gl=TR" target="_blank" rel="noopener noreferrer">Microsoft Store sürümünü</a> kurabilirsiniz. Siteden indirilen kurulum dosyası henüz kod imzalı değildir. Windows “bilgisayarınızı korudu” diyebilir. Dosyayı bu siteden indirdiyseniz <b>Ek bilgi</b> ve ardından <b>Yine de çalıştır</b> ile devam edebilirsiniz. İmzalı kurulum için çalışıyoruz.</p></li>
       <li><h3>Verileriniz nerede olsun?</h3><p>Otomatik yerel kurulumda veritabanı bilgisayarınızda hazırlanır; ilk kurulumda indirme için internet gerekir, bilgisayar açık kalmalıdır. Bilgisayara kurulumda internet kesilse de satış sürer. Ayrı sunucu da seçebilirsiniz. <a href="/sunucu-kurulumu">Kurulum seçenekleri</a></p></li>
       <li><h3>Ürünlerinizi girin, kasayı açın.</h3><p>Ürünleri Excel/CSV ile aktarın ya da tek tek ekleyin. Kasayı ilk açarken başlangıç nakdini girip vardiyayı açın, barkodu okutup ödemeyi alın. Gün sonu raporu aynı ekrandadır.</p></li>
     </ol>

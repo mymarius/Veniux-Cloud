@@ -22,9 +22,17 @@
         <a class="pg-stub" href="/indir"><?=homeBarcode('android-indir',60)?><b>İndir</b><span>Uygulama dosyası</span></a>
       </article>
     </div>
+    <aside class="pg-store" aria-labelledby="store-baslik">
+      <div>
+        <span class="pg-store-tag">Bulutla çalışanlar için önerilen</span>
+        <h2 id="store-baslik">Windows için Microsoft Store’dan kurun</h2>
+        <p>Paket Microsoft tarafından imzalanır, güncellemeler Store üzerinden gelir. Bu sürüm yalnız Veniux bulutuyla çalışır: internet bağlantısı ve Veniux hesabı gerekir. Store güncellemeleri onaydan geçtiği için siteden daha geç gelebilir.</p>
+      </div>
+      <a class="hx-btn" href="https://apps.microsoft.com/detail/9njp3f9m49c0?hl=tr-TR&amp;gl=TR" target="_blank" rel="noopener noreferrer">Microsoft Store’da aç</a>
+    </aside>
     <aside class="pg-notice" aria-label="Windows kurulum uyarısı">
-      <b>Önceden söyleyelim</b>
-      <p>Windows kurulum dosyasında henüz doğrulanmış yayıncı imzası yok; SmartScreen uyarısı çıkabilir. Kod imzalama çalışması tamamlanmadı.</p>
+      <b>Kurulum dosyasını seçecekseniz</b>
+      <p>Programı kendi bilgisayarınıza ya da sunucunuza kurmak için yukarıdaki <b>Windows kurulum dosyasını</b> kullanın. Bu dosyada henüz doğrulanmış yayıncı imzası yok; SmartScreen uyarısı çıkabilir.</p>
     </aside>
     <section class="pg-steps" aria-labelledby="kurulum-adimlari">
       <h2 id="kurulum-adimlari">3 adımda kurulum</h2>
