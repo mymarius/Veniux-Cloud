@@ -91,3 +91,16 @@ Fiyat (27 Kas, ön fiyat, kesinleşmedi): berber ve güzellik salonu için TEK p
 27 Kas ek (kullanıcı kararı): WhatsApp randevu asistanı paketin ANA özelliği; her salon kendi WhatsApp işletme numarasını bağlar, gelen mesaja otomatik cevap gider. Yalnız resmî WhatsApp Cloud API kullanılacak (QR ile WhatsApp Web taklidi eden kütüphaneler kullanılmayacak: numara kapatılma riski). Sıra: randevu motoru (Ocak) -> menülü bot, önce sahte WhatsApp adaptörüyle (Şubat) -> Meta onayı sonrası gerçek bağlantı. Aralık'ta doğrulanacaklar (henüz okunmadı): başka işletmelerin numarasını bağlatmak için sağlayıcı/iş ortağı şartları, işletme doğrulaması ve şirket belgesi gereği, mesajlaşma ücretleri, numaranın telefondaki WhatsApp uygulamasıyla birlikte kullanımı.
 
 Güncel randevu paketi planı: `RANDEVU_PAKETI_PLANI.md` (yukarıdaki randevu notlarının yerine geçer: önce online randevu + karşılama mesajında bağlantı, WhatsApp asistanı aracı firma ve resmî onay sonrası, hedef Mart ve sonrası).
+
+## Store sürümünde yerel kurulum (28 Kasım 2026'da plana eklendi; kullanıcı kararı: 30 Kas - 6 Ara haftası)
+Amaç: Microsoft Store sürümü de kayıtları mağaza bilgisayarında tutabilsin. Seçilen yol: SQLite ile yerel mod (internetten XAMPP/MariaDB indirmeden). Bu haftanın diğer zorunlu işi (sahte market verisi ve market testi) ile limit yetmezse hangisinin kayacağı hafta başında kullanıcıya söylenir.
+
+| Sıra | İş |
+|---|---|
+| 1 | Veritabanı ve yedekler Store uygulaması kaldırılınca silinmeyecek kalıcı bir klasörde |
+| 2 | Yerel sunucunun SQLite ile açılışı (arka uç SQLite'ı destekliyor; `desktop/local-server.cjs` bugün MariaDB'ye bağlı); paket yapılandırmasında yerel sunucuyu dahil etme; sürüm seçimi ekranı |
+| 3 | Güncellemeden önce otomatik yedek ve şema yükseltme; geri yükleme denemesi |
+| 4 | Telefonun yerel ağdan QR ile bağlanması |
+| 5 | Gerçek bilgisayarda deneme: kur, veri gir, güncelle, kaldır, yeniden kur; veriler duruyor mu. Sonra yeni Store paketi gönderimi (gönderimi kullanıcı onaylar) |
+
+İlk sürüm yalnız yeni kurulumlar içindir: eski MariaDB kurulumundan veri aktarımı yapılmaz, bu kullanıcıya açıkça yazılır. Bitene kadar yerel kurulum isteyen müşteri sitedeki kurulum dosyasını kullanır. Onaylanınca site metni ve Windows kartı düzeni güncellenir.
