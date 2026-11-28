@@ -104,3 +104,12 @@ Amaç: Microsoft Store sürümü de kayıtları mağaza bilgisayarında tutabils
 | 5 | Gerçek bilgisayarda deneme: kur, veri gir, güncelle, kaldır, yeniden kur; veriler duruyor mu. Sonra yeni Store paketi gönderimi (gönderimi kullanıcı onaylar) |
 
 İlk sürüm yalnız yeni kurulumlar içindir: eski MariaDB kurulumundan veri aktarımı yapılmaz, bu kullanıcıya açıkça yazılır. Bitene kadar yerel kurulum isteyen müşteri sitedeki kurulum dosyasını kullanır. Onaylanınca site metni ve Windows kartı düzeni güncellenir.
+
+## Yön değişikliği: bulut öncelikli (28 Kasım 2026, kullanıcı onayladı)
+Kullanıcı müşterilerin bilgisayarında veri tutulmasını istemiyor; yalnız telefonla çalışan işletmeler de hedefte. **"Store sürümünde yerel kurulum (SQLite)" bölümü İPTAL.** Store sürümü yalnız bulut olarak kalır. Mevcut yerel kurulum silinmez; yeni özellik eklenmez, sitede "gelişmiş seçenek" olarak geri plana alınır.
+
+| Ne zaman | İş |
+|---|---|
+| 30 Kas - 6 Ara | (Takvimdeki sahte market verisi ve market testine ek) "Yalnız telefonla bir gün" denemesi: kayıt, ürün ekleme, barkodla satış, vardiya, rapor, internet kesintisi. Eksikler listelenir |
+| 14 - 20 Ara (güvenlik haftası) | Bulut yedeği başka yerde dursun ve gerçekten geri yüklensin; kesinti uyarısı; barındırma kapasitesi ölçümü. "Destek paketi gönder" ve izinli, süreli, kayıtlı, varsayılanı salt-okunur destek erişimi (gizli erişim yok). Müşteri verisini Excel olarak indirebiliyor mu denetimi |
+| 21 - 27 Ara | Sitede bulut/telefon/Store öne, yerel kurulum geri plana; KVKK ve sözleşme metinleri avukata gösterilecek listeye |
