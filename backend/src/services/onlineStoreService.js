@@ -443,7 +443,7 @@ async function announce(store, order, customer) {
   const tenantId = Number(store.tenant_id);
   const tl = n => Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
   const lines = order.items.map(i => `${i.quantity}× ${i.name} (${tl(i.line_total)})`);
-  const how = (order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim') + ' · ' + (order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme');
+  const how = (order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim') + ' · ' + (order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : order.payment_method === 'card' ? 'Kartla ödeme' : 'Mağazada ödeme');
   try {
     await require('./pushNotifier').notifyTenant(tenantId, { title: 'Yeni online sipariş ' + order.number, body: `${customer.name} · ${tl(order.total)} · ${order.items.length} kalem`, url: '/sektor/online-magaza', tag: 'online-order-' + order.number });
   } catch { /* bildirim en iyi çaba */ }
@@ -491,7 +491,7 @@ async function listOrders(user, query = {}) {
   const total = Number((await db.query('SELECT COUNT(*) AS n ' + base, params)).rows[0].n);
   const rows = (await db.query(`SELECT o.* ${base} ORDER BY o.id DESC LIMIT ${size} OFFSET ${page * size}`, params)).rows;
   const pays = await payments.statusFor(user.tenantId, rows.filter(o => o.payment_method === 'card').map(o => Number(o.id)));
-  return { total, page, page_size: size, items: rows.map(o => ({ payment_status: pays.has(Number(o.id)) ? pays.get(Number(o.id)).status : null, id: Number(o.id), number: codeOf(o.number), status: o.status, customer_name: o.customer_name, phone: o.phone, delivery_method: o.delivery_method, payment_method: o.payment_method, total: round(o.total), created_at: o.created_at })) };
+  return { total, page, page_size: size, items: rows.map(o => ({ payment_status: pays.has(Number(o.id)) ? pays.get(Number(o.id)).status : null, payment_refund: pays.get(Number(o.id))?.refund_state || null, id: Number(o.id), number: codeOf(o.number), status: o.status, customer_name: o.customer_name, phone: o.phone, delivery_method: o.delivery_method, payment_method: o.payment_method, total: round(o.total), created_at: o.created_at })) };
 }
 async function ownOrder(user, id, runner = db) {
   const orderId = Number(id);

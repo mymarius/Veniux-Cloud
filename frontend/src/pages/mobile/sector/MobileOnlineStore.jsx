@@ -13,6 +13,8 @@ const API = '/online-store';
 
 // ---------- Siparişler ----------
 const PAY_LABELS = { pending: 'ödeme bekliyor', paid: 'ödendi', failed: 'başarısız', expired: 'süresi doldu' };
+// İade durumu varsa "ödendi" yerine o gösterilir: işletme paranın iade edilip edilmediğini görür.
+const payLabel = p => p.refund_state === 'done' ? 'iade edildi' : p.refund_state === 'manual' ? 'iade yapılamadı, iyzico panelinden elle iade edin' : PAY_LABELS[p.status] || p.status;
 function OrderSheet({ id, onClose, onChanged }) {
   const detail = useAsync(async () => (await api.get(`${API}/orders/${id}`)).data, [id]);
   const carriers = useAsync(async () => (await api.get(`${API}/carriers`)).data, []);
@@ -29,7 +31,7 @@ function OrderSheet({ id, onClose, onChanged }) {
     {detail.error && <p role="alert" className="vm-err">{detail.error}</p>}
     {order && <>
       <h2 style={{ margin: '0 0 4px' }}>Sipariş {order.number}</h2>
-      <p className="vm-note">{statusLabel(order.status)}{order.payment ? ` · kart: ${PAY_LABELS[order.payment.status] || order.payment.status}` : ''} · {order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim'} · {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : 'Mağazada ödeme'}</p>
+      <p className="vm-note">{statusLabel(order.status)}{order.payment ? ` · kart: ${payLabel(order.payment)}` : ''} · {order.delivery_method === 'pickup' ? 'Mağazadan teslim' : 'Adrese teslim'} · {order.payment_method === 'cod' ? 'Kapıda ödeme' : order.payment_method === 'transfer' ? 'Havale/EFT' : order.payment_method === 'card' ? 'Kartla ödeme' : 'Mağazada ödeme'}</p>
       <div className="vm-list" style={{ margin: '10px 0' }}>{order.items.map(i => <div key={i.product_id} className="vm-row"><span className="grow"><b>{i.quantity}×</b> {i.name}</span><b>{money(i.line_total)}</b></div>)}</div>
       <p className="vm-note">Ara toplam {money(order.subtotal)}{order.discount_amount > 0 ? ` · İndirim −${money(order.discount_amount)} (${order.discount_code})` : ''} · Teslimat {money(order.delivery_fee)}{order.shipping_rule ? ` (${order.shipping_rule})` : ''}</p>
       <p style={{ fontWeight: 800, fontSize: 18 }}>Toplam {money(order.total)}</p>
@@ -76,7 +78,7 @@ function OrdersTab() {
     {orders.error && <p role="alert" className="vm-err">{orders.error}</p>}
     {orders.data && orders.data.items.length === 0 && <EmptyState title="Sipariş yok" text={status === 'open' ? 'Açık sipariş yok. Yeni sipariş gelince burada ve bildirimle görünür.' : 'Bu filtreyle sipariş bulunamadı.'} />}
     <div className="vm-list">{(orders.data?.items || []).map(o => <button key={o.id} type="button" className="vm-row" onClick={() => setSelected(o.id)}>
-      <span className="grow"><b>{o.number}</b> · {o.customer_name}<small>{statusLabel(o.status)}{o.payment_status ? ` · kart: ${PAY_LABELS[o.payment_status] || o.payment_status}` : ''} · {String(o.created_at).slice(0, 16).replace('T', ' ')}</small></span><b>{money(o.total)}</b></button>)}</div>
+      <span className="grow"><b>{o.number}</b> · {o.customer_name}<small>{statusLabel(o.status)}{o.payment_status ? ` · kart: ${payLabel({ status: o.payment_status, refund_state: o.payment_refund })}` : ''} · {String(o.created_at).slice(0, 16).replace('T', ' ')}</small></span><b>{money(o.total)}</b></button>)}</div>
     {selected && <OrderSheet id={selected} onClose={() => setSelected(null)} onChanged={() => { orders.reload(); summary.reload(); }} />}
   </div>;
 }
@@ -348,8 +350,8 @@ function PaymentCard() {
     <b>Kartla ödeme (iyzico)</b>
     <p className="vm-note">Müşteri kartını iyzico’nun güvenli sayfasında girer; kart bilgisi Veniux’a ve mağazaya gelmez. Para doğrudan kendi iyzico hesabınıza geçer, Veniux komisyon almaz. Önce iyzico’da üye işyeri hesabı açıp API anahtarlarını alın. Deneme için “sandbox” anahtarlarıyla başlayın.</p>
     {d.has_keys && <p className="vm-note">Kayıtlı anahtar: …{d.key_hint} · {d.sandbox ? 'deneme (sandbox)' : 'canlı'} · {d.enabled ? 'açık' : 'kapalı'}</p>}
-    <label className="vm-field"><input aria-label="iyzico API anahtarı" autoComplete="off" placeholder={d.has_keys ? 'API anahtarı (değiştirmek için yazın)' : 'API anahtarı'} value={form.api_key} onChange={e => setForm(f => ({ ...f, api_key: e.target.value }))} /></label>
-    <label className="vm-field"><input aria-label="iyzico gizli anahtar" type="password" autoComplete="off" placeholder={d.has_keys ? 'Gizli anahtar (değiştirmek için yazın)' : 'Gizli anahtar'} value={form.secret_key} onChange={e => setForm(f => ({ ...f, secret_key: e.target.value }))} /></label>
+    <label className="vm-field"><input aria-label="iyzico API anahtarı" name="iyzico-api-key" autoComplete="off" data-lpignore="true" data-1p-ignore="true" spellCheck={false} placeholder={d.has_keys ? 'API anahtarı (değiştirmek için yazın)' : 'API anahtarı'} value={form.api_key} onChange={e => setForm(f => ({ ...f, api_key: e.target.value }))} /></label>
+    <label className="vm-field"><input aria-label="iyzico gizli anahtar" name="iyzico-secret-key" type="password" autoComplete="new-password" data-lpignore="true" data-1p-ignore="true" placeholder={d.has_keys ? 'Gizli anahtar (değiştirmek için yazın)' : 'Gizli anahtar'} value={form.secret_key} onChange={e => setForm(f => ({ ...f, secret_key: e.target.value }))} /></label>
     <label className="vm-row" style={{ cursor: 'pointer' }}><input type="checkbox" checked={d.sandbox} onChange={e => run(() => api.put(`${API}/payment`, { ...form, sandbox: e.target.checked }))} style={{ width: 22, height: 22 }} disabled={!d.has_keys && !(form.api_key && form.secret_key)} /><span className="grow">Deneme modu (sandbox)</span></label>
     {message && <p role="status" className={/^Kaydedildi/.test(message) ? 'vm-note' : 'vm-err'}>{message}</p>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

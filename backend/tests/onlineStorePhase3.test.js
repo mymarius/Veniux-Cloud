@@ -277,3 +277,11 @@ test('aynı ödeme için eşzamanlı sorgular tek sonuç yazar: not ve ödeme ka
   const final = (await db.query('SELECT status FROM online_payments WHERE order_id=$1', [done.order_id])).rows[0].status;
   expect(results.every(r => r.status === final || r.status === 'cancelled')).toBe(true);
 });
+
+test('iade durumu sipariş listesinde döner (panel \"ödendi\" yerine iadeyi gösterebilsin)', async () => {
+  const db = require('../src/config/database');
+  const row = (await db.query('SELECT tenant_id,order_id FROM online_payments ORDER BY order_id DESC LIMIT 1')).rows[0];
+  await db.query("UPDATE online_payments SET status='paid',refund_state='done' WHERE order_id=$1", [row.order_id]);
+  const list = await require('../src/services/onlineStoreService').listOrders({ tenantId: Number(row.tenant_id), role: 'admin' }, {});
+  expect(list.items.find(i => i.id === Number(row.order_id)).payment_refund).toBe('done');
+});
