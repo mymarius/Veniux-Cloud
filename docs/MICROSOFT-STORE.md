@@ -18,3 +18,6 @@ Gizlilik politikası adresi, ekran görüntüleri, açıklama, yaş derecelendir
 
 ## 28 Kasım durumu
 Partner Center taslağında Pricing (indirme ücretsiz, TRY 0, tüm pazarlar), Properties (Business; gizlilik adresi; "Store dışı satın alma" ve "üretken yapay zekâ" beyanları), Packages, Store listing (yalnız Türkçe, 1 ekran görüntüsü; İngilizce liste kaldırıldı) ve Submission options (onaydan sonra elle yayınla; runFullTrust gerekçesi) tamam. Kalan: yaş anketi (IARC koşulları ve e-posta paylaşımı: kullanıcı yapar), Additional Testing Information deneme hesabı (kullanıcı), gönderim. Gönderilmedi.
+
+## 28 Kasım: ONAYLANDI ve yayında
+Store adresi: https://apps.microsoft.com/detail/9njp3f9m49c0 . Sitede /program-indir sayfasına Store seçeneği eklendi. Store sürümü bilgisayara kurulup tarafımızdan henüz denenmedi. Yeni Store paketi her seferinde elle üretilip gönderilir.
